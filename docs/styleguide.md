@@ -7,3 +7,12 @@ We use (material design icons)[https://pictogrammers.com/library/mdi/] in line w
 
 
 APP -> https://pictogrammers.com/library/mdi/icon/hub/
+
+
+Events -> https://pictogrammers.com/library/mdi/icon/cloud-upload-outline/
+Subsriber list -> https://pictogrammers.com/library/mdi/icon/format-list-group/ 
+Mappings -> https://pictogrammers.com/library/mdi/icon/sitemap-outline/
+Jobs -> https://pictogrammers.com/library/mdi/icon/update/
+Synchronysiatie _> https://pictogrammers.com/library/mdi/icon/vector-polyline-plus/
+
+mdiVectorPolylineEdit

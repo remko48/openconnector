@@ -27,7 +27,7 @@ Create a [feature request](https://github.com/OpenCatalogi/.github/issues/new/ch
 	<author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
 	<namespace>OpenConnector</namespace>
     <category>integration</category>
-    <website>https://github.com/ConductionNL/Register</website>
+    <website>https://github.com/ConductionNL/OpenConnector</website>
 	<bugs>https://github.com/ConductionNL/OpenConnector/issues</bugs>
     <repository type="git">https://github.com/ConductionNL/OpenConnector.git</repository>
 
@@ -50,7 +50,6 @@ Create a [feature request](https://github.com/OpenCatalogi/.github/issues/new/ch
 			<name>Connector</name>
 			<route>openconnector.dashboard.page</route>
 			<icon>app.svg</icon>
-			<type>link</type>
 		</navigation>
 	</navigations>
 </info>
