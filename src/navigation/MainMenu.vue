@@ -10,6 +10,26 @@ import { navigationStore } from '../store/store.js'
 					<Finance :size="20" />
 				</template>
 			</NcAppNavigationItem>
+			<NcAppNavigationItem :active="navigationStore.selected === 'sources'" name="Sources" @click="navigationStore.setSelected('dashboard')">
+				<template #icon>
+					<DatabaseArrowLeftOutline :size="20" />
+				</template>
+			</NcAppNavigationItem>
+			<NcAppNavigationItem :active="navigationStore.selected === 'mappings'" name="Mappings" @click="navigationStore.setSelected('dashboard')">
+				<template #icon>
+					<SitemapOutline :size="20" />
+				</template>
+			</NcAppNavigationItem>
+			<NcAppNavigationItem :active="navigationStore.selected === 'jobs'" name="Jobs" @click="navigationStore.setSelected('dashboard')">
+				<template #icon>
+					<Update :size="20" />
+				</template>
+			</NcAppNavigationItem>
+			<NcAppNavigationItem :active="navigationStore.selected === 'synchronization'" name="Synchronization" @click="navigationStore.setSelected('dashboard')">
+				<template #icon>
+					<VectorPolylinePlus :size="20" />
+				</template>
+			</NcAppNavigationItem>
 		</NcAppNavigationList>
 	</NcAppNavigation>
 </template>
@@ -23,6 +43,10 @@ import {
 
 // Icons
 import Finance from 'vue-material-design-icons/Finance.vue'
+import DatabaseArrowLeftOutline from 'vue-material-design-icons/DatabaseArrowLeftOutline.vue'
+import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
+import Update from 'vue-material-design-icons/Update.vue'
+import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 
 export default {
 	name: 'MainMenu',
@@ -33,6 +57,10 @@ export default {
 		NcAppNavigationItem,
 		// icons
 		Finance,
+		DatabaseArrowLeftOutline,
+		SitemapOutline,
+		Update,
+		VectorPolylinePlus,
 	},
 	methods: {
 		openLink(url, type = '') {
