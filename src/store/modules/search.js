@@ -20,7 +20,7 @@ export const useSearchStore = defineStore(
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			getSearchResults() {
 				fetch(
-					'/index.php/apps/opencatalogi/api/search?_search=' + this.search,
+					'/index.php/apps/openconnector/api/search?_search=' + this.search,
 					{
 						method: 'GET',
 					},

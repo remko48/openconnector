@@ -1,0 +1,159 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\OpenConnector\Migration;
+
+use Closure;
+use OCP\DB\ISchemaWrapper;
+use OCP\DB\Types;
+use OCP\Migration\IOutput;
+use OCP\Migration\SimpleMigrationStep;
+
+
+/**
+ * FIXME Auto-generated migration step: Please modify to your needs!
+ */
+class Version0Date20240904233557 extends SimpleMigrationStep {
+
+	/**
+	 * @param IOutput $output
+	 * @param Closure(): ISchemaWrapper $schemaClosure
+	 * @param array $options
+	 */
+	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+	}
+
+	/**
+	 * @param IOutput $output
+	 * @param Closure(): ISchemaWrapper $schemaClosure
+	 * @param array $options
+	 * @return null|ISchemaWrapper
+	 */
+	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
+		/**
+		 * @var ISchemaWrapper $schema
+		 */
+		$schema = $schemaClosure();
+
+		if (!$schema->hasTable('openconnector_jobs')) {
+			$table = $schema->createTable('openconnector_jobs');
+			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('version', Types::STRING, ['notnull' => false, 'length' => 50]);
+			$table->addColumn('crontab', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('throws', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('data', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('last_run', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('next_run', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('is_enabled', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('listens', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('conditions', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('class', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('priority', Types::INTEGER, ['notnull' => false]);
+			$table->addColumn('async', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
+			$table->addColumn('configuration', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('is_lockable', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
+			$table->addColumn('locked', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
+			$table->addColumn('last_run_time', Types::INTEGER, ['notnull' => false]);
+			$table->addColumn('status', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
+			$table->addColumn('action_handler_configuration', Types::TEXT, ['notnull' => false]);
+			$table->setPrimaryKey(['id']);
+		}
+
+		if (!$schema->hasTable('openconnector_logs')) {
+			$table = $schema->createTable('openconnector_logs');
+			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+			$table->addColumn('type', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('call_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('request_method', Types::STRING, ['notnull' => false, 'length' => 10]);
+			$table->addColumn('request_headers', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('request_query', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('request_path_info', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('request_languages', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('request_server', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('request_content', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('response_status', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('response_status_code', Types::INTEGER, ['notnull' => false]);
+			$table->addColumn('response_headers', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('response_content', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('session', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('session_values', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('response_time', Types::INTEGER, ['notnull' => false]);
+			$table->addColumn('route_name', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('route_parameters', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('entity', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('endpoint', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('gateway', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('handler', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('object_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->setPrimaryKey(['id']);
+		}
+
+		if (!$schema->hasTable('openconnector_mappings')) {
+			$table = $schema->createTable('openconnector_mappings');
+			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('source_entity', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('target_entity', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('mapping', Types::TEXT, ['notnull' => true]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->setPrimaryKey(['id']);
+		}
+
+		if (!$schema->hasTable('openconnector_sources')) {
+			$table = $schema->createTable('openconnector_sources');
+			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('type', Types::STRING, ['notnull' => true, 'length' => 50]);
+			$table->addColumn('configuration', Types::TEXT, ['notnull' => true]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->setPrimaryKey(['id']);
+		}
+
+		if (!$schema->hasTable('openconnector_synchronizations')) {
+			$table = $schema->createTable('larpingapp_synchronizations');
+			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('source_id', Types::BIGINT, ['notnull' => true]);
+			$table->addColumn('mapping_id', Types::BIGINT, ['notnull' => true]);
+			$table->addColumn('target_entity', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('configuration', Types::TEXT, ['notnull' => true]);
+			$table->addColumn('last_sync', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('status', Types::STRING, ['notnull' => true, 'length' => 50]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->setPrimaryKey(['id']);
+			$table->addForeignKeyConstraint($schema->getTable('larpingapp_sources'), ['source_id'], ['id']);
+			$table->addForeignKeyConstraint($schema->getTable('larpingapp_mappings'), ['mapping_id'], ['id']);
+		}
+
+		return $schema;
+	}
+
+	/**
+	 * @param IOutput $output
+	 * @param Closure(): ISchemaWrapper $schemaClosure
+	 * @param array $options
+	 */
+	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+	}
+}

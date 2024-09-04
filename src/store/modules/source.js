@@ -11,7 +11,7 @@ export const useSourceStore = defineStore(
 		actions: {
 			setSourceItem(sourceItem) {
 				this.sourceItem = sourceItem && new Source(sourceItem)
-				console.log('Active source item set to ' + sourceItem && sourceItem?.id)
+				console.log('Active source item set to ' + sourceItem)
 			},
 			setSourceList(sourceList) {
 				this.sourceList = sourceList.map(
@@ -22,22 +22,44 @@ export const useSourceStore = defineStore(
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshSourceList(search = null) {
 				// @todo this might belong in a service?
-				let endpoint = '/index.php/apps/larpingapp/api/sources'
+				let endpoint = '/index.php/apps/openconnector/api/sources'
 				if (search !== null && search !== '') {
 					endpoint = endpoint + '?_search=' + search
 				}
 				return fetch(endpoint, {
 					method: 'GET',
 				})
-					.then((response) => {
-						response.json().then((data) => {
-							this.setSourceList(data.results)
-						})
-					})
-					.catch((err) => {
-						console.error(err)
-					})
+					.then(
+						(response) => {
+							response.json().then(
+								(data) => {
+									this.setSourceList(data.results)
+								},
+							)
+						},
+					)
+					.catch(
+						(err) => {
+							console.error(err)
+						},
+					)
 			},
+			// New function to get a single source
+			async getSource(id) {
+				const endpoint = `/index.php/apps/openconnector/api/sources/${id}`
+				try {
+					const response = await fetch(endpoint, {
+						method: 'GET',
+					})
+					const data = await response.json()
+					this.setSourceItem(data)
+					return data
+				} catch (err) {
+					console.error(err)
+					throw err
+				}
+			},
+			// Delete a source
 			deleteSource() {
 				if (!this.sourceItem || !this.sourceItem.id) {
 					throw new Error('No source item to delete')
@@ -45,7 +67,7 @@ export const useSourceStore = defineStore(
 
 				console.log('Deleting source...')
 
-				const endpoint = `/index.php/apps/larpingapp/api/sources/${this.sourceItem.id}`
+				const endpoint = `/index.php/apps/openconnector/api/sources/${this.sourceItem.id}`
 
 				return fetch(endpoint, {
 					method: 'DELETE',
@@ -58,7 +80,7 @@ export const useSourceStore = defineStore(
 						throw err
 					})
 			},
-
+			// Create or save a source from store
 			saveSource() {
 				if (!this.sourceItem) {
 					throw new Error('No source item to save')
@@ -68,9 +90,17 @@ export const useSourceStore = defineStore(
 
 				const isNewSource = !this.sourceItem.id
 				const endpoint = isNewSource
-					? '/index.php/apps/larpingapp/api/sources'
-					: `/index.php/apps/larpingapp/api/sources/${this.sourceItem.id}`
+					? '/index.php/apps/openconnector/api/sources'
+					: `/index.php/apps/openconnector/api/sources/${this.sourceItem.id}`
 				const method = isNewSource ? 'POST' : 'PUT'
+
+				// Create a copy of the source item and remove empty properties
+				const sourceToSave = { ...this.sourceItem }
+				Object.keys(sourceToSave).forEach(key => {
+					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && sourceToSave[key].length === 0)) {
+						delete sourceToSave[key]
+					}
+				})
 
 				return fetch(
 					endpoint,
@@ -79,13 +109,14 @@ export const useSourceStore = defineStore(
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify(this.sourceItem),
+						body: JSON.stringify(sourceToSave),
 					},
 				)
 					.then((response) => response.json())
 					.then((data) => {
 						this.setSourceItem(data)
 						console.log('Source saved')
+						// Refresh the source list
 						return this.refreshSourceList()
 					})
 					.catch((err) => {

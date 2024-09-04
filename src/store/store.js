@@ -5,7 +5,7 @@ import { useNavigationStore } from './modules/navigation.js'
 import { useSearchStore } from './modules/search.js'
 import { useJobStore } from './modules/job.js'
 import { useLogStore } from './modules/log.js'
-import { useMappingtore } from './modules/mapping.js'
+import { useMappingStore } from './modules/mapping.js'
 import { useSourceStore } from './modules/source.js'
 import { useSynchronizationStore } from './modules/synchronization.js'
 

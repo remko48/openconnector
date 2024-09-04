@@ -10,22 +10,22 @@ import { navigationStore } from '../store/store.js'
 					<Finance :size="20" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem :active="navigationStore.selected === 'sources'" name="Sources" @click="navigationStore.setSelected('dashboard')">
+			<NcAppNavigationItem :active="navigationStore.selected === 'sources'" name="Sources" @click="navigationStore.setSelected('sources')">
 				<template #icon>
 					<DatabaseArrowLeftOutline :size="20" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem :active="navigationStore.selected === 'mappings'" name="Mappings" @click="navigationStore.setSelected('dashboard')">
+			<NcAppNavigationItem :active="navigationStore.selected === 'mappings'" name="Mappings" @click="navigationStore.setSelected('mappings')">
 				<template #icon>
 					<SitemapOutline :size="20" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem :active="navigationStore.selected === 'jobs'" name="Jobs" @click="navigationStore.setSelected('dashboard')">
+			<NcAppNavigationItem :active="navigationStore.selected === 'jobs'" name="Jobs" @click="navigationStore.setSelected('jobs')">
 				<template #icon>
 					<Update :size="20" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem :active="navigationStore.selected === 'synchronization'" name="Synchronization" @click="navigationStore.setSelected('dashboard')">
+			<NcAppNavigationItem :active="navigationStore.selected === 'synchronizations'" name="Synchronization" @click="navigationStore.setSelected('synchronizations')">
 				<template #icon>
 					<VectorPolylinePlus :size="20" />
 				</template>

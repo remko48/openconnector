@@ -12,15 +12,6 @@ The OpenCatalogi Nextcloud app provides a framework for federated catalogi to wo
 - 📰 Send cloud eventt
 - 🆓 Map and translate api calls
 
-**System Cron is currently required for this app to work**
-
-Requirements can be found [here](https://conduction.gitbook.io/opencatalogi-nextcloud/installatie)
-
-The Roadmap is available [here](https://github.com/orgs/OpenCatalogi/projects/1/views/2)
-
-Create a [bug report](https://github.com/OpenCatalogi/.github/issues/new/choose)
-
-Create a [feature request](https://github.com/OpenCatalogi/.github/issues/new/choose)
     ]]></description>
 	<version>0.1.1</version>
 	<licence>agpl</licence>
