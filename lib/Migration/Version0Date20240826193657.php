@@ -18,8 +18,8 @@ use OCP\Migration\SimpleMigrationStep;
 
 /**
  * FIXME Auto-generated migration step: Please modify to your needs!
- */
-class Version0Date20240904233557 extends SimpleMigrationStep {
+ * 
+ */class Version0Date20240826193658 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -106,11 +106,14 @@ class Version0Date20240904233557 extends SimpleMigrationStep {
 		if (!$schema->hasTable('openconnector_mappings')) {
 			$table = $schema->createTable('openconnector_mappings');
 			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('version', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('name', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('source_entity', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('target_entity', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('mapping', Types::TEXT, ['notnull' => true]);
+			$table->addColumn('mapping', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('unset', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('cast', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('pass_trough', Types::BOOLEAN, ['notnull' => false]);
 			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
 			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
 			$table->setPrimaryKey(['id']);
@@ -121,29 +124,63 @@ class Version0Date20240904233557 extends SimpleMigrationStep {
 			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
 			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
 			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('version', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('location', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('is_enabled', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
 			$table->addColumn('type', Types::STRING, ['notnull' => true, 'length' => 50]);
-			$table->addColumn('configuration', Types::TEXT, ['notnull' => true]);
+			$table->addColumn('authorization_header', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('auth', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('authentication_config', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('authorization_passthrough_method', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('locale', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('accept', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('jwt', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('jwt_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('secret', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('username', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('password', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('apikey', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('documentation', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('logging_config', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('oas', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('paths', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('headers', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('translation_config', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('configuration', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('endpoints_config', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('status', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('last_call', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('last_sync', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('object_count', Types::INTEGER, ['notnull' => false]);
 			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
 			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('test', Types::BOOLEAN, ['notnull' => false]);
 			$table->setPrimaryKey(['id']);
 		}
 
 		if (!$schema->hasTable('openconnector_synchronizations')) {
-			$table = $schema->createTable('larpingapp_synchronizations');
+			$table = $schema->createTable('openconnector_synchronizations');
 			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('source_id', Types::BIGINT, ['notnull' => true]);
-			$table->addColumn('mapping_id', Types::BIGINT, ['notnull' => true]);
-			$table->addColumn('target_entity', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('configuration', Types::TEXT, ['notnull' => true]);
-			$table->addColumn('last_sync', Types::DATETIME, ['notnull' => false]);
-			$table->addColumn('status', Types::STRING, ['notnull' => true, 'length' => 50]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('entity', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('object', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('action', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('gateway', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('sourceObject', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('endpoint', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('sourceId', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('hash', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('sha', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('blocked', Types::BOOLEAN, ['notnull' => false]);
+			$table->addColumn('sourceLastChanged', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('lastChecked', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('lastSynced', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('dateCreated', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('dateModified', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('tryCounter', Types::INTEGER, ['notnull' => false]);
+			$table->addColumn('dontSyncBefore', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('mapping', Types::TEXT, ['notnull' => false]);
 			$table->setPrimaryKey(['id']);
-			$table->addForeignKeyConstraint($schema->getTable('larpingapp_sources'), ['source_id'], ['id']);
-			$table->addForeignKeyConstraint($schema->getTable('larpingapp_mappings'), ['mapping_id'], ['id']);
 		}
 
 		return $schema;
