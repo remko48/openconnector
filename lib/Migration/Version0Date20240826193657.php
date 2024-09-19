@@ -55,8 +55,6 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('last_run', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('next_run', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('is_enabled', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
 			$table->addColumn('listens', Types::TEXT, ['notnull' => false]);
 			$table->addColumn('conditions', Types::TEXT, ['notnull' => false]);
 			$table->addColumn('class', Types::STRING, ['notnull' => false, 'length' => 255]);
@@ -68,6 +66,8 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('last_run_time', Types::INTEGER, ['notnull' => false]);
 			$table->addColumn('status', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
 			$table->addColumn('action_handler_configuration', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
 		}
 
@@ -98,8 +98,8 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('gateway', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('handler', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('object_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
 		}
 
@@ -114,8 +114,8 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('unset', Types::TEXT, ['notnull' => false]);
 			$table->addColumn('cast', Types::TEXT, ['notnull' => false]);
 			$table->addColumn('pass_trough', Types::BOOLEAN, ['notnull' => false]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
 		}
 
@@ -153,9 +153,9 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('last_call', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('last_sync', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('object_count', Types::INTEGER, ['notnull' => false]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true]);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true]);
 			$table->addColumn('test', Types::BOOLEAN, ['notnull' => false]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
 		}
 
@@ -175,11 +175,11 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('sourceLastChanged', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('lastChecked', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('lastSynced', Types::DATETIME, ['notnull' => false]);
-			$table->addColumn('dateCreated', Types::DATETIME, ['notnull' => true]);
-			$table->addColumn('dateModified', Types::DATETIME, ['notnull' => true]);
 			$table->addColumn('tryCounter', Types::INTEGER, ['notnull' => false]);
 			$table->addColumn('dontSyncBefore', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('mapping', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
 		}
 
