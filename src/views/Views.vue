@@ -5,14 +5,14 @@ import { navigationStore } from '../store/store.js'
 <template>
 	<!-- Placeholder div for all of the views-->
 	<NcAppContent>
-			<template #default>
-				<Dashboard v-if="navigationStore.selected === 'dashboard'" />
-				<SourcesIndex v-if="navigationStore.selected === 'sources'" />
-				<JobsIndex v-if="navigationStore.selected === 'jobs'" />
-				<LogsIndex v-if="navigationStore.selected === 'logs'" />
-				<MappingsIndex v-if="navigationStore.selected === 'mappings'" />
-				<SynchronizationsIndex v-if="navigationStore.selected === 'synchronizations'" />
-			</template>
+		<template #default>
+			<Dashboard v-if="navigationStore.selected === 'dashboard'" />
+			<SourcesIndex v-if="navigationStore.selected === 'sources'" />
+			<JobsIndex v-if="navigationStore.selected === 'jobs'" />
+			<LogsIndex v-if="navigationStore.selected === 'logs'" />
+			<MappingsIndex v-if="navigationStore.selected === 'mappings'" />
+			<SynchronizationsIndex v-if="navigationStore.selected === 'synchronizations'" />
+		</template>
 	</NcAppContent>
 </template>
 

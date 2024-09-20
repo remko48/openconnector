@@ -48,20 +48,20 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 					<template #actions>
 						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setModal('editSynchronization')">
 							<template #icon>
-								<Pencil/>
+								<Pencil />
 							</template>
 							Bewerken
 						</NcActionButton>
 						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
-								<TrashCanOutline/>
+								<TrashCanOutline />
 							</template>
 							Verwijderen
 						</NcActionButton>
 					</template>
 				</NcListItem>
 			</div>
-		</ul> 
+		</ul>
 
 		<NcLoadingIcon v-if="!synchronizationStore.synchronizationList"
 			class="loadingIcon"

@@ -4,74 +4,74 @@ import { mappingStore, navigationStore, searchStore } from '../../store/store.js
 
 <template>
 	<NcAppContentList>
-			<ul>
-				<div class="listHeader">
-					<NcTextField
-						:value.sync="searchStore.search"
-						:show-trailing-button="searchStore.search !== ''"
-						label="Search"
-						class="searchField"
-						trailing-button-icon="close"
-						@trailing-button-click="mappingStore.refreshMappingList()">
-						<Magnify :size="20" />
-					</NcTextField>
-					<NcActions>
-						<NcActionButton @click="mappingStore.refreshMappingList()">
-							<template #icon>
-								<Refresh :size="20" />
-							</template>
-							Ververs
-						</NcActionButton>
-						<NcActionButton @click="mappingStore.setMappingItem({}); navigationStore.setModal('editMapping')">
-							<template #icon>
-								<Plus :size="20" />
-							</template>
-							Mapping toevoegen
-						</NcActionButton>
-					</NcActions>
-				</div>
-				<div v-if="mappingStore.mappingList && mappingStore.mappingList.length > 0">
-					<NcListItem v-for="(mapping, i) in mappingStore.mappingList"
-						:key="`${mapping}${i}`"
-						:name="mapping.name"
-						:active="mappingStore.mappingItem?.id === mapping?.id"
-						:force-display-actions="true"
-						@click="mappingStore.setMappingItem(mapping)">
+		<ul>
+			<div class="listHeader">
+				<NcTextField
+					:value.sync="searchStore.search"
+					:show-trailing-button="searchStore.search !== ''"
+					label="Search"
+					class="searchField"
+					trailing-button-icon="close"
+					@trailing-button-click="mappingStore.refreshMappingList()">
+					<Magnify :size="20" />
+				</NcTextField>
+				<NcActions>
+					<NcActionButton @click="mappingStore.refreshMappingList()">
 						<template #icon>
-							<MapMarker :class="mappingStore.mappingItem?.id === mapping.id && 'selectedMappingIcon'"
-								disable-menu
-								:size="44" />
+							<Refresh :size="20" />
 						</template>
-						<template #subname>
-							{{ mapping?.description }}
+						Ververs
+					</NcActionButton>
+					<NcActionButton @click="mappingStore.setMappingItem({}); navigationStore.setModal('editMapping')">
+						<template #icon>
+							<Plus :size="20" />
 						</template>
-						<template #actions>
-							<NcActionButton @click="mappingStore.setMappingItem(mapping); navigationStore.setModal('editMapping')">
-								<template #icon>
-									<Pencil/>
-								</template>
-								Bewerken
-							</NcActionButton>
-							<NcActionButton @click="mappingStore.setMappingItem(mapping); navigationStore.setDialog('deleteMapping')">
-								<template #icon>
-									<TrashCanOutline/>
-								</template>
-								Verwijderen
-							</NcActionButton>
-						</template>
-					</NcListItem>
-				</div>
-			</ul> 
-
-			<NcLoadingIcon v-if="!mappingStore.mappingList"
-				class="loadingIcon"
-				:size="64"
-				appearance="dark"
-				name="Mappings aan het laden" />
-
-			<div v-if="mappingStore.mappingList.length === 0">
-				Er zijn nog geen mappings gedefinieerd.
+						Mapping toevoegen
+					</NcActionButton>
+				</NcActions>
 			</div>
+			<div v-if="mappingStore.mappingList && mappingStore.mappingList.length > 0">
+				<NcListItem v-for="(mapping, i) in mappingStore.mappingList"
+					:key="`${mapping}${i}`"
+					:name="mapping.name"
+					:active="mappingStore.mappingItem?.id === mapping?.id"
+					:force-display-actions="true"
+					@click="mappingStore.setMappingItem(mapping)">
+					<template #icon>
+						<MapMarker :class="mappingStore.mappingItem?.id === mapping.id && 'selectedMappingIcon'"
+							disable-menu
+							:size="44" />
+					</template>
+					<template #subname>
+						{{ mapping?.description }}
+					</template>
+					<template #actions>
+						<NcActionButton @click="mappingStore.setMappingItem(mapping); navigationStore.setModal('editMapping')">
+							<template #icon>
+								<Pencil />
+							</template>
+							Bewerken
+						</NcActionButton>
+						<NcActionButton @click="mappingStore.setMappingItem(mapping); navigationStore.setDialog('deleteMapping')">
+							<template #icon>
+								<TrashCanOutline />
+							</template>
+							Verwijderen
+						</NcActionButton>
+					</template>
+				</NcListItem>
+			</div>
+		</ul>
+
+		<NcLoadingIcon v-if="!mappingStore.mappingList"
+			class="loadingIcon"
+			:size="64"
+			appearance="dark"
+			name="Mappings aan het laden" />
+
+		<div v-if="mappingStore.mappingList.length === 0">
+			Er zijn nog geen mappings gedefinieerd.
+		</div>
 	</NcAppContentList>
 </template>
 

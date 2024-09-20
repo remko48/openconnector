@@ -16,19 +16,19 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<label for="name">Naam:</label>
-					<input v-model="sourceStore.sourceItem.name" id="name" required>
+					<input id="name" v-model="sourceStore.sourceItem.name" required>
 				</div>
 				<div class="form-group">
 					<label for="description">Beschrijving:</label>
-					<textarea v-model="sourceStore.sourceItem.description" id="description"></textarea>
+					<textarea id="description" v-model="sourceStore.sourceItem.description" />
 				</div>
 				<div class="form-group">
 					<label for="type">Type:</label>
-					<NcSelect v-model="sourceStore.sourceItem.type" id="type" :options="typeOptions" />
+					<NcSelect id="type" v-model="sourceStore.sourceItem.type" :options="typeOptions" />
 				</div>
 				<div class="form-group">
 					<label for="connection">Verbinding:</label>
-					<input v-model="sourceStore.sourceItem.connection" id="connection" required>
+					<input id="connection" v-model="sourceStore.sourceItem.connection" required>
 				</div>
 			</form>
 
@@ -51,8 +51,6 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
-	NcTextField,
-	NcTextArea,
 	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
@@ -63,8 +61,6 @@ export default {
 	name: 'EditSource',
 	components: {
 		NcModal,
-		NcTextField,
-		NcTextArea,
 		NcButton,
 		NcSelect,
 		NcLoadingIcon,
@@ -103,7 +99,7 @@ export default {
 				this.success = false
 				this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de bron'
 			}
-		}
+		},
 	},
 }
 </script>
