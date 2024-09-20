@@ -2,7 +2,7 @@
 import { setActivePinia, createPinia } from 'pinia'
 
 import { useSourceStore } from './source.js'
-import { Source, mockSources } from '../../entities/index.js'
+import { Source, mockSource } from '../../entities/index.js'
 
 describe('Source Store', () => {
 	beforeEach(() => {
@@ -12,10 +12,10 @@ describe('Source Store', () => {
 	it('sets source item correctly', () => {
 		const store = useSourceStore()
 
-		store.setSourceItem(mockSources()[0])
+		store.setSourceItem(mockSource()[0])
 
 		expect(store.sourceItem).toBeInstanceOf(Source)
-		expect(store.sourceItem).toEqual(mockSources()[0])
+		expect(store.sourceItem).toEqual(mockSource()[0])
 
 		expect(store.sourceItem.validate().success).toBe(true)
 	})
@@ -23,14 +23,14 @@ describe('Source Store', () => {
 	it('sets source list correctly', () => {
 		const store = useSourceStore()
 
-		store.setSourceList(mockSources())
+		store.setSourceList(mockSource())
 
-		expect(store.sourceList).toHaveLength(mockSources().length)
+		expect(store.sourceList).toHaveLength(mockSource().length)
 
 		// Test each item in the list
 		store.sourceList.forEach((item, index) => {
 			expect(item).toBeInstanceOf(Source)
-			expect(item).toEqual(mockSources()[index])
+			expect(item).toEqual(mockSource()[index])
 			expect(item.validate().success).toBe(true)
 		})
 	})
