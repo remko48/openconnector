@@ -16,23 +16,23 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<label for="name">Naam:</label>
-					<input v-model="synchronizationStore.synchronizationItem.name" id="name" required>
+					<input id="name" v-model="synchronizationStore.synchronizationItem.name" required>
 				</div>
 				<div class="form-group">
 					<label for="description">Beschrijving:</label>
-					<textarea v-model="synchronizationStore.synchronizationItem.description" id="description"></textarea>
+					<textarea id="description" v-model="synchronizationStore.synchronizationItem.description" />
 				</div>
 				<div class="form-group">
 					<label for="source">Bron:</label>
-					<NcSelect v-model="synchronizationStore.synchronizationItem.source" id="source" :options="sourceOptions" />
+					<NcSelect id="source" v-model="synchronizationStore.synchronizationItem.source" :options="sourceOptions" />
 				</div>
 				<div class="form-group">
 					<label for="target">Doel:</label>
-					<NcSelect v-model="synchronizationStore.synchronizationItem.target" id="target" :options="targetOptions" />
+					<NcSelect id="target" v-model="synchronizationStore.synchronizationItem.target" :options="targetOptions" />
 				</div>
 				<div class="form-group">
 					<label for="schedule">Schema:</label>
-					<input v-model="synchronizationStore.synchronizationItem.schedule" id="schedule" placeholder="Cron expressie">
+					<input id="schedule" v-model="synchronizationStore.synchronizationItem.schedule" placeholder="Cron expressie">
 				</div>
 			</form>
 
@@ -55,8 +55,6 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
-	NcTextField,
-	NcTextArea,
 	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
@@ -67,8 +65,6 @@ export default {
 	name: 'EditSynchronization',
 	components: {
 		NcModal,
-		NcTextField,
-		NcTextArea,
 		NcButton,
 		NcSelect,
 		NcLoadingIcon,
@@ -104,7 +100,7 @@ export default {
 				this.success = false
 				this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de synchronisatie'
 			}
-		}
+		},
 	},
 }
 </script>

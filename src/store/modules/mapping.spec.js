@@ -2,7 +2,7 @@
 import { setActivePinia, createPinia } from 'pinia'
 
 import { useMappingStore } from './mapping.js'
-import { Mapping, mockMappings } from '../../entities/index.js'
+import { Mapping, mockMapping } from '../../entities/index.js'
 
 describe('Mapping Store', () => {
 	beforeEach(() => {
@@ -12,10 +12,10 @@ describe('Mapping Store', () => {
 	it('sets mapping item correctly', () => {
 		const store = useMappingStore()
 
-		store.setMappingItem(mockMappings()[0])
+		store.setMappingItem(mockMapping()[0])
 
 		expect(store.mappingItem).toBeInstanceOf(Mapping)
-		expect(store.mappingItem).toEqual(mockMappings()[0])
+		expect(store.mappingItem).toEqual(mockMapping()[0])
 
 		expect(store.mappingItem.validate().success).toBe(true)
 	})
@@ -23,13 +23,13 @@ describe('Mapping Store', () => {
 	it('sets mapping list correctly', () => {
 		const store = useMappingStore()
 
-		store.setMappingList(mockMappings())
+		store.setMappingList(mockMapping())
 
-		expect(store.mappingList).toHaveLength(mockMappings().length)
+		expect(store.mappingList).toHaveLength(mockMapping().length)
 
 		store.mappingList.forEach((item, index) => {
 			expect(item).toBeInstanceOf(Mapping)
-			expect(item).toEqual(mockMappings()[index])
+			expect(item).toEqual(mockMapping()[index])
 			expect(item.validate().success).toBe(true)
 		})
 	})

@@ -42,14 +42,14 @@ import { logStore, navigationStore, searchStore } from '../../store/store.js'
 					<template #actions>
 						<NcActionButton @click="logStore.setLogItem(log); navigationStore.setDialog('deleteLog')">
 							<template #icon>
-								<TrashCanOutline/>
+								<TrashCanOutline />
 							</template>
 							Verwijderen
 						</NcActionButton>
 					</template>
 				</NcListItem>
 			</div>
-		</ul> 
+		</ul>
 
 		<NcLoadingIcon v-if="!logStore.logList"
 			class="loadingIcon"

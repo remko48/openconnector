@@ -2,7 +2,7 @@
 import { setActivePinia, createPinia } from 'pinia'
 
 import { useLogStore } from './log.js'
-import { Log, mockLogs } from '../../entities/index.js'
+import { Log, mockLog } from '../../entities/index.js'
 
 describe('Log Store', () => {
 	beforeEach(() => {
@@ -12,10 +12,10 @@ describe('Log Store', () => {
 	it('sets log item correctly', () => {
 		const store = useLogStore()
 
-		store.setLogItem(mockLogs()[0])
+		store.setLogItem(mockLog()[0])
 
 		expect(store.logItem).toBeInstanceOf(Log)
-		expect(store.logItem).toEqual(mockLogs()[0])
+		expect(store.logItem).toEqual(mockLog()[0])
 
 		expect(store.logItem.validate().success).toBe(true)
 	})
@@ -23,13 +23,13 @@ describe('Log Store', () => {
 	it('sets log list correctly', () => {
 		const store = useLogStore()
 
-		store.setLogList(mockLogs())
+		store.setLogList(mockLog())
 
-		expect(store.logList).toHaveLength(mockLogs().length)
+		expect(store.logList).toHaveLength(mockLog().length)
 
 		store.logList.forEach((item, index) => {
 			expect(item).toBeInstanceOf(Log)
-			expect(item).toEqual(mockLogs()[index])
+			expect(item).toEqual(mockLog()[index])
 			expect(item.validate().success).toBe(true)
 		})
 	})
