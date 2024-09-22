@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore, searchStore } from '../../store/store.js'
+import { webhookStore, navigationStore, searchStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -12,47 +12,47 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 					label="Search"
 					class="searchField"
 					trailing-button-icon="close"
-					@trailing-button-click="synchronizationStore.refreshSynchronizationList()">
+					@trailing-button-click="webhookStore.refreshWebhookList()">
 					<Magnify :size="20" />
 				</NcTextField>
 				<NcActions>
-					<NcActionButton @click="synchronizationStore.refreshSynchronizationList()">
+					<NcActionButton @click="webhookStore.refreshWebhookList()">
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
 						Ververs
 					</NcActionButton>
-					<NcActionButton @click="synchronizationStore.setSynchronizationItem({}); navigationStore.setModal('editSynchronization')">
+					<NcActionButton @click="webhookStore.setWebhookItem({}); navigationStore.setModal('editWebhook')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Synchronisatie toevoegen
+						Webhook toevoegen
 					</NcActionButton>
 				</NcActions>
 			</div>
-			<div v-if="synchronizationStore.synchronizationList && synchronizationStore.synchronizationList.length > 0">
-				<NcListItem v-for="(synchronization, i) in synchronizationStore.synchronizationList"
-					:key="`${synchronization}${i}`"
-					:name="synchronization.name"
-					:active="synchronizationStore.synchronizationItem?.id === synchronization?.id"
+			<div v-if="webhookStore.webhookList && webhookStore.webhookList.length > 0">
+				<NcListItem v-for="(webhook, i) in webhookStore.webhookList"
+					:key="`${webhook}${i}`"
+					:name="webhook.name"
+					:active="webhookStore.webhookItem?.id === webhook?.id"
 					:force-display-actions="true"
-					@click="synchronizationStore.setSynchronizationItem(synchronization)">
+					@click="webhookStore.setWebhookItem(webhook)">
 					<template #icon>
-						<VectorPolylinePlus :class="synchronizationStore.synchronizationItem?.id === synchronization.id && 'selectedSynchronizationIcon'"
+						<Webhook :class="webhookStore.webhookItem?.id === webhook.id && 'selectedWebhookIcon'"
 							disable-menu
 							:size="44" />
 					</template>
 					<template #subname>
-						{{ synchronization?.description }}
+						{{ webhook?.description }}
 					</template>
 					<template #actions>
-						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setModal('editSynchronization')">
+						<NcActionButton @click="webhookStore.setWebhookItem(webhook); navigationStore.setModal('editWebhook')">
 							<template #icon>
 								<Pencil />
 							</template>
 							Bewerken
 						</NcActionButton>
-						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setDialog('deleteSynchronization')">
+						<NcActionButton @click="webhookStore.setWebhookItem(webhook); navigationStore.setDialog('deleteWebhook')">
 							<template #icon>
 								<TrashCanOutline />
 							</template>
@@ -63,14 +63,14 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 			</div>
 		</ul>
 
-		<NcLoadingIcon v-if="!synchronizationStore.synchronizationList"
+		<NcLoadingIcon v-if="!webhookStore.webhookList"
 			class="loadingIcon"
 			:size="64"
 			appearance="dark"
-			name="Synchronisaties aan het laden" />
+			name="Webhooks aan het laden" />
 
-		<div v-if="synchronizationStore.synchronizationList.length === 0">
-			Er zijn nog geen synchronisaties gedefinieerd.
+		<div v-if="webhookStore.webhookList.length === 0">
+			Er zijn nog geen webhooks gedefinieerd.
 		</div>
 	</NcAppContentList>
 </template>
@@ -78,14 +78,14 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 <script>
 import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIcon, NcActions } from '@nextcloud/vue'
 import Magnify from 'vue-material-design-icons/Magnify.vue'
-import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
+import Webhook from 'vue-material-design-icons/Webhook.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 
 export default {
-	name: 'SynchronizationsList',
+	name: 'WebhooksList',
 	components: {
 		NcListItem,
 		NcActions,
@@ -94,14 +94,14 @@ export default {
 		NcTextField,
 		NcLoadingIcon,
 		Magnify,
-		VectorPolylinePlus,
+		Webhook,
 		Refresh,
 		Plus,
 		Pencil,
 		TrashCanOutline,
 	},
 	mounted() {
-		synchronizationStore.refreshSynchronizationList()
+		webhookStore.refreshWebhookList()
 	},
 }
 </script>

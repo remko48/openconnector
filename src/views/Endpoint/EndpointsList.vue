@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore, searchStore } from '../../store/store.js'
+import { endpointStore, navigationStore, searchStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -12,47 +12,47 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 					label="Search"
 					class="searchField"
 					trailing-button-icon="close"
-					@trailing-button-click="synchronizationStore.refreshSynchronizationList()">
+					@trailing-button-click="endpointStore.refreshEndpointList()">
 					<Magnify :size="20" />
 				</NcTextField>
 				<NcActions>
-					<NcActionButton @click="synchronizationStore.refreshSynchronizationList()">
+					<NcActionButton @click="endpointStore.refreshEndpointList()">
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
 						Ververs
 					</NcActionButton>
-					<NcActionButton @click="synchronizationStore.setSynchronizationItem({}); navigationStore.setModal('editSynchronization')">
+					<NcActionButton @click="endpointStore.setEndpointItem({}); navigationStore.setModal('editEndpoint')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Synchronisatie toevoegen
+						Endpoint toevoegen
 					</NcActionButton>
 				</NcActions>
 			</div>
-			<div v-if="synchronizationStore.synchronizationList && synchronizationStore.synchronizationList.length > 0">
-				<NcListItem v-for="(synchronization, i) in synchronizationStore.synchronizationList"
-					:key="`${synchronization}${i}`"
-					:name="synchronization.name"
-					:active="synchronizationStore.synchronizationItem?.id === synchronization?.id"
+			<div v-if="endpointStore.endpointList && endpointStore.endpointList.length > 0">
+				<NcListItem v-for="(endpoint, i) in endpointStore.endpointList"
+					:key="`${endpoint}${i}`"
+					:name="endpoint.name"
+					:active="endpointStore.endpointItem?.id === endpoint?.id"
 					:force-display-actions="true"
-					@click="synchronizationStore.setSynchronizationItem(synchronization)">
+					@click="endpointStore.setEndpointItem(endpoint)">
 					<template #icon>
-						<VectorPolylinePlus :class="synchronizationStore.synchronizationItem?.id === synchronization.id && 'selectedSynchronizationIcon'"
+						<Api :class="endpointStore.endpointItem?.id === endpoint.id && 'selectedEndpointIcon'"
 							disable-menu
 							:size="44" />
 					</template>
 					<template #subname>
-						{{ synchronization?.description }}
+						{{ endpoint?.description }}
 					</template>
 					<template #actions>
-						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setModal('editSynchronization')">
+						<NcActionButton @click="endpointStore.setEndpointItem(endpoint); navigationStore.setModal('editEndpoint')">
 							<template #icon>
 								<Pencil />
 							</template>
 							Bewerken
 						</NcActionButton>
-						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setDialog('deleteSynchronization')">
+						<NcActionButton @click="endpointStore.setEndpointItem(endpoint); navigationStore.setDialog('deleteEndpoint')">
 							<template #icon>
 								<TrashCanOutline />
 							</template>
@@ -63,14 +63,14 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 			</div>
 		</ul>
 
-		<NcLoadingIcon v-if="!synchronizationStore.synchronizationList"
+		<NcLoadingIcon v-if="!endpointStore.endpointList"
 			class="loadingIcon"
 			:size="64"
 			appearance="dark"
-			name="Synchronisaties aan het laden" />
+			name="Endpoints aan het laden" />
 
-		<div v-if="synchronizationStore.synchronizationList.length === 0">
-			Er zijn nog geen synchronisaties gedefinieerd.
+		<div v-if="endpointStore.endpointList.length === 0">
+			Er zijn nog geen endpoints gedefinieerd.
 		</div>
 	</NcAppContentList>
 </template>
@@ -78,14 +78,14 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 <script>
 import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIcon, NcActions } from '@nextcloud/vue'
 import Magnify from 'vue-material-design-icons/Magnify.vue'
-import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
+import Api from 'vue-material-design-icons/Api.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 
 export default {
-	name: 'SynchronizationsList',
+	name: 'EndpointsList',
 	components: {
 		NcListItem,
 		NcActions,
@@ -94,14 +94,15 @@ export default {
 		NcTextField,
 		NcLoadingIcon,
 		Magnify,
-		VectorPolylinePlus,
+		// Icons
+		Api,
 		Refresh,
 		Plus,
 		Pencil,
 		TrashCanOutline,
 	},
 	mounted() {
-		synchronizationStore.refreshSynchronizationList()
+		endpointStore.refreshEndpointList()
 	},
 }
 </script>

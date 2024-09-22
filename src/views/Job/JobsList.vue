@@ -38,7 +38,7 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 					:force-display-actions="true"
 					@click="jobStore.setJobItem(job)">
 					<template #icon>
-						<Briefcase :class="jobStore.jobItem?.id === job.id && 'selectedJobIcon'"
+						<Update :class="jobStore.jobItem?.id === job.id && 'selectedJobIcon'"
 							disable-menu
 							:size="44" />
 					</template>
@@ -78,7 +78,7 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 <script>
 import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIcon, NcActions } from '@nextcloud/vue'
 import Magnify from 'vue-material-design-icons/Magnify.vue'
-import Briefcase from 'vue-material-design-icons/Briefcase.vue'
+import Update from 'vue-material-design-icons/Update.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
@@ -94,7 +94,7 @@ export default {
 		NcTextField,
 		NcLoadingIcon,
 		Magnify,
-		Briefcase,
+		Update,
 		Refresh,
 		Plus,
 		Pencil,

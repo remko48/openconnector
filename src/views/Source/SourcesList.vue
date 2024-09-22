@@ -38,7 +38,7 @@ import { sourceStore, navigationStore, searchStore } from '../../store/store.js'
 					:force-display-actions="true"
 					@click="sourceStore.setSourceItem(source)">
 					<template #icon>
-						<Database :class="sourceStore.sourceItem?.id === source.id && 'selectedSourceIcon'"
+						<DatabaseArrowLeftOutline :class="sourceStore.sourceItem?.id === source.id && 'selectedSourceIcon'"
 							disable-menu
 							:size="44" />
 					</template>
@@ -81,7 +81,7 @@ import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIco
 
 // Icons
 import Magnify from 'vue-material-design-icons/Magnify.vue'
-import Database from 'vue-material-design-icons/Database.vue'
+import DatabaseArrowLeftOutline from 'vue-material-design-icons/DatabaseArrowLeftOutline.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
@@ -98,7 +98,7 @@ export default {
 		NcTextField,
 		NcLoadingIcon,
 		// Icons
-		Database,
+		DatabaseArrowLeftOutline,
 		Magnify,
 		Refresh,
 		Plus,
