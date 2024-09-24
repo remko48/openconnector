@@ -107,10 +107,13 @@ export default {
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
+
+				const self = this
 				setTimeout(() => {
-					this.success = false
-					this.loading = false
-					this.error = false
+					self.success = false
+					self.loading = false
+					self.error = false
+					self.hasUpdated = true
 					navigationStore.setModal(false)
 				}, 2000)
 			} catch (error) {
