@@ -5,7 +5,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 <template>
 	<NcModal v-if="navigationStore.modal === 'editSynchronization'" ref="modalRef" @close="navigationStore.setModal(false)">
 		<div class="modalContent">
-			<h2>Synchronisatie {{ synchronizationStore.synchronizationItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>Synchronisatie {{ synchronizationItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
 			<NcNoteCard v-if="success" type="success">
 				<p>Synchronisatie succesvol toegevoegd</p>
 			</NcNoteCard>
@@ -16,23 +16,23 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<label for="name">Naam:</label>
-					<input v-model="synchronizationStore.synchronizationItem.name" id="name" required>
+					<NcTextField id="name" v-model="synchronizationItem.name" required />
 				</div>
 				<div class="form-group">
 					<label for="description">Beschrijving:</label>
-					<textarea v-model="synchronizationStore.synchronizationItem.description" id="description"></textarea>
+					<NcTextArea id="description" v-model="synchronizationItem.description" />
 				</div>
 				<div class="form-group">
 					<label for="source">Bron:</label>
-					<NcSelect v-model="synchronizationStore.synchronizationItem.source" id="source" :options="sourceOptions" />
+					<NcSelect id="source" v-model="synchronizationItem.source" :options="sourceOptions" />
 				</div>
 				<div class="form-group">
 					<label for="target">Doel:</label>
-					<NcSelect v-model="synchronizationStore.synchronizationItem.target" id="target" :options="targetOptions" />
+					<NcSelect id="target" v-model="synchronizationItem.target" :options="targetOptions" />
 				</div>
 				<div class="form-group">
 					<label for="schedule">Schema:</label>
-					<input v-model="synchronizationStore.synchronizationItem.schedule" id="schedule" placeholder="Cron expressie">
+					<NcTextField id="schedule" v-model="synchronizationItem.schedule" placeholder="Cron expressie" />
 				</div>
 			</form>
 
@@ -83,13 +83,27 @@ export default {
 			error: false,
 			sourceOptions: [], // This should be populated with available sources
 			targetOptions: [], // This should be populated with available targets
+			synchronizationItem: {
+				name: '',
+				description: '',
+				source: '',
+				target: '',
+				schedule: '',
+			}, // Initialize with empty fields
+			hasUpdated: false, // Flag to prevent constant looping
+		}
+	},
+	updated() {
+		if (navigationStore.modal === 'editSynchronization' && !this.hasUpdated) {
+			synchronizationStore.synchronizationItem && (this.synchronizationItem = { ...synchronizationStore.synchronizationItem })
+			this.hasUpdated = true
 		}
 	},
 	methods: {
 		async editSynchronization() {
 			this.loading = true
 			try {
-				await synchronizationStore.saveSynchronization()
+				await synchronizationStore.saveSynchronization(this.synchronizationItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
@@ -104,7 +118,7 @@ export default {
 				this.success = false
 				this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de synchronisatie'
 			}
-		}
+		},
 	},
 }
 </script>
