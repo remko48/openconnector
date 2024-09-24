@@ -3,9 +3,13 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editSynchronization'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editSynchronization'"
+		ref="modalRef"
+		label-id="editSynchronization"
+		@close="navigationStore.setModal(false)">
 		<div class="modalContent">
 			<h2>Synchronisatie {{ synchronizationItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+
 			<NcNoteCard v-if="success" type="success">
 				<p>Synchronisatie succesvol toegevoegd</p>
 			</NcNoteCard>
@@ -14,26 +18,24 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 			</NcNoteCard>
 
 			<form v-if="!success" @submit.prevent="handleSubmit">
-				<div class="form-group">
-					<label for="name">Naam:</label>
-					<NcTextField id="name" v-model="synchronizationItem.name" required />
-				</div>
-				<div class="form-group">
-					<label for="description">Beschrijving:</label>
-					<NcTextArea id="description" v-model="synchronizationItem.description" />
-				</div>
-				<div class="form-group">
-					<label for="source">Bron:</label>
-					<NcSelect id="source" v-model="synchronizationItem.source" :options="sourceOptions" />
-				</div>
-				<div class="form-group">
-					<label for="target">Doel:</label>
-					<NcSelect id="target" v-model="synchronizationItem.target" :options="targetOptions" />
-				</div>
-				<div class="form-group">
-					<label for="schedule">Schema:</label>
-					<NcTextField id="schedule" v-model="synchronizationItem.schedule" placeholder="Cron expressie" />
-				</div>
+				<NcTextField v-model="synchronizationItem.name"
+					label="Naam"
+					required />
+
+				<NcTextArea v-model="synchronizationItem.description"
+					label="Beschrijving" />
+
+				<NcSelect v-model="synchronizationItem.source"
+					input-label="Bron"
+					:options="sourceOptions" />
+
+				<NcSelect v-model="synchronizationItem.target"
+					input-label="Doel"
+					:options="targetOptions" />
+
+				<NcTextField v-model="synchronizationItem.schedule"
+					label="Schema"
+					placeholder="Cron expressie" />
 			</form>
 
 			<NcButton
@@ -55,6 +57,8 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
+	NcTextField,
+	NcTextArea,
 	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
@@ -66,6 +70,8 @@ export default {
 	components: {
 		NcModal,
 		NcButton,
+		NcTextField,
+		NcTextArea,
 		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,

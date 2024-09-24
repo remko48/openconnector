@@ -30,7 +30,6 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import { NcAppContent, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import SynchronizationsList from './SynchronizationsList.vue'
 import SynchronizationDetails from './SynchronizationDetails.vue'
-import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 
 export default {
 	name: 'SynchronizationsIndex',
@@ -40,7 +39,6 @@ export default {
 		NcButton,
 		SynchronizationsList,
 		SynchronizationDetails,
-		VectorPolylinePlus,
 	},
 }
 </script>

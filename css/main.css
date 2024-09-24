@@ -1,6 +1,8 @@
 :root {
   --OC-margin-10: 10px;
   --OC-margin-20: 20px;
+  --OC-margin-30: 30px;
+  --OC-margin-40: 40px;
   --OC-margin-50: 50px;
 }
 
@@ -112,8 +114,11 @@
 
 /* Modals */
 .modalContent {
-  margin: var(--OC-margin-50);
+  margin: var(--OC-margin-10);
   text-align: center;
+}
+.modalContent > *:not(:last-child) {
+  margin-block-end: 1rem;
 }
 
 .form-group > * {
