@@ -10,6 +10,8 @@ APP -> https://pictogrammers.com/library/mdi/icon/hub/
 
 
 Events -> https://pictogrammers.com/library/mdi/icon/cloud-upload-outline/
+Endpoints -> https://pictogrammers.com/library/mdi/icon/api/
+Webhooks -> https://pictogrammers.com/library/mdi/icon/webhook/
 Subscriber list -> https://pictogrammers.com/library/mdi/icon/format-list-group/ 
 Mappings -> https://pictogrammers.com/library/mdi/icon/sitemap-outline/
 Jobs -> https://pictogrammers.com/library/mdi/icon/update/

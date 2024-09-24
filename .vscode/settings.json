@@ -3,6 +3,10 @@
     "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "editor.formatOnSave": true,
     "eslint.format.enable": true,
+    "cSpell.words": [
+        "nextcloud",
+        "pinia",
+    ],
     "[javascript]": {
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"
     },

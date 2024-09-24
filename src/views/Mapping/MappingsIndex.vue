@@ -13,7 +13,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 				name="Geen mapping"
 				description="Nog geen mapping geselecteerd">
 				<template #icon>
-					<MapMarker />
+					<SitemapOutline />
 				</template>
 				<template #action>
 					<NcButton type="primary" @click="mappingStore.setMappingItem({}); navigationStore.setModal('editMapping')">
@@ -30,7 +30,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 import { NcAppContent, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import MappingsList from './MappingsList.vue'
 import MappingDetails from './MappingDetails.vue'
-import MapMarker from 'vue-material-design-icons/MapMarker.vue'
+import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 
 export default {
 	name: 'MappingsIndex',
@@ -40,7 +40,7 @@ export default {
 		NcButton,
 		MappingsList,
 		MappingDetails,
-		MapMarker,
+		SitemapOutline,
 	},
 }
 </script>

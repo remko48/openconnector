@@ -55,8 +55,6 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
-	NcTextField,
-	NcTextArea,
 	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
@@ -67,8 +65,6 @@ export default {
 	name: 'EditSynchronization',
 	components: {
 		NcModal,
-		NcTextField,
-		NcTextArea,
 		NcButton,
 		NcSelect,
 		NcLoadingIcon,

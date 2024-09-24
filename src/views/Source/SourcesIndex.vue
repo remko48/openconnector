@@ -13,10 +13,10 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				name="Geen bron"
 				description="Nog geen bron geselecteerd">
 				<template #icon>
-					<Database />
+					<DatabaseArrowLeftOutline />
 				</template>
 				<template #action>
-					<NcButton type="primary" @click="sourceStore.setSourceItem({}); navigationStore.setModal('editSource')">
+					<NcButton type="primary" @click="sourceStore.setSourceItem(null); navigationStore.setModal('editSource')">
 						Bron toevoegen
 					</NcButton>
 				</template>
@@ -30,7 +30,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 import { NcAppContent, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import SourcesList from './SourcesList.vue'
 import SourceDetails from './SourceDetails.vue'
-import Database from 'vue-material-design-icons/Database.vue'
+import DatabaseArrowLeftOutline from 'vue-material-design-icons/DatabaseArrowLeftOutline.vue'
 
 export default {
 	name: 'SourcesIndex',
@@ -40,7 +40,7 @@ export default {
 		NcButton,
 		SourcesList,
 		SourceDetails,
-		Database,
+		DatabaseArrowLeftOutline,
 	},
 }
 </script>
