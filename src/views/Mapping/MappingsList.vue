@@ -38,7 +38,7 @@ import { mappingStore, navigationStore, searchStore } from '../../store/store.js
 					:force-display-actions="true"
 					@click="mappingStore.setMappingItem(mapping)">
 					<template #icon>
-						<MapMarker :class="mappingStore.mappingItem?.id === mapping.id && 'selectedMappingIcon'"
+						<SitemapOutline :class="mappingStore.mappingItem?.id === mapping.id && 'selectedMappingIcon'"
 							disable-menu
 							:size="44" />
 					</template>
@@ -78,7 +78,7 @@ import { mappingStore, navigationStore, searchStore } from '../../store/store.js
 <script>
 import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIcon, NcActions } from '@nextcloud/vue'
 import Magnify from 'vue-material-design-icons/Magnify.vue'
-import MapMarker from 'vue-material-design-icons/MapMarker.vue'
+import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
@@ -94,7 +94,7 @@ export default {
 		NcTextField,
 		NcLoadingIcon,
 		Magnify,
-		MapMarker,
+		SitemapOutline,
 		Refresh,
 		Plus,
 		Pencil,

@@ -8,6 +8,8 @@ import { useLogStore } from './modules/log.js'
 import { useMappingStore } from './modules/mapping.js'
 import { useSourceStore } from './modules/source.js'
 import { useSynchronizationStore } from './modules/synchronization.js'
+import { useWebhookStore } from './modules/webhooks.js'
+import { useEndpointStore } from './modules/endpoints.js'
 
 const navigationStore = useNavigationStore(pinia)
 const searchStore = useSearchStore(pinia)
@@ -16,6 +18,8 @@ const logStore = useLogStore(pinia)
 const mappingStore = useMappingStore(pinia)
 const sourceStore = useSourceStore(pinia)
 const synchronizationStore = useSynchronizationStore(pinia)
+const webhookStore = useWebhookStore(pinia)
+const endpointStore = useEndpointStore(pinia)
 
 export {
 	// generic
@@ -27,4 +31,6 @@ export {
 	mappingStore,
 	sourceStore,
 	synchronizationStore,
+	webhookStore,
+	endpointStore,
 }

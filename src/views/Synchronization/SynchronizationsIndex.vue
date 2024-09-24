@@ -13,7 +13,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 				name="Geen synchronisatie"
 				description="Nog geen synchronisatie geselecteerd">
 				<template #icon>
-					<SyncCircle />
+					<VectorPolylinePlus />
 				</template>
 				<template #action>
 					<NcButton type="primary" @click="synchronizationStore.setSynchronizationItem({}); navigationStore.setModal('editSynchronization')">
@@ -30,7 +30,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import { NcAppContent, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import SynchronizationsList from './SynchronizationsList.vue'
 import SynchronizationDetails from './SynchronizationDetails.vue'
-import SyncCircle from 'vue-material-design-icons/SyncCircle.vue'
+import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 
 export default {
 	name: 'SynchronizationsIndex',
@@ -40,7 +40,7 @@ export default {
 		NcButton,
 		SynchronizationsList,
 		SynchronizationDetails,
-		SyncCircle,
+		VectorPolylinePlus,
 	},
 }
 </script>

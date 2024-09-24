@@ -15,6 +15,16 @@ import { navigationStore } from '../store/store.js'
 					<DatabaseArrowLeftOutline :size="20" />
 				</template>
 			</NcAppNavigationItem>
+			<NcAppNavigationItem :active="navigationStore.selected === 'endpoints'" name="Endpoints" @click="navigationStore.setSelected('endpoints')">
+				<template #icon>
+					<Api :size="20" />
+				</template>
+			</NcAppNavigationItem>
+			<NcAppNavigationItem :active="navigationStore.selected === 'webhooks'" name="Webhooks" @click="navigationStore.setSelected('webhooks')">
+				<template #icon>
+					<Webhook :size="20" />
+				</template>
+			</NcAppNavigationItem>
 			<NcAppNavigationItem :active="navigationStore.selected === 'mappings'" name="Mappings" @click="navigationStore.setSelected('mappings')">
 				<template #icon>
 					<SitemapOutline :size="20" />
@@ -33,8 +43,8 @@ import { navigationStore } from '../store/store.js'
 		</NcAppNavigationList>
 	</NcAppNavigation>
 </template>
-<script>
 
+<script>
 import {
 	NcAppNavigation,
 	NcAppNavigationList,
@@ -44,6 +54,8 @@ import {
 // Icons
 import Finance from 'vue-material-design-icons/Finance.vue'
 import DatabaseArrowLeftOutline from 'vue-material-design-icons/DatabaseArrowLeftOutline.vue'
+import Api from 'vue-material-design-icons/Api.vue'
+import Webhook from 'vue-material-design-icons/Webhook.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
 import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
@@ -58,6 +70,8 @@ export default {
 		// icons
 		Finance,
 		DatabaseArrowLeftOutline,
+		Api,
+		Webhook,
 		SitemapOutline,
 		Update,
 		VectorPolylinePlus,
