@@ -81,26 +81,18 @@ export const useSynchronizationStore = defineStore(
 					})
 			},
 			// Create or save a synchronization from store
-			saveSynchronization() {
-				if (!this.synchronizationItem) {
+			saveSynchronization(synchronizationItem) {
+				if (!synchronizationItem) {
 					throw new Error('No synchronization item to save')
 				}
 
 				console.log('Saving synchronization...')
 
-				const isNewSynchronization = !this.synchronizationItem.id
+				const isNewSynchronization = !synchronizationItem?.id
 				const endpoint = isNewSynchronization
 					? '/index.php/apps/openconnector/api/synchronizations'
-					: `/index.php/apps/openconnector/api/synchronizations/${this.synchronizationItem.id}`
+					: `/index.php/apps/openconnector/api/synchronizations/${synchronizationItem.id}`
 				const method = isNewSynchronization ? 'POST' : 'PUT'
-
-				// Create a copy of the synchronization item and remove empty properties
-				const synchronizationToSave = { ...this.synchronizationItem }
-				Object.keys(synchronizationToSave).forEach(key => {
-					if (synchronizationToSave[key] === '' || (Array.isArray(synchronizationToSave[key]) && synchronizationToSave[key].length === 0)) {
-						delete synchronizationToSave[key]
-					}
-				})
 
 				return fetch(
 					endpoint,
@@ -109,15 +101,15 @@ export const useSynchronizationStore = defineStore(
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify(synchronizationToSave),
+						body: JSON.stringify(synchronizationItem),
 					},
 				)
 					.then((response) => response.json())
 					.then((data) => {
 						this.setSynchronizationItem(data)
 						console.log('Synchronization saved')
-						// Refresh the synchronization list
-						return this.refreshSynchronizationList()
+
+						this.refreshSynchronizationList()
 					})
 					.catch((err) => {
 						console.error('Error saving synchronization:', err)

@@ -6,7 +6,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 	<NcModal v-if="navigationStore.modal === 'editSynchronization'"
 		ref="modalRef"
 		label-id="editSynchronization"
-		@close="navigationStore.setModal(false)">
+		@close="closeModal">
 		<div class="modalContent">
 			<h2>Synchronisatie {{ synchronizationItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
 
@@ -18,11 +18,11 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 			</NcNoteCard>
 
 			<form v-if="!success" @submit.prevent="handleSubmit">
-				<NcTextField v-model="synchronizationItem.name"
+				<NcTextField :value.sync="synchronizationItem.name"
 					label="Naam"
 					required />
 
-				<NcTextArea v-model="synchronizationItem.description"
+				<NcTextArea :value.sync="synchronizationItem.description"
 					label="Beschrijving" />
 
 				<NcSelect v-model="synchronizationItem.source"
@@ -33,7 +33,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 					input-label="Doel"
 					:options="targetOptions" />
 
-				<NcTextField v-model="synchronizationItem.schedule"
+				<NcTextField :value.sync="synchronizationItem.schedule"
 					label="Schema"
 					placeholder="Cron expressie" />
 			</form>
@@ -91,6 +91,11 @@ export default {
 				source: '',
 				target: '',
 				schedule: '',
+				entity: '',
+				object: '',
+				action: '',
+				gateway: '',
+				sourceObject: '',
 			}, // Initialize with empty fields
 			hasUpdated: false, // Flag to prevent constant looping
 		}
@@ -102,22 +107,33 @@ export default {
 		}
 	},
 	methods: {
+		closeModal() {
+			this.success = false
+			this.loading = false
+			this.error = false
+			this.hasUpdated = false
+			navigationStore.setModal(false)
+			this.synchronizationItem = {
+				name: '',
+				description: '',
+				source: '',
+				target: '',
+				schedule: '',
+				entity: '',
+				object: '',
+				action: '',
+				gateway: '',
+				sourceObject: '',
+			}
+		},
 		async editSynchronization() {
 			this.loading = true
 			try {
 				await synchronizationStore.saveSynchronization(this.synchronizationItem)
-				// Close modal or show success message
 				this.success = true
 				this.loading = false
 
-				const self = this
-				setTimeout(() => {
-					self.success = false
-					self.loading = false
-					self.error = false
-					self.hasUpdated = true
-					navigationStore.setModal(false)
-				}, 2000)
+				setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false
