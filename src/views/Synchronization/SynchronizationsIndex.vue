@@ -4,25 +4,25 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 
 <template>
 	<NcAppContent>
-			<template #list>
-				<SynchronizationsList />
-			</template>
-			<template #default>
-				<NcEmptyContent v-if="!synchronizationStore.synchronizationItem || navigationStore.selected != 'synchronizations'"
-					class="detailContainer"
-					name="Geen synchronisatie"
-					description="Nog geen synchronisatie geselecteerd">
-					<template #icon>
-						<SyncCircle />
-					</template>
-					<template #action>
-						<NcButton type="primary" @click="synchronizationStore.setSynchronizationItem({}); navigationStore.setModal('editSynchronization')">
-							Synchronisatie toevoegen
-						</NcButton>
-					</template>
-				</NcEmptyContent>
-				<SynchronizationDetails v-if="synchronizationStore.synchronizationItem && navigationStore.selected === 'synchronizations'" />
-			</template>
+		<template #list>
+			<SynchronizationsList />
+		</template>
+		<template #default>
+			<NcEmptyContent v-if="!synchronizationStore.synchronizationItem || navigationStore.selected != 'synchronizations'"
+				class="detailContainer"
+				name="Geen synchronisatie"
+				description="Nog geen synchronisatie geselecteerd">
+				<template #icon>
+					<SyncCircle />
+				</template>
+				<template #action>
+					<NcButton type="primary" @click="synchronizationStore.setSynchronizationItem(null); navigationStore.setModal('editSynchronization')">
+						Synchronisatie toevoegen
+					</NcButton>
+				</template>
+			</NcEmptyContent>
+			<SynchronizationDetails v-if="synchronizationStore.synchronizationItem && navigationStore.selected === 'synchronizations'" />
+		</template>
 	</NcAppContent>
 </template>
 
@@ -30,7 +30,6 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import { NcAppContent, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import SynchronizationsList from './SynchronizationsList.vue'
 import SynchronizationDetails from './SynchronizationDetails.vue'
-import SyncCircle from 'vue-material-design-icons/SyncCircle.vue'
 
 export default {
 	name: 'SynchronizationsIndex',
@@ -40,7 +39,6 @@ export default {
 		NcButton,
 		SynchronizationsList,
 		SynchronizationDetails,
-		SyncCircle,
 	},
 }
 </script>

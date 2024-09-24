@@ -22,7 +22,7 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 						</template>
 						Ververs
 					</NcActionButton>
-					<NcActionButton @click="synchronizationStore.setSynchronizationItem({}); navigationStore.setModal('editSynchronization')">
+					<NcActionButton @click="synchronizationStore.setSynchronizationItem(null); navigationStore.setModal('editSynchronization')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
@@ -38,7 +38,7 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 					:force-display-actions="true"
 					@click="synchronizationStore.setSynchronizationItem(synchronization)">
 					<template #icon>
-						<SyncCircle :class="synchronizationStore.synchronizationItem?.id === synchronization.id && 'selectedSynchronizationIcon'"
+						<VectorPolylinePlus :class="synchronizationStore.synchronizationItem?.id === synchronization.id && 'selectedSynchronizationIcon'"
 							disable-menu
 							:size="44" />
 					</template>
@@ -48,20 +48,20 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 					<template #actions>
 						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setModal('editSynchronization')">
 							<template #icon>
-								<Pencil/>
+								<Pencil />
 							</template>
 							Bewerken
 						</NcActionButton>
 						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
-								<TrashCanOutline/>
+								<TrashCanOutline />
 							</template>
 							Verwijderen
 						</NcActionButton>
 					</template>
 				</NcListItem>
 			</div>
-		</ul> 
+		</ul>
 
 		<NcLoadingIcon v-if="!synchronizationStore.synchronizationList"
 			class="loadingIcon"
@@ -78,7 +78,7 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 <script>
 import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIcon, NcActions } from '@nextcloud/vue'
 import Magnify from 'vue-material-design-icons/Magnify.vue'
-import SyncCircle from 'vue-material-design-icons/SyncCircle.vue'
+import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
@@ -94,7 +94,7 @@ export default {
 		NcTextField,
 		NcLoadingIcon,
 		Magnify,
-		SyncCircle,
+		VectorPolylinePlus,
 		Refresh,
 		Plus,
 		Pencil,

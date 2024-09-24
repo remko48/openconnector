@@ -16,15 +16,18 @@ import { logStore, navigationStore } from '../../store/store.js'
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<label for="title">Title:</label>
-					<input v-model="logStore.logItem.title" id="title" required>
+					<input id="title" v-model="logStore.logItem.title" required>
 				</div>
 				<div class="form-group">
 					<label for="description">Description:</label>
-					<textarea v-model="logStore.logItem.description" id="description"></textarea>
+					<textarea id="description" v-model="logStore.logItem.description" />
 				</div>
 				<div class="form-group">
 					<label for="date">Date:</label>
-					<input type="date" v-model="logStore.logItem.date" id="date" required>
+					<input id="date"
+						v-model="logStore.logItem.date"
+						type="date"
+						required>
 				</div>
 			</form>
 
@@ -47,8 +50,6 @@ import { logStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
-	NcTextField,
-	NcTextArea,
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
@@ -58,8 +59,6 @@ export default {
 	name: 'EditLog',
 	components: {
 		NcModal,
-		NcTextField,
-		NcTextArea,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
@@ -92,7 +91,7 @@ export default {
 				this.success = false
 				this.error = error.message || 'An error occurred while saving the log'
 			}
-		}
+		},
 	},
 }
 </script>

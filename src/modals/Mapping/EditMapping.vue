@@ -16,19 +16,19 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<label for="name">Name:</label>
-					<input v-model="mappingStore.mappingItem.name" id="name" required>
+					<input id="name" v-model="mappingStore.mappingItem.name" required>
 				</div>
 				<div class="form-group">
 					<label for="description">Description:</label>
-					<textarea v-model="mappingStore.mappingItem.description" id="description"></textarea>
+					<textarea id="description" v-model="mappingStore.mappingItem.description" />
 				</div>
 				<div class="form-group">
 					<label for="sourceField">Source Field:</label>
-					<input v-model="mappingStore.mappingItem.sourceField" id="sourceField" required>
+					<input id="sourceField" v-model="mappingStore.mappingItem.sourceField" required>
 				</div>
 				<div class="form-group">
 					<label for="targetField">Target Field:</label>
-					<input v-model="mappingStore.mappingItem.targetField" id="targetField" required>
+					<input id="targetField" v-model="mappingStore.mappingItem.targetField" required>
 				</div>
 			</form>
 
@@ -51,9 +51,6 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
-	NcTextField,
-	NcTextArea,
-	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
@@ -63,10 +60,7 @@ export default {
 	name: 'EditMapping',
 	components: {
 		NcModal,
-		NcTextField,
-		NcTextArea,
 		NcButton,
-		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
 		// Icons
@@ -98,7 +92,7 @@ export default {
 				this.success = false
 				this.error = error.message || 'An error occurred while saving the mapping'
 			}
-		}
+		},
 	},
 }
 </script>

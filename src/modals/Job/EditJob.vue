@@ -15,16 +15,20 @@ import { jobStore, navigationStore } from '../../store/store.js'
 
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
-					<label for="title">Title:</label>
-					<input v-model="jobStore.jobItem.title" id="title" required>
+					<NcTextField
+						label="Title"
+						maxlength="255"
+						:value.sync="jobStore.jobItem.title"
+						required />
 				</div>
 				<div class="form-group">
-					<label for="description">Description:</label>
-					<textarea v-model="jobStore.jobItem.description" id="description"></textarea>
+					<NcTextArea
+						label="Description"
+						:value.sync="jobStore.jobItem.description" />
 				</div>
 				<div class="form-group">
 					<label for="status">Status:</label>
-					<NcSelect v-model="jobStore.jobItem.status" id="status" :options="statusOptions" />
+					<NcSelect id="status" v-model="jobStore.jobItem.status" :options="statusOptions" />
 				</div>
 			</form>
 
@@ -99,7 +103,7 @@ export default {
 				this.success = false
 				this.error = error.message || 'An error occurred while saving the job'
 			}
-		}
+		},
 	},
 }
 </script>

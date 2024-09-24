@@ -1,11 +1,12 @@
 :root {
   --OC-margin-10: 10px;
   --OC-margin-20: 20px;
+  --OC-margin-30: 30px;
+  --OC-margin-40: 40px;
   --OC-margin-50: 50px;
 }
 
 /* Pages */
-
 .pageHeader {
   margin-block-start: var(--app-navigation-padding);
   margin-inline-start: calc(
@@ -16,13 +17,14 @@
 }
 
 /* Lists */
-
 .listHeader {
   position: sticky;
   top: 0;
   z-index: 1000;
   background-color: var(--color-main-background);
   border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
 }
 
 .searchField {
@@ -37,6 +39,10 @@
 }
 
 /* Detail pages */
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+}
 
 .detailContainer {
   margin-block-start: var(--OC-margin-20);
@@ -107,6 +113,14 @@
 }
 
 /* Modals */
+.modalContent {
+  margin: var(--OC-margin-10);
+  text-align: center;
+}
+.modalContent > *:not(:last-child) {
+  margin-block-end: 1rem;
+}
+
 .form-group > * {
   margin-block-end: 10px;
 }
@@ -127,7 +141,6 @@
 }
 
 /* File drag and drop */
-
 .filesListDragDropNotice {
   width: 100%;
   min-height: 113px;

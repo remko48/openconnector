@@ -13,7 +13,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 				name="Geen taak"
 				description="Nog geen taak geselecteerd">
 				<template #icon>
-					<Briefcase />
+					<Update />
 				</template>
 				<template #action>
 					<NcButton type="primary" @click="jobStore.setJobItem({}); navigationStore.setModal('editJob')">
@@ -30,7 +30,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 import { NcAppContent, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import JobsList from './JobsList.vue'
 import JobDetails from './JobDetails.vue'
-import Briefcase from 'vue-material-design-icons/Briefcase.vue'
+import Update from 'vue-material-design-icons/Update.vue'
 
 export default {
 	name: 'JobsIndex',
@@ -40,7 +40,7 @@ export default {
 		NcButton,
 		JobsList,
 		JobDetails,
-		Briefcase,
+		Update,
 	},
 }
 </script>

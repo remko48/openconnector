@@ -6,7 +6,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 	<div class="detailContainer">
 		<div id="app-content">
 			<div>
-				<div class="head">
+				<div class="detailHeader">
 					<h1 class="h1">
 						{{ sourceStore.sourceItem.name }}
 					</h1>
