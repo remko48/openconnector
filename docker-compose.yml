@@ -31,6 +31,7 @@ services:
       - nextcloud:/var/www/html:rw
       - ./custom-apps:/var/www/html/custom_apps
       - .:/var/www/html/custom_apps/openconnector
+      
     environment:
       - MYSQL_PASSWORD='!ChangeMe!'
       - MYSQL_DATABASE=nextcloud

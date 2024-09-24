@@ -3,9 +3,12 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editSource'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editSource'"
+		ref="modalRef"
+		label-id="editSource"
+		@close="closeModal">
 		<div class="modalContent">
-			<h2>Bron {{ sourceStore.sourceItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>Bron {{ sourceItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
 			<NcNoteCard v-if="success" type="success">
 				<p>Bron succesvol toegevoegd</p>
 			</NcNoteCard>
@@ -15,26 +18,31 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
-					<label for="name">Naam:</label>
-					<input id="name" v-model="sourceStore.sourceItem.name" required>
-				</div>
-				<div class="form-group">
-					<label for="description">Beschrijving:</label>
-					<textarea id="description" v-model="sourceStore.sourceItem.description" />
-				</div>
-				<div class="form-group">
-					<label for="type">Type:</label>
-					<NcSelect id="type" v-model="sourceStore.sourceItem.type" :options="typeOptions" />
-				</div>
-				<div class="form-group">
-					<label for="connection">Verbinding:</label>
-					<input id="connection" v-model="sourceStore.sourceItem.connection" required>
+					<NcTextField
+						id="name"
+						label="Naam*"
+						:value.sync="sourceItem.name" />
+
+					<NcTextArea
+						id="description"
+						label="Beschrijving"
+						:value.sync="sourceItem.description" />
+
+					<NcSelect
+						id="type"
+						v-bind="typeOptions"
+						v-model="sourceItem.type" />
+
+					<NcTextField
+						id="connection"
+						label="Verbinding*"
+						:value.sync="sourceItem.connection" />
 				</div>
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading"
+				:disabled="loading || !sourceItem.name || !sourceItem.connection"
 				type="primary"
 				@click="editSource()">
 				<template #icon>
@@ -54,6 +62,8 @@ import {
 	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
+	NcTextField,
+	NcTextArea,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -65,35 +75,52 @@ export default {
 		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
-		// Icons
-		ContentSaveOutline,
+		NcTextField,
+		NcTextArea,
 	},
 	data() {
 		return {
+			sourceItem: {
+				name: '',
+				description: '',
+				type: '',
+				connection: '',
+			},
 			success: false,
 			loading: false,
 			error: false,
-			typeOptions: [
-				{ label: 'Database', value: 'database' },
-				{ label: 'API', value: 'api' },
-				{ label: 'File', value: 'file' },
-			],
+			typeOptions: {
+				inputLabel: 'Type',
+				options: [
+					{ label: 'Database', value: 'database' },
+					{ label: 'API', value: 'api' },
+					{ label: 'File', value: 'file' },
+				],
+
+			},
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setModal(false)
+			this.succes = false
+			this.loading = false
+			this.error = false
+			this.sourceItem = {
+				name: '',
+				description: '',
+				type: '',
+				connection: '',
+			}
+		},
 		async editSource() {
 			this.loading = true
 			try {
-				await sourceStore.saveSource()
+				await sourceStore.saveSource(this.sourceItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(() => {
-					this.success = false
-					this.loading = false
-					this.error = false
-					navigationStore.setModal(false)
-				}, 2000)
+				setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false

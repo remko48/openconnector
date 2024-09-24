@@ -81,8 +81,8 @@ export const useSourceStore = defineStore(
 					})
 			},
 			// Create or save a source from store
-			saveSource() {
-				if (!this.sourceItem) {
+			saveSource(sourceItem) {
+				if (!sourceItem) {
 					throw new Error('No source item to save')
 				}
 

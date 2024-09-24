@@ -5,7 +5,6 @@
 }
 
 /* Pages */
-
 .pageHeader {
   margin-block-start: var(--app-navigation-padding);
   margin-inline-start: calc(
@@ -16,7 +15,6 @@
 }
 
 /* Lists */
-
 .listHeader {
   position: sticky;
   top: 0;
@@ -39,6 +37,10 @@
 }
 
 /* Detail pages */
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+}
 
 .detailContainer {
   margin-block-start: var(--OC-margin-20);
@@ -109,6 +111,11 @@
 }
 
 /* Modals */
+.modalContent {
+  margin: var(--OC-margin-50);
+  text-align: center;
+}
+
 .form-group > * {
   margin-block-end: 10px;
 }
@@ -129,7 +136,6 @@
 }
 
 /* File drag and drop */
-
 .filesListDragDropNotice {
   width: 100%;
   min-height: 113px;
