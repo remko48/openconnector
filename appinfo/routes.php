@@ -10,5 +10,6 @@ return [
 	'routes' => [
 		['name' => 'dashboard#page', 'url' => '/', 'verb' => 'GET'],
 		['name' => 'sources#test', 'url' => '/api/source-test/{id}', 'verb' => 'POST'],
+		['name' => 'sources#logs', 'url' => '/api/sources/{id}/logs', 'verb' => 'GET'],
 	],
 ];

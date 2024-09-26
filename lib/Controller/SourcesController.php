@@ -165,6 +165,28 @@ class SourcesController extends Controller
     }
 
     /**
+     * Retrieves call logs for a source
+     * 
+     * This method returns all the call logs associated with a source based on its ID.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     *
+     * @param int $id The ID of the source to retrieve logs for
+     * @return JSONResponse A JSON response containing the call logs
+     */
+    public function logs(int $id): JSONResponse
+    {
+        try {
+            $source = $this->sourceMapper->find($id);
+            $callLogs = $this->callLogMapper->findAll(null, null, ['source_id' => $source->getId()]);
+            return new JSONResponse($callLogs);
+        } catch (DoesNotExistException $e) {
+            return new JSONResponse(['error' => 'Source not found'], 404);
+        }
+    }
+
+    /**
      * Test a source
      * 
      * This method fires a test call to the source and returns the response.
