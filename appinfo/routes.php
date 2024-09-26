@@ -9,5 +9,6 @@ return [
 	],
 	'routes' => [
 		['name' => 'dashboard#page', 'url' => '/', 'verb' => 'GET'],
+		['name' => 'sources#test', 'url' => '/api/source-test/{id}', 'verb' => 'POST'],
 	],
 ];

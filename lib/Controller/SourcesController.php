@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Controller;
 
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
+use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCP\AppFramework\Controller;
@@ -161,5 +162,95 @@ class SourcesController extends Controller
         $this->sourceMapper->delete($this->sourceMapper->find((int) $id));
 
         return new JSONResponse([]);
+    }
+
+    /**
+     * Test a source
+     * 
+     * This method fires a test call to the source and returns the response.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     *
+     * Endpoint: /api/source-test/{id}
+     * Properties:
+     *   query: (expected key-value array)
+     *   headers: (expected key-value array)
+     *   method: (string, one of POST, GET, PUT, DELETE) -> defaults to POST
+     *   endpoint: (string) can be empty
+     *   type: (string, one of: json, xml, yaml)
+     *   body: (string)
+     *
+     * @param int $id The ID of the source to test
+     * @return JSONResponse A JSON response containing the test results
+     */
+    public function test(CallService $callService,int $id): JSONResponse
+    {
+        // get the source
+        try {
+            $source = JSONResponse($this->sourceMapper->find(id: (int) $id));
+        } catch (DoesNotExistException $exception) {
+            return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
+        }
+
+        // Get the request data
+        $requestData = $this->request->getParams();
+
+        // Build Guzzle call configuration array
+        $config = [];
+
+        // Add headers if present
+        if (isset($requestData['headers']) && is_array($requestData['headers'])) {
+            $config['headers'] = $requestData['headers'];
+        }
+
+        // Add query parameters if present
+        if (isset($requestData['query']) && is_array($requestData['query'])) {
+            $config['query'] = $requestData['query'];
+        }
+
+        // Set method, default to POST if not provided
+        $method = $requestData['method'] ?? 'POST';
+
+        // Set endpoint
+        $endpoint = $requestData['endpoint'] ?? '';
+
+        // Set body if present
+        if (isset($requestData['body'])) {
+            $config['body'] = $requestData['body'];
+        }
+
+        // Set content type based on the type parameter
+        if (isset($requestData['type'])) {
+            switch ($requestData['type']) {
+                case 'json':
+                    $config['headers']['Content-Type'] = 'application/json';
+                    break;
+                case 'xml':
+                    $config['headers']['Content-Type'] = 'application/xml';
+                    break;
+                case 'yaml':
+                    $config['headers']['Content-Type'] = 'application/x-yaml';
+                    break;
+            }
+        }
+
+        // fire the call
+        $response = $callService->call($source, $data);
+
+        // Map it back to json
+        $responseObject = [
+            'requestUrl' => $response->getEffectiveUri()->__toString(),
+            'requestMethod' => $response->getRequest()->getMethod(),
+            'statusCode' => $response->getStatusCode(),
+            'statusMessage' => $response->getReasonPhrase(),
+            'responseTime' => $response->getTransferTime(),
+            'size' => $response->getBody()->getSize(),
+            'remoteIp' => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
+            'headers' => $response->getHeaders(),
+            'body' => $response->getBody()->getContents(),
+        ];
+
+        return new JSONResponse($responseObject);
     }
 }
