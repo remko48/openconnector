@@ -88,14 +88,14 @@ export const useSourceStore = defineStore(
 
 				console.log('Saving source...')
 
-				const isNewSource = !this.sourceItem.id
+				const isNewSource = !sourceItem.id
 				const endpoint = isNewSource
 					? '/index.php/apps/openconnector/api/sources'
-					: `/index.php/apps/openconnector/api/sources/${this.sourceItem.id}`
+					: `/index.php/apps/openconnector/api/sources/${sourceItem.id}`
 				const method = isNewSource ? 'POST' : 'PUT'
 
 				// Create a copy of the source item and remove empty properties
-				const sourceToSave = { ...this.sourceItem }
+				const sourceToSave = { ...sourceItem }
 				Object.keys(sourceToSave).forEach(key => {
 					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && sourceToSave[key].length === 0)) {
 						delete sourceToSave[key]

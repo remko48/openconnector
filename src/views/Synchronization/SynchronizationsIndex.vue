@@ -30,6 +30,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import { NcAppContent, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import SynchronizationsList from './SynchronizationsList.vue'
 import SynchronizationDetails from './SynchronizationDetails.vue'
+import SyncCircle from 'vue-material-design-icons/SyncCircle.vue'
 
 export default {
 	name: 'SynchronizationsIndex',
@@ -39,6 +40,7 @@ export default {
 		NcButton,
 		SynchronizationsList,
 		SynchronizationDetails,
+		SyncCircle,
 	},
 }
 </script>
