@@ -12,113 +12,162 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Response;
+use OCA\OpenConnector\Db\CallLog;
+use OCA\OpenConnector\Db\CallLogMapper;
 
 class CallService
 {
-     /**
-     * The constructor sets al needed variables.
-     *
-     * @param AuthenticationService  $authenticationService The authentication service
-     * @param MappingService         $mappingService        The mapping service
-     */
-    public function __construct(
-        AuthenticationService $authenticationService,
-        MappingService $mappingService,
-        LoggerInterface $callLogger
-    ) {
-        $this->authenticationService = $authenticationService;
-        $this->mappingService        = $mappingService;
-        $this->client                = new Client([]);
-
-    }//end __construct() /**
+	private $callLogMapper;
 
 	/**
-     * Calls a source according to given configuration.
-     *
-     * @param Source $source             The source to call.
-     * @param string $endpoint           The endpoint on the source to call.
-     * @param string $method             The method on which to call the source.
-     * @param array  $config             The additional configuration to call the source.
-     * @param bool   $asynchronous       Whether or not to call the source asynchronously.
-     * @param bool   $createCertificates Whether or not to create certificates for this source.
-     *
-     * @throws Exception
-     *
-     * @return Response
-     */
-    public function call(
-        Source $source,
-        string $endpoint = '',
-        string $method = 'GET',
-        array $config = [],
-        bool $asynchronous = false,
-        bool $createCertificates = true,
-        bool $overruleAuth = false
-    ): Response 
+	 * The constructor sets al needed variables.
+	 *
+	 * @param AuthenticationService  $authenticationService The authentication service
+	 * @param MappingService         $mappingService        The mapping service
+	 */
+	public function __construct(CallLogMapper $callLogMapper)
 	{
-        $this->source = $source;
+		$this->client                = new Client([]);
+		$this->callLogMapper = $callLogMapper;
+	}
+
+	/**
+	 * Calls a source according to given configuration.
+	 *
+	 * @param Source $source             The source to call.
+	 * @param string $endpoint           The endpoint on the source to call.
+	 * @param string $method             The method on which to call the source.
+	 * @param array  $config             The additional configuration to call the source.
+	 * @param bool   $asynchronous       Whether or not to call the source asynchronously.
+	 * @param bool   $createCertificates Whether or not to create certificates for this source.
+	 *
+	 * @throws Exception
+	 *
+	 * @return Response
+	 */
+	public function call(
+		Source $source,
+		string $endpoint = '',
+		string $method = 'GET',
+		array $config = [],
+		bool $asynchronous = false,
+		bool $createCertificates = true,
+		bool $overruleAuth = false
+	): CallLog 
+	{
+		$this->source = $source;
 
 		if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
-            throw new HttpException('409', "This source is not enabled: {$this->source->getName()}");
-        }
+			// Create and save the CallLog
+			$callLog = new CallLog();
+			$callLog->setSourceId($this->source->getId());
+			$callLog->setStatusCode(409);
+			$callLog->setStatusMessage("This source is not enabled");	
+			$callLog->setCreatedAt(new \DateTime());
+			$callLog->setUpdatedAt(new \DateTime());
 
-        if (empty($this->source->getLocation()) === true) {
-            throw new HttpException('409', "This source has no location: {$this->source->getName()}");
-        }
+			$this->callLogMapper->insert($callLog);
+	
+			return $callLog;
+		}
+
+		if (empty($this->source->getLocation()) === true) {
+			// Create and save the CallLog
+			$callLog = new CallLog();
+			$callLog->setSourceId($this->source->getId());
+			$callLog->setStatusCode(409);
+			$callLog->setStatusMessage("This source has no location");	
+			$callLog->setCreatedAt(new \DateTime());
+			$callLog->setUpdatedAt(new \DateTime());
+
+			$this->callLogMapper->insert($callLog);
+	
+			return $callLog;
+		}
 
 		// Check if the source has a configuration and merge it with the given config
-        if (empty($this->source->getConfiguration()) === false) {
-            $config = array_merge_recursive($config, $this->source->getConfiguration());
-        }
+		if (empty($this->source->getConfiguration()) === false) {
+			$config = array_merge_recursive($config, $this->source->getConfiguration());
+		}
 
 		// Check if the config has a Content-Type header and overwrite it if it does
 		if (isset($config['headers']['Content-Type']) === true) {
-            $overwriteContentType = $config['headers']['Content-Type'];
-        }
+			$overwriteContentType = $config['headers']['Content-Type'];
+		}
 
 		// decapiitilized fall back for content-type
-        if (isset($config['headers']['content-type']) === true) {
-            $overwriteContentType = $config['headers']['content-type'];
-        }        
+		if (isset($config['headers']['content-type']) === true) {
+			$overwriteContentType = $config['headers']['content-type'];
+		}        
 		
 		// Make sure we do not have an array of accept headers but just one value
-        if (isset($config['headers']['accept']) === true && is_array($config['headers']['accept']) === true) {
-            $config['headers']['accept'] = $config['headers']['accept'][0];
-        }
+		if (isset($config['headers']['accept']) === true && is_array($config['headers']['accept']) === true) {
+			$config['headers']['accept'] = $config['headers']['accept'][0];
+		}
 
 
 		// Check if the config has a headers array and create it if it doesn't
-        if (isset($config['headers']) === false) {
-            $config['headers'] = [];
-        }
+		if (isset($config['headers']) === false) {
+			$config['headers'] = [];
+		}
+
+		// We want to suprres guzzle exceptions and return the response instead
+		$config['http_errors'] = false;
 
 		// Set the URL to call and add an endpoint if needed	
 		$url = $this->source->getLocation().$endpoint;
 
-        // Set authentication if needed. @todo: create  the authentication service
-        //$createCertificates && $this->getCertificate($config);
-
-		// Set the request info array
-        $requestInfo = [
-            'url'    => $url,
-            'method' => $method,
-        ];
+		// Set authentication if needed. @todo: create  the authentication service
+		//$createCertificates && $this->getCertificate($config);
 
 		// Let's log the call.
 		$this->source->setLastCall(new \DateTime());
 		// @todo: save the source
 
-		// Let's make the call.
+		// Let's make the call.		
+		$time_start = microtime(true); 
 		try {
-            if ($asynchronous === false) {
-                $response = $this->client->request($method, $url, $config);
-            } else {
-                return $this->client->requestAsync($method, $url, $config);
-            }
-		} catch (ClientException $e) {
-			// @todo: log the error
+			if ($asynchronous === false) {
+			   $response = $this->client->request($method, $url, $config);
+			} else {
+				return $this->client->requestAsync($method, $url, $config);
+			}
+		} catch (GuzzleHttp\Exception\BadResponseException $e) {
+			$response = $e->getResponse();
 		}
 
-		return $response;
+		$time_end = microtime(true);
+
+		// Let create the data array
+		$data = [
+			'request' => [
+				'url' => $url,
+				'method' => $method,
+				...$config
+			],
+			'response' => [
+				'statusCode' => $response->getStatusCode(),
+				'statusMessage' => $response->getReasonPhrase(),
+				'responseTime' => ( $time_end - $time_start ) * 1000,
+				'size' => $response->getBody()->getSize(),
+				'remoteIp' => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
+				'headers' => $response->getHeaders(),
+				'body' => $response->getBody()->getContents(),				
+			]
+		];
+
+		// Create and save the CallLog
+		$callLog = new CallLog();
+		$callLog->setSourceId($this->source->getId());
+		$callLog->setStatusCode($data['response']['statusCode']);
+		$callLog->setStatusMessage($data['response']['statusMessage']);
+		$callLog->setRequest($data['request']);
+		$callLog->setResponse($data['response']);
+		$callLog->setCreatedAt(new \DateTime());
+		$callLog->setUpdatedAt(new \DateTime());
+
+		$this->callLogMapper->insert($callLog);
+
+		return $callLog;
 	}
 }

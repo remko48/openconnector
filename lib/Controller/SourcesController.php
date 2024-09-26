@@ -188,7 +188,7 @@ class SourcesController extends Controller
     {
         // get the source
         try {
-            $source = JSONResponse($this->sourceMapper->find(id: (int) $id));
+            $source = $this->sourceMapper->find(id: (int) $id);
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
         }
@@ -210,7 +210,7 @@ class SourcesController extends Controller
         }
 
         // Set method, default to POST if not provided
-        $method = $requestData['method'] ?? 'POST';
+        $method = $requestData['method'] ?? 'GET';
 
         // Set endpoint
         $endpoint = $requestData['endpoint'] ?? '';
@@ -236,21 +236,11 @@ class SourcesController extends Controller
         }
 
         // fire the call
-        $response = $callService->call($source, $data);
+        
+        $time_start = microtime(true); 
+        $callLog = $callService->call($source, $endpoint, $method, $config);
+        $time_end = microtime(true);
 
-        // Map it back to json
-        $responseObject = [
-            'requestUrl' => $response->getEffectiveUri()->__toString(),
-            'requestMethod' => $response->getRequest()->getMethod(),
-            'statusCode' => $response->getStatusCode(),
-            'statusMessage' => $response->getReasonPhrase(),
-            'responseTime' => $response->getTransferTime(),
-            'size' => $response->getBody()->getSize(),
-            'remoteIp' => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
-            'headers' => $response->getHeaders(),
-            'body' => $response->getBody()->getContents(),
-        ];
-
-        return new JSONResponse($responseObject);
+        return new JSONResponse($callLog->jsonSerialize());
     }
 }

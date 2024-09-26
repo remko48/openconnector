@@ -39,8 +39,8 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
-						<b>URL:</b>
-						<p>{{ sourceStore.sourceItem.url }}</p>
+						<b>location:</b>
+						<p>{{ sourceStore.sourceItem.location }}</p>
 					</div>
 				</div>
 				<div class="tabContainer">
