@@ -114,7 +114,7 @@
 
 /* Modals */
 .modalContent {
-  margin: var(--OC-margin-10);
+  margin: var(--OC-margin-30);
   text-align: center;
 }
 .modalContent > *:not(:last-child) {

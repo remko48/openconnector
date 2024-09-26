@@ -80,6 +80,33 @@ export const useSourceStore = defineStore(
 						throw err
 					})
 			},
+			// Test a source
+			testSource(sourceItem) {
+				if (!sourceItem) {
+					throw new Error('No source item to test')
+				}
+
+				console.log('Testing source...')
+
+				const endpoint = `/index.php/apps/openconnector/api/source-test/${sourceItem.id}`
+
+				return fetch(endpoint, {
+					method: sourceItem.method,
+					body: sourceItem.body,
+					headers: {
+						'x-endpoint': sourceItem.endpoint,
+						'x-method': sourceItem.method,
+					},
+				})
+					.then((response) => {
+						console.log('response', response)
+						this.refreshSourceList()
+					})
+					.catch((err) => {
+						console.error('Error testing source:', err)
+						throw err
+					})
+			},
 			// Create or save a source from store
 			saveSource(sourceItem) {
 				if (!sourceItem) {
