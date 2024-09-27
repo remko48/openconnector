@@ -3,9 +3,12 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editMapping'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editMappingMapping'"
+		ref="modalRef"
+		label-id="editMappingMapping"
+		@close="closeModal">
 		<div class="modalContent">
-			<h2>Mapping {{ mappingStore.mappingItem?.id ? 'Edit' : 'Add' }}</h2>
+			<h2>{{ mappingItem?.id ? 'Edit' : 'Add' }} Mapping</h2>
 			<NcNoteCard v-if="success" type="success">
 				<p>Mapping successfully added</p>
 			</NcNoteCard>
@@ -16,24 +19,13 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<NcTextField
-						id="name"
-						label="Name"
-						:value.sync="mappingItem.name" />
-
-					<NcTextArea
-						id="description"
-						label="Description"
-						:value.sync="mappingItem.description" />
-
+						id="key"
+						label="Key"
+						:value.sync="mappingItem.key" />
 					<NcTextField
-						id="reference"
-						label="Reference"
-						:value.sync="mappingItem.reference" />
-
-					<NcTextField
-						id="version"
-						label="Version"
-						:value.sync="mappingItem.version" />
+						id="value"
+						label="Value"
+						:value.sync="mappingItem.value" />
 				</div>
 			</form>
 
@@ -59,30 +51,25 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 	NcTextField,
-	NcTextArea,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 export default {
-	name: 'EditMapping',
+	name: 'EditMappingMapping',
 	components: {
 		NcModal,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
 		NcTextField,
-		NcTextArea,
 		// Icons
 		ContentSaveOutline,
 	},
 	data() {
 		return {
 			mappingItem: {
-				id: mappingStore.mappingItem.id ?? null,
-				name: '',
-				description: '',
-				reference: '',
-				version: '',
+				key: '',
+				value: '',
 			},
 			success: false,
 			loading: false,
@@ -96,17 +83,23 @@ export default {
 			this.loading = false
 			this.error = false
 			this.mappingItem = {
-				id: null,
-				name: '',
-				description: '',
-				reference: '',
-				version: '',
+				key: '',
+				value: '',
 			}
 		},
 		async editMapping() {
 			this.loading = true
+
+			const newMappingItem = {
+				...mappingStore.mappingItem,
+				mapping: {
+					...mappingStore.mappingItem.mapping,
+					[this.mappingItem.key]: this.mappingItem.value,
+				},
+			}
+
 			try {
-				await mappingStore.saveMapping(this.mappingItem)
+				await mappingStore.saveMapping(newMappingItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

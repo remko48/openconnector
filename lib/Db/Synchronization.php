@@ -95,8 +95,8 @@ class Synchronization extends Entity implements JsonSerializable
 			'sourceLastChanged' => $this->sourceLastChanged,
 			'lastChecked' => $this->lastChecked,
 			'lastSynced' => $this->lastSynced,
-			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified,
+			'dateCreated' => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
+			'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
 			'tryCounter' => $this->tryCounter,
 			'dontSyncBefore' => $this->dontSyncBefore,
 			'mapping' => $this->mapping

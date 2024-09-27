@@ -145,8 +145,8 @@ class Source extends Entity implements JsonSerializable
 			'lastCall' => $this->lastCall,
 			'lastSync' => $this->lastSync,
 			'objectCount' => $this->objectCount,
-			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified,
+			'dateCreated' => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
+			'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
 			'test' => $this->test
 		];
 	}

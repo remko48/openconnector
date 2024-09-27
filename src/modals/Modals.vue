@@ -8,6 +8,8 @@
 		<EditLog />
 		<DeleteMapping />
 		<EditMapping />
+		<EditMappingMapping />
+		<DeleteMappingMapping />
 		<DeleteSynchronization />
 		<EditSynchronization />
 	</div>
@@ -25,6 +27,8 @@ import EditMapping from './Mapping/EditMapping.vue'
 import DeleteMapping from './Mapping/DeleteMapping.vue'
 import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
+import EditMappingMapping from './mappingMapping/EditMappingMapping.vue'
+import DeleteMappingMapping from './mappingMapping/DeleteMappingMapping.vue'
 
 export default {
 	name: 'Modals',
@@ -39,6 +43,8 @@ export default {
 	  EditMapping,
 	  DeleteSynchronization,
 	  EditSynchronization,
+	  EditMappingMapping,
+	  DeleteMappingMapping,
 	},
 	setup() {
 	  return {

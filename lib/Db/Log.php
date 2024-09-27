@@ -122,8 +122,8 @@ class Log extends Entity implements JsonSerializable
 			'gateway' => $this->gateway,
 			'handler' => $this->handler,
 			'objectId' => $this->objectId,
-			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified
+			'dateCreated' => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
+			'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
 		];
 	}
 }
