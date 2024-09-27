@@ -10,54 +10,26 @@ class Job extends Entity implements JsonSerializable
 {
 	protected ?string $name = null;
 	protected ?string $description = null;
-	protected ?string $reference = null;
-	protected ?string $version = null;
-	protected ?string $crontab = null;
+	protected ?integer $interval = null;
+	protected ?bool $timeSensitive = true;
+	protected ?bool $allowParallelRuns = false;
+	protected ?bool $isEnabled = true;
 	protected ?string $userId = null;
-	protected ?string $throws = null;
 	protected ?array $data = null;
-	protected ?DateTime $lastRun = null;
-	protected ?DateTime $nextRun = null;
-	protected ?bool $isEnabled = null;
-	protected ?DateTime $dateCreated = null;
-	protected ?DateTime $dateModified = null;
-	protected ?array $listens = null;
-	protected ?array $conditions = null;
-	protected ?string $class = null;
-	protected ?int $priority = null;
-	protected ?bool $async = null;
-	protected ?array $configuration = null;
-	protected ?bool $isLockable = null;
-	protected ?bool $locked = null;
-	protected ?int $lastRunTime = null;
-	protected ?bool $status = null;
-	protected ?array $actionHandlerConfiguration = null;
+	protected ?DateTime $created = null;
+	protected ?DateTime $updated = null;
 
 	public function __construct() {
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
-		$this->addType('reference', 'string');
-		$this->addType('version', 'string');
-		$this->addType('crontab', 'string');
-		$this->addType('userId', 'string');
-		$this->addType('throws', 'string');
-		$this->addType('data', 'json');
-		$this->addType('lastRun', 'datetime');
-		$this->addType('nextRun', 'datetime');
+		$this->addType('interval', 'integer');
+		$this->addType('timeSensitive', 'boolean');
+		$this->addType('allowParallelRuns', 'boolean');
 		$this->addType('isEnabled', 'boolean');
-		$this->addType('dateCreated', 'datetime');
-		$this->addType('dateModified', 'datetime');
-		$this->addType('listens', 'json');
-		$this->addType('conditions', 'json');
-		$this->addType('class', 'string');
-		$this->addType('priority', 'integer');
-		$this->addType('async', 'boolean');
-		$this->addType('configuration', 'json');
-		$this->addType('isLockable', 'boolean');
-		$this->addType('locked', 'boolean');
-		$this->addType('lastRunTime', 'integer');
-		$this->addType('status', 'boolean');
-		$this->addType('actionHandlerConfiguration', 'json');
+		$this->addType('userId', 'string');
+		$this->addType('data', 'json');
+		$this->addType('created', 'datetime');
+		$this->addType('updated', 'datetime');
 	}
 
 	public function getJsonFields(): array
@@ -96,28 +68,14 @@ class Job extends Entity implements JsonSerializable
 			'id' => $this->id,
 			'name' => $this->name,
 			'description' => $this->description,
-			'reference' => $this->reference,
-			'version' => $this->version,
-			'crontab' => $this->crontab,
-			'userId' => $this->userId,
-			'throws' => $this->throws,
-			'data' => $this->data,
-			'lastRun' => $this->lastRun,
-			'nextRun' => $this->nextRun,
+			'interval' => $this->interval,
+			'timeSensitive' => $this->timeSensitive,
+			'allowParallelRuns' => $this->allowParallelRuns,
 			'isEnabled' => $this->isEnabled,
-			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified,
-			'listens' => $this->listens,
-			'conditions' => $this->conditions,
-			'class' => $this->class,
-			'priority' => $this->priority,
-			'async' => $this->async,
-			'configuration' => $this->configuration,
-			'isLockable' => $this->isLockable,
-			'locked' => $this->locked,
-			'lastRunTime' => $this->lastRunTime,
-			'status' => $this->status,
-			'actionHandlerConfiguration' => $this->actionHandlerConfiguration
+			'userId' => $this->userId,
+			'data' => $this->data,
+			'created' => $this->created,
+			'updated' => $this->updated,
 		];
 	}
 }

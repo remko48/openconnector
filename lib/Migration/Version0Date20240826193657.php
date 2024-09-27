@@ -46,28 +46,14 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
 			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
 			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('version', Types::STRING, ['notnull' => false, 'length' => 50]);
-			$table->addColumn('crontab', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('throws', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('data', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('last_run', Types::DATETIME, ['notnull' => false]);
-			$table->addColumn('next_run', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('interval', Types::INTEGER, ['notnull' => true]);
+			$table->addColumn('time_sensitive', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
+			$table->addColumn('allow_parallel_runs', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
 			$table->addColumn('is_enabled', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
-			$table->addColumn('listens', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('conditions', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('class', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('priority', Types::INTEGER, ['notnull' => false]);
-			$table->addColumn('async', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
-			$table->addColumn('configuration', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('is_lockable', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
-			$table->addColumn('locked', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
-			$table->addColumn('last_run_time', Types::INTEGER, ['notnull' => false]);
-			$table->addColumn('status', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
-			$table->addColumn('action_handler_configuration', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('data', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
 		}
 
@@ -181,7 +167,48 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
-		}
+		}	
+
+        if (!$schema->hasTable('openconnector_call_logs')) {
+            $table = $schema->createTable('openconnector_call_logs');
+            $table->addColumn('id', 'integer', [
+                'autoincrement' => true,
+                'notnull' => true,
+            ]);
+            $table->addColumn('status_code', 'integer', [
+                'notnull' => false,
+                'length' => 3
+            ]);
+            $table->addColumn('status_message', 'string', [
+                'notnull' => false,
+                'length' => 256
+            ]);
+            $table->addColumn('request', 'json', [
+                'notnull' => false,
+            ]);
+            $table->addColumn('response', 'json', [
+                'notnull' => false,
+            ]);
+            $table->addColumn('source_id', 'integer', [
+                'notnull' => true,
+            ]);
+            $table->addColumn('action_id', 'integer', [
+                'notnull' => false,
+            ]);
+            $table->addColumn('synchronization_id', 'integer', [
+                'notnull' => false,
+            ]);
+            $table->addColumn('created_at', 'datetime',  [
+                'notnull' => true, 
+                'default' => 'CURRENT_TIMESTAMP'
+            ]);
+
+            $table->setPrimaryKey(['id']);
+            $table->addIndex(['source_id'], 'openconnector_call_logs_source_id_index');
+            $table->addIndex(['action_id'], 'openconnector_call_logs_action_id_index');
+            $table->addIndex(['synchronization_id'], 'openconnector_call_logs_sync_id_index');
+            $table->addIndex(['status_code'], 'openconnector_call_logs_status_code_index');
+        }
 
 		return $schema;
 	}

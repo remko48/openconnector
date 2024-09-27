@@ -16,9 +16,9 @@ import { jobStore, navigationStore } from '../../store/store.js'
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<NcTextField
-						label="Title"
+						label="Name"
 						maxlength="255"
-						:value.sync="jobStore.jobItem.title"
+						:value.sync="jobStore.jobItem.name"
 						required />
 				</div>
 				<div class="form-group">
@@ -27,8 +27,9 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						:value.sync="jobStore.jobItem.description" />
 				</div>
 				<div class="form-group">
-					<label for="status">Status:</label>
-					<NcSelect id="status" v-model="jobStore.jobItem.status" :options="statusOptions" />
+					<NcTextArea
+						label="Intraval"
+						:value.sync="jobStore.jobItem.description" />
 				</div>
 			</form>
 
