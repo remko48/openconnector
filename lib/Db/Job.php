@@ -10,7 +10,7 @@ class Job extends Entity implements JsonSerializable
 {
 	protected ?string $name = null;
 	protected ?string $description = null;
-	protected ?integer $interval = null;
+	protected ?int $interval = null;
 	protected ?bool $timeSensitive = true;
 	protected ?bool $allowParallelRuns = false;
 	protected ?bool $isEnabled = true;

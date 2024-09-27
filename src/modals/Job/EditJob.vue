@@ -29,7 +29,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 				<div class="form-group">
 					<NcTextArea
 						label="Intraval"
-						:value.sync="jobStore.jobItem.description" />
+						:value.sync="jobStore.jobItem.interval" />
 				</div>
 			</form>
 
@@ -75,6 +75,11 @@ export default {
 	},
 	data() {
 		return {
+			sourceItem: {
+				name: '',
+				description: '',
+				location: '',
+			},
 			success: false,
 			loading: false,
 			error: false,
