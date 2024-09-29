@@ -10,15 +10,16 @@ class Job extends Entity implements JsonSerializable
 {
 	protected ?string $name = null;
 	protected ?string $description = null;
-	protected ?string $jobClass = 'OCA\OpenConnector\Cron\ActionTask';
+	protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
 	protected ?array $arguments = null;
 	protected ?int $interval = 3600; // seconds in an hour
 	protected ?int $executionTime = 3600; // maximum execution time in seconds
 	protected ?bool $timeSensitive = true; // if the job is time sensitive and should be executed even if the server is under heavy load
 	protected ?bool $allowParallelRuns = false; // if the job can be executed in parallel	
 	protected ?bool $isEnabled = true; // if the job is enabled
+	protected ?bool $singleRun = false; // if set, the job will only run once and then disable itself
 	protected ?DateTime $scheduleAfter = null; // if the job should be executed after a certain date and time
-	protected ?string $userId = null; // the uner wich the job is running for security reasons
+	protected ?string $userId = null; // the user which the job is running for security reasons
 	protected ?string $jobListId = null; // the id of the job in the job list
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
@@ -35,6 +36,7 @@ class Job extends Entity implements JsonSerializable
 		$this->addType('timeSensitive', 'boolean');
 		$this->addType('allowParallelRuns', 'boolean');
 		$this->addType('isEnabled', 'boolean');
+		$this->addType('singleRun', 'boolean');
 		$this->addType('scheduleAfter', 'datetime');
 		$this->addType('userId', 'string');
 		$this->addType('jobListId', 'string');
@@ -87,6 +89,7 @@ class Job extends Entity implements JsonSerializable
 			'timeSensitive' => $this->timeSensitive,
 			'allowParallelRuns' => $this->allowParallelRuns,
 			'isEnabled' => $this->isEnabled,
+			'singleRun' => $this->singleRun,
 			'scheduleAfter' => $this->scheduleAfter,
 			'userId' => $this->userId,
 			'jobListId' => $this->jobListId,

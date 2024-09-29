@@ -6,26 +6,28 @@ use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
-class CallLog extends Entity implements JsonSerializable
+class JobLog extends Entity implements JsonSerializable
 {    
-    protected ?int $statusCode = null;
-    protected ?string $statusMessage = null;
-    protected ?array $request = null;
-    protected ?array $response = null;
-    protected ?int $sourceId = null;
-    protected ?int $actionId = null;
-    protected ?int $synchronizationId = null;
-    protected ?DateTime $createdAt = null;
+	protected ?string $jobId = null; // the id of the job in the job
+	protected ?string $jobListId = null; // the id of the job in the job list
+	protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
+	protected ?array $arguments = null;
+	protected ?int $executionTime = 3600; // the execution time in seconds
+	protected ?string $userId = null; // the user which the job is running for security reasons
+	protected ?DateTime $lastRun = null; // the last time the job was run
+	protected ?DateTime $nextRun = null; // the next time the job will be run
+	protected ?DateTime $created = null; // the date and time the job was created	
 
     public function __construct() {
-        $this->addType('statusCode', 'integer');
-        $this->addType('statusMessage', 'string');
-        $this->addType('request', 'json');
-        $this->addType('response', 'json');
-        $this->addType('sourceId', 'integer');
-        $this->addType('actionId', 'integer');
-        $this->addType('synchronizationId', 'integer');
-        $this->addType('createdAt', 'datetime');
+        $this->addType('jobId', 'string');
+        $this->addType('jobListId', 'string');
+        $this->addType('jobClass', 'string');
+        $this->addType('arguments', 'json');
+        $this->addType('executionTime', 'integer');
+        $this->addType('userId', 'string');
+        $this->addType('lastRun', 'datetime');
+        $this->addType('nextRun', 'datetime');
+        $this->addType('created', 'datetime');
     }
 
     public function getJsonFields(): array
@@ -62,14 +64,15 @@ class CallLog extends Entity implements JsonSerializable
     {
         return [
             'id' => $this->id,
-            'statusCode' => $this->statusCode,
-            'statusMessage' => $this->statusMessage,
-            'request' => $this->request,
-            'response' => $this->response,
-            'sourceId' => $this->sourceId,
-            'actionId' => $this->actionId,
-            'synchronizationId' => $this->synchronizationId,
-            'createdAt' => $this->createdAt,
+            'jobId' => $this->jobId,
+            'jobListId' => $this->jobListId,
+            'jobClass' => $this->jobClass,
+            'arguments' => $this->arguments,
+            'executionTime' => $this->executionTime,
+            'userId' => $this->userId,
+            'lastRun' => $this->lastRun,
+            'nextRun' => $this->nextRun,
+            'created' => $this->created,
         ];
     }
 }

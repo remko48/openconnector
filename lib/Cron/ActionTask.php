@@ -5,6 +5,8 @@ namespace OCA\OpenConnector\Cron;
 use OCA\MyApp\Service\CallService;
 use OCA\MyApp\DB\SourceMapper;
 use OCA\MyApp\DB\JobMapper;
+use OCA\MyApp\DB\JobLog;
+use OCA\MyApp\DB\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -18,17 +20,20 @@ class ActionTask extends TimedJob
     private CallService $callService;
     private SourceMapper $sourceMapper;
     private JobMapper $jobMapper;
-
+    private JobLogMapper $jobLogMapper;
+    
     public function __construct(        
         ITimeFactory $time, 
         CallService $callService, 
         SourceMapper $sourceMapper, 
-        JobMapper $jobMapper
+        JobMapper $jobMapper,
+        JobLogMapper $jobLogMapper
     ) {
         parent::__construct($time);
         $this->callService = $callService;
         $this->sourceMapper = $sourceMapper;
         $this->jobMapper = $jobMapper;
+        $this->jobLogMapper = $jobLogMapper;
         // Run every 5 minutes
         $this->setInterval(300);
 
@@ -55,16 +60,40 @@ class ActionTask extends TimedJob
             return;
         }
 
+		$time_start = microtime(true); 
+        
         // For now we only have one action, so this is a bit overkill, but it's a good starting point
-        $source = $this->sourceMapper->find($arguments['sourceId']);
-        $this->callService->call($source);
+        if (isset($arguments['sourceId']) && is_int($arguments['sourceId'])) {
+            $source = $this->sourceMapper->find($arguments['sourceId']);
+            $this->callService->call($source);
+        }
 
         // @todo: instead get the actual call an run that
+
+        $time_end = microtime(true);
+        $executionTime = $time_end - $time_start;
+
+        // deal with single run
+        if ($job->isSingleRun()) {
+            $job->setIsEnabled(false);
+        }
+
 
         // Update the job
         $job->setLastRun($this->time->getTime());
         $job->setNextRun($this->time->getTime() + $job->getInterval());
         $this->jobMapper->update($job);
+
+        // Log the job
+        $jobLog = new JobLog();
+        $jobLog->setJobId($job->getId());
+        $jobLog->setJobClass($job->getJobClass());
+        $jobLog->setJobListId($job->getJobListId());
+        $jobLog->setArguments($job->getArguments());
+        $jobLog->setLastRun($job->getLastRun());
+        $jobLog->setNextRun($job->getNextRun());
+        $jobLog->setExecutionTime($executionTime);
+        $this->jobLogMapper->insert($jobLog);
     }
 
 }
