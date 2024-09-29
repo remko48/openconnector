@@ -2,7 +2,7 @@
 
 namespace OCA\OpenConnector\Cron;
 
-use OCA\MyApp\DB\CallLogMapper;
+use OCA\OpenConnector\Db\CallLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 

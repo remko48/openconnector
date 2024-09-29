@@ -2,11 +2,11 @@
 
 namespace OCA\OpenConnector\Cron;
 
-use OCA\MyApp\Service\CallService;
-use OCA\MyApp\DB\SourceMapper;
-use OCA\MyApp\DB\JobMapper;
-use OCA\MyApp\DB\JobLog;
-use OCA\MyApp\DB\JobLogMapper;
+use OCA\OpenConnector\Service\CallService;
+use OCA\OpenConnector\Db\SourceMapper;
+use OCA\OpenConnector\Db\JobMapper;
+use OCA\OpenConnector\Db\JobLog;
+use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -35,21 +35,21 @@ class ActionTask extends TimedJob
         $this->jobMapper = $jobMapper;
         $this->jobLogMapper = $jobLogMapper;
         // Run every 5 minutes
-        $this->setInterval(300);
+        //$this->setInterval(300);
 
         // Delay until low-load time
-        $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_SENSITIVE);
+        //$this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_SENSITIVE);
         // Or $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
         
         // Only run one instance of this job at a time
-        $this->setAllowParallelRuns(false);
+        //$this->setAllowParallelRuns(false);
     }
 
     //@todo: make this a bit more generic :')
-    public function run(array $arguments)
+    public function run($argument)
     {
         // lets get the job
-        $job = $this->jobMapper->find($arguments['jobId']);
+        $job = $this->jobMapper->find($argument['jobId']);
         // If the job is not enabled, we don't need to do anything
         if (!$job->isEnabled()) {
             return;
@@ -63,8 +63,12 @@ class ActionTask extends TimedJob
 		$time_start = microtime(true); 
         
         // For now we only have one action, so this is a bit overkill, but it's a good starting point
-        if (isset($arguments['sourceId']) && is_int($arguments['sourceId'])) {
-            $source = $this->sourceMapper->find($arguments['sourceId']);
+        if (isset($arguments['sourceId']) && is_int($argument['sourceId'])) {
+            $source = $this->sourceMapper->find($argument['sourceId']);
+            $this->callService->call($source);
+        }
+        else {
+            $source = $this->sourceMapper->find(1);
             $this->callService->call($source);
         }
 
@@ -96,7 +100,7 @@ class ActionTask extends TimedJob
         $this->jobLogMapper->insert($jobLog);
 
         // Lets report back about what we have just done
-        return $jobLog;
+        return;
     }
 
 }

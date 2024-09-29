@@ -164,7 +164,6 @@ class CallService
 		$callLog->setRequest($data['request']);
 		$callLog->setResponse($data['response']);
 		$callLog->setCreatedAt(new \DateTime());
-		$callLog->setUpdatedAt(new \DateTime());
 
 		$this->callLogMapper->insert($callLog);
 

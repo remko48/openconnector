@@ -6,7 +6,10 @@ export const useJobStore = defineStore(
 	'job', {
 		state: () => ({
 			jobItem: false,
+			jobRun: false,
 			jobList: [],
+			jobLog: false,
+			jobLogs: [],
 		}),
 		actions: {
 			setJobItem(jobItem) {
