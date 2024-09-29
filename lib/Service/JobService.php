@@ -7,17 +7,20 @@ use OCA\OpenConnector\Cron\ActionTask;
 use OCA\OpenConnector\Db\Job;
 use OCA\OpenConnector\Db\JobMapper;
 use OCP\BackgroundJob\IJobList;
+use OCP\IDBConnection;
 
 class JobService
 {
     private IJobList $jobList;
     private JobMapper $jobMapper;
+    private IDBConnection $connection;
 
-    public function __construct( IJobList $jobList, JobMapper $jobMapper, ActionTask $actionTask) {
+    public function __construct( IJobList $jobList, JobMapper $jobMapper, ActionTask $actionTask, IDBConnection $connection) {
 
         $this->jobList = $jobList;
         $this->jobMapper = $jobMapper;
         $this->actionTask = $actionTask;
+        $this->connection = $connection;
     }
 
     public function scheduleJob(Job $job): Job
@@ -47,10 +50,32 @@ class JobService
         }
 
         // Save the job to the database
-        // @todo how  do we get the job id?
-        ///$job->setJobListId($iJob->getId());
+        $job->setJobListId($this->getJobListId($this->actionTask::class, $arguments));
         return $this->jobMapper->update($job);
-        // $this->jobList->add($job->getJobClass(), $job->getArguments());
     }
+
+    	/**
+	 * check if a job is in the list
+	 *
+	 * @param IJob|class-string<IJob> $job
+	 * @param mixed $argument
+	 */
+	public function getJobListId($job, $argument): int|null {
+		$class = ($job instanceof IJob) ? get_class($job) : $job;
+		$arguments = json_encode($arguments);
+
+		$query = $this->connection->getQueryBuilder();
+		$query->select('id')
+			->from('jobs')
+			->where($query->expr()->eq('class', $query->createNamedParameter($class)))
+			->andWhere($query->expr()->eq('argument_hash', $query->createNamedParameter(hash('sha256', $arguments))))
+			->setMaxResults(1);
+
+		$result = $query->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+
+		return $row['id'] ?? null;
+	}
 
 }

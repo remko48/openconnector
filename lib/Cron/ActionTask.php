@@ -48,10 +48,20 @@ class ActionTask extends TimedJob
     //@todo: make this a bit more generic :')
     public function run($argument)
     {
-        // lets get the job
-        $job = $this->jobMapper->find($argument['jobId']);
+        // if we do not have a job id then everything is wrong
+        if (isset($arguments['jobId']) && is_int($argument['jobId'])) {
+            return;
+        }
+
+        // lets get the job, the user might have deleted it in the mean time
+        try {
+            $job = $this->jobMapper->find($argument['jobId']);
+        } catch (Exception $e) {
+            return;
+        }
+
         // If the job is not enabled, we don't need to do anything
-        if (!$job->isEnabled()) {
+        if (!$job->getIsEnabled()) {
             return;
         }
 
@@ -75,7 +85,7 @@ class ActionTask extends TimedJob
         // @todo: instead get the actual call an run that
 
         $time_end = microtime(true);
-        $executionTime = $time_end - $time_start;
+        $executionTime = ( $time_end - $time_start ) * 1000;
 
         // deal with single run
         if ($job->isSingleRun()) {
@@ -84,9 +94,9 @@ class ActionTask extends TimedJob
 
 
         // Update the job
-        $job->setLastRun($this->time->getTime());
-        $job->setNextRun($this->time->getTime() + $job->getInterval());
-        $this->jobMapper->update($job);
+        //$job->setLastRun($this->time->getTime());
+        //$job->setNextRun($this->time->getTime() + $job->getInterval());
+        //$this->jobMapper->update($job);
 
         // Log the job
         $jobLog = new JobLog();
@@ -94,9 +104,9 @@ class ActionTask extends TimedJob
         $jobLog->setJobClass($job->getJobClass());
         $jobLog->setJobListId($job->getJobListId());
         $jobLog->setArguments($job->getArguments());
-        $jobLog->setLastRun($job->getLastRun());
-        $jobLog->setNextRun($job->getNextRun());
-        $jobLog->setExecutionTime($executionTime);
+        //$jobLog->setLastRun($job->getLastRun());
+        //$jobLog->setNextRun($job->getNextRun());
+        //$jobLog->setExecutionTime($executionTime);
         $this->jobLogMapper->insert($jobLog);
 
         // Lets report back about what we have just done

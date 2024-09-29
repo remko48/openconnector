@@ -7,6 +7,7 @@ use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Db\SourceMapper;
+use OCA\OpenConnector\Db\CallLogMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
@@ -26,7 +27,8 @@ class SourcesController extends Controller
         $appName,
         IRequest $request,
         private readonly IAppConfig $config,
-        private readonly SourceMapper $sourceMapper
+        private readonly SourceMapper $sourceMapper,
+        private readonly CallLogMapper $callLogMapper
     )
     {
         parent::__construct($appName, $request);

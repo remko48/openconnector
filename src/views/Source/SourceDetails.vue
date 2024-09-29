@@ -86,10 +86,10 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 							</div>
 						</BTab>
 						<BTab title="Logs">
-							<div v-if="sourceStore?.sourceItem?.logs?.length">
-								<NcListItem v-for="(character, i) in filterCharacters"
-									:key="character.id + i"
-									:name="character.name"
+							<div v-if="sourceStore.sourceLogs?.length">
+								<NcListItem v-for="(log, i) in sourceStore.sourceLogs"
+									:key="log.id + i"
+									:name="log.createdAt"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
@@ -97,11 +97,11 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ character.description }}
+										{{ log.createdAt }}
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!sourceStore?.sourceItem?.logs?.length">
+							<div v-if="!sourceStore.sourceLogs?.length">
 								No logs found
 							</div>
 						</BTab>
@@ -136,6 +136,9 @@ export default {
 		Pencil,
 		TrashCanOutline,
 		Sync,
+	},
+	mounted() {
+		sourceStore.refreshSourceLogs()
 	},
 }
 </script>

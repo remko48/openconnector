@@ -58,6 +58,9 @@ export default {
 		Pencil,
 		TrashCanOutline,
 	},
+	mounted() {
+		jobStore.refreshJobLogs()
+	},
 }
 </script>
 

@@ -13,29 +13,6 @@ use Adbar\Dot;
 use DateInterval;
 use DateTime;
 
-/**
- * Service to synchronize resources between gateway and external sources.
- *
- * This service provides synchronization functionality to synchronize between sources and the gateway.
- *
- * @author  Robert Zondervan, Barry Brands, Ruben van der Linde
- * @license EUPL<github.com/ConductionNL/contactcatalogus/blob/master/LICENSE.md>
- *
- * @category Service
- */
-class NewSynchronizationService
-{
-
-    public function __construct(
-        private readonly GatewayResourceService $resourceService,
-        private readonly CallService $callService,
-        private readonly SynchronizationService $synchronizationService,
-        private readonly LoggerInterface $synchronizationLogger,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly MappingService $mappingService,
-    ) {
-
-    }//end __construct()
 
 
     /**
@@ -54,7 +31,6 @@ class NewSynchronizationService
      */
     public function synchronizeFromSource(Synchronization $synchronization, array $sourceObject=[], bool $unsafe=false): Synchronization
     {
-
 
         public function __construct(
             private readonly GatewayResourceService $resourceService,
