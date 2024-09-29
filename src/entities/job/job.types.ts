@@ -2,26 +2,19 @@ export type TJob = {
     id?: string
     name: string
     description?: string | null
-    reference?: string | null
-    version: string
-    crontab?: string
+    jobClass?: string
+    arguments?: object | null
+    interval?: number
+    executionTime?: number
+    timeSensitive?: boolean
+    allowParallelRuns?: boolean
+    isEnabled?: boolean
+    singleRun?: boolean
+    scheduleAfter?: string | null
     userId?: string | null
-    throws?: string[]
-    data?: object | null
+    jobListId?: string | null
     lastRun?: string | null
     nextRun?: string | null
-    isEnabled?: boolean | null
-    dateCreated?: string | null
-    dateModified?: string | null
-    listens?: string[]
-    conditions?: object | null
-    class?: string | null
-    priority?: number
-    async?: boolean
-    configuration?: object | null
-    isLockable?: boolean
-    locked?: string | null
-    lastRunTime?: number | null
-    status?: boolean | null
-    actionHandlerConfiguration?: object | null
+    created?: string | null
+    updated?: string | null
 }

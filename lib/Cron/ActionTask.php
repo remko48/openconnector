@@ -94,6 +94,9 @@ class ActionTask extends TimedJob
         $jobLog->setNextRun($job->getNextRun());
         $jobLog->setExecutionTime($executionTime);
         $this->jobLogMapper->insert($jobLog);
+
+        // Lets report back about what we have just done
+        return $jobLog;
     }
 
 }
