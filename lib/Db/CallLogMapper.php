@@ -69,4 +69,11 @@ class CallLogMapper extends QBMapper
 
         return $this->update($callLog);
     }
+
+    public function clearLogs(): Bool
+    {
+        // @todo: find expired logs and delete them
+
+        return true;
+    }
 }

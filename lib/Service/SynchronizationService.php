@@ -26,7 +26,6 @@ use DateTime;
 class NewSynchronizationService
 {
 
-
     public function __construct(
         private readonly GatewayResourceService $resourceService,
         private readonly CallService $callService,
