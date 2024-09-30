@@ -10,7 +10,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 		<div class="modalContent">
 			<h2>Test source</h2>
 
-			<form v-if="!success" @submit.prevent="handleSubmit">
+			<form @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<div class="detailGrid">
 						<NcSelect
@@ -36,7 +36,6 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 			</form>
 
 			<NcButton
-				v-if="!success"
 				:disabled="loading"
 				type="primary"
 				@click="testSource()">
@@ -46,6 +45,22 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				</template>
 				Test connection
 			</NcButton>
+
+			<NcNoteCard v-if="sourceStore.sourceTest && sourceStore.sourceTest.response.statusCode.toString().startsWith('2')" type="success">
+				<p>The connection to the source was successful.</p>
+			</NcNoteCard>
+			<NcNoteCard v-if="(sourceStore.sourceTest && !sourceStore.sourceTest.response.statusCode.toString().startsWith('2')) || this.error" type="error">
+				<p>An error occurred while testing the connection: {{ sourceStore.sourceTest ? sourceStore.sourceTest.response.statusMessage : error }}</p>
+			</NcNoteCard>
+
+			<div v-if="sourceStore.sourceTest">				
+				<p><b>Status:</b> {{ sourceStore.sourceTest.response.statusMessage }} ({{ sourceStore.sourceTest.response.statusCode }})</p>
+				<p><b>Response time:</b> {{ sourceStore.sourceTest.response.responseTime }} (Milliseconds)</p>
+				<p><b>Size:</b> {{ sourceStore.sourceTest.response.size }} (Bytes)</p>
+				<p><b>Remote IP:</b> {{ sourceStore.sourceTest.response.remoteIp }}</p>
+				<p><b>Headers:</b> {{ sourceStore.sourceTest.response.headers }}</p>
+				<p><b>Body:</b> {{ sourceStore.sourceTest.response.body }}</p>
+			</div>
 		</div>
 	</NcModal>
 </template>
@@ -58,6 +73,7 @@ import {
 	NcLoadingIcon,
 	NcTextField,
 	NcTextArea,
+	NcNoteCard,
 } from '@nextcloud/vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 
@@ -70,6 +86,7 @@ export default {
 		NcLoadingIcon,
 		NcTextField,
 		NcTextArea,
+		NcNoteCard,
 	},
 	data() {
 		return {
@@ -99,7 +116,7 @@ export default {
 					{ id: 'PUT', label: 'PUT' },
 					{ id: 'DELETE', label: 'DELETE' },
 				],
-				value: { id: 'POST', label: 'POST' },
+				value: { id: 'GET', label: 'GET' },
 
 			},
 		}
@@ -129,11 +146,12 @@ export default {
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(this.closeModal, 2000)
+				this.error = false
 			} catch (error) {
 				this.loading = false
 				this.success = false
 				this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de bron'
+				sourceStore.setSourceTest(false)
 			}
 		},
 	},

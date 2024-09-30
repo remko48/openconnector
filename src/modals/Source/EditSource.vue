@@ -30,19 +30,20 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 
 					<NcSelect
 						id="type"
+						label="type*"
 						v-bind="typeOptions"
 						v-model="sourceItem.type" />
 
 					<NcTextField
-						id="connection"
-						label="Verbinding*"
-						:value.sync="sourceItem.connection" />
+						id="location"
+						label="location*"
+						:value.sync="sourceItem.location" />
 				</div>
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading || !sourceItem.name || !sourceItem.connection"
+				:disabled="loading || !sourceItem.name || !sourceItem.location || !sourceItem.type"
 				type="primary"
 				@click="editSource()">
 				<template #icon>
@@ -84,7 +85,7 @@ export default {
 				name: '',
 				description: '',
 				type: '',
-				connection: '',
+				location: '',
 			},
 			success: false,
 			loading: false,

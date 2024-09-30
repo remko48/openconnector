@@ -6,12 +6,17 @@ export const useSourceStore = defineStore(
 	'source', {
 		state: () => ({
 			sourceItem: false,
+			sourceTest: false,
 			sourceList: [],
 		}),
 		actions: {
 			setSourceItem(sourceItem) {
 				this.sourceItem = sourceItem && new Source(sourceItem)
 				console.log('Active source item set to ' + sourceItem)
+			},
+			setSourceTest(sourceTest) {
+				this.sourceTest = sourceTest
+				console.log('Source test set to ' + sourceTest)
 			},
 			setSourceList(sourceList) {
 				this.sourceList = sourceList.map(
@@ -81,29 +86,34 @@ export const useSourceStore = defineStore(
 					})
 			},
 			// Test a source
-			testSource(sourceItem) {
-				if (!sourceItem) {
+			testSource(testSourceItem) {
+				if (!this.sourceItem) {
 					throw new Error('No source item to test')
+				}
+				if (!testSourceItem) {
+					throw new Error('No testobject to test')
 				}
 
 				console.log('Testing source...')
 
-				const endpoint = `/index.php/apps/openconnector/api/source-test/${sourceItem.id}`
+				const endpoint = `/index.php/apps/openconnector/api/source-test/${this.sourceItem.id}`
 
 				return fetch(endpoint, {
-					method: sourceItem.method,
-					body: sourceItem.body,
+					method: 'POST',
 					headers: {
-						'x-endpoint': sourceItem.endpoint,
-						'x-method': sourceItem.method,
+						'Content-Type': 'application/json',
 					},
+					body: JSON.stringify(testSourceItem),
 				})
-					.then((response) => {
-						console.log('response', response)
-						this.refreshSourceList()
+					.then((response) => response.json())
+					.then((data) => {
+						this.setSourceTest(data)
+						console.log('Source tested')
+						// Refresh the source list
+						return this.refreshSourceList()
 					})
 					.catch((err) => {
-						console.error('Error testing source:', err)
+						console.error('Error saving source:', err)
 						throw err
 					})
 			},
@@ -128,6 +138,10 @@ export const useSourceStore = defineStore(
 						delete sourceToSave[key]
 					}
 				})
+
+				// remove the dateCreated and dateModified fields
+				delete sourceToSave.dateCreated
+				delete sourceToSave.dateModified
 
 				return fetch(
 					endpoint,
