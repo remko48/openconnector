@@ -21,6 +21,8 @@ class Job extends Entity implements JsonSerializable
 	protected ?DateTime $scheduleAfter = null; // if the job should be executed after a certain date and time
 	protected ?string $userId = null; // the user which the job is running for security reasons
 	protected ?string $jobListId = null; // the id of the job in the job list
+	protected ?int $logRetention = 3600; // seconds to save all logs
+	protected ?int $errorRetention = 86400; // seconds to save error logs
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
 	protected ?DateTime $created = null; // the date and time the job was created	
@@ -40,6 +42,8 @@ class Job extends Entity implements JsonSerializable
 		$this->addType('scheduleAfter', 'datetime');
 		$this->addType('userId', 'string');
 		$this->addType('jobListId', 'string');
+		$this->addType('logRetention', 'integer');
+		$this->addType('errorRetention', 'integer');
 		$this->addType('lastRun', 'datetime');
 		$this->addType('nextRun', 'datetime');
 		$this->addType('created', 'datetime');
@@ -93,6 +97,8 @@ class Job extends Entity implements JsonSerializable
 			'scheduleAfter' => $this->scheduleAfter,
 			'userId' => $this->userId,
 			'jobListId' => $this->jobListId,
+			'logRetention' => $this->logRetention,
+			'errorRetention' => $this->errorRetention,
 			'lastRun' => $this->lastRun,
 			'nextRun' => $this->nextRun,
 			'created' => $this->created,

@@ -2,13 +2,13 @@
 
 namespace OCA\OpenConnector\Cron;
 
-use OCA\OpenConnector\Service\CallService;
-use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\JobMapper;
 use OCA\OpenConnector\Db\JobLog;
 use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\BackgroundJob\IJobList;     
+use Psr\Container\ContainerInterface;
 
 /**
  * This class is used to run the action tasks for the OpenConnector app. It hooks into the cron job list and runs the classes that are set as the job class in the job.
@@ -17,23 +17,23 @@ use OCP\AppFramework\Utility\ITimeFactory;
  */
 class ActionTask extends TimedJob
 {    
-    private CallService $callService;
-    private SourceMapper $sourceMapper;
     private JobMapper $jobMapper;
     private JobLogMapper $jobLogMapper;
-    
+    private IJobList $jobList;
+    private ContainerInterface $containerInterface; 
+
     public function __construct(        
         ITimeFactory $time, 
-        CallService $callService, 
-        SourceMapper $sourceMapper, 
         JobMapper $jobMapper,
-        JobLogMapper $jobLogMapper
+        JobLogMapper $jobLogMapper,
+        IJobList $jobList,
+        ContainerInterface $containerInterface
     ) {
         parent::__construct($time);
-        $this->callService = $callService;
-        $this->sourceMapper = $sourceMapper;
         $this->jobMapper = $jobMapper;
         $this->jobLogMapper = $jobLogMapper;
+        $this->jobList = $jobList;
+        $this->containerInterface = $containerInterface;
         // Run every 5 minutes
         //$this->setInterval(300);
 
@@ -71,19 +71,10 @@ class ActionTask extends TimedJob
         }
 
 		$time_start = microtime(true); 
+
+        $action =  $this->containerInterface->get($job->getClass());
+        $action->run($job->getArguments());
         
-        // For now we only have one action, so this is a bit overkill, but it's a good starting point
-        if (isset($arguments['sourceId']) && is_int($argument['sourceId'])) {
-            $source = $this->sourceMapper->find($argument['sourceId']);
-            $this->callService->call($source);
-        }
-        else {
-            $source = $this->sourceMapper->find(1);
-            $this->callService->call($source);
-        }
-
-        // @todo: instead get the actual call an run that
-
         $time_end = microtime(true);
         $executionTime = ( $time_end - $time_start ) * 1000;
 
