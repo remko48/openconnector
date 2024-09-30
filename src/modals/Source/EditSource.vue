@@ -30,7 +30,6 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 
 					<NcSelect
 						id="type"
-						label="type*"
 						v-bind="typeOptions"
 						v-model="typeOptions.value" />
 
