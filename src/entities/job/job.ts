@@ -17,6 +17,8 @@ export class Job implements TJob {
 	public scheduleAfter: string | null
 	public userId: string | null
 	public jobListId: string | null
+	public logRetention: number
+	public errorRetention: number
 	public lastRun: string | null
 	public nextRun: string | null
 	public created: string | null
@@ -37,6 +39,8 @@ export class Job implements TJob {
 		this.scheduleAfter = job.scheduleAfter || null
 		this.userId = job.userId || null
 		this.jobListId = job.jobListId || null
+		this.logRetention = job.logRetention || 3600
+		this.errorRetention = job.errorRetention || 86400
 		this.lastRun = job.lastRun || null
 		this.nextRun = job.nextRun || null
 		this.created = job.created || null

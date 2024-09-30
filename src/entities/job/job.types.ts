@@ -13,6 +13,8 @@ export type TJob = {
     scheduleAfter?: string | null
     userId?: string | null
     jobListId?: string | null
+    logRetention?: number
+    errorRetention?: number
     lastRun?: string | null
     nextRun?: string | null
     created?: string | null

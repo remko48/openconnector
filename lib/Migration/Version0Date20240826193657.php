@@ -59,6 +59,8 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('job_list_id', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('last_run', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('next_run', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('logRetention', Types::INTEGER, ['notnull' => true, 'default' => 3600]);
+			$table->addColumn('errorRetention', Types::INTEGER, ['notnull' => true, 'default' => 86400]);
 			$table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
@@ -147,6 +149,8 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('last_sync', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('object_count', Types::INTEGER, ['notnull' => false]);
 			$table->addColumn('test', Types::BOOLEAN, ['notnull' => false]);
+			$table->addColumn('logRetention', Types::INTEGER, ['notnull' => true, 'default' => 3600]);
+			$table->addColumn('errorRetention', Types::INTEGER, ['notnull' => true, 'default' => 86400]);
 			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
@@ -209,6 +213,7 @@ use OCP\Migration\SimpleMigrationStep;
                 'notnull' => true, 
                 'default' => 'CURRENT_TIMESTAMP'
             ]);
+            $table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
 
             $table->setPrimaryKey(['id']);
             $table->addIndex(['source_id'], 'openconnector_call_logs_source_id_index');
@@ -229,6 +234,7 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addColumn('last_run', Types::DATETIME, ['notnull' => false]);
             $table->addColumn('next_run', Types::DATETIME, ['notnull' => false]);
             $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+            $table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
             $table->setPrimaryKey(['id']);
             $table->addIndex(['job_id'], 'openconnector_job_logs_job_id_index');
             $table->addIndex(['job_list_id'], 'openconnector_job_logs_job_list_id_index');

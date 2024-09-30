@@ -9,6 +9,7 @@ use OCA\OpenConnector\Db\JobLog;
 use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\BackgroundJob\IJobList;     
 
 /**
  * This class is used to run the action tasks for the OpenConnector app. It hooks into the cron job list and runs the classes that are set as the job class in the job.
@@ -21,19 +22,21 @@ class ActionTask extends TimedJob
     private SourceMapper $sourceMapper;
     private JobMapper $jobMapper;
     private JobLogMapper $jobLogMapper;
-    
+    private IJobList $jobList;
     public function __construct(        
         ITimeFactory $time, 
         CallService $callService, 
         SourceMapper $sourceMapper, 
         JobMapper $jobMapper,
-        JobLogMapper $jobLogMapper
+        JobLogMapper $jobLogMapper,
+        IJobList $jobList
     ) {
         parent::__construct($time);
         $this->callService = $callService;
         $this->sourceMapper = $sourceMapper;
         $this->jobMapper = $jobMapper;
         $this->jobLogMapper = $jobLogMapper;
+        $this->jobList = $jobList;
         // Run every 5 minutes
         //$this->setInterval(300);
 

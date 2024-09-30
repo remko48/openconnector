@@ -49,26 +49,29 @@ class JobService
             $iJob = $this->jobList->scheduleAfter($this->actionTask::class, $runAfter, $arguments);
         }
 
+        // Set the job list id
+        $job->setJobListId($this->getJobListId($this->actionTask::class));
         // Save the job to the database
-        $job->setJobListId($this->getJobListId($this->actionTask::class, $arguments));
         return $this->jobMapper->update($job);
     }
 
-    	/**
-	 * check if a job is in the list
+    /**
+	 * This function will get the job list id of the last job in the list
+     * 
+     * Why the NC job list dosn't support a better way to get the last job in the list is beyond me :')
+     * https://github.com/nextcloud/server/blob/master/lib/private/BackgroundJob/JobList.php#L134
 	 *
 	 * @param IJob|class-string<IJob> $job
 	 * @param mixed $argument
 	 */
-	public function getJobListId($job, $argument): int|null {
+	public function getJobListId($job): int|null {
 		$class = ($job instanceof IJob) ? get_class($job) : $job;
-		$arguments = json_encode($arguments);
 
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id')
 			->from('jobs')
 			->where($query->expr()->eq('class', $query->createNamedParameter($class)))
-			->andWhere($query->expr()->eq('argument_hash', $query->createNamedParameter(hash('sha256', $arguments))))
+			->orderBy('id', 'DESC')
 			->setMaxResults(1);
 
 		$result = $query->executeQuery();

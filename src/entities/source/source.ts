@@ -33,6 +33,8 @@ export class Source implements TSource {
 	public configuration: object | null
 	public endpointsConfig: object | null
 	public status: string
+	public logRetention: number
+	public errorRetention: number
 	public lastCall: string | null
 	public lastSync: string | null
 	public objectCount: number
@@ -70,6 +72,8 @@ export class Source implements TSource {
 		this.configuration = source.configuration || null
 		this.endpointsConfig = source.endpointsConfig || null
 		this.status = source.status || 'No calls have been made yet to this source'
+		this.logRetention = source.logRetention || 3600
+		this.errorRetention = source.errorRetention || 86400
 		this.lastCall = source.lastCall || null
 		this.lastSync = source.lastSync || null
 		this.objectCount = source.objectCount || 0
