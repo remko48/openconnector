@@ -2,13 +2,12 @@
 
 namespace OCA\OpenConnector\Cron;
 
-use OCA\OpenConnector\Service\CallService;
-use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\JobMapper;
 use OCA\OpenConnector\Db\JobLog;
 use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\AppFramework\Utility\IContainer;
 use OCP\BackgroundJob\IJobList;     
 
 /**
@@ -18,25 +17,22 @@ use OCP\BackgroundJob\IJobList;
  */
 class ActionTask extends TimedJob
 {    
-    private CallService $callService;
-    private SourceMapper $sourceMapper;
     private JobMapper $jobMapper;
     private JobLogMapper $jobLogMapper;
     private IJobList $jobList;
+    private IContainer $iContainer;
     public function __construct(        
         ITimeFactory $time, 
-        CallService $callService, 
-        SourceMapper $sourceMapper, 
         JobMapper $jobMapper,
         JobLogMapper $jobLogMapper,
-        IJobList $jobList
+        IJobList $jobList,
+        IContainer $iContainer
     ) {
         parent::__construct($time);
-        $this->callService = $callService;
-        $this->sourceMapper = $sourceMapper;
         $this->jobMapper = $jobMapper;
         $this->jobLogMapper = $jobLogMapper;
         $this->jobList = $jobList;
+        $this->iContainer = $iContainer;
         // Run every 5 minutes
         //$this->setInterval(300);
 
@@ -74,19 +70,10 @@ class ActionTask extends TimedJob
         }
 
 		$time_start = microtime(true); 
+
+        $action =  $this->iContainer->get($job->getClass());
+        $action->run($job->getArguments());
         
-        // For now we only have one action, so this is a bit overkill, but it's a good starting point
-        if (isset($arguments['sourceId']) && is_int($argument['sourceId'])) {
-            $source = $this->sourceMapper->find($argument['sourceId']);
-            $this->callService->call($source);
-        }
-        else {
-            $source = $this->sourceMapper->find(1);
-            $this->callService->call($source);
-        }
-
-        // @todo: instead get the actual call an run that
-
         $time_end = microtime(true);
         $executionTime = ( $time_end - $time_start ) * 1000;
 
