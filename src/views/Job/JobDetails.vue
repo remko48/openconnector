@@ -6,12 +6,12 @@ import { jobStore, navigationStore } from '../../store/store.js'
 	<div class="detailContainer">
 		<div id="app-content">
 			<div>
-				<div class="head">
+				<div class="detailHeader">
 					<h1 class="h1">
 						{{ jobStore.jobItem.name }}
 					</h1>
 
-					<NcActions :primary="true" menu-name="Acties">
+					<NcActions :primary="true" menu-name="Actions">
 						<template #icon>
 							<DotsHorizontal :size="20" />
 						</template>
@@ -19,13 +19,13 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							<template #icon>
 								<Pencil :size="20" />
 							</template>
-							Bewerken
+							Edit
 						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteJob')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
 							</template>
-							Verwijderen
+							Delete
 						</NcActionButton>
 					</NcActions>
 				</div>
@@ -37,17 +37,43 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						<p>{{ jobStore.jobItem.status }}</p>
 					</div>
 				</div>
-				<!-- Add more job-specific details here -->
+
+				<div class="tabContainer">
+					<BTabs content-class="mt-3" justified>
+						<BTab title="Logs">
+							<div v-if="jobStore.jobLogs?.length">
+								<NcListItem v-for="(log, i) in jobStore.jobLogs"
+									:key="log.id + i"
+									:name="log.createdAt"
+									:bold="false"
+									:force-display-actions="true">
+									<template #icon>
+										<BriefcaseAccountOutline disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ log.createdAt }}
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!jobStore.jobLogs?.length">
+								No logs found
+							</div>
+						</BTab>
+					</BTabs>
+				</div>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
-import { NcActions, NcActionButton } from '@nextcloud/vue'
+import { NcActions, NcActionButton, NcListItem } from '@nextcloud/vue'
+import { BTabs, BTab } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
 
 export default {
 	name: 'JobDetails',
@@ -57,6 +83,9 @@ export default {
 		DotsHorizontal,
 		Pencil,
 		TrashCanOutline,
+		BTabs,
+		BTab,
+		NcListItem,
 	},
 	mounted() {
 		jobStore.refreshJobLogs()
