@@ -66,38 +66,6 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->setPrimaryKey(['id']);
 		}
 
-		if (!$schema->hasTable('openconnector_logs')) {
-			$table = $schema->createTable('openconnector_logs');
-			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-			$table->addColumn('type', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('call_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('request_method', Types::STRING, ['notnull' => false, 'length' => 10]);
-			$table->addColumn('request_headers', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('request_query', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('request_path_info', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('request_languages', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('request_server', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('request_content', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('response_status', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('response_status_code', Types::INTEGER, ['notnull' => false]);
-			$table->addColumn('response_headers', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('response_content', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('session', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('session_values', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('response_time', Types::INTEGER, ['notnull' => false]);
-			$table->addColumn('route_name', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('route_parameters', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('entity', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('endpoint', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('gateway', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('handler', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('object_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-			$table->setPrimaryKey(['id']);
-		}
-
 		if (!$schema->hasTable('openconnector_mappings')) {
 			$table = $schema->createTable('openconnector_mappings');
 			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
@@ -159,26 +127,33 @@ use OCP\Migration\SimpleMigrationStep;
 		if (!$schema->hasTable('openconnector_synchronizations')) {
 			$table = $schema->createTable('openconnector_synchronizations');
 			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-			$table->addColumn('entity', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('object', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('action', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('gateway', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('sourceObject', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('endpoint', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('sourceId', Types::STRING, ['notnull' => true, 'length' => 255]);
-			$table->addColumn('hash', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('sha', Types::STRING, ['notnull' => false, 'length' => 255]);
-			$table->addColumn('blocked', Types::BOOLEAN, ['notnull' => false]);
-			$table->addColumn('sourceLastChanged', Types::DATETIME, ['notnull' => false]);
-			$table->addColumn('lastChecked', Types::DATETIME, ['notnull' => false]);
-			$table->addColumn('lastSynced', Types::DATETIME, ['notnull' => false]);
-			$table->addColumn('tryCounter', Types::INTEGER, ['notnull' => false]);
-			$table->addColumn('dontSyncBefore', Types::DATETIME, ['notnull' => false]);
-			$table->addColumn('mapping', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			// Source
+			$table->addColumn('source_id', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('source_type', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('source_hash', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('source_target_mapping', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('source_config', Types::JSON, ['notnull' => false]);
+			$table->addColumn('source_last_changed', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('source_last_checked', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('source_last_synced', Types::DATETIME, ['notnull' => false]);
+			// Target
+			$table->addColumn('target_id', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('target_type', Types::STRING, ['notnull' => true, 'length' => 255]);
+			$table->addColumn('target_hash', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('target_source_mapping', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('target_config', Types::JSON, ['notnull' => false]);
+			$table->addColumn('target_last_changed', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('target_last_checked', Types::DATETIME, ['notnull' => false]);
+			$table->addColumn('target_last_synced', Types::DATETIME, ['notnull' => false]);
+			// General
+			$table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->setPrimaryKey(['id']);
-		}	
+			$table->addIndex(['source_id'], 'openconnector_synchronizations_source_id_index');
+			$table->addIndex(['target_id'], 'openconnector_synchronizations_target_id_index');
+		}
 
         if (!$schema->hasTable('openconnector_call_logs')) {
             $table = $schema->createTable('openconnector_call_logs');
@@ -239,6 +214,36 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addIndex(['job_id'], 'openconnector_job_logs_job_id_index');
             $table->addIndex(['job_list_id'], 'openconnector_job_logs_job_list_id_index');
             $table->addIndex(['user_id'], 'openconnector_job_logs_user_id_index');
+        }
+
+        if (!$schema->hasTable('openconnector_synchronization_contracts')) {
+            $table = $schema->createTable('openconnector_synchronization_contracts');
+            $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+            $table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
+            $table->addColumn('description', Types::TEXT, ['notnull' => false]);
+            $table->addColumn('synchronization_id', Types::STRING, ['notnull' => true, 'length' => 255]);
+            // Source
+            $table->addColumn('source_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+            $table->addColumn('source_hash', Types::STRING, ['notnull' => false, 'length' => 255]);
+            $table->addColumn('source_last_changed', Types::DATETIME, ['notnull' => false]);
+            $table->addColumn('source_last_checked', Types::DATETIME, ['notnull' => false]);
+            $table->addColumn('source_last_synced', Types::DATETIME, ['notnull' => false]);
+            // Target
+            $table->addColumn('target_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+            $table->addColumn('target_hash', Types::STRING, ['notnull' => false, 'length' => 255]);
+            $table->addColumn('target_last_changed', Types::DATETIME, ['notnull' => false]);
+            $table->addColumn('target_last_checked', Types::DATETIME, ['notnull' => false]);
+            $table->addColumn('target_last_synced', Types::DATETIME, ['notnull' => false]);
+            // General
+            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+            $table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+
+            $table->setPrimaryKey(['id']);
+            $table->addIndex(['synchronization_id'], 'openconnector_sync_contracts_sync_index');
+            $table->addIndex(['source_id'], 'openconnector_sync_contracts_source_id_index');
+            $table->addIndex(['target_id'], 'openconnector_sync_contracts_target_id_index');
+            $table->addIndex(['synchronization_id', 'source_id'], 'openconnector_sync_contracts_sync_source_index');
+            $table->addIndex(['synchronization_id', 'target_id'], 'openconnector_sync_contracts_sync_target_index');
         }
 
 		return $schema;
