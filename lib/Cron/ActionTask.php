@@ -7,8 +7,8 @@ use OCA\OpenConnector\Db\JobLog;
 use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\AppFramework\Utility\IContainer;
 use OCP\BackgroundJob\IJobList;     
+use Psr\Container\ContainerInterface;
 
 /**
  * This class is used to run the action tasks for the OpenConnector app. It hooks into the cron job list and runs the classes that are set as the job class in the job.
@@ -20,19 +20,20 @@ class ActionTask extends TimedJob
     private JobMapper $jobMapper;
     private JobLogMapper $jobLogMapper;
     private IJobList $jobList;
-    private IContainer $iContainer;
+    private ContainerInterface $containerInterface; 
+
     public function __construct(        
         ITimeFactory $time, 
         JobMapper $jobMapper,
         JobLogMapper $jobLogMapper,
         IJobList $jobList,
-        IContainer $iContainer
+        ContainerInterface $containerInterface
     ) {
         parent::__construct($time);
         $this->jobMapper = $jobMapper;
         $this->jobLogMapper = $jobLogMapper;
         $this->jobList = $jobList;
-        $this->iContainer = $iContainer;
+        $this->containerInterface = $containerInterface;
         // Run every 5 minutes
         //$this->setInterval(300);
 
@@ -71,7 +72,7 @@ class ActionTask extends TimedJob
 
 		$time_start = microtime(true); 
 
-        $action =  $this->iContainer->get($job->getClass());
+        $action =  $this->containerInterface->get($job->getClass());
         $action->run($job->getArguments());
         
         $time_end = microtime(true);

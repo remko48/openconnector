@@ -10,7 +10,7 @@ use OCA\OpenConnector\Db\SynchronizationContractMapper;
 use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
 
-use OCP\AppFramework\Utility\IContainer;
+use Psr\Container\ContainerInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
 use Adbar\Dot;
@@ -20,25 +20,25 @@ use DateTime;
 
 class SynchronizationService
 {
-    public $CallService;
-    public $MappingService;
-    public $container;
-    public $synchronization;
-    public $synchronizationMapper;
-    public $synchronizationContractMapper;
-    public $objectService;
+    private CallService $callService;
+    private MappingService $mappingService;
+    private ContainerInterface $containerInterface; 
+    private Synchronization $synchronization;
+    private SynchronizationMapper $synchronizationMapper;
+    private SynchronizationContractMapper $synchronizationContractMapper;
+    private ObjectService $objectService;
 
 
 	public function __construct(
 		CallService $callService,
 		MappingService $mappingService,
-		IContainer $container,
+		ContainerInterface $containerInterface,
 		SynchronizationMapper $synchronizationMapper,
 		SynchronizationContractMapper $synchronizationContractMapper
 	) {
 		$this->callService = $callService;
 		$this->mappingService = $mappingService;
-		$this->container = $container;
+		$this->containerInterface = $containerInterface;
 		$this->synchronizationMapper = $synchronizationMapper;
 		$this->synchronizationContractMapper = $synchronizationContractMapper;
 	}
@@ -151,7 +151,7 @@ class SynchronizationService
         switch($type){
             case 'register/schema':
                 // Setup the object service
-                $this->objectService = $this->iContainer->get('OCA\OpenRegister\Service\ObjectService');
+                $this->objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
                 // if we alreadey have an id, we need to get the object and update it
                 if($synchronizationContract->getTargetId()){
                     $targetObject['id'] = $synchronizationContract->getTargetId();
@@ -166,10 +166,11 @@ class SynchronizationService
                 $synchronizationContract->setTargetId($target->getUuid());
                 break;
             case 'api':
-                $this->callService->put($targetObject);
+                //@todo: implement
+                //$this->callService->put($targetObject);
                 break;
             case 'database':
-                $this->callService->put($targetObject);
+                //@todo: implement
                 break;
         }
     }
@@ -185,14 +186,16 @@ class SynchronizationService
         switch($type){
             case 'register/schema':
                 // Setup the object service
-                $this->objectService = $this->iContainer->get('OCA\OpenRegister\Service\ObjectService');
+                $this->objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
                 
                 break;
             case 'api':
-                $this->callService->put($targetObject);
+                
+                //@todo: implement
+                //$this->callService->put($targetObject);
                 break;
             case 'database':
-                $this->callService->put($targetObject);
+                //@todo: implement
                 break;
         }
     }
