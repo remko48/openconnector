@@ -22,6 +22,10 @@ export const useJobStore = defineStore(
 				)
 				console.log('Job list set to ' + jobList.length + ' items')
 			},
+			setJobLogs(jobLogs) {
+				this.jobLogs = jobLogs
+				console.log('Job logs set to ' + jobLogs.length + ' items')
+			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshJobList(search = null) {
 				// @todo this might belong in a service?

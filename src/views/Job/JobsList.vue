@@ -20,13 +20,13 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
-						Ververs
+						Refresh
 					</NcActionButton>
 					<NcActionButton @click="jobStore.setJobItem({}); navigationStore.setModal('editJob')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Taak toevoegen
+						Add job
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -70,7 +70,7 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 			name="Taken aan het laden" />
 
 		<div v-if="jobStore.jobList.length === 0">
-			Er zijn nog geen taken gedefinieerd.
+			No jobs defined.
 		</div>
 	</NcAppContentList>
 </template>

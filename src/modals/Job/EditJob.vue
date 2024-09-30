@@ -3,11 +3,14 @@ import { jobStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editJob'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editJob'"
+		ref="modalRef"
+		label-id="editJob"
+		@close="navigationStore.setModal(false)">
 		<div class="modalContent">
-			<h2>Job {{ jobStore.jobItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>{{ jobStore.jobItem.id ? 'Edit' : 'Add' }} job</h2>
 			<NcNoteCard v-if="success" type="success">
-				<p>Job succesvol toegevoegd</p>
+				<p>Successfully added job</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -27,7 +30,8 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						:value.sync="jobStore.jobItem.description" />
 				</div>
 				<div class="form-group">
-					<NcTextArea
+					<NcInputField
+						type="number"
 						label="Intraval"
 						:value.sync="jobStore.jobItem.interval" />
 				</div>
@@ -42,7 +46,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
 				</template>
-				Opslaan
+				Save
 			</NcButton>
 		</div>
 	</NcModal>
@@ -54,9 +58,9 @@ import {
 	NcModal,
 	NcTextField,
 	NcTextArea,
-	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
+	NcInputField,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -67,9 +71,9 @@ export default {
 		NcTextField,
 		NcTextArea,
 		NcButton,
-		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
+		NcInputField,
 		// Icons
 		ContentSaveOutline,
 	},
