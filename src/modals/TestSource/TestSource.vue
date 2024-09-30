@@ -49,11 +49,11 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 			<NcNoteCard v-if="sourceStore.sourceTest && sourceStore.sourceTest.response.statusCode.toString().startsWith('2')" type="success">
 				<p>The connection to the source was successful.</p>
 			</NcNoteCard>
-			<NcNoteCard v-if="(sourceStore.sourceTest && !sourceStore.sourceTest.response.statusCode.toString().startsWith('2')) || this.error" type="error">
+			<NcNoteCard v-if="(sourceStore.sourceTest && !sourceStore.sourceTest.response.statusCode.toString().startsWith('2')) || error" type="error">
 				<p>An error occurred while testing the connection: {{ sourceStore.sourceTest ? sourceStore.sourceTest.response.statusMessage : error }}</p>
 			</NcNoteCard>
 
-			<div v-if="sourceStore.sourceTest">				
+			<div v-if="sourceStore.sourceTest">
 				<p><b>Status:</b> {{ sourceStore.sourceTest.response.statusMessage }} ({{ sourceStore.sourceTest.response.statusCode }})</p>
 				<p><b>Response time:</b> {{ sourceStore.sourceTest.response.responseTime }} (Milliseconds)</p>
 				<p><b>Size:</b> {{ sourceStore.sourceTest.response.size }} (Bytes)</p>
