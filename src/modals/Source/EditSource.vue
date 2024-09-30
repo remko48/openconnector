@@ -31,18 +31,18 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 					<NcSelect
 						id="type"
 						v-bind="typeOptions"
-						v-model="sourceItem.type" />
+						v-model="typeOptions.value" />
 
 					<NcTextField
-						id="connection"
-						label="Verbinding*"
-						:value.sync="sourceItem.connection" />
+						id="location"
+						label="location*"
+						:value.sync="sourceItem.location" />
 				</div>
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading || !sourceItem.name || !sourceItem.connection"
+				:disabled="loading || !sourceItem.name || !sourceItem.location || !typeOptions.value"
 				type="primary"
 				@click="editSource()">
 				<template #icon>
@@ -84,17 +84,17 @@ export default {
 				name: '',
 				description: '',
 				type: '',
-				connection: '',
+				location: '',
 			},
 			success: false,
 			loading: false,
 			error: false,
 			typeOptions: {
-				inputLabel: 'Type',
+				inputLabel: 'Type*',
 				options: [
-					{ label: 'Database', value: 'database' },
-					{ label: 'API', value: 'api' },
-					{ label: 'File', value: 'file' },
+					{ label: 'Database', id: 'database' },
+					{ label: 'API', id: 'api' },
+					{ label: 'File', id: 'file' },
 				],
 
 			},
@@ -116,7 +116,7 @@ export default {
 		async editSource() {
 			this.loading = true
 			try {
-				await sourceStore.saveSource(this.sourceItem)
+				await sourceStore.saveSource({ ...this.sourceItem, type: this.typeOptions.value.id })
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

@@ -6,12 +6,17 @@ export const useSourceStore = defineStore(
 	'source', {
 		state: () => ({
 			sourceItem: false,
+			sourceTest: false,
 			sourceList: [],
 		}),
 		actions: {
 			setSourceItem(sourceItem) {
 				this.sourceItem = sourceItem && new Source(sourceItem)
 				console.log('Active source item set to ' + sourceItem)
+			},
+			setSourceTest(sourceTest) {
+				this.sourceTest = sourceTest
+				console.log('Source test set to ' + sourceTest)
 			},
 			setSourceList(sourceList) {
 				this.sourceList = sourceList.map(
@@ -80,6 +85,38 @@ export const useSourceStore = defineStore(
 						throw err
 					})
 			},
+			// Test a source
+			testSource(testSourceItem) {
+				if (!this.sourceItem) {
+					throw new Error('No source item to test')
+				}
+				if (!testSourceItem) {
+					throw new Error('No testobject to test')
+				}
+
+				console.log('Testing source...')
+
+				const endpoint = `/index.php/apps/openconnector/api/source-test/${this.sourceItem.id}`
+
+				return fetch(endpoint, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(testSourceItem),
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						this.setSourceTest(data)
+						console.log('Source tested')
+						// Refresh the source list
+						return this.refreshSourceList()
+					})
+					.catch((err) => {
+						console.error('Error saving source:', err)
+						throw err
+					})
+			},
 			// Create or save a source from store
 			saveSource(sourceItem) {
 				if (!sourceItem) {
@@ -101,6 +138,10 @@ export const useSourceStore = defineStore(
 						delete sourceToSave[key]
 					}
 				})
+
+				// remove the dateCreated and dateModified fields
+				delete sourceToSave.dateCreated
+				delete sourceToSave.dateModified
 
 				return fetch(
 					endpoint,
