@@ -11,6 +11,8 @@
 		<EditMapping />
 		<DeleteSynchronization />
 		<EditSynchronization />
+		<EditJobArgument />
+		<DeleteJobArgument />
 	</div>
 </template>
 
@@ -27,6 +29,8 @@ import EditMapping from './Mapping/EditMapping.vue'
 import DeleteMapping from './Mapping/DeleteMapping.vue'
 import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
+import EditJobArgument from './JobArgument/EditJobArgument.vue'
+import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
 
 export default {
 	name: 'Modals',
@@ -42,6 +46,8 @@ export default {
 	  EditMapping,
 	  DeleteSynchronization,
 	  EditSynchronization,
+	  EditJobArgument,
+	  DeleteJobArgument,
 	},
 	setup() {
 	  return {
