@@ -10,54 +10,44 @@ class Job extends Entity implements JsonSerializable
 {
 	protected ?string $name = null;
 	protected ?string $description = null;
-	protected ?string $reference = null;
-	protected ?string $version = null;
-	protected ?string $crontab = null;
-	protected ?string $userId = null;
-	protected ?string $throws = null;
-	protected ?array $data = null;
-	protected ?DateTime $lastRun = null;
-	protected ?DateTime $nextRun = null;
-	protected ?bool $isEnabled = null;
-	protected ?DateTime $dateCreated = null;
-	protected ?DateTime $dateModified = null;
-	protected ?array $listens = null;
-	protected ?array $conditions = null;
-	protected ?string $class = null;
-	protected ?int $priority = null;
-	protected ?bool $async = null;
-	protected ?array $configuration = null;
-	protected ?bool $isLockable = null;
-	protected ?bool $locked = null;
-	protected ?int $lastRunTime = null;
-	protected ?bool $status = null;
-	protected ?array $actionHandlerConfiguration = null;
+	protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
+	protected ?array $arguments = null;
+	protected ?int $interval = 3600; // seconds in an hour
+	protected ?int $executionTime = 3600; // maximum execution time in seconds
+	protected ?bool $timeSensitive = true; // if the job is time sensitive and should be executed even if the server is under heavy load
+	protected ?bool $allowParallelRuns = false; // if the job can be executed in parallel	
+	protected ?bool $isEnabled = true; // if the job is enabled
+	protected ?bool $singleRun = false; // if set, the job will only run once and then disable itself
+	protected ?DateTime $scheduleAfter = null; // if the job should be executed after a certain date and time
+	protected ?string $userId = null; // the user which the job is running for security reasons
+	protected ?string $jobListId = null; // the id of the job in the job list
+	protected ?int $logRetention = 3600; // seconds to save all logs
+	protected ?int $errorRetention = 86400; // seconds to save error logs
+	protected ?DateTime $lastRun = null; // the last time the job was run
+	protected ?DateTime $nextRun = null; // the next time the job will be run
+	protected ?DateTime $created = null; // the date and time the job was created	
+	protected ?DateTime $updated = null; // the date and time the job was updated
 
 	public function __construct() {
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
-		$this->addType('reference', 'string');
-		$this->addType('version', 'string');
-		$this->addType('crontab', 'string');
+		$this->addType('jobClass', 'string');
+		$this->addType('arguments', 'json');
+		$this->addType('interval', 'integer');
+		$this->addType('executionTime', 'integer');
+		$this->addType('timeSensitive', 'boolean');
+		$this->addType('allowParallelRuns', 'boolean');
+		$this->addType('isEnabled', 'boolean');
+		$this->addType('singleRun', 'boolean');
+		$this->addType('scheduleAfter', 'datetime');
 		$this->addType('userId', 'string');
-		$this->addType('throws', 'string');
-		$this->addType('data', 'json');
+		$this->addType('jobListId', 'string');
+		$this->addType('logRetention', 'integer');
+		$this->addType('errorRetention', 'integer');
 		$this->addType('lastRun', 'datetime');
 		$this->addType('nextRun', 'datetime');
-		$this->addType('isEnabled', 'boolean');
-		$this->addType('dateCreated', 'datetime');
-		$this->addType('dateModified', 'datetime');
-		$this->addType('listens', 'json');
-		$this->addType('conditions', 'json');
-		$this->addType('class', 'string');
-		$this->addType('priority', 'integer');
-		$this->addType('async', 'boolean');
-		$this->addType('configuration', 'json');
-		$this->addType('isLockable', 'boolean');
-		$this->addType('locked', 'boolean');
-		$this->addType('lastRunTime', 'integer');
-		$this->addType('status', 'boolean');
-		$this->addType('actionHandlerConfiguration', 'json');
+		$this->addType('created', 'datetime');
+		$this->addType('updated', 'datetime');
 	}
 
 	public function getJsonFields(): array
@@ -96,28 +86,23 @@ class Job extends Entity implements JsonSerializable
 			'id' => $this->id,
 			'name' => $this->name,
 			'description' => $this->description,
-			'reference' => $this->reference,
-			'version' => $this->version,
-			'crontab' => $this->crontab,
+			'jobClass' => $this->jobClass,
+			'arguments' => $this->arguments,
+			'interval' => $this->interval,
+			'executionTime' => $this->executionTime,
+			'timeSensitive' => $this->timeSensitive,
+			'allowParallelRuns' => $this->allowParallelRuns,
+			'isEnabled' => $this->isEnabled,
+			'singleRun' => $this->singleRun,
+			'scheduleAfter' => $this->scheduleAfter,
 			'userId' => $this->userId,
-			'throws' => $this->throws,
-			'data' => $this->data,
+			'jobListId' => $this->jobListId,
+			'logRetention' => $this->logRetention,
+			'errorRetention' => $this->errorRetention,
 			'lastRun' => $this->lastRun,
 			'nextRun' => $this->nextRun,
-			'isEnabled' => $this->isEnabled,
-			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified,
-			'listens' => $this->listens,
-			'conditions' => $this->conditions,
-			'class' => $this->class,
-			'priority' => $this->priority,
-			'async' => $this->async,
-			'configuration' => $this->configuration,
-			'isLockable' => $this->isLockable,
-			'locked' => $this->locked,
-			'lastRunTime' => $this->lastRunTime,
-			'status' => $this->status,
-			'actionHandlerConfiguration' => $this->actionHandlerConfiguration
+			'created' => $this->created,
+			'updated' => $this->updated,
 		];
 	}
 }

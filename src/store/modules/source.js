@@ -8,6 +8,8 @@ export const useSourceStore = defineStore(
 			sourceItem: false,
 			sourceTest: false,
 			sourceList: [],
+			sourceLog: false,
+			sourceLogs: [],
 		}),
 		actions: {
 			setSourceItem(sourceItem) {
@@ -23,6 +25,14 @@ export const useSourceStore = defineStore(
 					(sourceItem) => new Source(sourceItem),
 				)
 				console.log('Source list set to ' + sourceList.length + ' items')
+			},
+			setSourceLog(sourceLog) {
+				this.sourceLog = sourceLog
+				console.log('Source log set')
+			},
+			setSourceLogs(sourceLogs) {
+				this.sourceLogs = sourceLogs
+				console.log('Source logs set to ' + sourceLogs.length + ' items')
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshSourceList(search = null) {
@@ -58,6 +68,21 @@ export const useSourceStore = defineStore(
 					})
 					const data = await response.json()
 					this.setSourceItem(data)
+					return data
+				} catch (err) {
+					console.error(err)
+					throw err
+				}
+			},
+			// New function to get source logs
+			async refreshSourceLogs() {
+				const endpoint = `/index.php/apps/openconnector/api/sources-logs/${this.sourceItem.id}`
+				try {
+					const response = await fetch(endpoint, {
+						method: 'GET',
+					})
+					const data = await response.json()
+					this.setSourceLogs(data)
 					return data
 				} catch (err) {
 					console.error(err)

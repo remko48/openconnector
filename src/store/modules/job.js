@@ -6,7 +6,10 @@ export const useJobStore = defineStore(
 	'job', {
 		state: () => ({
 			jobItem: false,
+			jobRun: false,
 			jobList: [],
+			jobLog: false,
+			jobLogs: [],
 		}),
 		actions: {
 			setJobItem(jobItem) {
@@ -53,6 +56,21 @@ export const useJobStore = defineStore(
 					})
 					const data = await response.json()
 					this.setJobItem(data)
+					return data
+				} catch (err) {
+					console.error(err)
+					throw err
+				}
+			},
+			// New function to get source logs
+			async refreshJobLogs() {
+				const endpoint = `/index.php/apps/openconnector/api/jobs-logs/${this.jobItem.id}`
+				try {
+					const response = await fetch(endpoint, {
+						method: 'GET',
+					})
+					const data = await response.json()
+					this.setJobLogs(data)
 					return data
 				} catch (err) {
 					console.error(err)

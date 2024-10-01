@@ -36,6 +36,8 @@ class Source extends Entity implements JsonSerializable
 	protected ?array $configuration = null;
 	protected ?array $endpointsConfig = null;
 	protected ?string $status = null;
+	protected ?int $logRetention = 3600; // seconds to save all logs
+	protected ?int $errorRetention = 86400; // seconds to save error logs
 	protected ?DateTime $lastCall = null;
 	protected ?DateTime $lastSync = null;
 	protected ?int $objectCount = null;
@@ -72,6 +74,8 @@ class Source extends Entity implements JsonSerializable
 		$this->addType('configuration', 'json');
 		$this->addType('endpointsConfig', 'json');
 		$this->addType('status', 'string');
+		$this->addType('logRetention', 'integer');
+		$this->addType('errorRetention', 'integer');
 		$this->addType('lastCall', 'datetime');
 		$this->addType('lastSync', 'datetime');
 		$this->addType('objectCount', 'integer');
@@ -142,6 +146,8 @@ class Source extends Entity implements JsonSerializable
 			'configuration' => $this->configuration,
 			'endpointsConfig' => $this->endpointsConfig,
 			'status' => $this->status,
+			'logRetention' => $this->logRetention,
+			'errorRetention' => $this->errorRetention,
 			'lastCall' => $this->lastCall,
 			'lastSync' => $this->lastSync,
 			'objectCount' => $this->objectCount,
