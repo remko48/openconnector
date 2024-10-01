@@ -44,7 +44,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							<div v-if="jobStore.jobLogs?.length">
 								<NcListItem v-for="(log, i) in jobStore.jobLogs"
 									:key="log.id + i"
-									:name="log.createdAt"
+									:name="log.id"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
@@ -52,7 +52,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ log.createdAt }}
+										{{ log.created }}
 									</template>
 								</NcListItem>
 							</div>
