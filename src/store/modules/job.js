@@ -6,7 +6,7 @@ export const useJobStore = defineStore(
 	'job', {
 		state: () => ({
 			jobItem: false,
-			jobRun: false,
+			jobTest: false,
 			jobList: [],
 			jobLog: false,
 			jobLogs: [],
@@ -15,6 +15,10 @@ export const useJobStore = defineStore(
 			setJobItem(jobItem) {
 				this.jobItem = jobItem && new Job(jobItem)
 				console.log('Active job item set to ' + jobItem)
+			},
+			setJobTest(jobTest) {
+				this.jobTest = jobTest
+				console.log('Job test set to ' + jobTest)
 			},
 			setJobList(jobList) {
 				this.jobList = jobList.map(
@@ -99,6 +103,39 @@ export const useJobStore = defineStore(
 					})
 					.catch((err) => {
 						console.error('Error deleting job:', err)
+						throw err
+					})
+			},
+			// Test a job
+			testJob(testJobItem) {
+				if (!this.jobItem) {
+					throw new Error('No job item to test')
+				}
+				if (!testJobItem) {
+					throw new Error('No testobject to test')
+				}
+
+				console.log('Testing job...')
+
+				const endpoint = `/index.php/apps/openconnector/api/jobs-test/${this.jobItem.id}`
+
+				return fetch(endpoint, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					//body: JSON.stringify(testJobItem),
+					body: JSON.stringify([]),
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						this.setJobTest(data)
+						console.log('Job tested')
+						// Refresh the job list
+						return this.refreshJobList()
+					})
+					.catch((err) => {
+						console.error('Error testing job:', err)
 						throw err
 					})
 			},

@@ -21,6 +21,12 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('testJob')">
+							<template #icon>
+								<Update :size="20" />
+							</template>
+							Test
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteJob')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -73,7 +79,7 @@ import { BTabs, BTab } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
-import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
+import Update from 'vue-material-design-icons/Update.vue'
 
 export default {
 	name: 'JobDetails',
@@ -83,6 +89,7 @@ export default {
 		DotsHorizontal,
 		Pencil,
 		TrashCanOutline,
+		Update,
 		BTabs,
 		BTab,
 		NcListItem,

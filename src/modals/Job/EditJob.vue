@@ -30,10 +30,27 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						:value.sync="jobStore.jobItem.description" />
 				</div>
 				<div class="form-group">
+					<NcTextArea
+						label="Job Class"
+						:value.sync="jobStore.jobItem.jobClass" />
+				</div>
+				<div class="form-group">
 					<NcInputField
 						type="number"
 						label="Intraval"
 						:value.sync="jobStore.jobItem.interval" />
+				</div> 
+				<div class="form-group">
+					<NcInputField
+						type="number"
+						label="logRetention"
+						:value.sync="jobStore.jobItem.logRetention" />
+				</div>
+				<div class="form-group">
+					<NcInputField
+						type="number"
+						label="errorRetention"
+						:value.sync="jobStore.jobItem.errorRetention" />
 				</div>
 			</form>
 
