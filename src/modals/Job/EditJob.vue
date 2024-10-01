@@ -6,7 +6,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 	<NcModal v-if="navigationStore.modal === 'editJob'"
 		ref="modalRef"
 		label-id="editJob"
-		@close="navigationStore.setModal(false)">
+		@close="closeModal">
 		<div class="modalContent">
 			<h2>{{ jobItem?.id ? 'Edit' : 'Add' }} job</h2>
 			<NcNoteCard v-if="success" type="success">
