@@ -103,7 +103,7 @@ export default {
 	methods: {
 		closeModal() {
 			navigationStore.setModal(false)
-			this.succes = false
+			this.success = false
 			this.loading = false
 			this.error = false
 			this.sourceItem = {

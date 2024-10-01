@@ -3,11 +3,14 @@ import { jobStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editJob'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editJob'"
+		ref="modalRef"
+		label-id="editJob"
+		@close="closeModal">
 		<div class="modalContent">
-			<h2>Job {{ jobStore.jobItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>{{ jobItem?.id ? 'Edit' : 'Add' }} job</h2>
 			<NcNoteCard v-if="success" type="success">
-				<p>Job succesvol toegevoegd</p>
+				<p>Successfully added job</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -18,18 +21,19 @@ import { jobStore, navigationStore } from '../../store/store.js'
 					<NcTextField
 						label="Name"
 						maxlength="255"
-						:value.sync="jobStore.jobItem.name"
+						:value.sync="jobItem.name"
 						required />
 				</div>
 				<div class="form-group">
 					<NcTextArea
 						label="Description"
-						:value.sync="jobStore.jobItem.description" />
+						:value.sync="jobItem.description" />
 				</div>
 				<div class="form-group">
-					<NcTextArea
+					<NcInputField
+						type="number"
 						label="Intraval"
-						:value.sync="jobStore.jobItem.interval" />
+						:value.sync="jobItem.interval" />
 				</div>
 			</form>
 
@@ -42,7 +46,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
 				</template>
-				Opslaan
+				Save
 			</NcButton>
 		</div>
 	</NcModal>
@@ -54,9 +58,9 @@ import {
 	NcModal,
 	NcTextField,
 	NcTextArea,
-	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
+	NcInputField,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -67,18 +71,18 @@ export default {
 		NcTextField,
 		NcTextArea,
 		NcButton,
-		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
+		NcInputField,
 		// Icons
 		ContentSaveOutline,
 	},
 	data() {
 		return {
-			sourceItem: {
+			jobItem: {
 				name: '',
 				description: '',
-				location: '',
+				interval: '3600',
 			},
 			success: false,
 			loading: false,
@@ -88,22 +92,50 @@ export default {
 				{ label: 'In Progress', value: 'in_progress' },
 				{ label: 'Completed', value: 'completed' },
 			],
+			hasUpdated: false,
+		}
+	},
+	mounted() {
+		this.initializeJobItem()
+	},
+	updated() {
+		if (navigationStore.modal === 'editJob' && !this.hasUpdated) {
+			this.initializeJobItem()
+			this.hasUpdated = true
 		}
 	},
 	methods: {
+		initializeJobItem() {
+			if (jobStore.jobItem?.id) {
+				this.jobItem = {
+					...jobStore.jobItem,
+					name: jobStore.jobItem.name || '',
+					description: jobStore.jobItem.description || '',
+					interval: jobStore.jobItem.interval || '3600',
+				}
+			}
+		},
+		closeModal() {
+			navigationStore.setModal(false)
+			this.success = false
+			this.loading = false
+			this.error = false
+			this.hasUpdated = false
+			this.jobItem = {
+				name: '',
+				description: '',
+				interval: '3600',
+			}
+		},
 		async editJob() {
 			this.loading = true
 			try {
-				await jobStore.saveJob()
+				await jobStore.saveJob({ ...this.jobItem })
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(() => {
-					this.success = false
-					this.loading = false
-					this.error = false
-					navigationStore.setModal(false)
-				}, 2000)
+				setTimeout(this.closeModal, 2000)
+
 			} catch (error) {
 				this.loading = false
 				this.success = false

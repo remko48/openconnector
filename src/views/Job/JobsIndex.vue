@@ -10,14 +10,14 @@ import { jobStore, navigationStore } from '../../store/store.js'
 		<template #default>
 			<NcEmptyContent v-if="!jobStore.jobItem || navigationStore.selected != 'jobs'"
 				class="detailContainer"
-				name="Geen taak"
-				description="Nog geen taak geselecteerd">
+				name="No job"
+				description="No job selected">
 				<template #icon>
 					<Update />
 				</template>
 				<template #action>
-					<NcButton type="primary" @click="jobStore.setJobItem({}); navigationStore.setModal('editJob')">
-						Taak toevoegen
+					<NcButton type="primary" @click="jobStore.setJobItem(null); navigationStore.setModal('editJob')">
+						Add job
 					</NcButton>
 				</template>
 			</NcEmptyContent>
