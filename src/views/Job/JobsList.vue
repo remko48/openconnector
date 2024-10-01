@@ -22,7 +22,7 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 						</template>
 						Refresh
 					</NcActionButton>
-					<NcActionButton @click="jobStore.setJobItem({}); navigationStore.setModal('editJob')">
+					<NcActionButton @click="jobStore.setJobItem(null); navigationStore.setModal('editJob')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
