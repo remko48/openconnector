@@ -6,9 +6,9 @@ import { jobStore, navigationStore } from '../../store/store.js'
 	<NcModal v-if="navigationStore.modal === 'editJob'"
 		ref="modalRef"
 		label-id="editJob"
-		@close="navigationStore.setModal(false)">
+		@close="closeModal">
 		<div class="modalContent">
-			<h2>{{ jobStore.jobItem.id ? 'Edit' : 'Add' }} job</h2>
+			<h2>{{ jobItem?.id ? 'Edit' : 'Add' }} job</h2>
 			<NcNoteCard v-if="success" type="success">
 				<p>Successfully added job</p>
 			</NcNoteCard>
@@ -21,30 +21,75 @@ import { jobStore, navigationStore } from '../../store/store.js'
 					<NcTextField
 						label="Name"
 						maxlength="255"
-						:value.sync="jobStore.jobItem.name"
+						:value.sync="jobItem.name"
 						required />
-				</div>
-				<div class="form-group">
+
 					<NcTextArea
 						label="Description"
-						:value.sync="jobStore.jobItem.description" />
-				</div>
-				<div class="form-group">
-					<NcTextArea
+						:value.sync="jobItem.description" />
+
+					<NcTextField
 						label="Job Class"
-						:value.sync="jobStore.jobItem.jobClass" />
-				</div>
-				<div class="form-group">
+						maxlength="255"
+						:value.sync="jobItem.jobClass" />
+
 					<NcInputField
 						type="number"
 						label="Intraval"
-						:value.sync="jobStore.jobItem.interval" />
-				</div> 
-				<div class="form-group">
+						:value.sync="jobItem.interval" />
+
 					<NcInputField
 						type="number"
-						label="logRetention"
-						:value.sync="jobStore.jobItem.logRetention" />
+						label="Execution Time"
+						:value.sync="jobItem.executionTime" />
+
+					<div class="jobCheckboxContainerGrid">
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.timeSensitive">
+							Time Sensitive
+						</NcCheckboxRadioSwitch>
+
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.allowParallelRuns">
+							Allow Parallel Runs
+						</NcCheckboxRadioSwitch>
+
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.isEnabled">
+							Enabled
+						</NcCheckboxRadioSwitch>
+
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.singleRun">
+							Single Run
+						</NcCheckboxRadioSwitch>
+					</div>
+					<div>
+						<span>
+							<p>Schedule After</p>
+							<NcDateTimePicker v-model="jobItem.scheduleAfter"
+								:disabled="loading"
+								label="Schedule After" />
+						</span>
+					</div>
+					<NcTextField
+						label="User ID"
+						maxlength="255"
+						:value.sync="jobItem.userId" />
+
+					<NcInputField
+						type="number"
+						label="Log Retention"
+						:value.sync="jobItem.logRetention" />
+
+					<NcInputField
+						type="number"
+						label="Error Retention"
+						:value.sync="jobItem.errorRetention" />
 				</div>
 				<div class="form-group">
 					<NcInputField
@@ -56,7 +101,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading"
+				:disabled="loading || !jobItem.name"
 				type="primary"
 				@click="editJob()">
 				<template #icon>
@@ -78,6 +123,8 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 	NcInputField,
+	NcCheckboxRadioSwitch,
+	NcDateTimePicker,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -91,15 +138,27 @@ export default {
 		NcLoadingIcon,
 		NcNoteCard,
 		NcInputField,
+		NcCheckboxRadioSwitch,
+		NcDateTimePicker,
 		// Icons
 		ContentSaveOutline,
 	},
 	data() {
 		return {
-			sourceItem: {
+			jobItem: {
 				name: '',
 				description: '',
-				location: '',
+				jobClass: '',
+				interval: '3600',
+				executionTime: '3600',
+				timeSensitive: false,
+				allowParallelRuns: false,
+				isEnabled: true,
+				singleRun: false,
+				scheduleAfter: '',
+				userId: '',
+				logRetention: '3600',
+				errorRetention: '86400',
 			},
 			success: false,
 			loading: false,
@@ -109,22 +168,71 @@ export default {
 				{ label: 'In Progress', value: 'in_progress' },
 				{ label: 'Completed', value: 'completed' },
 			],
+			hasUpdated: false,
+		}
+	},
+	mounted() {
+		this.initializeJobItem()
+	},
+	updated() {
+		if (navigationStore.modal === 'editJob' && !this.hasUpdated) {
+			this.initializeJobItem()
+			this.hasUpdated = true
 		}
 	},
 	methods: {
+		initializeJobItem() {
+
+			if (jobStore.jobItem?.id) {
+				this.jobItem = {
+					...jobStore.jobItem,
+					name: jobStore.jobItem.name || '',
+					description: jobStore.jobItem.description || '',
+					jobClass: jobStore.jobItem.jobClass || '',
+					interval: jobStore.jobItem.interval || '3600',
+					executionTime: jobStore.jobItem.executionTime || '3600',
+					timeSensitive: typeof jobStore.jobItem.timeSensitive === 'boolean' ? jobStore.jobItem.timeSensitive : false,
+					allowParallelRuns: typeof jobStore.jobItem.allowParallelRuns === 'boolean' ? jobStore.jobItem.allowParallelRuns : false,
+					isEnabled: typeof jobStore.jobItem.isEnabled === 'boolean' ? jobStore.jobItem.isEnabled : true,
+					singleRun: typeof jobStore.jobItem.singleRun === 'boolean' ? jobStore.jobItem.singleRun : false,
+					scheduleAfter: new Date(jobStore.jobItem.scheduleAfter.date) || '',
+					logRetention: jobStore.jobItem.logRetention || '3600',
+					errorRetention: jobStore.jobItem.errorRetention || '86400',
+					userId: jobStore.jobItem.userId || '',
+				}
+			}
+		},
+		closeModal() {
+			navigationStore.setModal(false)
+			this.success = false
+			this.loading = false
+			this.error = false
+			this.hasUpdated = false
+			this.jobItem = {
+				name: '',
+				description: '',
+				jobClass: '',
+				interval: '3600',
+				executionTime: '3600',
+				timeSensitive: false,
+				allowParallelRuns: false,
+				isEnabled: true,
+				singleRun: false,
+				scheduleAfter: '',
+				logRetention: '3600',
+				errorRetention: '86400',
+				userId: '',
+			}
+		},
 		async editJob() {
 			this.loading = true
 			try {
-				await jobStore.saveJob()
+				await jobStore.saveJob({ ...this.jobItem })
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(() => {
-					this.success = false
-					this.loading = false
-					this.error = false
-					navigationStore.setModal(false)
-				}, 2000)
+				setTimeout(this.closeModal, 2000)
+
 			} catch (error) {
 				this.loading = false
 				this.success = false
@@ -134,3 +242,10 @@ export default {
 	},
 }
 </script>
+<style scoped>
+.jobCheckboxContainerGrid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px;
+}
+</style>

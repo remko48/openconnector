@@ -10,6 +10,7 @@ export const useJobStore = defineStore(
 			jobList: [],
 			jobLog: false,
 			jobLogs: [],
+			jobArgumentKey: null,
 		}),
 		actions: {
 			setJobItem(jobItem) {
@@ -29,6 +30,10 @@ export const useJobStore = defineStore(
 			setJobLogs(jobLogs) {
 				this.jobLogs = jobLogs
 				console.log('Job logs set to ' + jobLogs.length + ' items')
+			},
+			setJobArgumentKey(jobArgumentKey) {
+				this.jobArgumentKey = jobArgumentKey
+				console.log('Active job argument key set to ' + jobArgumentKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshJobList(search = null) {
@@ -140,23 +145,23 @@ export const useJobStore = defineStore(
 					})
 			},
 			// Create or save a job from store
-			saveJob() {
-				if (!this.jobItem) {
+			saveJob(jobItem) {
+				if (!jobItem) {
 					throw new Error('No job item to save')
 				}
 
 				console.log('Saving job...')
 
-				const isNewJob = !this.jobItem.id
+				const isNewJob = !jobItem.id
 				const endpoint = isNewJob
 					? '/index.php/apps/openconnector/api/jobs'
-					: `/index.php/apps/openconnector/api/jobs/${this.jobItem.id}`
+					: `/index.php/apps/openconnector/api/jobs/${jobItem.id}`
 				const method = isNewJob ? 'POST' : 'PUT'
 
 				// Create a copy of the job item and remove empty properties
-				const jobToSave = { ...this.jobItem }
+				const jobToSave = { ...jobItem }
 				Object.keys(jobToSave).forEach(key => {
-					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && jobToSave[key].length === 0)) {
+					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && jobToSave[key].length === 0) || key === 'created' || key === 'updated') {
 						delete jobToSave[key]
 					}
 				})

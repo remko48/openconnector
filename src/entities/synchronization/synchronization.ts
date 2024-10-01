@@ -4,45 +4,50 @@ import { TSynchronization } from './synchronization.types'
 export class Synchronization implements TSynchronization {
 
 	public id: string
-	public entity: object
-	public object: object | null
-	public action: object | null
-	public gateway: object | null
-	public sourceObject: object | null
-	public endpoint: string | null
-	public sourceId: string | null
-	public hash: string | null
-	public sha: string | null
-	public blocked: boolean
-	public sourceLastChanged: string | null
-	public lastChecked: string | null
-	public lastSynced: string | null
-	public dateCreated: string | null
-	public dateModified: string | null
-	public tryCounter: number
-	public dontSyncBefore: string | null
-	public mapping: object | null
+	public name: string
+	public description: string
+	public sourceId: string
+	public sourceType: string
+	public sourceHash: string
+	public sourceTargetMapping: string
+	public sourceConfig: object
+	public sourceLastChanged: string
+	public sourceLastChecked: string
+	public sourceLastSynced: string
+	public targetId: string
+	public targetType: string
+	public targetHash: string
+	public targetSourceMapping: string
+	public targetConfig: object
+	public targetLastChanged: string
+	public targetLastChecked: string
+	public targetLastSynced: string
+	public created: string
+	public updated: string
 
 	constructor(synchronization: TSynchronization) {
 		this.id = synchronization.id || ''
-		this.entity = synchronization.entity
-		this.object = synchronization.object || null
-		this.action = synchronization.action || null
-		this.gateway = synchronization.gateway || null
-		this.sourceObject = synchronization.sourceObject || null
-		this.endpoint = synchronization.endpoint || null
+		this.name = synchronization.name || ''
+		this.description = synchronization.description || null
 		this.sourceId = synchronization.sourceId || null
-		this.hash = synchronization.hash || null
-		this.sha = synchronization.sha || null
-		this.blocked = synchronization.blocked || false
+		this.sourceType = synchronization.sourceType || null
+		this.sourceHash = synchronization.sourceHash || null
+		this.sourceTargetMapping = synchronization.sourceTargetMapping || null
+		this.sourceConfig = synchronization.sourceConfig || null
 		this.sourceLastChanged = synchronization.sourceLastChanged || null
-		this.lastChecked = synchronization.lastChecked || null
-		this.lastSynced = synchronization.lastSynced || null
-		this.dateCreated = synchronization.dateCreated || null
-		this.dateModified = synchronization.dateModified || null
-		this.tryCounter = synchronization.tryCounter || 0
-		this.dontSyncBefore = synchronization.dontSyncBefore || null
-		this.mapping = synchronization.mapping || null
+		this.sourceLastChecked = synchronization.sourceLastChecked || null
+		this.sourceLastSynced = synchronization.sourceLastSynced || null
+		this.targetId = synchronization.targetId || null
+		this.targetType = synchronization.targetType || null
+		this.targetHash = synchronization.targetHash || null
+		this.targetSourceMapping = synchronization.targetSourceMapping || null
+		this.targetConfig = synchronization.targetConfig || null
+		this.targetLastChanged = synchronization.targetLastChanged || null
+		this.targetLastChecked = synchronization.targetLastChecked || null
+		this.targetLastSynced = synchronization.targetLastSynced || null
+		this.created = synchronization.created || null
+		this.updated = synchronization.updated || null
+
 	}
 
 	public validate(): SafeParseReturnType<TSynchronization, unknown> {

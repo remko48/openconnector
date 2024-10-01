@@ -21,6 +21,12 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('editJobArgument')">
+							<template #icon>
+								<Plus :size="20" />
+							</template>
+							Add Argument
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setModal('testJob')">
 							<template #icon>
 								<Update :size="20" />
@@ -46,11 +52,49 @@ import { jobStore, navigationStore } from '../../store/store.js'
 
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
+						<BTab title="Job Arguments">
+							<div v-if="jobStore.jobItem?.arguments !== null && Object.keys(jobStore.jobItem?.arguments).length > 0">
+								<NcListItem v-for="(value, key, i) in jobStore.jobItem?.arguments"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="jobStore.jobArgumentKey === key"
+									@click="setActiveJobArgumentKey(key)">
+									<template #icon>
+										<SitemapOutline
+											:class="jobStore.jobArgumentKey === key && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="editJobArgument(key)">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="deleteJobArgument(key)">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="jobStore.jobItem?.arguments === null || Object.keys(jobStore.jobItem?.arguments).length === 0" class="tabPanel">
+								No arguments found
+							</div>
+						</BTab>
 						<BTab title="Logs">
 							<div v-if="jobStore.jobLogs?.length">
 								<NcListItem v-for="(log, i) in jobStore.jobLogs"
 									:key="log.id + i"
-									:name="log.createdAt"
+									:name="log.id"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
@@ -58,11 +102,11 @@ import { jobStore, navigationStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ log.createdAt }}
+										{{ log.created }}
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!jobStore.jobLogs?.length">
+							<div v-if="!jobStore.jobLogs?.length" class="tabPanel">
 								No logs found
 							</div>
 						</BTab>
@@ -79,6 +123,10 @@ import { BTabs, BTab } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
+import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
 
 export default {
@@ -96,6 +144,21 @@ export default {
 	},
 	mounted() {
 		jobStore.refreshJobLogs()
+	},
+	methods: {
+		deleteJobArgument(key) {
+			jobStore.setJobArgumentKey(key)
+			navigationStore.setModal('deleteJobArgument')
+		},
+		editJobArgument(key) {
+			jobStore.setJobArgumentKey(key)
+			navigationStore.setModal('editJobArgument')
+		},
+		setActiveJobArgumentKey(jobArgumentKey) {
+			if (jobStore.jobArgumentKey === jobArgumentKey) {
+				jobStore.setJobArgumentKey(false)
+			} else { jobStore.setJobArgumentKey(jobArgumentKey) }
+		},
 	},
 }
 </script>

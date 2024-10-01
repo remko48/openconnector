@@ -16,7 +16,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 					<Update />
 				</template>
 				<template #action>
-					<NcButton type="primary" @click="jobStore.setJobItem({}); navigationStore.setModal('editJob')">
+					<NcButton type="primary" @click="jobStore.setJobItem(null); navigationStore.setModal('editJob')">
 						Add job
 					</NcButton>
 				</template>
