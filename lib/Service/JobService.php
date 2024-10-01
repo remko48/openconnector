@@ -30,7 +30,7 @@ class JobService
 
             $this->jobList->removeById($job->getId());
             $job->setJobListId(null);
-            return $this->jobMapper->update(job);
+            return $this->jobMapper->update($job);
         }
 
         // lets not update the job if it's already scheduled @todo we should
