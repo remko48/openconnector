@@ -120,6 +120,7 @@ export default {
 
 			const newJobItem = {
 				...jobStore.jobItem,
+				scheduleAfter: new Date(jobStore.jobItem.scheduleAfter.date) || '',
 				arguments: {
 					...jobStore.jobItem.arguments,
 					[this.argumentItem.key]: this.argumentItem.value,

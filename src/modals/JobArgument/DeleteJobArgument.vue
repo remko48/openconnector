@@ -77,6 +77,7 @@ export default {
 
 			const jobItem = {
 				...jobStore.jobItem,
+				scheduleAfter: new Date(jobStore.jobItem.scheduleAfter.date) || '',
 			}
 
 			jobStore.saveJob(jobItem)

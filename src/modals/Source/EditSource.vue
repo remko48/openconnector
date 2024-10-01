@@ -8,9 +8,9 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 		label-id="editSource"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>Bron {{ sourceItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>{{ sourceItem.id ? 'Edit' : 'Add' }} Source</h2>
 			<NcNoteCard v-if="success" type="success">
-				<p>Bron succesvol toegevoegd</p>
+				<p>Source successfully added</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -20,12 +20,12 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				<div class="form-group">
 					<NcTextField
 						id="name"
-						label="Naam*"
+						label="Name*"
 						:value.sync="sourceItem.name" />
 
 					<NcTextArea
 						id="description"
-						label="Beschrijving"
+						label="Description"
 						:value.sync="sourceItem.description" />
 
 					<NcSelect
@@ -110,7 +110,7 @@ export default {
 				name: '',
 				description: '',
 				type: '',
-				connection: '',
+				location: '',
 			}
 		},
 		async editSource() {
@@ -124,7 +124,7 @@ export default {
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de bron'
+				this.error = error.message || 'An error occurred while saving the source'
 			}
 		},
 	},
