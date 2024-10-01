@@ -23,23 +23,79 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						maxlength="255"
 						:value.sync="jobItem.name"
 						required />
-				</div>
-				<div class="form-group">
+
 					<NcTextArea
 						label="Description"
 						:value.sync="jobItem.description" />
-				</div>
-				<div class="form-group">
+
+					<NcTextField
+						label="Job Class"
+						maxlength="255"
+						:value.sync="jobItem.jobClass" />
+
 					<NcInputField
 						type="number"
 						label="Intraval"
 						:value.sync="jobItem.interval" />
+
+					<NcInputField
+						type="number"
+						label="Execution Time"
+						:value.sync="jobItem.executionTime" />
+
+					<div class="jobCheckboxContainerGrid">
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.timeSensitive">
+							Time Sensitive
+						</NcCheckboxRadioSwitch>
+
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.allowParallelRuns">
+							Allow Parallel Runs
+						</NcCheckboxRadioSwitch>
+
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.isEnabled">
+							Enabled
+						</NcCheckboxRadioSwitch>
+
+						<NcCheckboxRadioSwitch
+							:disabled="loading"
+							:checked.sync="jobItem.singleRun">
+							Single Run
+						</NcCheckboxRadioSwitch>
+					</div>
+					<div>
+						<span>
+							<p>Schedule After</p>
+							<NcDateTimePicker v-model="jobItem.scheduleAfter"
+								:disabled="loading"
+								label="Schedule After" />
+						</span>
+					</div>
+					<NcTextField
+						label="User ID"
+						maxlength="255"
+						:value.sync="jobItem.userId" />
+
+					<NcInputField
+						type="number"
+						label="Log Retention"
+						:value.sync="jobItem.logRetention" />
+
+					<NcInputField
+						type="number"
+						label="Error Retention"
+						:value.sync="jobItem.errorRetention" />
 				</div>
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading"
+				:disabled="loading || !jobItem.name"
 				type="primary"
 				@click="editJob()">
 				<template #icon>
@@ -61,6 +117,8 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 	NcInputField,
+	NcCheckboxRadioSwitch,
+	NcDateTimePicker,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -74,6 +132,8 @@ export default {
 		NcLoadingIcon,
 		NcNoteCard,
 		NcInputField,
+		NcCheckboxRadioSwitch,
+		NcDateTimePicker,
 		// Icons
 		ContentSaveOutline,
 	},
@@ -82,7 +142,17 @@ export default {
 			jobItem: {
 				name: '',
 				description: '',
+				jobClass: '',
 				interval: '3600',
+				executionTime: '3600',
+				timeSensitive: false,
+				allowParallelRuns: false,
+				isEnabled: true,
+				singleRun: false,
+				scheduleAfter: '',
+				userId: '',
+				logRetention: '3600',
+				errorRetention: '86400',
 			},
 			success: false,
 			loading: false,
@@ -106,12 +176,23 @@ export default {
 	},
 	methods: {
 		initializeJobItem() {
+
 			if (jobStore.jobItem?.id) {
 				this.jobItem = {
 					...jobStore.jobItem,
 					name: jobStore.jobItem.name || '',
 					description: jobStore.jobItem.description || '',
+					jobClass: jobStore.jobItem.jobClass || '',
 					interval: jobStore.jobItem.interval || '3600',
+					executionTime: jobStore.jobItem.executionTime || '3600',
+					timeSensitive: typeof jobStore.jobItem.timeSensitive === 'boolean' ? jobStore.jobItem.timeSensitive : false,
+					allowParallelRuns: typeof jobStore.jobItem.allowParallelRuns === 'boolean' ? jobStore.jobItem.allowParallelRuns : false,
+					isEnabled: typeof jobStore.jobItem.isEnabled === 'boolean' ? jobStore.jobItem.isEnabled : true,
+					singleRun: typeof jobStore.jobItem.singleRun === 'boolean' ? jobStore.jobItem.singleRun : false,
+					scheduleAfter: new Date(jobStore.jobItem.scheduleAfter.date) || '',
+					logRetention: jobStore.jobItem.logRetention || '3600',
+					errorRetention: jobStore.jobItem.errorRetention || '86400',
+					userId: jobStore.jobItem.userId || '',
 				}
 			}
 		},
@@ -124,7 +205,17 @@ export default {
 			this.jobItem = {
 				name: '',
 				description: '',
+				jobClass: '',
 				interval: '3600',
+				executionTime: '3600',
+				timeSensitive: false,
+				allowParallelRuns: false,
+				isEnabled: true,
+				singleRun: false,
+				scheduleAfter: '',
+				logRetention: '3600',
+				errorRetention: '86400',
+				userId: '',
 			}
 		},
 		async editJob() {
@@ -145,3 +236,10 @@ export default {
 	},
 }
 </script>
+<style scoped>
+.jobCheckboxContainerGrid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px;
+}
+</style>
