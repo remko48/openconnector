@@ -16,7 +16,7 @@ class JobLog extends Entity implements JsonSerializable
 	protected ?array $arguments = null;
 	protected ?int $executionTime = 3600; // the execution time in seconds
 	protected ?string $userId = null; // the user which the job is running for security reasons
-	protected ?array $stackTrace = null; // stack trace
+	protected ?array $stackTrace = []; // stack trace
 	protected ?DateTime $expires = null; // when the log will be cleared
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
