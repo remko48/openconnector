@@ -29,6 +29,10 @@ class SynchronizationAction
     //@todo: make this a bit more generic :')
     public function run($argument)
     {
+        //@todo: for testing purposes 
+        if (!isset($argument['synchronizationId'])) {
+            $argument['synchronizationId'] = 1;
+        }
 
         $response = [];
 

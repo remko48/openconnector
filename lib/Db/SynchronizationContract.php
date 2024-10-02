@@ -13,9 +13,7 @@ use OCP\AppFramework\Db\Entity;
  */
 class SynchronizationContract extends Entity implements JsonSerializable
 {
-	protected ?string $name = null; // The name of the contract
-	protected ?string $description = null; // The description of the contract
-	protected ?string $synchronization = null; // The synchronization that this contract belongs to
+	protected ?string $synchronizationId = null; // The synchronization that this contract belongs to
 	// Source
 	protected ?string $sourceId = null; // The id of the object in the source
 	protected ?string $sourceHash = null; // The hash of the object in the source
@@ -34,9 +32,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
 
 
 	public function __construct() {
-		$this->addType('name', 'string');
-		$this->addType('description', 'string');
-		$this->addType('synchronization', 'string');
+		$this->addType('synchronizationId', 'string');
 		$this->addType('sourceId', 'string');
 		$this->addType('sourceHash', 'string');
 		$this->addType('sourceLastChanged', 'datetime');
@@ -85,9 +81,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
-			'name' => $this->name,
-			'description' => $this->description,
-			'synchronization' => $this->synchronization,
+			'synchronizationId' => $this->synchronization,
 			'sourceId' => $this->sourceId,
 			'sourceHash' => $this->sourceHash,
 			'sourceLastChanged' => $this->sourceLastChanged,

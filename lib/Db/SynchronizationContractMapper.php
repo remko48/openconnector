@@ -28,20 +28,24 @@ class SynchronizationContractMapper extends QBMapper
 		return $this->findEntity(query: $qb);
 	}
 
-	public function findOnSource(string $target, string $sourceId): SynchronizationContract|bool
+	public function findOnSource(string $synchronizationId, string $sourceId): ?SynchronizationContract
 	{
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
 			->from('openconnector_synchronization_contracts')
 			->where(
-				$qb->expr()->eq('synchronization_id', $qb->createNamedParameter($synchronization))
+				$qb->expr()->eq('synchronization_id', $qb->createNamedParameter($synchronizationId))
 			)
 			->andWhere(
 				$qb->expr()->eq('source_id', $qb->createNamedParameter($sourceId))
 			);
 
-		return $this->findEntity(query: $qb);
+		try {
+			return $this->findEntity($qb);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+			return null;
+		}
 	}
 
 
@@ -58,7 +62,12 @@ class SynchronizationContractMapper extends QBMapper
 				$qb->expr()->eq('target_id', $qb->createNamedParameter($targetId))
 			);
 
-		return $this->findEntity(query: $qb);
+
+		try {
+			return $this->findEntity($qb);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+			return null;
+		}
 	}
 
 
