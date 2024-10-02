@@ -91,12 +91,6 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						label="Error Retention"
 						:value.sync="jobItem.errorRetention" />
 				</div>
-				<div class="form-group">
-					<NcInputField
-						type="number"
-						label="errorRetention"
-						:value.sync="jobStore.jobItem.errorRetention" />
-				</div>
 			</form>
 
 			<NcButton
@@ -148,7 +142,7 @@ export default {
 			jobItem: {
 				name: '',
 				description: '',
-				jobClass: '',
+				jobClass: 'OCA\\OpenConnector\\Action\\PingAction',
 				interval: '3600',
 				executionTime: '3600',
 				timeSensitive: false,
