@@ -71,8 +71,8 @@ class ActionTask extends TimedJob
         }
 
 		$time_start = microtime(true); 
-
-        $action =  $this->containerInterface->get($job->getClass());
+        
+        $action =  $this->containerInterface->get($job->getJobClass());
         $action->run($job->getArguments());
         
         $time_end = microtime(true);
@@ -101,7 +101,7 @@ class ActionTask extends TimedJob
         $this->jobLogMapper->insert($jobLog);
 
         // Lets report back about what we have just done
-        return;
+        return $jobLog;
     }
 
 }

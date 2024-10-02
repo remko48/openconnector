@@ -19,4 +19,5 @@ export type TJob = {
     nextRun?: string | null
     created?: string | null
     updated?: string | null
+    status?: string
 }
