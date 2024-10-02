@@ -27,6 +27,13 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							</template>
 							Test
 						</NcActionButton>
+
+						<NcActionButton @click="refreshJobLogs()">
+							<template #icon>
+								<Sync :size="20" />
+							</template>
+							Refresh Logs
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteJob')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -80,6 +87,7 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
+import Sync from 'vue-material-design-icons/Sync.vue'
 
 export default {
 	name: 'JobDetails',
@@ -96,6 +104,11 @@ export default {
 	},
 	mounted() {
 		jobStore.refreshJobLogs()
+	},
+	methods: {
+		refreshJobLogs() {
+			jobStore.refreshJobLogs()
+		},
 	},
 }
 </script>
