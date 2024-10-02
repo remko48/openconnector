@@ -10,6 +10,7 @@ export const useJobStore = defineStore(
 			jobList: [],
 			jobLog: false,
 			jobLogs: [],
+			jobArgumentKey: null,
 		}),
 		actions: {
 			setJobItem(jobItem) {
@@ -29,6 +30,10 @@ export const useJobStore = defineStore(
 			setJobLogs(jobLogs) {
 				this.jobLogs = jobLogs
 				console.log('Job logs set to ' + jobLogs.length + ' items')
+			},
+			setJobArgumentKey(jobArgumentKey) {
+				this.jobArgumentKey = jobArgumentKey
+				console.log('Active job argument key set to ' + jobArgumentKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshJobList(search = null) {
