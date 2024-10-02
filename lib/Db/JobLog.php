@@ -16,6 +16,7 @@ class JobLog extends Entity implements JsonSerializable
 	protected ?array $arguments = null;
 	protected ?int $executionTime = 3600; // the execution time in seconds
 	protected ?string $userId = null; // the user which the job is running for security reasons
+	protected ?array $stackTrace = null; // stack trace
 	protected ?DateTime $expires = null; // when the log will be cleared
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
@@ -30,6 +31,7 @@ class JobLog extends Entity implements JsonSerializable
         $this->addType('arguments', 'json');
         $this->addType('executionTime', 'integer');
         $this->addType('userId', 'string');
+        $this->addType('stackTrace', 'json');
         $this->addType('expires', 'datetime');
         $this->addType('lastRun', 'datetime');
         $this->addType('nextRun', 'datetime');
@@ -78,6 +80,7 @@ class JobLog extends Entity implements JsonSerializable
             'arguments' => $this->arguments,
             'executionTime' => $this->executionTime,
             'userId' => $this->userId,
+            'stackTrace' => $this->trace,
             'expires' => $this->lastRun,
             'lastRun' => $this->lastRun,
             'nextRun' => $this->nextRun,
