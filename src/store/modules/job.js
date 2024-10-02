@@ -140,23 +140,23 @@ export const useJobStore = defineStore(
 					})
 			},
 			// Create or save a job from store
-			saveJob() {
-				if (!this.jobItem) {
+			saveJob(jobItem) {
+				if (!jobItem) {
 					throw new Error('No job item to save')
 				}
 
 				console.log('Saving job...')
 
-				const isNewJob = !this.jobItem.id
+				const isNewJob = !jobItem.id
 				const endpoint = isNewJob
 					? '/index.php/apps/openconnector/api/jobs'
-					: `/index.php/apps/openconnector/api/jobs/${this.jobItem.id}`
+					: `/index.php/apps/openconnector/api/jobs/${jobItem.id}`
 				const method = isNewJob ? 'POST' : 'PUT'
 
 				// Create a copy of the job item and remove empty properties
-				const jobToSave = { ...this.jobItem }
+				const jobToSave = { ...jobItem }
 				Object.keys(jobToSave).forEach(key => {
-					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && jobToSave[key].length === 0)) {
+					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && jobToSave[key].length === 0) || key === 'created' || key === 'updated') {
 						delete jobToSave[key]
 					}
 				})
