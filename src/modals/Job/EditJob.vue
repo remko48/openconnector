@@ -91,6 +91,12 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						label="Error Retention"
 						:value.sync="jobItem.errorRetention" />
 				</div>
+				<div class="form-group">
+					<NcInputField
+						type="number"
+						label="errorRetention"
+						:value.sync="jobStore.jobItem.errorRetention" />
+				</div>
 			</form>
 
 			<NcButton

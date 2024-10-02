@@ -23,6 +23,7 @@ export class Job implements TJob {
 	public nextRun: string | null
 	public created: string | null
 	public updated: string | null
+	public status: string
 
 	constructor(job: TJob) {
 		this.id = job.id || ''
@@ -45,19 +46,32 @@ export class Job implements TJob {
 		this.nextRun = job.nextRun || null
 		this.created = job.created || null
 		this.updated = job.updated || null
+		this.status = job.status || ''
 	}
 
 	public validate(): SafeParseReturnType<TJob, unknown> {
 		const schema = z.object({
 			id: z.string().uuid(),
 			name: z.string().max(255),
+			description: z.string().nullable(),
 			jobClass: z.string(),
+			arguments: z.record(z.unknown()).nullable(),
 			interval: z.number().int().positive(),
 			executionTime: z.number().int().positive(),
 			timeSensitive: z.boolean(),
 			allowParallelRuns: z.boolean(),
 			isEnabled: z.boolean(),
 			singleRun: z.boolean(),
+			scheduleAfter: z.string().nullable(),
+			userId: z.string().nullable(),
+			jobListId: z.string().nullable(),
+			logRetention: z.number().int().positive(),
+			errorRetention: z.number().int().positive(),
+			lastRun: z.string().nullable(),
+			nextRun: z.string().nullable(),
+			created: z.string().nullable(),
+			updated: z.string().nullable(),
+			status: z.string()
 		})
 
 		return schema.safeParse({ ...this })
