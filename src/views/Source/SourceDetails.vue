@@ -27,6 +27,12 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 							</template>
 							Test
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('editSourceConfiguration')">
+							<template #icon>
+								<Plus :size="20" />
+							</template>
+							Add Configuration
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSource')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -45,6 +51,44 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				</div>
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
+						<BTab title="Configurations">
+							<div v-if="sourceStore.sourceItem?.configuration !== null && Object.keys(sourceStore.sourceItem?.configuration).length > 0">
+								<NcListItem v-for="(value, key, i) in sourceStore.sourceItem?.configuration"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="sourceStore.sourceConfigurationKey === key"
+									@click="setActiveSourceConfigurationKey(key)">
+									<template #icon>
+										<SitemapOutline
+											:class="sourceStore.sourceConfigurationKey === key && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="editSourceConfiguration(key)">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="deleteSourceConfiguration(key)">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="sourceStore.sourceItem?.configuration === null || Object.keys(sourceStore.sourceItem?.configuration).length === 0" class="tabPanel">
+								No configurations found
+							</div>
+						</BTab>
 						<BTab title="Mappings">
 							<div v-if="sourceStore?.sourceItem?.mappings?.length">
 								<NcListItem v-for="(character, i) in filterCharacters"
@@ -129,6 +173,10 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
+import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
+
 export default {
 	name: 'SourceDetails',
 	components: {
@@ -147,6 +195,19 @@ export default {
 		this.refreshSourceLogs()
 	},
 	methods: {
+		deleteSourceConfiguration(key) {
+			sourceStore.setSourceConfigurationKey(key)
+			navigationStore.setModal('deleteSourceConfiguration')
+		},
+		editSourceConfiguration(key) {
+			sourceStore.setSourceConfigurationKey(key)
+			navigationStore.setModal('editSourceConfiguration')
+		},
+		setActiveSourceConfigurationKey(sourceConfigurationKey) {
+			if (sourceStore.sourceConfigurationKey === sourceConfigurationKey) {
+				sourceStore.setSourceConfigurationKey(false)
+			} else { sourceStore.setSourceConfigurationKey(sourceConfigurationKey) }
+		},
 		refreshSourceLogs() {
 			sourceStore.refreshSourceLogs()
 

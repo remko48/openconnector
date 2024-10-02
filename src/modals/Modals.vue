@@ -14,6 +14,8 @@
 		<EditSynchronization />
 		<EditJobArgument />
 		<DeleteJobArgument />
+		<EditSourceConfiguration />
+		<DeleteSourceConfiguration />
 	</div>
 </template>
 
@@ -33,6 +35,8 @@ import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
 import EditJobArgument from './JobArgument/EditJobArgument.vue'
 import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
+import EditSourceConfiguration from './SourceConfiguration/EditSourceConfiguration.vue'
+import DeleteSourceConfiguration from './SourceConfiguration/DeleteSourceConfiguration.vue'
 
 export default {
 	name: 'Modals',
@@ -51,6 +55,8 @@ export default {
 	  EditSynchronization,
 	  EditJobArgument,
 	  DeleteJobArgument,
+	  EditSourceConfiguration,
+	  DeleteSourceConfiguration,
 	},
 	setup() {
 	  return {
