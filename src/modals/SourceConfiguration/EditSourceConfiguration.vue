@@ -1,16 +1,16 @@
 <script setup>
-import { jobStore, navigationStore } from '../../store/store.js'
+import { sourceStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editJobArgument'"
+	<NcModal v-if="navigationStore.modal === 'editSourceConfiguration'"
 		ref="modalRef"
-		label-id="editJobArgument"
+		label-id="editSourceConfiguration"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>{{ isEdit ? 'Edit' : 'Add' }} Job Argument</h2>
+			<h2>{{ isEdit ? 'Edit' : 'Add' }} Configuration</h2>
 			<NcNoteCard v-if="success" type="success">
-				<p>Job Argument successfully added</p>
+				<p>Configuration successfully added</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -22,21 +22,21 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						id="key"
 						label="Key*"
 						required
-						:error="checkIfKeyIsUnique(argumentItem.key)"
-						:helper-text="checkIfKeyIsUnique(argumentItem.key) ? 'This key is already in use. Please choose a different key name.' : ''"
-						:value.sync="argumentItem.key" />
+						:error="checkIfKeyIsUnique(configurationItem.key)"
+						:helper-text="checkIfKeyIsUnique(configurationItem.key) ? 'This key is already in use. Please choose a different key name.' : ''"
+						:value.sync="configurationItem.key" />
 					<NcTextField
 						id="value"
 						label="Value"
-						:value.sync="argumentItem.value" />
+						:value.sync="configurationItem.value" />
 				</div>
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading || !argumentItem.key || checkIfKeyIsUnique(argumentItem.key)"
+				:disabled="loading || !configurationItem.key || checkIfKeyIsUnique(configurationItem.key)"
 				type="primary"
-				@click="editJobArgument()">
+				@click="editSourceConfiguration()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
@@ -58,7 +58,7 @@ import {
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 export default {
-	name: 'EditJobArgument',
+	name: 'EditSourceConfiguration',
 	components: {
 		NcModal,
 		NcButton,
@@ -70,7 +70,7 @@ export default {
 	},
 	data() {
 		return {
-			argumentItem: {
+			configurationItem: {
 				key: '',
 				value: '',
 			},
@@ -83,31 +83,31 @@ export default {
 		}
 	},
 	mounted() {
-		this.initializeJobArgument()
+		this.initializeSourceConfiguration()
 	},
 	updated() {
-		if (navigationStore.modal === 'editJobArgument' && !this.hasUpdated) {
-			this.initializeJobArgument()
+		if (navigationStore.modal === 'editSourceConfiguration' && !this.hasUpdated) {
+			this.initializeSourceConfiguration()
 			this.hasUpdated = true
 		}
 	},
 	methods: {
-		initializeJobArgument() {
-			if (!jobStore.jobArgumentKey) {
+		initializeSourceConfiguration() {
+			if (!sourceStore.sourceConfigurationKey) {
 				return
 			}
-			const argumentItem = Object.entries(jobStore.jobItem.arguments).find(([key]) => key === jobStore.jobArgumentKey)
-			if (argumentItem) {
-				this.argumentItem = {
-					key: argumentItem[0] || '',
-					value: argumentItem[1] || '',
+			const configurationItem = Object.entries(sourceStore.sourceItem.configuration).find(([key]) => key === sourceStore.sourceConfigurationKey)
+			if (configurationItem) {
+				this.configurationItem = {
+					key: configurationItem[0] || '',
+					value: configurationItem[1] || '',
 				}
-				this.oldKey = argumentItem[0]
+				this.oldKey = configurationItem[0]
 				this.isEdit = true
 			}
 		},
 		checkIfKeyIsUnique(key) {
-			const keys = Object.keys(jobStore.jobItem.arguments)
+			const keys = Object.keys(sourceStore.sourceItem.configuration)
 			if (this.oldKey === key) return false
 			if (keys.includes(key)) return true
 			return false
@@ -120,31 +120,28 @@ export default {
 			this.hasUpdated = false
 			this.isEdit = false
 			this.oldKey = ''
-			this.argumentItem = {
+			this.configurationItem = {
 				key: '',
 				value: '',
 			}
 		},
-		async editJobArgument() {
+		async editSourceConfiguration() {
 			this.loading = true
 
-			const scheduleAfter = jobStore.jobItem.scheduleAfter ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
-
-			const newJobItem = {
-				...jobStore.jobItem,
-				scheduleAfter,
-				arguments: {
-					...jobStore.jobItem.arguments,
-					[this.argumentItem.key]: this.argumentItem.value,
+			const newSourceItem = {
+				...sourceStore.sourceItem,
+				configuration: {
+					...sourceStore.sourceItem.configuration,
+					[this.configurationItem.key]: this.configurationItem.value,
 				},
 			}
 
-			if (this.oldKey !== '' && this.oldKey !== this.argumentItem.key) {
-				delete newJobItem.arguments[this.oldKey]
+			if (this.oldKey !== '' && this.oldKey !== this.configurationItem.key) {
+				delete newSourceItem.configuration[this.oldKey]
 			}
 
 			try {
-				await jobStore.saveJob(newJobItem)
+				await sourceStore.saveSource(newSourceItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
@@ -154,7 +151,7 @@ export default {
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'An error occurred while saving the job argument'
+				this.error = error.message || 'An error occurred while saving the source configuration'
 			}
 		},
 	},

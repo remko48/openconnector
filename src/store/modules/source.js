@@ -10,6 +10,7 @@ export const useSourceStore = defineStore(
 			sourceList: [],
 			sourceLog: false,
 			sourceLogs: [],
+			sourceConfigurationKey: null,
 		}),
 		actions: {
 			setSourceItem(sourceItem) {
@@ -33,6 +34,10 @@ export const useSourceStore = defineStore(
 			setSourceLogs(sourceLogs) {
 				this.sourceLogs = sourceLogs
 				console.log('Source logs set to ' + sourceLogs.length + ' items')
+			},
+			setSourceConfigurationKey(sourceConfigurationKey) {
+				this.sourceConfigurationKey = sourceConfigurationKey
+				console.log('Source configuration key set to ' + sourceConfigurationKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshSourceList(search = null) {
@@ -135,10 +140,11 @@ export const useSourceStore = defineStore(
 						this.setSourceTest(data)
 						console.log('Source tested')
 						// Refresh the source list
-						return this.refreshSourceList()
+						this.refreshSourceLogs()
 					})
 					.catch((err) => {
 						console.error('Error saving source:', err)
+						this.refreshSourceLogs()
 						throw err
 					})
 			},

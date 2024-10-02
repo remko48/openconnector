@@ -177,9 +177,9 @@ export default {
 	methods: {
 		initializeJobItem() {
 
-			const scheduleAfter = jobStore.jobItem.scheduleAfter !== null ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
-
 			if (jobStore.jobItem?.id) {
+				const scheduleAfter = jobStore.jobItem.scheduleAfter ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
+
 				this.jobItem = {
 					...jobStore.jobItem,
 					name: jobStore.jobItem.name || '',

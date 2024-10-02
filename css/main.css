@@ -27,6 +27,12 @@
   align-items: center;
 }
 
+.emptyListHeader {
+  margin-block-start: var(--OC-margin-10);
+  margin-inline-start: var(--OC-margin-10);
+  margin-inline-end: var(--OC-margin-10);
+}
+
 .searchField {
   padding-inline-start: 65px;
   padding-inline-end: 20px;

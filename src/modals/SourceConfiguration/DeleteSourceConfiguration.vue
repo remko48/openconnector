@@ -1,25 +1,25 @@
 <script setup>
-import { navigationStore, jobStore } from '../../store/store.js'
+import { navigationStore, sourceStore } from '../../store/store.js'
 </script>
 
 <template>
 	<NcDialog
-		v-if="navigationStore.modal === 'deleteJobArgument'"
-		name="Delete Job Argument"
+		v-if="navigationStore.modal === 'deleteSourceConfiguration'"
+		name="Delete Source Configuration"
 		:can-close="false">
 		<div v-if="success !== null || error">
 			<NcNoteCard v-if="success" type="success">
-				<p>Successfully deleted job argument</p>
+				<p>Successfully deleted source configuration</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="!success" type="error">
-				<p>Something went wrong deleting the job argument</p>
+				<p>Something went wrong deleting the source configuration</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
 			</NcNoteCard>
 		</div>
 		<p v-if="success === null">
-			Do you want to delete <b>{{ jobStore.jobArgumentKey }}</b>? This action cannot be undone.
+			Do you want to delete <b>{{ sourceStore.sourceConfigurationKey }}</b>? This action cannot be undone.
 		</p>
 		<template #actions>
 			<NcButton :disabled="loading" icon="" @click="navigationStore.setModal(false)">
@@ -33,7 +33,7 @@ import { navigationStore, jobStore } from '../../store/store.js'
 				:disabled="loading"
 				icon="Delete"
 				type="error"
-				@click="deleteJobArgument()">
+				@click="deleteSourceConfiguration()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<Delete v-if="!loading" :size="20" />
@@ -51,7 +51,7 @@ import Cancel from 'vue-material-design-icons/Cancel.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 export default {
-	name: 'DeleteJobArgument',
+	name: 'DeleteSourceConfiguration',
 	components: {
 		NcDialog,
 		NcButton,
@@ -69,20 +69,17 @@ export default {
 		}
 	},
 	methods: {
-		deleteJobArgument() {
+		deleteSourceConfiguration() {
 			this.loading = true
 
-			const jobItemClone = { ...jobStore.jobItem }
-			delete jobItemClone?.arguments[jobStore.jobArgumentKey]
+			const sourceItemClone = { ...sourceStore.sourceItem }
+			delete sourceItemClone?.configuration[sourceStore.sourceConfigurationKey]
 
-			const scheduleAfter = jobStore.jobItem.scheduleAfter ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
-
-			const jobItem = {
-				...jobStore.jobItem,
-				scheduleAfter,
+			const sourceItem = {
+				...sourceStore.sourceItem,
 			}
 
-			jobStore.saveJob(jobItem)
+			sourceStore.saveSource(sourceItem)
 				.then(() => {
 					this.loading = false
 					this.success = true
