@@ -33,6 +33,7 @@ class SynchronizationService
 		CallService $callService,
 		MappingService $mappingService,
 		ContainerInterface $containerInterface,
+        SourceMapper $sourceMapper,
 		SynchronizationMapper $synchronizationMapper,
 		SynchronizationContractMapper $synchronizationContractMapper
 	) {
