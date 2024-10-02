@@ -182,6 +182,9 @@ export default {
 		jobStore.refreshJobLogs()
 	},
 	methods: {
+		refreshJobLogs() {
+			jobStore.refreshJobLogs()
+		},
 		deleteJobArgument(key) {
 			jobStore.setJobArgumentKey(key)
 			navigationStore.setModal('deleteJobArgument')

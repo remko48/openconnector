@@ -214,13 +214,13 @@ export default {
 			sourceStore.setSourceConfigurationKey(key)
 			navigationStore.setModal('editSourceConfiguration')
 		},
-		viewLog(log) {
-			logStore.setViewLogItem(log)
-			navigationStore.setModal('viewLog')
-		},
 		addSourceConfiguration() {
 			sourceStore.setSourceConfigurationKey(null)
 			navigationStore.setModal('editSourceConfiguration')
+		},
+		viewLog(log) {
+			logStore.setViewLogItem(log)
+			navigationStore.setModal('viewLog')
 		},
 		setActiveSourceConfigurationKey(sourceConfigurationKey) {
 			if (sourceStore.sourceConfigurationKey === sourceConfigurationKey) {

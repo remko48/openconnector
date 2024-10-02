@@ -80,7 +80,7 @@ class JobLog extends Entity implements JsonSerializable
             'arguments' => $this->arguments,
             'executionTime' => $this->executionTime,
             'userId' => $this->userId,
-            'stackTrace' => $this->stackTrace,
+            'stackTrace' => $this->trace,
             'expires' => $this->expires,
             'lastRun' => $this->lastRun,
             'nextRun' => $this->nextRun,
