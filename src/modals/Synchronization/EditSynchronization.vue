@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, sourceStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -8,10 +8,10 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 		label-id="editSynchronization"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>Synchronisatie {{ synchronizationItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>Synchronization{{ synchronizationItem.id ? 'Edit' : 'Add' }}</h2>
 
 			<NcNoteCard v-if="success" type="success">
-				<p>Synchronisatie succesvol toegevoegd</p>
+				<p>Synchronization successfully added</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -19,35 +19,47 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<NcTextField :value.sync="synchronizationItem.name"
-					label="Naam"
+					label="Name"
 					required />
 
 				<NcTextArea :value.sync="synchronizationItem.description"
-					label="Beschrijving" />
+					label="Description" />
 
-				<NcSelect v-model="synchronizationItem.source"
-					input-label="Bron"
-					:options="sourceOptions" />
+				<NcTextField :value.sync="synchronizationItem.sourceId"
+					label="sourceId"
+					required />
 
-				<NcSelect v-model="synchronizationItem.target"
-					input-label="Doel"
-					:options="targetOptions" />
+				<NcTextField :value.sync="synchronizationItem.sourceType"
+					label="sourceType"
+					required />
 
-				<NcTextField :value.sync="synchronizationItem.schedule"
-					label="Schema"
-					placeholder="Cron expressie" />
+				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
+					label="sourceTargetMapping"
+					required />
+
+				<NcTextField :value.sync="synchronizationItem.targetId"
+					label="targetId"
+					required />
+
+				<NcTextField :value.sync="synchronizationItem.targetType"
+					label="targetType"
+					required />
+
+				<NcTextField :value.sync="synchronizationItem.targetSourceMapping"
+					label="targetSourceMapping"
+					required />
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading"
+				:disabled="loading || !synchronizationItem.name"
 				type="primary"
 				@click="editSynchronization()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
 				</template>
-				Opslaan
+				Save
 			</NcButton>
 		</div>
 	</NcModal>
@@ -84,20 +96,20 @@ export default {
 			loading: false,
 			error: false,
 			sourceOptions: [], // This should be populated with available sources
+			source: {},
 			targetOptions: [], // This should be populated with available targets
 			synchronizationItem: {
 				name: '',
 				description: '',
-				source: '',
-				target: '',
-				schedule: '',
-				entity: '',
-				object: '',
-				action: '',
-				gateway: '',
-				sourceObject: '',
+				sourceId: '',
+				sourceType: 'api',
+				sourceTargetMapping: '',
+				targetId: '',
+				targetType: 'register/schema',
+				targetSourceMapping: '',
 			}, // Initialize with empty fields
 			hasUpdated: false, // Flag to prevent constant looping
+			sourceLoading: false,
 		}
 	},
 	updated() {
@@ -116,20 +128,20 @@ export default {
 			this.synchronizationItem = {
 				name: '',
 				description: '',
-				source: '',
-				target: '',
-				schedule: '',
-				entity: '',
-				object: '',
-				action: '',
-				gateway: '',
-				sourceObject: '',
+				sourceId: '',
+				sourceType: 'api',
+				sourceTargetMapping: '',
+				targetId: '',
+				targetType: 'register/schema',
+				targetSourceMapping: '',
 			}
 		},
 		async editSynchronization() {
 			this.loading = true
 			try {
-				await synchronizationStore.saveSynchronization(this.synchronizationItem)
+				await synchronizationStore.saveSynchronization({
+					...this.synchronizationItem,
+				})
 				this.success = true
 				this.loading = false
 
