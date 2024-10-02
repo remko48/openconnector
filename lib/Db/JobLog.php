@@ -14,6 +14,7 @@ class JobLog extends Entity implements JsonSerializable
 	protected ?array $arguments = null;
 	protected ?int $executionTime = 3600; // the execution time in seconds
 	protected ?string $userId = null; // the user which the job is running for security reasons
+	protected ?DateTime $expires = null; // when the log will be cleared
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
 	protected ?DateTime $created = null; // the date and time the job was created	
@@ -25,6 +26,7 @@ class JobLog extends Entity implements JsonSerializable
         $this->addType('arguments', 'json');
         $this->addType('executionTime', 'integer');
         $this->addType('userId', 'string');
+        $this->addType('expires', 'datetime');
         $this->addType('lastRun', 'datetime');
         $this->addType('nextRun', 'datetime');
         $this->addType('created', 'datetime');
@@ -70,6 +72,7 @@ class JobLog extends Entity implements JsonSerializable
             'arguments' => $this->arguments,
             'executionTime' => $this->executionTime,
             'userId' => $this->userId,
+            'expires' => $this->lastRun,
             'lastRun' => $this->lastRun,
             'nextRun' => $this->nextRun,
             'created' => $this->created,
