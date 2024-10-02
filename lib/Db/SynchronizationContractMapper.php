@@ -28,7 +28,7 @@ class SynchronizationContractMapper extends QBMapper
 		return $this->findEntity(query: $qb);
 	}
 
-	public function findOnSource(string $synchronizationId, string $sourceId): ?SynchronizationContract
+	public function findOnSynchronizationIdSourceId(string $synchronizationId, string $sourceId): ?SynchronizationContract
 	{
 		$qb = $this->db->getQueryBuilder();
 

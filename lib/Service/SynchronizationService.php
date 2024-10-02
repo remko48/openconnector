@@ -58,9 +58,9 @@ class SynchronizationService
 
         foreach($objectList as $key => $object) {
             // Get the synchronization contract for this object
-            $synchronizationContract = $this->synchronizationContractMapper->findOnSource($synchronization->id, $object['id']);
+            $synchronizationContract = $this->synchronizationContractMapper->findOnSynchronizationIdSourceId($synchronization->id, $object['id']);
             
-            if($synchronizationContract === null) {
+            if (!($synchronizationContract instanceof SynchronizationContract)) {
                 $synchronizationContract = new SynchronizationContract();
                 $synchronizationContract->setSynchronizationId($synchronization->id);
                 $synchronizationContract->setSourceId($object['id']);
@@ -71,8 +71,8 @@ class SynchronizationService
 
             }
             else{
-                // this is wierd                
-                $this->synchronizeContract($synchronizationContract, $synchronization, $object);
+                // @todo this is wierd                
+                $synchronizationContract = $this->synchronizeContract($synchronizationContract, $synchronization, $object);
                 $objectList[$key] = $this->synchronizationContractMapper->update($synchronizationContract);
             }         
         }
@@ -81,21 +81,15 @@ class SynchronizationService
     }
 
     /**
-     * @param SynchronizationContract $synchronizationContract
-     * @return void
+     * Synchronize a contract
+     * @param SynchronizationContract $synchronizationContract  
+     * @param Synchronization $synchronization
+     * @param array $object
+     * 
+     * @return SynchronizationContract
      */
-    public function synchronizeContract(SynchronizationContract $synchronizationContract, ?Synchronization $synchronization = null, ?array $object = [])
+    public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [])
     {
-        // The function can be called solo set let's make sure we have the full synchronization object
-        if(!$synchronization){
-            $synchronization = $this->synchronizationMapper->find($synchronizationContract->getSynchronizationId());
-        }
-
-        // We should have an object but lets make sure we have the full object
-        if(!$object){
-            //$object = $this->getAllObjectsFromSource($synchronizationContract);
-        }
-
         // Let create a source hash for the object
         $sourceHash = md5(serialize($object));
         $synchronizationContract->setSourceLastChecked(new DateTime()); 
@@ -117,6 +111,7 @@ class SynchronizationService
         else{
             $targetObject = $object;
         }
+
 
         // set the target hash
         $targetHash = md5(serialize($targetObject));
@@ -145,7 +140,6 @@ class SynchronizationService
          if(!$synchronization){
             $synchronization = $this->synchronizationMapper->find($synchronizationContract->getSynchronizationId());
         }
-
 
         // Lets check if we need to create or update
         $update = false;
