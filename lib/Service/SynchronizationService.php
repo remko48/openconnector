@@ -56,7 +56,7 @@ class SynchronizationService
     {
         $objectList = $this->getAllObjectsFromSource($synchronization);
 
-        foreach($objectList as $object) {
+        foreach($objectList as $key => $object) {
             // Get the synchronization contract for this object
             $synchronizationContract = $this->synchronizationContractMapper->findOnSource($synchronization->id, $object['id']);
             if(!$synchronizationContract) {
@@ -68,16 +68,18 @@ class SynchronizationService
             }
 
             $synchronizationContract = $this->synchronizeContract($synchronizationContract);
+
+            
+            // lets save the synchronization Contract
+            if($synchronizationContract->getId()){
+                $objectList[$key] = $this->synchronizationContractMapper->update($synchronizationContract);
+            }
+            else{
+                $objectList[$key] = $this->synchronizationContractMapper->insert($synchronizationContract);
+            }
         }
 
-        // lets save the synchronization Contract
-        if($synchronizationContract->getId()){
-            return $this->synchronizationContractMapper->update($synchronizationContract);
-        }
-        else{
-            return $this->synchronizationContractMapper->insert($synchronizationContract);
-        }
-
+        return $objectList;
     }
 
     /**

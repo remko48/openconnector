@@ -63,9 +63,9 @@ class SynchronizationAction
 
         // Doing the synchronization
         $response['stackTrace'][] = 'Doing the synchronization';
-        $this->synchronizationService->synchronize($synchronization);
+        $objects = $this->synchronizationService->synchronize($synchronization);
 
-        // @todo: implement this
+        $response['stackTrace'][] = 'Synchronized '.count($objects).' successfully';
 
         // Lets report back about what we have just done
         return $response;
