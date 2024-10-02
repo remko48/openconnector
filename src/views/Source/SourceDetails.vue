@@ -134,7 +134,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 								<NcListItem v-for="(log, i) in sourceStore.sourceLogs"
 									:key="log.id + i"
 									:class="checkIfStatusIsOk(log.statusCode) ? 'okStatus' : 'errorStatus'"
-									:name="log.response.body"
+									:name="`${log.statusMessage} (response time: ${(log.response.responseTime / 1000).toFixed(3)} seconds)`"
 									:bold="false"
 									:counter-number="log.statusCode"
 									:force-display-actions="true"
