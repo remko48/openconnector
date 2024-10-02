@@ -27,7 +27,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 							</template>
 							Test
 						</NcActionButton>
-						<NcActionButton @click="navigationStore.setModal('editSourceConfiguration')">
+						<NcActionButton @click="addSourceConfiguration">
 							<template #icon>
 								<Plus :size="20" />
 							</template>
@@ -61,7 +61,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 									:active="sourceStore.sourceConfigurationKey === key"
 									@click="setActiveSourceConfigurationKey(key)">
 									<template #icon>
-										<SitemapOutline
+										<FileCogOutline
 											:class="sourceStore.sourceConfigurationKey === key && 'selectedZaakIcon'"
 											disable-menu
 											:size="44" />
@@ -174,7 +174,7 @@ import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
-import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
+import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 
 export default {
@@ -201,6 +201,10 @@ export default {
 		},
 		editSourceConfiguration(key) {
 			sourceStore.setSourceConfigurationKey(key)
+			navigationStore.setModal('editSourceConfiguration')
+		},
+		addSourceConfiguration() {
+			sourceStore.setSourceConfigurationKey(null)
 			navigationStore.setModal('editSourceConfiguration')
 		},
 		setActiveSourceConfigurationKey(sourceConfigurationKey) {
