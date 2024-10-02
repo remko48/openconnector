@@ -106,12 +106,24 @@ export default {
 	},
 	methods: {
 		initializeJobItem() {
+
+			const scheduleAfter = jobStore.jobItem.scheduleAfter !== null ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
+
 			if (jobStore.jobItem?.id) {
 				this.jobItem = {
 					...jobStore.jobItem,
 					name: jobStore.jobItem.name || '',
 					description: jobStore.jobItem.description || '',
 					interval: jobStore.jobItem.interval || '3600',
+					executionTime: jobStore.jobItem.executionTime || '3600',
+					timeSensitive: typeof jobStore.jobItem.timeSensitive === 'boolean' ? jobStore.jobItem.timeSensitive : false,
+					allowParallelRuns: typeof jobStore.jobItem.allowParallelRuns === 'boolean' ? jobStore.jobItem.allowParallelRuns : false,
+					isEnabled: typeof jobStore.jobItem.isEnabled === 'boolean' ? jobStore.jobItem.isEnabled : true,
+					singleRun: typeof jobStore.jobItem.singleRun === 'boolean' ? jobStore.jobItem.singleRun : false,
+					scheduleAfter,
+					logRetention: jobStore.jobItem.logRetention || '3600',
+					errorRetention: jobStore.jobItem.errorRetention || '86400',
+					userId: jobStore.jobItem.userId || '',
 				}
 			}
 		},
