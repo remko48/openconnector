@@ -44,9 +44,6 @@ export class Job implements TJob {
 		this.errorRetention = job.errorRetention || 86400
 		this.lastRun = job.lastRun || null
 		this.nextRun = job.nextRun || null
-		this.created = job.created || null
-		this.updated = job.updated || null
-		this.status = job.status || ''
 	}
 
 	public validate(): SafeParseReturnType<TJob, unknown> {
@@ -69,9 +66,6 @@ export class Job implements TJob {
 			errorRetention: z.number().int().positive(),
 			lastRun: z.string().nullable(),
 			nextRun: z.string().nullable(),
-			created: z.string().nullable(),
-			updated: z.string().nullable(),
-			status: z.string()
 		})
 
 		return schema.safeParse({ ...this })

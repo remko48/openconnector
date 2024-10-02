@@ -17,10 +17,6 @@ export const mockJobData = (): TJob[] => [
 		scheduleAfter: null,
 		userId: 'admin',
 		jobListId: 'daily-jobs',
-		lastRun: '2023-06-01T00:00:00Z',
-		nextRun: '2023-06-02T00:00:00Z',
-		created: '2023-01-01T00:00:00Z',
-		updated: '2023-06-01T00:00:00Z'
 	},
 	{
 		id: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
@@ -37,10 +33,6 @@ export const mockJobData = (): TJob[] => [
 		scheduleAfter: null,
 		userId: 'reporter',
 		jobListId: 'weekly-jobs',
-		lastRun: '2023-05-29T09:00:00Z',
-		nextRun: '2023-06-05T09:00:00Z',
-		created: '2023-01-01T00:00:00Z',
-		updated: '2023-05-29T09:00:00Z'
 	},
 ]
 
