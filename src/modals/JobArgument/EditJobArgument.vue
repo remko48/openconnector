@@ -118,9 +118,11 @@ export default {
 		async editJobArgument() {
 			this.loading = true
 
+			const scheduleAfter = jobStore.jobItem.scheduleAfter !== null ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
+
 			const newJobItem = {
 				...jobStore.jobItem,
-				scheduleAfter: new Date(jobStore.jobItem.scheduleAfter.date) || '',
+				scheduleAfter,
 				arguments: {
 					...jobStore.jobItem.arguments,
 					[this.argumentItem.key]: this.argumentItem.value,
