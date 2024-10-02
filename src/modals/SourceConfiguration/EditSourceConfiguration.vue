@@ -107,6 +107,7 @@ export default {
 			}
 		},
 		checkIfKeyIsUnique(key) {
+			if (!sourceStore.sourceItem.configuration) return false
 			const keys = Object.keys(sourceStore.sourceItem.configuration)
 			if (this.oldKey === key) return false
 			if (keys.includes(key)) return true
