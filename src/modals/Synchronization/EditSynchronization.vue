@@ -37,7 +37,7 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 					label="sourceTargetMapping"
 					required />
 
-					<NcTextField :value.sync="synchronizationItem.targetId"
+				<NcTextField :value.sync="synchronizationItem.targetId"
 					label="targetId"
 					required />
 
@@ -129,10 +129,10 @@ export default {
 				name: '',
 				description: '',
 				sourceId: '',
-				sourceType: '',
+				sourceType: 'api',
 				sourceTargetMapping: '',
 				targetId: '',
-				targetType: '',
+				targetType: 'register/schema',
 				targetSourceMapping: '',
 			}
 		},

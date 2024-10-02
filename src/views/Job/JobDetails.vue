@@ -33,6 +33,13 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							</template>
 							Test
 						</NcActionButton>
+
+						<NcActionButton @click="refreshJobLogs()">
+							<template #icon>
+								<Sync :size="20" />
+							</template>
+							Refresh Logs
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteJob')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -128,6 +135,7 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
+import Sync from 'vue-material-design-icons/Sync.vue'
 
 export default {
 	name: 'JobDetails',
@@ -158,6 +166,9 @@ export default {
 			if (jobStore.jobArgumentKey === jobArgumentKey) {
 				jobStore.setJobArgumentKey(false)
 			} else { jobStore.setJobArgumentKey(jobArgumentKey) }
+		},
+		refreshJobLogs() {
+			jobStore.refreshJobLogs()
 		},
 	},
 }
