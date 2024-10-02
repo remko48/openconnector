@@ -97,7 +97,7 @@ class SynchronizationService
         // Lets prevent pointless updates @todo acount for omnidirectional sync
         if($sourceHash === $synchronizationContract->getSourceHash()){
             // The object has not changed
-            return synchronizationContract;
+            return $synchronizationContract; // Fix: Add $ before synchronizationContract
         }
 
         // The object has changed, oke let do mappig and bla die bla
