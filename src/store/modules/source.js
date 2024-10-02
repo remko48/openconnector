@@ -140,10 +140,11 @@ export const useSourceStore = defineStore(
 						this.setSourceTest(data)
 						console.log('Source tested')
 						// Refresh the source list
-						return this.refreshSourceList()
+						this.refreshSourceLogs()
 					})
 					.catch((err) => {
 						console.error('Error saving source:', err)
+						this.refreshSourceLogs()
 						throw err
 					})
 			},
