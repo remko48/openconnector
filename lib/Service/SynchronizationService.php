@@ -3,6 +3,7 @@
 namespace OCA\OpenConnector\Service;
 
 use OCA\OpenConnector\Db\Source;
+use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\Synchronization;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContract;
@@ -11,9 +12,6 @@ use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
 
 use Psr\Container\ContainerInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\SyntaxError;
-use Adbar\Dot;
 use DateInterval;
 use DateTime;
 
@@ -25,14 +23,17 @@ class SynchronizationService
     private ContainerInterface $containerInterface; 
     private Synchronization $synchronization;
     private SynchronizationMapper $synchronizationMapper;
+    private SourceMapper $sourceMapper;
     private SynchronizationContractMapper $synchronizationContractMapper;
     private ObjectService $objectService;
+    private Source $source;
 
 
 	public function __construct(
 		CallService $callService,
 		MappingService $mappingService,
 		ContainerInterface $containerInterface,
+        SourceMapper $sourceMapper,
 		SynchronizationMapper $synchronizationMapper,
 		SynchronizationContractMapper $synchronizationContractMapper
 	) {
@@ -41,6 +42,7 @@ class SynchronizationService
 		$this->containerInterface = $containerInterface;
 		$this->synchronizationMapper = $synchronizationMapper;
 		$this->synchronizationContractMapper = $synchronizationContractMapper;
+        $this->sourceMapper = $sourceMapper;
 	}
 
     /**
@@ -52,7 +54,7 @@ class SynchronizationService
     public function synchronize(Synchronization $synchronization)
     {
         $this->synchronization = $synchronization;
-        $objectList = [];
+        $objectList = $this->getAllObjectsFromSource($synchronization);
 
         foreach($objectList as $object) {
             // Get the synchronization contract for this object
@@ -183,20 +185,31 @@ class SynchronizationService
      */
     public function getAllObjectsFromSource(Synchronization $synchronization)
     {
+        $objects = [];
         switch($type){
             case 'register/schema':
                 // Setup the object service
                 $this->objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
                 
                 break;
-            case 'api':
-                
+            case 'api':                
                 //@todo: implement
-                //$this->callService->put($targetObject);
+                $source = $this->sourceMapper->get($synchronization->getSourceUrl());
+                $sourceObject = $this->callService->get($source->getUrl());
+                $objects[] = $this->getAllObjectsFromJson($sourceObject, synchronization, $source);
                 break;
             case 'database':
                 //@todo: implement
                 break;
         }
+        return $objects;
+    }
+
+    public function  getAllObjectsFromArray(array $sourceObject, Synchronization $synchronization, Source $source)
+    {
+
+        // lekeer hacky (only works on github for now)
+        //$sourceObject = $this->callService->get($source->getUrl());
+        return $sourceObject['items'];
     }
 }

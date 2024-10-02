@@ -2,7 +2,7 @@
 
 namespace OCA\OpenConnector\Action;
 
-use OCA\OpenConnector\Service\CallService;
+use OCA\OpenConnector\Service\SynchronizationService;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
 
@@ -13,15 +13,15 @@ use OCA\OpenConnector\Db\SynchronizationContractMapper;
  */
 class SynchronizationAction 
 {    
-    private CallService $callService;
+    private SynchronizationService $synchronizationService;
     private SynchronizationMapper $synchronizationMapper;
     private SynchronizationContractMapper $synchronizationContractMapper;
     public function __construct(      
-        CallService $callService, 
+        SynchronizationService $synchronizationService, 
         SynchronizationMapper $synchronizationMapper, 
         SynchronizationContractMapper $synchronizationContractMapper,
     ) {
-        $this->callService = $callService;
+        $this->synchronizationService = $synchronizationService;
         $this->synchronizationMapper = $synchronizationMapper;
         $this->synchronizationContractMapper = $synchronizationContractMapper;
     }
@@ -33,28 +33,38 @@ class SynchronizationAction
         $response = [];
 
         // if we do not have a synchronization Id then everything is wrong
-        if (!isset($arguments['synchronizationId'])) {
+        $response['stackTrace'][] = 'Check for a valid synchronization ID';
+        if (!isset($argument['synchronizationId'])) {
             // @todo: implement error handling
             $response['level'] = 'WARNING';
             $response['message'] = 'No synchronization ID provided';
-            //$response['stackTrace'][] = 'Check for a valid synchronization ID';
             return $response;
         }
 
         // We are going to allow for a single synchronization contract to be processed at a time
-        if (isset($arguments['synchronizationContractId']) && is_int($argument['synchronizationContractId'])) {
+        if (isset($argument['synchronizationContractId']) && is_int($argument['synchronizationContractId'])) {
             $synchronizationContract = $this->synchronizationContractMapper->find($argument['synchronizationContractId']);
-
-            //return;
+            $this->callService->synchronizeContract($synchronization);
+            return $response;
         }
 
-        // oke lets synchronyse a source, why not
+        // Lets find a synchronysation
+        $response['stackTrace'][] = 'Getting synchronization';
         $synchronization = $this->synchronizationMapper->find($argument['synchronizationId']);
+        if(!$synchronization){
+            $response['level'] = 'WARNING';
+            $response['message'] = 'No synchronization found';
+            return $response;
+        }
+
+        // Doing the synchronization
+        $response['stackTrace'][] = 'Doing the synchronization';
+        $this->synchronizationService->synchronize($synchronization);
 
         // @todo: implement this
 
         // Lets report back about what we have just done
-        return;
+        return $response;
     }
 
 }

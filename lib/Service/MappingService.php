@@ -5,9 +5,9 @@ namespace OCA\OpenConnector\Service;
 use OCA\OpenConnector\Db\Mapping;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\SyntaxError;
+//use Twig\Environment;
+//use Twig\Error\LoaderError;
+//use Twig\Error\SyntaxError;
 use Adbar\Dot;
 
 class MappingService
@@ -17,7 +17,7 @@ class MappingService
      *
      * @var Environment
      */
-    private Environment $twig;
+    //private Environment $twig;
 
     /**
      * Setting up the base class with required services.
@@ -26,9 +26,9 @@ class MappingService
      * @param SessionInterface $session The current session
      */
     public function __construct(
-        Environment $twig,
+        //Environment $twig,
     ) {
-        $this->twig    = $twig;
+        //$this->twig    = $twig;
 
     }//end __construct()
 
@@ -128,7 +128,8 @@ class MappingService
             }
 
             // Render the value from twig.
-            $dotArray->set($key, $this->twig->createTemplate($value)->render($input));
+            // $dotArray->set($key, $this->twig->createTemplate($value)->render($input));
+            $dotArray->set($key, $input);
         }
 
         // Unset unwanted key's.
