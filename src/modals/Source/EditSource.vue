@@ -49,7 +49,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
 				</template>
-				Opslaan
+				Save
 			</NcButton>
 		</div>
 	</NcModal>
@@ -83,7 +83,6 @@ export default {
 			sourceItem: {
 				name: '',
 				description: '',
-				type: '',
 				location: '',
 			},
 			success: false,
@@ -98,19 +97,64 @@ export default {
 				],
 
 			},
+			hasUpdated: false,
+		}
+	},
+	mounted() {
+		this.initializeSourceItem()
+	},
+	updated() {
+		if (navigationStore.modal === 'editSource' && !this.hasUpdated) {
+			this.initializeSourceItem()
+			this.hasUpdated = true
 		}
 	},
 	methods: {
+		initializeSourceItem() {
+			if (sourceStore.sourceItem?.id) {
+				this.sourceItem = {
+					...sourceStore.sourceItem,
+					name: sourceStore.sourceItem.name || '',
+					description: sourceStore.sourceItem.description || '',
+					location: sourceStore.sourceItem.location || '',
+				}
+
+				const selectedType = this.typeOptions.options.find((option) => option.id === sourceStore.sourceItem.type)
+
+				this.typeOptions = {
+					inputLabel: 'Type*',
+					options: [
+						{ label: 'Database', id: 'database' },
+						{ label: 'API', id: 'api' },
+						{ label: 'File', id: 'file' },
+					],
+					value: [{
+						label: selectedType.label,
+						id: selectedType.id,
+					}],
+
+				}
+			}
+		},
 		closeModal() {
 			navigationStore.setModal(false)
 			this.success = false
 			this.loading = false
 			this.error = false
+			this.hasUpdated = false
 			this.sourceItem = {
 				name: '',
 				description: '',
-				type: '',
 				location: '',
+			}
+			this.typeOptions = {
+				inputLabel: 'Type*',
+				options: [
+					{ label: 'Database', id: 'database' },
+					{ label: 'API', id: 'api' },
+					{ label: 'File', id: 'file' },
+				],
+
 			}
 		},
 		async editSource() {

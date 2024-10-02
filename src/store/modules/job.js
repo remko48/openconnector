@@ -129,7 +129,7 @@ export const useJobStore = defineStore(
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					//body: JSON.stringify(testJobItem),
+					// body: JSON.stringify(testJobItem),
 					body: JSON.stringify([]),
 				})
 					.then((response) => response.json())
@@ -137,10 +137,11 @@ export const useJobStore = defineStore(
 						this.setJobTest(data)
 						console.log('Job tested')
 						// Refresh the job list
-						return this.refreshJobList()
+						this.refreshJobLogs()
 					})
 					.catch((err) => {
 						console.error('Error testing job:', err)
+						this.refreshJobLogs()
 						throw err
 					})
 			},
