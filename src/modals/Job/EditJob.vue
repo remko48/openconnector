@@ -177,6 +177,8 @@ export default {
 	methods: {
 		initializeJobItem() {
 
+			const scheduleAfter = jobStore.jobItem.scheduleAfter !== null ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
+
 			if (jobStore.jobItem?.id) {
 				this.jobItem = {
 					...jobStore.jobItem,
@@ -189,7 +191,7 @@ export default {
 					allowParallelRuns: typeof jobStore.jobItem.allowParallelRuns === 'boolean' ? jobStore.jobItem.allowParallelRuns : false,
 					isEnabled: typeof jobStore.jobItem.isEnabled === 'boolean' ? jobStore.jobItem.isEnabled : true,
 					singleRun: typeof jobStore.jobItem.singleRun === 'boolean' ? jobStore.jobItem.singleRun : false,
-					scheduleAfter: new Date(jobStore.jobItem.scheduleAfter.date) || '',
+					scheduleAfter,
 					logRetention: jobStore.jobItem.logRetention || '3600',
 					errorRetention: jobStore.jobItem.errorRetention || '86400',
 					userId: jobStore.jobItem.userId || '',
