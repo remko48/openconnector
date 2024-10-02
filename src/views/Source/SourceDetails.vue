@@ -1,5 +1,5 @@
 <script setup>
-import { sourceStore, navigationStore } from '../../store/store.js'
+import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -133,21 +133,31 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 							<div v-if="sourceStore.sourceLogs?.length">
 								<NcListItem v-for="(log, i) in sourceStore.sourceLogs"
 									:key="log.id + i"
-									:class="log.status === 'error' ? 'errorStatus' : 'okStatus'"
+									:class="checkIfStatusIsOk(log.statusCode) ? 'okStatus' : 'errorStatus'"
 									:name="log.response.body"
 									:bold="false"
 									:counter-number="log.statusCode"
-									:force-display-actions="true">
+									:force-display-actions="true"
+									:active="logStore.activeLogKey === log?.id"
+									@click="logStore.setActiveLogKey(log.id)">
 									<template #counter-number>
-										<BriefcaseAccountOutline disable-menu
+										<MathLog disable-menu
 											:size="44" />
 									</template>
 									<template #icon>
-										<BriefcaseAccountOutline disable-menu
+										<MathLog disable-menu
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ new Date(log.createdAt.date) }}
+										{{ log.createdAt.date }} - {{ log.createdAt.timezone }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="viewLog(log)">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
 									</template>
 								</NcListItem>
 							</div>
@@ -176,7 +186,8 @@ import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountO
 import Delete from 'vue-material-design-icons/Delete.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
-
+import MathLog from 'vue-material-design-icons/MathLog.vue'
+import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 export default {
 	name: 'SourceDetails',
 	components: {
@@ -203,6 +214,10 @@ export default {
 			sourceStore.setSourceConfigurationKey(key)
 			navigationStore.setModal('editSourceConfiguration')
 		},
+		viewLog(log) {
+			logStore.setViewLogItem(log)
+			navigationStore.setModal('viewLog')
+		},
 		setActiveSourceConfigurationKey(sourceConfigurationKey) {
 			if (sourceStore.sourceConfigurationKey === sourceConfigurationKey) {
 				sourceStore.setSourceConfigurationKey(false)
@@ -211,6 +226,12 @@ export default {
 		refreshSourceLogs() {
 			sourceStore.refreshSourceLogs()
 
+		},
+		checkIfStatusIsOk(statusCode) {
+			if (statusCode > 199 && statusCode < 300) {
+				return true
+			}
+			return false
 		},
 	},
 }
@@ -229,12 +250,12 @@ export default {
   }
 
   .okStatus * .counter-bubble__counter {
-	background-color: green;
+	background-color: #69b090;
 	color: white
   }
 
   .errorStatus * .counter-bubble__counter {
-	background-color: red;
+	background-color: #dd3c49;
 	color: white
   }
 </style>
