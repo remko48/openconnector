@@ -69,7 +69,7 @@ import { sourceStore, navigationStore, searchStore } from '../../store/store.js'
 			appearance="dark"
 			name="Bronnen aan het laden" />
 
-		<div v-if="sourceStore.sourceList.length === 0">
+		<div v-if="sourceStore.sourceList.length === 0" class="emptyListHeader">
 			No sources defined.
 		</div>
 	</NcAppContentList>
