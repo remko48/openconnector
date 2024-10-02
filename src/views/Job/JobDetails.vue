@@ -27,6 +27,19 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							</template>
 							Add Argument
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('testJob')">
+							<template #icon>
+								<Update :size="20" />
+							</template>
+							Test
+						</NcActionButton>
+
+						<NcActionButton @click="refreshJobLogs()">
+							<template #icon>
+								<Sync :size="20" />
+							</template>
+							Refresh Logs
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteJob')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -121,6 +134,8 @@ import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountO
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
+import Update from 'vue-material-design-icons/Update.vue'
+import Sync from 'vue-material-design-icons/Sync.vue'
 
 export default {
 	name: 'JobDetails',
@@ -130,6 +145,7 @@ export default {
 		DotsHorizontal,
 		Pencil,
 		TrashCanOutline,
+		Update,
 		BTabs,
 		BTab,
 		NcListItem,
@@ -138,6 +154,9 @@ export default {
 		jobStore.refreshJobLogs()
 	},
 	methods: {
+		refreshJobLogs() {
+			jobStore.refreshJobLogs()
+		},
 		deleteJobArgument(key) {
 			jobStore.setJobArgumentKey(key)
 			navigationStore.setModal('deleteJobArgument')

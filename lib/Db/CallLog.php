@@ -15,6 +15,7 @@ class CallLog extends Entity implements JsonSerializable
     protected ?int $sourceId = null;
     protected ?int $actionId = null;
     protected ?int $synchronizationId = null;
+    protected ?DateTime $expires = null;
     protected ?DateTime $createdAt = null;
 
     public function __construct() {
@@ -25,6 +26,7 @@ class CallLog extends Entity implements JsonSerializable
         $this->addType('sourceId', 'integer');
         $this->addType('actionId', 'integer');
         $this->addType('synchronizationId', 'integer');
+        $this->addType('expires', 'datetime');
         $this->addType('createdAt', 'datetime');
     }
 
@@ -69,6 +71,7 @@ class CallLog extends Entity implements JsonSerializable
             'sourceId' => $this->sourceId,
             'actionId' => $this->actionId,
             'synchronizationId' => $this->synchronizationId,
+            'expires' => $this->expires,
             'createdAt' => $this->createdAt,
         ];
     }

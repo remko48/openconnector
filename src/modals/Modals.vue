@@ -4,6 +4,7 @@
 		<EditSource />
 		<TestSource />
 		<DeleteJob />
+		<TestJob />
 		<EditJob />
 		<DeleteLog />
 		<EditLog />
@@ -21,6 +22,7 @@ import { navigationStore } from '../store/store.js'
 import EditSource from './Source/EditSource.vue'
 import TestSource from './TestSource/TestSource.vue'
 import DeleteSource from './Source/DeleteSource.vue'
+import TestJob from './Job/TestJob.vue'
 import EditJob from './Job/EditJob.vue'
 import DeleteJob from './Job/DeleteJob.vue'
 import EditLog from './Log/EditLog.vue'
@@ -40,6 +42,7 @@ export default {
 	  TestSource,
 	  DeleteJob,
 	  EditJob,
+	  TestJob,
 	  DeleteLog,
 	  EditLog,
 	  DeleteMapping,

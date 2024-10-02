@@ -26,10 +26,11 @@ class JobService
     public function scheduleJob(Job $job): Job
     {
         // Lets first check if the job should be disabled
-        if (!$job->getIsEnabled() || $job->getJobListId()) {
+        if ($job->getIsEnabled() === false || $job->getJobListId()) {
 
-            $this->jobList->removeById($job->getId());
-            $job->setJobListId(null);
+            // @todo fix this (call to protected method)
+            //$this->jobList->removeById($job->getJobListId());
+            //$job->setJobListId(null);
             return $this->jobMapper->update($job);
         }
 

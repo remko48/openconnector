@@ -71,9 +71,9 @@ class ActionTask extends TimedJob
         }
 
 		$time_start = microtime(true); 
-
-        $action =  $this->containerInterface->get($job->getClass());
-        $action->run($job->getArguments());
+        
+        $action =  $this->containerInterface->get($job->getJobClass());
+        $result = $action->run($job->getArguments());
         
         $time_end = microtime(true);
         $executionTime = ( $time_end - $time_start ) * 1000;
@@ -98,10 +98,24 @@ class ActionTask extends TimedJob
         //$jobLog->setLastRun($job->getLastRun());
         //$jobLog->setNextRun($job->getNextRun());
         //$jobLog->setExecutionTime($executionTime);
+
+        // Get the result and set it to the job log
+        if (is_array($result)) {
+            if (isset($result['level'])) {
+                $jobLog->setLevel($result['level']);
+            }
+            if (isset($result['message'])) {
+                $jobLog->setMessage($result['message']);
+            }
+            if (isset($result['stackTrace'])) {
+                $jobLog->setStackTrace($result['stackTrace']);
+            }
+        }
+
         $this->jobLogMapper->insert($jobLog);
 
         // Lets report back about what we have just done
-        return;
+        return $jobLog;
     }
 
 }

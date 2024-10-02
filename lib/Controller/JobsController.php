@@ -27,14 +27,15 @@ class JobsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private readonly IAppConfig $config,
-        private readonly JobMapper $jobMapper,
-        private readonly JobLogMapper $jobLogMapper,
-        private readonly JobService $jobService,
-        private readonly IJobList $jobList
+        private IAppConfig $config,
+        private JobMapper $jobMapper,
+        private JobLogMapper $jobLogMapper,
+        private JobService $jobService,
+        private IJobList $jobList,
     )
     {
         parent::__construct($appName, $request);
+        $this->IJobList = $jobList;
     }
 
     /**
@@ -221,7 +222,7 @@ class JobsController extends Controller
             if (!$job->getJobListId()) {
                 return new JSONResponse(data: ['error' => 'Job not scheduled'], statusCode: 404);
             }
-            $log = $this->jobService->getById($job->getJobListId())->start();
+            $log = $this->IJobList->getById($job->getJobListId())->start($this->IJobList);
             return new JSONResponse($log);
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);

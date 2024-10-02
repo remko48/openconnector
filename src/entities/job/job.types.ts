@@ -17,6 +17,4 @@ export type TJob = {
     errorRetention?: number
     lastRun?: string | null
     nextRun?: string | null
-    created?: string | null
-    updated?: string | null
 }
