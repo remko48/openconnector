@@ -30,18 +30,22 @@ class SynchronizationAction
     public function run($argument)
     {
 
-        
+        $response = [];
+
         // if we do not have a synchronization Id then everything is wrong
-        if (isset($arguments['synchronizationId']) && is_int($argument['synchronizationId'])) {
+        if (!isset($arguments['synchronizationId'])) {
             // @todo: implement error handling
-            return;
+            $response['level'] = 'WARNING';
+            $response['message'] = 'No synchronization ID provided';
+            //$response['stackTrace'][] = 'Check for a valid synchronization ID';
+            return $response;
         }
 
         // We are going to allow for a single synchronization contract to be processed at a time
         if (isset($arguments['synchronizationContractId']) && is_int($argument['synchronizationContractId'])) {
             $synchronizationContract = $this->synchronizationContractMapper->find($argument['synchronizationContractId']);
 
-            return;
+            //return;
         }
 
         // oke lets synchronyse a source, why not
