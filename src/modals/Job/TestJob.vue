@@ -12,7 +12,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 
 			<form @submit.prevent="handleSubmit">
 				<div class="form-group">
-					<div class="detailGrid">
+					<div class="testJobDetailGrid">
 						<NcTextField
 							id="jobId"
 							label="Job ID"
@@ -106,7 +106,7 @@ export default {
 }
 </script>
 <style>
-.detailGrid {
+.testJobDetailGrid {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 5px;
