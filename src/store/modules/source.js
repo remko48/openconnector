@@ -16,6 +16,8 @@ export const useSourceStore = defineStore(
 			setSourceItem(sourceItem) {
 				this.sourceItem = sourceItem && new Source(sourceItem)
 				console.log('Active source item set to ' + sourceItem)
+				this.refreshSourceLogs()
+
 			},
 			setSourceTest(sourceTest) {
 				this.sourceTest = sourceTest
@@ -165,7 +167,7 @@ export const useSourceStore = defineStore(
 				// Create a copy of the source item and remove empty properties
 				const sourceToSave = { ...sourceItem }
 				Object.keys(sourceToSave).forEach(key => {
-					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && sourceToSave[key].length === 0)) {
+					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && !sourceToSave[key].length)) {
 						delete sourceToSave[key]
 					}
 				})

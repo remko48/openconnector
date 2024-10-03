@@ -121,7 +121,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="jobStore.jobItem?.arguments === null || Object.keys(jobStore.jobItem?.arguments).length === 0" class="tabPanel">
+							<div v-if="jobStore.jobItem?.arguments === null || !Object.keys(jobStore.jobItem?.arguments).length" class="tabPanel">
 								No arguments found
 							</div>
 						</BTab>

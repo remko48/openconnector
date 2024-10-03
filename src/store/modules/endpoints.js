@@ -97,7 +97,7 @@ export const useEndpointStore = defineStore(
 				// Create a copy of the endpoint item and remove empty properties
 				const endpointToSave = { ...this.endpointItem }
 				Object.keys(endpointToSave).forEach(key => {
-					if (endpointToSave[key] === '' || (Array.isArray(endpointToSave[key]) && endpointToSave[key].length === 0)) {
+					if (endpointToSave[key] === '' || (Array.isArray(endpointToSave[key]) && !endpointToSave[key].length)) {
 						delete endpointToSave[key]
 					}
 				})
