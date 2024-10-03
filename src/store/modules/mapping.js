@@ -97,7 +97,7 @@ export const useMappingStore = defineStore(
 				// Create a copy of the mapping item and remove empty properties
 				const mappingToSave = { ...this.mappingItem }
 				Object.keys(mappingToSave).forEach(key => {
-					if (mappingToSave[key] === '' || (Array.isArray(mappingToSave[key]) && mappingToSave[key].length === 0)) {
+					if (mappingToSave[key] === '' || (Array.isArray(mappingToSave[key]) && !mappingToSave[key].length)) {
 						delete mappingToSave[key]
 					}
 				})
