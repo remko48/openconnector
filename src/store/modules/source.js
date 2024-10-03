@@ -16,6 +16,8 @@ export const useSourceStore = defineStore(
 			setSourceItem(sourceItem) {
 				this.sourceItem = sourceItem && new Source(sourceItem)
 				console.log('Active source item set to ' + sourceItem)
+				this.refreshSourceLogs()
+
 			},
 			setSourceTest(sourceTest) {
 				this.sourceTest = sourceTest
