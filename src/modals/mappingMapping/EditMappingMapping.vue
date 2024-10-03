@@ -1,16 +1,16 @@
 <script setup>
-import { jobStore, navigationStore } from '../../store/store.js'
+import { mappingStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editJobArgument'"
+	<NcModal v-if="navigationStore.modal === 'editMappingMapping'"
 		ref="modalRef"
-		label-id="editJobArgument"
+		label-id="editMappingMapping"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>{{ isEdit ? 'Edit' : 'Add' }} Job Argument</h2>
+			<h2>{{ isEdit ? 'Edit' : 'Add' }} Mapping</h2>
 			<NcNoteCard v-if="success" type="success">
-				<p>Job Argument successfully added</p>
+				<p>Mapping successfully added</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -20,23 +20,23 @@ import { jobStore, navigationStore } from '../../store/store.js'
 				<div class="form-group">
 					<NcTextField
 						id="key"
-						label="Key*"
+						label="Key"
 						required
-						:error="checkIfKeyIsUnique(argumentItem.key)"
-						:helper-text="checkIfKeyIsUnique(argumentItem.key) ? 'This key is already in use. Please choose a different key name.' : ''"
-						:value.sync="argumentItem.key" />
+						:error="checkIfKeyIsUnique(mappingItem.key)"
+						:helper-text="checkIfKeyIsUnique(mappingItem.key) ? 'This key is already in use. Please choose a different key name.' : ''"
+						:value.sync="mappingItem.key" />
 					<NcTextField
 						id="value"
 						label="Value"
-						:value.sync="argumentItem.value" />
+						:value.sync="mappingItem.value" />
 				</div>
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading || !argumentItem.key || checkIfKeyIsUnique(argumentItem.key)"
+				:disabled="loading || !mappingItem.key || checkIfKeyIsUnique(mappingItem.key)"
 				type="primary"
-				@click="editJobArgument()">
+				@click="editMapping()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
@@ -58,7 +58,7 @@ import {
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 export default {
-	name: 'EditJobArgument',
+	name: 'EditMappingMapping',
 	components: {
 		NcModal,
 		NcButton,
@@ -70,7 +70,7 @@ export default {
 	},
 	data() {
 		return {
-			argumentItem: {
+			mappingItem: {
 				key: '',
 				value: '',
 			},
@@ -83,32 +83,32 @@ export default {
 		}
 	},
 	mounted() {
-		this.initializeJobArgument()
+		this.initializeMappingMapping()
 	},
 	updated() {
-		if (navigationStore.modal === 'editJobArgument' && !this.hasUpdated) {
-			this.initializeJobArgument()
+		if (navigationStore.modal === 'editMappingMapping' && !this.hasUpdated) {
+			this.initializeMappingMapping()
 			this.hasUpdated = true
 		}
 	},
 	methods: {
-		initializeJobArgument() {
-			if (!jobStore.jobArgumentKey) {
+		initializeMappingMapping() {
+			if (!mappingStore.mappingMappingKey) {
 				return
 			}
-			const argumentItem = Object.entries(jobStore.jobItem.arguments).find(([key]) => key === jobStore.jobArgumentKey)
-			if (argumentItem) {
-				this.argumentItem = {
-					key: argumentItem[0] || '',
-					value: argumentItem[1] || '',
+			const mappingItem = Object.entries(mappingStore.mappingItem.mapping).find(([key]) => key === mappingStore.mappingMappingKey)
+			if (mappingItem) {
+				this.mappingItem = {
+					key: mappingItem[0] || '',
+					value: mappingItem[1] || '',
 				}
-				this.oldKey = argumentItem[0]
+				this.oldKey = mappingItem[0]
 				this.isEdit = true
 			}
 		},
 		checkIfKeyIsUnique(key) {
-			if (!jobStore.jobItem.arguments) return false
-			const keys = Object.keys(jobStore.jobItem.arguments)
+			if (!mappingStore.mappingItem.mapping) return false
+			const keys = Object.keys(mappingStore.mappingItem.mapping)
 			if (this.oldKey === key) return false
 			if (keys.includes(key)) return true
 			return false
@@ -121,31 +121,28 @@ export default {
 			this.hasUpdated = false
 			this.isEdit = false
 			this.oldKey = ''
-			this.argumentItem = {
+			this.mappingItem = {
 				key: '',
 				value: '',
 			}
 		},
-		async editJobArgument() {
+		async editMapping() {
 			this.loading = true
 
-			const scheduleAfter = jobStore.jobItem.scheduleAfter ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
-
-			const newJobItem = {
-				...jobStore.jobItem,
-				scheduleAfter,
-				arguments: {
-					...jobStore.jobItem.arguments,
-					[this.argumentItem.key]: this.argumentItem.value,
+			const newMappingItem = {
+				...mappingStore.mappingItem,
+				mapping: {
+					...mappingStore.mappingItem.mapping,
+					[this.mappingItem.key]: this.mappingItem.value,
 				},
 			}
 
-			if (this.oldKey !== '' && this.oldKey !== this.argumentItem.key) {
-				delete newJobItem.arguments[this.oldKey]
+			if (this.oldKey !== '' && this.oldKey !== this.mappingItem.key) {
+				delete newMappingItem.mapping[this.oldKey]
 			}
 
 			try {
-				await jobStore.saveJob(newJobItem)
+				await mappingStore.saveMapping(newMappingItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
@@ -155,7 +152,7 @@ export default {
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'An error occurred while saving the job argument'
+				this.error = error.message || 'An error occurred while saving the mapping'
 			}
 		},
 	},

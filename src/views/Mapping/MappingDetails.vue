@@ -6,12 +6,12 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 	<div class="detailContainer">
 		<div id="app-content">
 			<div>
-				<div class="head">
+				<div class="detailHeader">
 					<h1 class="h1">
 						{{ mappingStore.mappingItem.name }}
 					</h1>
 
-					<NcActions :primary="true" menu-name="Acties">
+					<NcActions :primary="true" menu-name="Actions">
 						<template #icon>
 							<DotsHorizontal :size="20" />
 						</template>
@@ -19,13 +19,19 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							<template #icon>
 								<Pencil :size="20" />
 							</template>
-							Bewerken
+							Edit
+						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('editMappingMapping')">
+							<template #icon>
+								<MapPlus :size="20" />
+							</template>
+							Add Mapping
 						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteMapping')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
 							</template>
-							Verwijderen
+							Delete
 						</NcActionButton>
 					</NcActions>
 				</div>
@@ -33,34 +39,104 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
-						<b>Source Field:</b>
-						<p>{{ mappingStore.mappingItem.sourceField }}</p>
+						<b>Reference:</b>
+						<p>{{ mappingStore.mappingItem.reference }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
-						<b>Target Field:</b>
-						<p>{{ mappingStore.mappingItem.targetField }}</p>
+						<b>Version:</b>
+						<p>{{ mappingStore.mappingItem.version }}</p>
 					</div>
 				</div>
-				<!-- Add more mapping-specific details here -->
+				<div class="tabContainer">
+					<BTabs content-class="mt-3" justified>
+						<BTab title="Mapping">
+							<div v-if="mappingStore.mappingItem?.mapping !== null && Object.keys(mappingStore.mappingItem?.mapping).length > 0">
+								<NcListItem v-for="(value, key, i) in mappingStore.mappingItem?.mapping"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="mappingStore.mappingMappingKey === key"
+									@click="setActiveMappingMappingKey(key)">
+									<template #icon>
+										<SitemapOutline
+											:class="mappingStore.mappingMappingKey === key && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="editMappingMapping(key)">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="deleteMappingMapping(key)">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="Object.keys(mappingStore.mappingItem?.mapping).length === 0" class="tabPanel">
+								No mapping found
+							</div>
+						</BTab>
+						<BTab title="Cast">
+							<div class="tabPanel">
+								No cast found
+							</div>
+						</BTab>
+					</BTabs>
+				</div>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
-import { NcActions, NcActionButton } from '@nextcloud/vue'
+import { NcActions, NcActionButton, NcListItem } from '@nextcloud/vue'
+import { BTab, BTabs } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
+import MapPlus from 'vue-material-design-icons/MapPlus.vue'
+import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
 
 export default {
 	name: 'MappingDetails',
 	components: {
 		NcActions,
 		NcActionButton,
-		DotsHorizontal,
-		Pencil,
+		NcListItem,
 		TrashCanOutline,
+		BTab,
+		BTabs,
+	},
+	methods: {
+		deleteMappingMapping(key) {
+			mappingStore.setMappingMappingKey(key)
+			navigationStore.setModal('deleteMappingMapping')
+		},
+		editMappingMapping(key) {
+			mappingStore.setMappingMappingKey(key)
+			navigationStore.setModal('editMappingMapping')
+		},
+		addMappingMapping() {
+			mappingStore.setMappingMappingKey(null)
+			navigationStore.setModal('editMappingMapping')
+		},
+		setActiveMappingMappingKey(mappingMappingKey) {
+			if (mappingStore.mappingMappingKey === mappingMappingKey) {
+				mappingStore.setMappingMappingKey(false)
+			} else { mappingStore.setMappingMappingKey(mappingMappingKey) }
+		},
 	},
 }
 </script>

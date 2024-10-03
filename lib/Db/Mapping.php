@@ -75,7 +75,7 @@ class Mapping extends Entity implements JsonSerializable
 			'cast' => $this->cast,
 			'passTrough' => $this->passTrough,
 			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified
+			'dateModified' => $this->dateModified,
 		];
 	}
 }

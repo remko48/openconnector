@@ -7,6 +7,7 @@ export const useMappingStore = defineStore(
 		state: () => ({
 			mappingItem: false,
 			mappingList: [],
+			mappingMappingKey: null,
 		}),
 		actions: {
 			setMappingItem(mappingItem) {
@@ -18,6 +19,10 @@ export const useMappingStore = defineStore(
 					(mappingItem) => new Mapping(mappingItem),
 				)
 				console.log('Mapping list set to ' + mappingList.length + ' items')
+			},
+			setMappingMappingKey(mappingMappingKey) {
+				this.mappingMappingKey = mappingMappingKey
+				console.log('Active mapping mapping key set to ' + mappingMappingKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshMappingList(search = null) {
@@ -81,23 +86,23 @@ export const useMappingStore = defineStore(
 					})
 			},
 			// Create or save a mapping from store
-			saveMapping() {
-				if (!this.mappingItem) {
+			saveMapping(mappingItem) {
+				if (!mappingItem) {
 					throw new Error('No mapping item to save')
 				}
 
 				console.log('Saving mapping...')
 
-				const isNewMapping = !this.mappingItem.id
+				const isNewMapping = !mappingItem.id
 				const endpoint = isNewMapping
 					? '/index.php/apps/openconnector/api/mappings'
-					: `/index.php/apps/openconnector/api/mappings/${this.mappingItem.id}`
+					: `/index.php/apps/openconnector/api/mappings/${mappingItem.id}`
 				const method = isNewMapping ? 'POST' : 'PUT'
 
 				// Create a copy of the mapping item and remove empty properties
-				const mappingToSave = { ...this.mappingItem }
+				const mappingToSave = { ...mappingItem }
 				Object.keys(mappingToSave).forEach(key => {
-					if (mappingToSave[key] === '' || (Array.isArray(mappingToSave[key]) && !mappingToSave[key].length)) {
+					if (mappingToSave[key] === '' || (Array.isArray(mappingToSave[key]) && !mappingToSave[key].length) || key === 'dateCreated' || key === 'dateModified') {
 						delete mappingToSave[key]
 					}
 				})
@@ -124,6 +129,7 @@ export const useMappingStore = defineStore(
 						throw err
 					})
 			},
+
 		},
 	},
 )

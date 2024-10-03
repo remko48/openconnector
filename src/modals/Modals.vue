@@ -10,6 +10,8 @@
 		<EditLog />
 		<DeleteMapping />
 		<EditMapping />
+		<EditMappingMapping />
+		<DeleteMappingMapping />
 		<DeleteSynchronization />
 		<EditSynchronization />
 		<EditJobArgument />
@@ -39,6 +41,9 @@ import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
 import EditSourceConfiguration from './SourceConfiguration/EditSourceConfiguration.vue'
 import DeleteSourceConfiguration from './SourceConfiguration/DeleteSourceConfiguration.vue'
 import ViewLog from './Log/ViewLog.vue'
+import EditMappingMapping from './mappingMapping/EditMappingMapping.vue'
+import DeleteMappingMapping from './mappingMapping/DeleteMappingMapping.vue'
+
 export default {
 	name: 'Modals',
 	components: {
@@ -59,6 +64,8 @@ export default {
 	  EditSourceConfiguration,
 	  DeleteSourceConfiguration,
 	  ViewLog,
+	  EditMappingMapping,
+	  DeleteMappingMapping,
 	},
 	setup() {
 	  return {
