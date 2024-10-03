@@ -69,7 +69,7 @@ import { mappingStore, navigationStore, searchStore } from '../../store/store.js
 			appearance="dark"
 			name="Mappings aan het laden" />
 
-		<div v-if="mappingStore.mappingList.length === 0" class="emptyListHeader">
+		<div v-if="!mappingStore.mappingList.length" class="emptyListHeader">
 			Er zijn nog geen mappings gedefinieerd.
 		</div>
 	</NcAppContentList>

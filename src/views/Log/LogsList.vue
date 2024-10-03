@@ -57,7 +57,7 @@ import { logStore, navigationStore, searchStore } from '../../store/store.js'
 			appearance="dark"
 			name="Logs aan het laden" />
 
-		<div v-if="logStore.logList.length === 0">
+		<div v-if="!logStore.logList.length">
 			Er zijn nog geen logs gedefinieerd.
 		</div>
 	</NcAppContentList>

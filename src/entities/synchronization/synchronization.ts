@@ -20,17 +20,17 @@ export class Synchronization implements TSynchronization {
 	constructor(synchronization: TSynchronization) {
 		this.id = synchronization.id || ''
 		this.name = synchronization.name || ''
-		this.description = synchronization.description || null
-		this.sourceId = synchronization.sourceId || null
-		this.sourceType = synchronization.sourceType || null
-		this.sourceHash = synchronization.sourceHash || null
-		this.sourceTargetMapping = synchronization.sourceTargetMapping || null
-		this.sourceConfig = synchronization.sourceConfig || null
-		this.targetId = synchronization.targetId || null
-		this.targetType = synchronization.targetType || null
-		this.targetHash = synchronization.targetHash || null
-		this.targetSourceMapping = synchronization.targetSourceMapping || null
-		this.targetConfig = synchronization.targetConfig || null
+		this.description = synchronization.description || ''
+		this.sourceId = synchronization.sourceId || ''
+		this.sourceType = synchronization.sourceType || ''
+		this.sourceHash = synchronization.sourceHash || ''
+		this.sourceTargetMapping = synchronization.sourceTargetMapping || ''
+		this.sourceConfig = synchronization.sourceConfig || {}
+		this.targetId = synchronization.targetId || ''
+		this.targetType = synchronization.targetType || ''
+		this.targetHash = synchronization.targetHash || ''
+		this.targetSourceMapping = synchronization.targetSourceMapping || ''
+		this.targetConfig = synchronization.targetConfig || {}
 
 	}
 
