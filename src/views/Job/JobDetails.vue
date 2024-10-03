@@ -21,7 +21,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
-						<NcActionButton @click="navigationStore.setModal('editJobArgument')">
+						<NcActionButton @click="addJobArgument()">
 							<template #icon>
 								<Plus :size="20" />
 							</template>
@@ -182,15 +182,16 @@ export default {
 		jobStore.refreshJobLogs()
 	},
 	methods: {
-		refreshJobLogs() {
-			jobStore.refreshJobLogs()
-		},
 		deleteJobArgument(key) {
 			jobStore.setJobArgumentKey(key)
 			navigationStore.setModal('deleteJobArgument')
 		},
 		editJobArgument(key) {
 			jobStore.setJobArgumentKey(key)
+			navigationStore.setModal('editJobArgument')
+		},
+		addJobArgument() {
+			jobStore.setJobArgumentKey(null)
 			navigationStore.setModal('editJobArgument')
 		},
 		setActiveJobArgumentKey(jobArgumentKey) {

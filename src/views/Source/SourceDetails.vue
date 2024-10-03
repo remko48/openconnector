@@ -105,7 +105,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!sourceStore?.sourceItem?.mappings?.length">
+							<div v-if="!sourceStore?.sourceItem?.mappings?.length" class="tabPanel">
 								No mappings found
 							</div>
 						</BTab>

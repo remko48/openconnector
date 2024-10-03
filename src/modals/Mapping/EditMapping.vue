@@ -3,7 +3,10 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editMapping'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editMapping'"
+		ref="modalRef"
+		label-id="editMapping"
+		@close="closeModal">
 		<div class="modalContent">
 			<h2>Mapping {{ mappingStore.mappingItem?.id ? 'Edit' : 'Add' }}</h2>
 			<NcNoteCard v-if="success" type="success">

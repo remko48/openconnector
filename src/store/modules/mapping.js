@@ -20,6 +20,10 @@ export const useMappingStore = defineStore(
 				)
 				console.log('Mapping list set to ' + mappingList.length + ' items')
 			},
+			setMappingMappingKey(mappingMappingKey) {
+				this.mappingMappingKey = mappingMappingKey
+				console.log('Active mapping mapping key set to ' + mappingMappingKey)
+			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshMappingList(search = null) {
 				// @todo this might belong in a service?
@@ -125,10 +129,7 @@ export const useMappingStore = defineStore(
 						throw err
 					})
 			},
-			setMappingMappingKey(mappingMappingKey) {
-				this.mappingMappingKey = mappingMappingKey
-				console.log('Active mapping mapping key set to ' + mappingMappingKey)
-			},
+
 		},
 	},
 )
