@@ -18,7 +18,7 @@ use OCP\Migration\SimpleMigrationStep;
 
 /**
  * FIXME Auto-generated migration step: Please modify to your needs!
- * 
+ *
  */class Version0Date20240826193657 extends SimpleMigrationStep {
 
 	/**
@@ -40,6 +40,20 @@ use OCP\Migration\SimpleMigrationStep;
 		 * @var ISchemaWrapper $schema
 		 */
 		$schema = $schemaClosure();
+
+		if (!$schema->hasTable('openconnector_endpoints')) {
+			$table = $schema->createTable('openconnector_endpoints');
+			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('version', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('name', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('schemas', Types::TEXT, ['notnull' => true]);
+			$table->addColumn('methods', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('date_created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->addColumn('date_modified', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+			$table->setPrimaryKey(['id']);
+		}
 
 		if (!$schema->hasTable('openconnector_jobs')) {
 			$table = $schema->createTable('openconnector_jobs');
@@ -185,7 +199,7 @@ use OCP\Migration\SimpleMigrationStep;
                 'notnull' => false,
             ]);
             $table->addColumn('created_at', 'datetime',  [
-                'notnull' => true, 
+                'notnull' => true,
                 'default' => 'CURRENT_TIMESTAMP'
             ]);
             $table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
