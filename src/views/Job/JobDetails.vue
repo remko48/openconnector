@@ -51,9 +51,37 @@ import { jobStore, navigationStore } from '../../store/store.js'
 				<span>{{ jobStore.jobItem.description }}</span>
 
 				<div class="detailGrid">
-					<div class="gridContent gridFullWidth">
+					<div class="gridContent">
 						<b>Status:</b>
 						<p>{{ jobStore.jobItem.status }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Enabled:</b>
+						<p>{{ jobStore.jobItem.isEnabled }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Job Class:</b>
+						<p>{{ jobStore.jobItem.jobClass }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Interval:</b>
+						<p>{{ jobStore.jobItem.interval }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Execution Time:</b>
+						<p>{{ jobStore.jobItem.executionTime }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Time Sensitive:</b>
+						<p>{{ jobStore.jobItem.timeSensitive }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Allow Parallel Runs:</b>
+						<p>{{ jobStore.jobItem.allowParallelRuns }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Single Run:</b>
+						<p>{{ jobStore.jobItem.singleRun }}</p>
 					</div>
 				</div>
 
@@ -93,7 +121,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="jobStore.jobItem?.arguments === null || Object.keys(jobStore.jobItem?.arguments).length === 0" class="tabPanel">
+							<div v-if="jobStore.jobItem?.arguments === null || !Object.keys(jobStore.jobItem?.arguments).length" class="tabPanel">
 								No arguments found
 							</div>
 						</BTab>

@@ -97,7 +97,7 @@ export const useLogStore = defineStore(
 				// Create a copy of the log item and remove empty properties
 				const logToSave = { ...this.logItem }
 				Object.keys(logToSave).forEach(key => {
-					if (logToSave[key] === '' || (Array.isArray(logToSave[key]) && logToSave[key].length === 0)) {
+					if (logToSave[key] === '' || (Array.isArray(logToSave[key]) && !logToSave[key].length)) {
 						delete logToSave[key]
 					}
 				})

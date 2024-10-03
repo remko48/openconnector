@@ -97,7 +97,7 @@ export const useWebhookStore = defineStore(
 				// Create a copy of the webhook item and remove empty properties
 				const webhookToSave = { ...this.webhookItem }
 				Object.keys(webhookToSave).forEach(key => {
-					if (webhookToSave[key] === '' || (Array.isArray(webhookToSave[key]) && webhookToSave[key].length === 0)) {
+					if (webhookToSave[key] === '' || (Array.isArray(webhookToSave[key]) && !webhookToSave[key].length)) {
 						delete webhookToSave[key]
 					}
 				})

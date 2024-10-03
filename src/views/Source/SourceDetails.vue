@@ -89,15 +89,21 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 							<div v-if="sourceStore.sourceLogs?.length">
 								<NcListItem v-for="(log, i) in sourceStore.sourceLogs"
 									:key="log.id + i"
-									:name="log.createdAt"
+									:class="log.status === 'error' ? 'errorStatus' : 'okStatus'"
+									:name="log.response.body"
 									:bold="false"
+									:counter-number="log.statusCode"
 									:force-display-actions="true">
+									<template #counter-number>
+										<BriefcaseAccountOutline disable-menu
+											:size="44" />
+									</template>
 									<template #icon>
 										<BriefcaseAccountOutline disable-menu
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ log.createdAt }}
+										{{ new Date(log.createdAt.date) }}
 									</template>
 								</NcListItem>
 							</div>
@@ -122,7 +128,7 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
-
+import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
 export default {
 	name: 'SourceDetails',
 	components: {
@@ -138,7 +144,13 @@ export default {
 		Sync,
 	},
 	mounted() {
-		sourceStore.refreshSourceLogs()
+		this.refreshSourceLogs()
+	},
+	methods: {
+		refreshSourceLogs() {
+			sourceStore.refreshSourceLogs()
+
+		},
 	},
 }
 </script>
@@ -153,5 +165,15 @@ export default {
 	margin-inline-end: 0px !important;
 	font-weight: bold !important;
 	unicode-bidi: isolate !important;
+  }
+
+  .okStatus * .counter-bubble__counter {
+	background-color: green;
+	color: white
+  }
+
+  .errorStatus * .counter-bubble__counter {
+	background-color: red;
+	color: white
   }
 </style>

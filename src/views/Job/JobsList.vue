@@ -69,7 +69,7 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 			appearance="dark"
 			name="Taken aan het laden" />
 
-		<div v-if="jobStore.jobList.length === 0">
+		<div v-if="!jobStore.jobList.length" class="emptyListHeader">
 			No jobs defined.
 		</div>
 	</NcAppContentList>

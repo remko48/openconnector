@@ -162,7 +162,7 @@ export const useJobStore = defineStore(
 				// Create a copy of the job item and remove empty properties
 				const jobToSave = { ...jobItem }
 				Object.keys(jobToSave).forEach(key => {
-					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && jobToSave[key].length === 0) || key === 'created' || key === 'updated') {
+					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && !jobToSave[key].length) || key === 'created' || key === 'updated') {
 						delete jobToSave[key]
 					}
 				})

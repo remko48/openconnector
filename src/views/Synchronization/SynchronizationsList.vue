@@ -69,7 +69,7 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 			appearance="dark"
 			name="Synchronisaties aan het laden" />
 
-		<div v-if="synchronizationStore.synchronizationList.length === 0">
+		<div v-if="!synchronizationStore.synchronizationList.length" class="emptyListHeader">
 			No synchronizations defined.
 		</div>
 	</NcAppContentList>
