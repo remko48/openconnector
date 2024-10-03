@@ -33,12 +33,76 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
-						<b>Status:</b>
-						<p>{{ synchronizationStore.synchronizationItem.status }}</p>
+						<b>Created:</b>
+						<p>{{ synchronizationStore.synchronizationItem.created || 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
-						<b>Last Run:</b>
-						<p>{{ synchronizationStore.synchronizationItem.lastRun }}</p>
+						<b>Updated:</b>
+						<p>{{ synchronizationStore.synchronizationItem.updated || 'N/A' }}</p>
+					</div>
+
+					<div class="gridContent gridDoubleWidth">
+						<h4>Source</h4>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>SourceId:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceId || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Source Type:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceType || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Source Config:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceConfig || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Source Hash:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceHash || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Source Last Changed:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceLastChanged || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Source Last Checked:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceLastChecked || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Source Last Synced:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceLastSynced || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Source Target Mapping:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceTargetMapping || 'N/A' }}</p>
+					</div>
+
+					<div class="gridContent gridDoubleWidth">
+						<h4>Target</h4>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Id:</b>
+						<p>{{ synchronizationStore.synchronizationItem.targetId || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Type:</b>
+						<p>{{ synchronizationStore.synchronizationItem.targetType || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Last Changed:</b>
+						<p>{{ synchronizationStore.synchronizationItem.targetLastChanged || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Last Checked:</b>
+						<p>{{ synchronizationStore.synchronizationItem.targetLastChecked || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Last Synced:</b>
+						<p>{{ synchronizationStore.synchronizationItem.targetLastSynced || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Source Mapping:</b>
+						<p>{{ synchronizationStore.synchronizationItem.targetSourceMapping || 'N/A' }}</p>
 					</div>
 				</div>
 				<!-- Add more synchronization-specific details here -->
@@ -66,5 +130,7 @@ export default {
 </script>
 
 <style>
-/* Styles remain the same */
+.gridDoubleWidth {
+	grid-column: span 2;
+}
 </style>
