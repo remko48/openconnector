@@ -29,6 +29,10 @@ class SynchronizationAction
     //@todo: make this a bit more generic :')
     public function run($argument)
     {
+        //@todo: for testing purposes 
+        if (!isset($argument['synchronizationId'])) {
+            $argument['synchronizationId'] = 1;
+        }
 
         $response = [];
 
@@ -59,9 +63,9 @@ class SynchronizationAction
 
         // Doing the synchronization
         $response['stackTrace'][] = 'Doing the synchronization';
-        $this->synchronizationService->synchronize($synchronization);
+        $objects = $this->synchronizationService->synchronize($synchronization);
 
-        // @todo: implement this
+        $response['stackTrace'][] = 'Synchronized '.count($objects).' successfully';
 
         // Lets report back about what we have just done
         return $response;

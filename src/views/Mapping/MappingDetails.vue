@@ -21,7 +21,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
-						<NcActionButton @click="navigationStore.setModal('editMappingMapping')">
+						<NcActionButton @click="addMappingMapping()">
 							<template #icon>
 								<MapPlus :size="20" />
 							</template>

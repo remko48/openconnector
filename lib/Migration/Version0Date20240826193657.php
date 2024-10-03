@@ -222,8 +222,6 @@ use OCP\Migration\SimpleMigrationStep;
         if (!$schema->hasTable('openconnector_synchronization_contracts')) {
             $table = $schema->createTable('openconnector_synchronization_contracts');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-            $table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
-            $table->addColumn('description', Types::TEXT, ['notnull' => false]);
             $table->addColumn('synchronization_id', Types::STRING, ['notnull' => true, 'length' => 255]);
             // Source
             $table->addColumn('source_id', Types::STRING, ['notnull' => false, 'length' => 255]);

@@ -199,6 +199,9 @@ export default {
 				jobStore.setJobArgumentKey(false)
 			} else { jobStore.setJobArgumentKey(jobArgumentKey) }
 		},
+		refreshJobLogs() {
+			jobStore.refreshJobLogs()
+		},
 	},
 }
 </script>

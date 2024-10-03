@@ -20,7 +20,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 				<div class="form-group">
 					<NcTextField
 						id="key"
-						label="Key"
+						label="Key*"
 						required
 						:error="checkIfKeyIsUnique(mappingItem.key)"
 						:helper-text="checkIfKeyIsUnique(mappingItem.key) ? 'This key is already in use. Please choose a different key name.' : ''"
