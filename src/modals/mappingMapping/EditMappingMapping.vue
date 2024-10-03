@@ -8,7 +8,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 		label-id="editMappingMapping"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>{{ mappingItem?.id ? 'Edit' : 'Add' }} Mapping</h2>
+			<h2>{{ isEdit ? 'Edit' : 'Add' }} Mapping</h2>
 			<NcNoteCard v-if="success" type="success">
 				<p>Mapping successfully added</p>
 			</NcNoteCard>
@@ -21,6 +21,9 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 					<NcTextField
 						id="key"
 						label="Key"
+						required
+						:error="checkIfKeyIsUnique(mappingItem.key)"
+						:helper-text="checkIfKeyIsUnique(mappingItem.key) ? 'This key is already in use. Please choose a different key name.' : ''"
 						:value.sync="mappingItem.key" />
 					<NcTextField
 						id="value"
@@ -31,7 +34,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading"
+				:disabled="loading || !mappingItem.key || checkIfKeyIsUnique(mappingItem.key)"
 				type="primary"
 				@click="editMapping()">
 				<template #icon>
@@ -74,14 +77,50 @@ export default {
 			success: false,
 			loading: false,
 			error: false,
+			hasUpdated: false,
+			oldKey: '',
+			isEdit: false,
+		}
+	},
+	mounted() {
+		this.initializeMappingMapping()
+	},
+	updated() {
+		if (navigationStore.modal === 'editMappingMapping' && !this.hasUpdated) {
+			this.initializeMappingMapping()
+			this.hasUpdated = true
 		}
 	},
 	methods: {
+		initializeMappingMapping() {
+			if (!mappingStore.mappingMappingKey) {
+				return
+			}
+			const mappingItem = Object.entries(mappingStore.mappingItem.mapping).find(([key]) => key === mappingStore.mappingMappingKey)
+			if (mappingItem) {
+				this.mappingItem = {
+					key: mappingItem[0] || '',
+					value: mappingItem[1] || '',
+				}
+				this.oldKey = mappingItem[0]
+				this.isEdit = true
+			}
+		},
+		checkIfKeyIsUnique(key) {
+			if (!mappingStore.mappingItem.mapping) return false
+			const keys = Object.keys(mappingStore.mappingItem.mapping)
+			if (this.oldKey === key) return false
+			if (keys.includes(key)) return true
+			return false
+		},
 		closeModal() {
 			navigationStore.setModal(false)
 			this.success = false
 			this.loading = false
 			this.error = false
+			this.hasUpdated = false
+			this.isEdit = false
+			this.oldKey = ''
 			this.mappingItem = {
 				key: '',
 				value: '',
@@ -96,6 +135,10 @@ export default {
 					...mappingStore.mappingItem.mapping,
 					[this.mappingItem.key]: this.mappingItem.value,
 				},
+			}
+
+			if (this.oldKey !== '' && this.oldKey !== this.mappingItem.key) {
+				delete newMappingItem.mapping[this.oldKey]
 			}
 
 			try {

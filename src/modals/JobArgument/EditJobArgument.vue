@@ -107,6 +107,7 @@ export default {
 			}
 		},
 		checkIfKeyIsUnique(key) {
+			if (!jobStore.jobItem.arguments) return false
 			const keys = Object.keys(jobStore.jobItem.arguments)
 			if (this.oldKey === key) return false
 			if (keys.includes(key)) return true

@@ -50,7 +50,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Mapping">
-							<div v-if="Object.keys(mappingStore.mappingItem?.mapping).length > 0">
+							<div v-if="mappingStore.mappingItem?.mapping !== null && Object.keys(mappingStore.mappingItem?.mapping).length > 0">
 								<NcListItem v-for="(value, key, i) in mappingStore.mappingItem?.mapping"
 									:key="`${key}${i}`"
 									:name="key"
@@ -123,6 +123,14 @@ export default {
 		deleteMappingMapping(key) {
 			mappingStore.setMappingMappingKey(key)
 			navigationStore.setModal('deleteMappingMapping')
+		},
+		editMappingMapping(key) {
+			mappingStore.setMappingMappingKey(key)
+			navigationStore.setModal('editMappingMapping')
+		},
+		addMappingMapping() {
+			mappingStore.setMappingMappingKey(null)
+			navigationStore.setModal('editMappingMapping')
 		},
 		setActiveMappingMappingKey(mappingMappingKey) {
 			if (mappingStore.mappingMappingKey === mappingMappingKey) {
