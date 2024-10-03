@@ -29,6 +29,8 @@ export type TSource = {
     configuration?: object | null
     endpointsConfig?: object | null
     status?: string
+    logRetention?: number
+    errorRetention?: number
     lastCall?: string | null
     lastSync?: string | null
     objectCount?: number

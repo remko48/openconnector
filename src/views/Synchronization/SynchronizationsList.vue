@@ -20,13 +20,13 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
-						Ververs
+						Refresh
 					</NcActionButton>
 					<NcActionButton @click="synchronizationStore.setSynchronizationItem(null); navigationStore.setModal('editSynchronization')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Synchronisatie toevoegen
+						Add synchronization
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -50,13 +50,13 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 							<template #icon>
 								<Pencil />
 							</template>
-							Bewerken
+							Edit
 						</NcActionButton>
 						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
 								<TrashCanOutline />
 							</template>
-							Verwijderen
+							Delete
 						</NcActionButton>
 					</template>
 				</NcListItem>
@@ -69,8 +69,8 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 			appearance="dark"
 			name="Synchronisaties aan het laden" />
 
-		<div v-if="synchronizationStore.synchronizationList.length === 0">
-			Er zijn nog geen synchronisaties gedefinieerd.
+		<div v-if="!synchronizationStore.synchronizationList.length" class="emptyListHeader">
+			No synchronizations defined.
 		</div>
 	</NcAppContentList>
 </template>

@@ -8,9 +8,9 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 		label-id="editSource"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>Bron {{ sourceItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>{{ sourceItem.id ? 'Edit' : 'Add' }} Source</h2>
 			<NcNoteCard v-if="success" type="success">
-				<p>Bron succesvol toegevoegd</p>
+				<p>Source successfully added</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -20,36 +20,36 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				<div class="form-group">
 					<NcTextField
 						id="name"
-						label="Naam*"
+						label="Name*"
 						:value.sync="sourceItem.name" />
 
 					<NcTextArea
 						id="description"
-						label="Beschrijving"
+						label="Description"
 						:value.sync="sourceItem.description" />
 
 					<NcSelect
 						id="type"
 						v-bind="typeOptions"
-						v-model="sourceItem.type" />
+						v-model="typeOptions.value" />
 
 					<NcTextField
-						id="connection"
-						label="Verbinding*"
-						:value.sync="sourceItem.connection" />
+						id="location"
+						label="location*"
+						:value.sync="sourceItem.location" />
 				</div>
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading || !sourceItem.name || !sourceItem.connection"
+				:disabled="loading || !sourceItem.name || !sourceItem.location || !typeOptions.value"
 				type="primary"
 				@click="editSource()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
 				</template>
-				Opslaan
+				Save
 			</NcButton>
 		</div>
 	</NcModal>
@@ -83,40 +83,84 @@ export default {
 			sourceItem: {
 				name: '',
 				description: '',
-				type: '',
-				connection: '',
+				location: '',
 			},
 			success: false,
 			loading: false,
 			error: false,
 			typeOptions: {
-				inputLabel: 'Type',
+				inputLabel: 'Type*',
 				options: [
-					{ label: 'Database', value: 'database' },
-					{ label: 'API', value: 'api' },
-					{ label: 'File', value: 'file' },
+					{ label: 'Database', id: 'database' },
+					{ label: 'API', id: 'api' },
+					{ label: 'File', id: 'file' },
 				],
 
 			},
+			hasUpdated: false,
+		}
+	},
+	mounted() {
+		this.initializeSourceItem()
+	},
+	updated() {
+		if (navigationStore.modal === 'editSource' && !this.hasUpdated) {
+			this.initializeSourceItem()
+			this.hasUpdated = true
 		}
 	},
 	methods: {
+		initializeSourceItem() {
+			if (sourceStore.sourceItem?.id) {
+				this.sourceItem = {
+					...sourceStore.sourceItem,
+					name: sourceStore.sourceItem.name || '',
+					description: sourceStore.sourceItem.description || '',
+					location: sourceStore.sourceItem.location || '',
+				}
+
+				const selectedType = this.typeOptions.options.find((option) => option.id === sourceStore.sourceItem.type)
+
+				this.typeOptions = {
+					inputLabel: 'Type*',
+					options: [
+						{ label: 'Database', id: 'database' },
+						{ label: 'API', id: 'api' },
+						{ label: 'File', id: 'file' },
+					],
+					value: [{
+						label: selectedType.label,
+						id: selectedType.id,
+					}],
+
+				}
+			}
+		},
 		closeModal() {
 			navigationStore.setModal(false)
-			this.succes = false
+			this.success = false
 			this.loading = false
 			this.error = false
+			this.hasUpdated = false
 			this.sourceItem = {
 				name: '',
 				description: '',
-				type: '',
-				connection: '',
+				location: '',
+			}
+			this.typeOptions = {
+				inputLabel: 'Type*',
+				options: [
+					{ label: 'Database', id: 'database' },
+					{ label: 'API', id: 'api' },
+					{ label: 'File', id: 'file' },
+				],
+
 			}
 		},
 		async editSource() {
 			this.loading = true
 			try {
-				await sourceStore.saveSource(this.sourceItem)
+				await sourceStore.saveSource({ ...this.sourceItem, type: this.typeOptions.value.id })
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
@@ -124,7 +168,7 @@ export default {
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de bron'
+				this.error = error.message || 'An error occurred while saving the source'
 			}
 		},
 	},

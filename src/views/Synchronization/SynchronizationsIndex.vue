@@ -10,14 +10,14 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 		<template #default>
 			<NcEmptyContent v-if="!synchronizationStore.synchronizationItem || navigationStore.selected != 'synchronizations'"
 				class="detailContainer"
-				name="Geen synchronisatie"
-				description="Nog geen synchronisatie geselecteerd">
+				name="No synchronization"
+				description="No synchronization selected">
 				<template #icon>
 					<SyncCircle />
 				</template>
 				<template #action>
 					<NcButton type="primary" @click="synchronizationStore.setSynchronizationItem(null); navigationStore.setModal('editSynchronization')">
-						Synchronisatie toevoegen
+						Add synchronization
 					</NcButton>
 				</template>
 			</NcEmptyContent>
