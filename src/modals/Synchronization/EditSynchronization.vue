@@ -110,6 +110,7 @@ export default {
 			}, // Initialize with empty fields
 			hasUpdated: false, // Flag to prevent constant looping
 			sourceLoading: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	updated() {
@@ -124,6 +125,7 @@ export default {
 			this.loading = false
 			this.error = false
 			this.hasUpdated = false
+			clearTimeout(this.closeTimeoutFunc)
 			navigationStore.setModal(false)
 			this.synchronizationItem = {
 				name: '',
@@ -144,8 +146,7 @@ export default {
 				})
 				this.success = true
 				this.loading = false
-
-				setTimeout(this.closeModal, 2000)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false

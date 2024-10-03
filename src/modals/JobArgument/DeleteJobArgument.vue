@@ -66,9 +66,15 @@ export default {
 			loading: false,
 			success: null,
 			error: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setModal(false)
+			clearTimeout(this.closeTimeoutFunc)
+			this.success = null
+		},
 		deleteJobArgument() {
 			this.loading = true
 
@@ -89,7 +95,7 @@ export default {
 
 					// Wait for the user to read the feedback then close the model
 					const self = this
-					setTimeout(function() {
+					this.closeTimeoutFunc = setTimeout(function() {
 						self.success = null
 						navigationStore.setModal(false)
 					}, 2000)
