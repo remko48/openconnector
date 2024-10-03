@@ -160,7 +160,7 @@ export const useSourceStore = defineStore(
 				// Create a copy of the source item and remove empty properties
 				const sourceToSave = { ...sourceItem }
 				Object.keys(sourceToSave).forEach(key => {
-					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && sourceToSave[key].length === 0)) {
+					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && !sourceToSave[key].length)) {
 						delete sourceToSave[key]
 					}
 				})

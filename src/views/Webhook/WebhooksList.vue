@@ -69,7 +69,7 @@ import { webhookStore, navigationStore, searchStore } from '../../store/store.js
 			appearance="dark"
 			name="Webhooks aan het laden" />
 
-		<div v-if="webhookStore.webhookList.length === 0" class="emptyListHeader">
+		<div v-if="!webhookStore.webhookList.length" class="emptyListHeader">
 			Er zijn nog geen webhooks gedefinieerd.
 		</div>
 	</NcAppContentList>
