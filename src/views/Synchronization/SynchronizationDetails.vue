@@ -34,11 +34,21 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
 						<b>Created:</b>
-						<p>{{ synchronizationStore.synchronizationItem.created || 'N/A' }}</p>
+						<p>
+							{{ synchronizationStore.synchronizationItem.created
+								? new Date(synchronizationStore.synchronizationItem.created).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+								: 'N/A'
+							}}
+						</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Updated:</b>
-						<p>{{ synchronizationStore.synchronizationItem.updated || 'N/A' }}</p>
+						<p>
+							{{ synchronizationStore.synchronizationItem.updated
+								? new Date(synchronizationStore.synchronizationItem.updated).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+								: 'N/A'
+							}}
+						</p>
 					</div>
 
 					<div class="gridContent gridDoubleWidth">

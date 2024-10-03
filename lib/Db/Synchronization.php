@@ -108,8 +108,8 @@ class Synchronization extends Entity implements JsonSerializable
 			'targetLastChanged' => $this->targetLastChanged,
 			'targetLastChecked' => $this->targetLastChecked,
 			'targetLastSynced' => $this->targetLastSynced,
-			'created' => $this->created,
-			'updated' => $this->updated
+			'created' => isset($this->created) ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null
 		];
 	}
 }
