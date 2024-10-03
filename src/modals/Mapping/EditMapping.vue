@@ -3,11 +3,14 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editMapping'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editMapping'"
+		ref="modalRef"
+		label-id="editMapping"
+		@close="closeModal">
 		<div class="modalContent">
-			<h2>Mapping {{ mappingStore.mappingItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>Mapping {{ mappingStore.mappingItem?.id ? 'Edit' : 'Add' }}</h2>
 			<NcNoteCard v-if="success" type="success">
-				<p>Mapping succesvol toegevoegd</p>
+				<p>Mapping successfully added</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
@@ -15,20 +18,25 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<div class="form-group">
-					<label for="name">Name:</label>
-					<input id="name" v-model="mappingStore.mappingItem.name" required>
-				</div>
-				<div class="form-group">
-					<label for="description">Description:</label>
-					<textarea id="description" v-model="mappingStore.mappingItem.description" />
-				</div>
-				<div class="form-group">
-					<label for="sourceField">Source Field:</label>
-					<input id="sourceField" v-model="mappingStore.mappingItem.sourceField" required>
-				</div>
-				<div class="form-group">
-					<label for="targetField">Target Field:</label>
-					<input id="targetField" v-model="mappingStore.mappingItem.targetField" required>
+					<NcTextField
+						id="name"
+						label="Name"
+						:value.sync="mappingItem.name" />
+
+					<NcTextArea
+						id="description"
+						label="Description"
+						:value.sync="mappingItem.description" />
+
+					<NcTextField
+						id="reference"
+						label="Reference"
+						:value.sync="mappingItem.reference" />
+
+					<NcTextField
+						id="version"
+						label="Version"
+						:value.sync="mappingItem.version" />
 				</div>
 			</form>
 
@@ -41,7 +49,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
 				</template>
-				Opslaan
+				Save
 			</NcButton>
 		</div>
 	</NcModal>
@@ -53,6 +61,8 @@ import {
 	NcModal,
 	NcLoadingIcon,
 	NcNoteCard,
+	NcTextField,
+	NcTextArea,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -63,29 +73,48 @@ export default {
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
+		NcTextField,
+		NcTextArea,
 		// Icons
 		ContentSaveOutline,
 	},
 	data() {
 		return {
+			mappingItem: {
+				id: mappingStore.mappingItem.id ?? null,
+				name: '',
+				description: '',
+				reference: '',
+				version: '',
+			},
 			success: false,
 			loading: false,
 			error: false,
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setModal(false)
+			this.success = false
+			this.loading = false
+			this.error = false
+			this.mappingItem = {
+				id: null,
+				name: '',
+				description: '',
+				reference: '',
+				version: '',
+			}
+		},
 		async editMapping() {
 			this.loading = true
 			try {
-				await mappingStore.saveMapping()
+				await mappingStore.saveMapping(this.mappingItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
 				setTimeout(() => {
-					this.success = false
-					this.loading = false
-					this.error = false
-					navigationStore.setModal(false)
+					this.closeModal()
 				}, 2000)
 			} catch (error) {
 				this.loading = false

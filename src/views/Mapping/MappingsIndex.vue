@@ -10,14 +10,14 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 		<template #default>
 			<NcEmptyContent v-if="!mappingStore.mappingItem || navigationStore.selected != 'mappings'"
 				class="detailContainer"
-				name="Geen mapping"
-				description="Nog geen mapping geselecteerd">
+				name="No mapping"
+				description="No mapping selected">
 				<template #icon>
 					<SitemapOutline />
 				</template>
 				<template #action>
-					<NcButton type="primary" @click="mappingStore.setMappingItem({}); navigationStore.setModal('editMapping')">
-						Mapping toevoegen
+					<NcButton type="primary" @click="mappingStore.setMappingItem(null); navigationStore.setModal('editMapping')">
+						Add mapping
 					</NcButton>
 				</template>
 			</NcEmptyContent>
