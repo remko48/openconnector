@@ -4,15 +4,15 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 
 <template>
 	<NcDialog v-if="navigationStore.dialog === 'deleteMapping'"
-		name="Mapping verwijderen"
+		name="Delete mapping"
 		size="normal"
 		:can-close="false">
 		<p v-if="!success">
-			Wil je <b>{{ mappingStore.mappingItem.name }}</b> definitief verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+			Do you want to delete <b>{{ mappingStore.mappingItem.name }}</b>? This action cannot be undone.
 		</p>
 
 		<NcNoteCard v-if="success" type="success">
-			<p>Mapping succesvol verwijderd</p>
+			<p>Mapping successfully deleted</p>
 		</NcNoteCard>
 		<NcNoteCard v-if="error" type="error">
 			<p>{{ error }}</p>
@@ -24,7 +24,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 				<template #icon>
 					<Cancel :size="20" />
 				</template>
-				{{ success ? 'Sluiten' : 'Annuleer' }}
+				{{ success ? 'Close' : 'Cancel' }}
 			</NcButton>
 			<NcButton
 				v-if="!success"
@@ -35,7 +35,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<TrashCanOutline v-if="!loading" :size="20" />
 				</template>
-				Verwijderen
+				Delete
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -79,6 +79,7 @@ export default {
 				this.success = true
 				this.loading = false
 				this.error = false
+				mappingStore.setMappingItem(null)
 				setTimeout(() => {
 					this.success = false
 					navigationStore.setDialog(false)
@@ -86,7 +87,7 @@ export default {
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'Er is een fout opgetreden bij het verwijderen van de mapping'
+				this.error = error.message || 'An error occurred while deleting the mapping'
 			}
 		},
 	},
