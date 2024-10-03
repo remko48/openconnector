@@ -4,7 +4,9 @@
 			Dashboard
 		</h2>
 
-		Welkom!
+		<div class="dashboardContent">
+			<h5>Welkom!</h5>
+		</div>
 	</NcAppContent>
 </template>
 
@@ -21,6 +23,10 @@ export default {
 </script>
 
 <style>
+.dashboardContent{
+    margin-inline-start: var(--OC-margin-10);
+}
+
 .dashboard-content {
     margin-inline: auto;
     max-width: 1000px;

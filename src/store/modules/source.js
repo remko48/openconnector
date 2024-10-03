@@ -6,18 +6,38 @@ export const useSourceStore = defineStore(
 	'source', {
 		state: () => ({
 			sourceItem: false,
+			sourceTest: false,
 			sourceList: [],
+			sourceLog: false,
+			sourceLogs: [],
+			sourceConfigurationKey: null,
 		}),
 		actions: {
 			setSourceItem(sourceItem) {
 				this.sourceItem = sourceItem && new Source(sourceItem)
 				console.log('Active source item set to ' + sourceItem)
 			},
+			setSourceTest(sourceTest) {
+				this.sourceTest = sourceTest
+				console.log('Source test set to ' + sourceTest)
+			},
 			setSourceList(sourceList) {
 				this.sourceList = sourceList.map(
 					(sourceItem) => new Source(sourceItem),
 				)
 				console.log('Source list set to ' + sourceList.length + ' items')
+			},
+			setSourceLog(sourceLog) {
+				this.sourceLog = sourceLog
+				console.log('Source log set')
+			},
+			setSourceLogs(sourceLogs) {
+				this.sourceLogs = sourceLogs
+				console.log('Source logs set to ' + sourceLogs.length + ' items')
+			},
+			setSourceConfigurationKey(sourceConfigurationKey) {
+				this.sourceConfigurationKey = sourceConfigurationKey
+				console.log('Source configuration key set to ' + sourceConfigurationKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshSourceList(search = null) {
@@ -59,6 +79,21 @@ export const useSourceStore = defineStore(
 					throw err
 				}
 			},
+			// New function to get source logs
+			async refreshSourceLogs() {
+				const endpoint = `/index.php/apps/openconnector/api/sources-logs/${this.sourceItem.id}`
+				try {
+					const response = await fetch(endpoint, {
+						method: 'GET',
+					})
+					const data = await response.json()
+					this.setSourceLogs(data)
+					return data
+				} catch (err) {
+					console.error(err)
+					throw err
+				}
+			},
 			// Delete a source
 			deleteSource() {
 				if (!this.sourceItem || !this.sourceItem.id) {
@@ -77,6 +112,39 @@ export const useSourceStore = defineStore(
 					})
 					.catch((err) => {
 						console.error('Error deleting source:', err)
+						throw err
+					})
+			},
+			// Test a source
+			testSource(testSourceItem) {
+				if (!this.sourceItem) {
+					throw new Error('No source item to test')
+				}
+				if (!testSourceItem) {
+					throw new Error('No testobject to test')
+				}
+
+				console.log('Testing source...')
+
+				const endpoint = `/index.php/apps/openconnector/api/source-test/${this.sourceItem.id}`
+
+				return fetch(endpoint, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(testSourceItem),
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						this.setSourceTest(data)
+						console.log('Source tested')
+						// Refresh the source list
+						this.refreshSourceLogs()
+					})
+					.catch((err) => {
+						console.error('Error saving source:', err)
+						this.refreshSourceLogs()
 						throw err
 					})
 			},
@@ -101,6 +169,10 @@ export const useSourceStore = defineStore(
 						delete sourceToSave[key]
 					}
 				})
+
+				// remove the dateCreated and dateModified fields
+				delete sourceToSave.dateCreated
+				delete sourceToSave.dateModified
 
 				return fetch(
 					endpoint,

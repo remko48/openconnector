@@ -20,13 +20,13 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
-						Ververs
+						Refresh
 					</NcActionButton>
-					<NcActionButton @click="jobStore.setJobItem({}); navigationStore.setModal('editJob')">
+					<NcActionButton @click="jobStore.setJobItem(null); navigationStore.setModal('editJob')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Taak toevoegen
+						Add job
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -50,13 +50,13 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 							<template #icon>
 								<Pencil />
 							</template>
-							Bewerken
+							Edit
 						</NcActionButton>
 						<NcActionButton @click="jobStore.setJobItem(job); navigationStore.setDialog('deleteJob')">
 							<template #icon>
 								<TrashCanOutline />
 							</template>
-							Verwijderen
+							Delete
 						</NcActionButton>
 					</template>
 				</NcListItem>
@@ -69,8 +69,8 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 			appearance="dark"
 			name="Taken aan het laden" />
 
-		<div v-if="jobStore.jobList.length === 0">
-			Er zijn nog geen taken gedefinieerd.
+		<div v-if="jobStore.jobList.length === 0" class="emptyListHeader">
+			No jobs defined.
 		</div>
 	</NcAppContentList>
 </template>
