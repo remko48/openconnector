@@ -97,7 +97,7 @@ class Source extends Entity implements JsonSerializable
 	{
 		$jsonFields = $this->getJsonFields();
 
-		foreach($object as $key => $value) {
+		foreach ($object as $key => $value) {
 			if (in_array($key, $jsonFields) === true && $value === []) {
 				$value = [];
 			}

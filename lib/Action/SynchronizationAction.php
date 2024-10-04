@@ -8,17 +8,17 @@ use OCA\OpenConnector\Db\SynchronizationContractMapper;
 
 /**
  * This action handles the synchronization of data from the source to the target.
- * 
+ *
  * @package OCA\OpenConnector\Cron
  */
-class SynchronizationAction 
-{    
+class SynchronizationAction
+{
     private SynchronizationService $synchronizationService;
     private SynchronizationMapper $synchronizationMapper;
     private SynchronizationContractMapper $synchronizationContractMapper;
-    public function __construct(      
-        SynchronizationService $synchronizationService, 
-        SynchronizationMapper $synchronizationMapper, 
+    public function __construct(
+        SynchronizationService $synchronizationService,
+        SynchronizationMapper $synchronizationMapper,
         SynchronizationContractMapper $synchronizationContractMapper,
     ) {
         $this->synchronizationService = $synchronizationService;
@@ -29,7 +29,7 @@ class SynchronizationAction
     //@todo: make this a bit more generic :')
     public function run($argument)
     {
-        //@todo: for testing purposes 
+        //@todo: for testing purposes
         if (!isset($argument['synchronizationId'])) {
             $argument['synchronizationId'] = 1;
         }
@@ -46,16 +46,16 @@ class SynchronizationAction
         }
 
         // We are going to allow for a single synchronization contract to be processed at a time
-        if (isset($argument['synchronizationContractId']) && is_int($argument['synchronizationContractId'])) {
-            $synchronizationContract = $this->synchronizationContractMapper->find($argument['synchronizationContractId']);
+        if (isset($argument['synchronizationContractId']) && is_int((int) $argument['synchronizationContractId'])) {
+            $synchronizationContract = $this->synchronizationContractMapper->find((int) $argument['synchronizationContractId']);
             $this->callService->synchronizeContract($synchronization);
             return $response;
         }
 
         // Lets find a synchronysation
         $response['stackTrace'][] = 'Getting synchronization';
-        $synchronization = $this->synchronizationMapper->find($argument['synchronizationId']);
-        if(!$synchronization){
+        $synchronization = $this->synchronizationMapper->find((int) $argument['synchronizationId']);
+        if (!$synchronization){
             $response['level'] = 'WARNING';
             $response['message'] = 'No synchronization found';
             return $response;

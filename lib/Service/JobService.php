@@ -23,6 +23,13 @@ class JobService
         $this->connection = $connection;
     }
 
+	/**
+	 * @todo
+	 *
+	 * @param Job $job
+	 *
+	 * @return Job
+	 */
     public function scheduleJob(Job $job): Job
     {
         // Lets first check if the job should be disabled
@@ -35,7 +42,7 @@ class JobService
         }
 
         // lets not update the job if it's already scheduled @todo we should
-        if($job->getJobListId()) {
+        if ($job->getJobListId()) {
             return $job;
         }
 
@@ -43,7 +50,7 @@ class JobService
         $arguments = $job->getArguments();
         $arguments['jobId'] = $job->getId();
 
-        if(!$job->getScheduleAfter()) {
+        if (!$job->getScheduleAfter()) {
             $iJob = $this->jobList->add($this->actionTask::class, $arguments);
         } else {
             $runAfter = $job->getScheduleAfter()->getTimestamp();
@@ -56,16 +63,16 @@ class JobService
         return $this->jobMapper->update($job);
     }
 
-    /**
+	/**
 	 * This function will get the job list id of the last job in the list
-     * 
-     * Why the NC job list dosn't support a better way to get the last job in the list is beyond me :')
-     * https://github.com/nextcloud/server/blob/master/lib/private/BackgroundJob/JobList.php#L134
 	 *
-	 * @param IJob|class-string<IJob> $job
-	 * @param mixed $argument
+	 * Why the NC job list doesn't support a better way to get the last job in the list is beyond me :')
+	 * https://github.com/nextcloud/server/blob/master/lib/private/BackgroundJob/JobList.php#L134
+	 *
+	 * @param class-string<IJob>|IJob $job
+	 * @return int|null
 	 */
-	public function getJobListId($job): int|null {
+	public function getJobListId(IJob|string $job): int|null {
 		$class = ($job instanceof IJob) ? get_class($job) : $job;
 
 		$query = $this->connection->getQueryBuilder();

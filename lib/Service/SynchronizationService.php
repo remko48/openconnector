@@ -2,7 +2,8 @@
 
 namespace OCA\OpenConnector\Service;
 
-use OCA\OpenConnector\Db\CallLog; 
+use Exception;
+use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\Synchronization;
@@ -21,7 +22,7 @@ class SynchronizationService
 {
     private CallService $callService;
     private MappingService $mappingService;
-    private ContainerInterface $containerInterface; 
+    private ContainerInterface $containerInterface;
     private Synchronization $synchronization;
     private SynchronizationMapper $synchronizationMapper;
     private SourceMapper $sourceMapper;
@@ -46,56 +47,58 @@ class SynchronizationService
         $this->sourceMapper = $sourceMapper;
 	}
 
-    /**
-     * Synchronizes a given synchronization (or a complete source).
-     * 
-     * @param Synchronization $synchronization
-     * @return void
-     */
-    public function synchronize(Synchronization $synchronization)
-    {
+	/**
+	 * Synchronizes a given synchronization (or a complete source).
+	 *
+	 * @param Synchronization $synchronization
+	 * @return array
+	 * @throws Exception
+	 */
+    public function synchronize(Synchronization $synchronization): array
+	{
         $objectList = $this->getAllObjectsFromSource($synchronization);
 
-        foreach($objectList as $key => $object) {
+        foreach ($objectList as $key => $object) {
             // Get the synchronization contract for this object
             $synchronizationContract = $this->synchronizationContractMapper->findOnSynchronizationIdSourceId($synchronization->id, $object['id']);
-            
+
             if (!($synchronizationContract instanceof SynchronizationContract)) {
                 $synchronizationContract = new SynchronizationContract();
                 $synchronizationContract->setSynchronizationId($synchronization->id);
                 $synchronizationContract->setSourceId($object['id']);
                 $synchronizationContract->setSourceHash(md5(serialize($object)));
-                
+
                 $synchronizationContract = $this->synchronizeContract($synchronizationContract, $synchronization, $object);
                 $objectList[$key] = $this->synchronizationContractMapper->insert($synchronizationContract);
 
             }
             else{
-                // @todo this is wierd                
+                // @todo this is wierd
                 $synchronizationContract = $this->synchronizeContract($synchronizationContract, $synchronization, $object);
                 $objectList[$key] = $this->synchronizationContractMapper->update($synchronizationContract);
-            }         
+            }
         }
 
         return $objectList;
     }
 
-    /**
-     * Synchronize a contract
-     * @param SynchronizationContract $synchronizationContract  
-     * @param Synchronization $synchronization
-     * @param array $object
-     * 
-     * @return SynchronizationContract
-     */
+	/**
+	 * Synchronize a contract
+	 * @param SynchronizationContract $synchronizationContract
+	 * @param Synchronization|null $synchronization
+	 * @param array $object
+	 *
+	 * @return SynchronizationContract
+	 * @throws Exception
+	 */
     public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [])
     {
         // Let create a source hash for the object
         $sourceHash = md5(serialize($object));
-        $synchronizationContract->setSourceLastChecked(new DateTime()); 
+        $synchronizationContract->setSourceLastChecked(new DateTime());
 
         // Lets prevent pointless updates @todo acount for omnidirectional sync
-        if($sourceHash === $synchronizationContract->getSourceHash()){
+        if ($sourceHash === $synchronizationContract->getSourceHash()){
             // The object has not changed
             return $synchronizationContract; // Fix: Add $ before synchronizationContract
         }
@@ -105,7 +108,7 @@ class SynchronizationService
         $synchronizationContract->setSourceLastChanged(new DateTime());
 
         // let do the mapping if provided
-        if($synchronization->getSourceTargetMapping()){
+        if ($synchronization->getSourceTargetMapping()){
             $targetObject = $this->mappingService->mapping($synchronization->getSourceTargetMapping(), $object);
         }
         else{
@@ -128,33 +131,36 @@ class SynchronizationService
 
     }
 
-    /**
-     *  Write the data to the target
-     * 
-     * @param SynchronizationContract $synchronizationContract
-     * @return void
-     */
-    public function updateTarget(SynchronizationContract $synchronizationContract, array $targetObject)
-    {
+	/**
+	 *  Write the data to the target
+	 *
+	 * @param SynchronizationContract $synchronizationContract
+	 * @param array $targetObject
+	 *
+	 * @return void
+	 * @throws Exception
+	 */
+    public function updateTarget(SynchronizationContract $synchronizationContract, array $targetObject): void
+	{
          // The function can be called solo set let's make sure we have the full synchronization object
-         if(!$synchronization){
+         if (!$synchronization){
             $synchronization = $this->synchronizationMapper->find($synchronizationContract->getSynchronizationId());
         }
 
         // Lets check if we need to create or update
         $update = false;
-        if($synchronizationContract->getTargetId()){
+        if ($synchronizationContract->getTargetId()){
             $update = true;
         }
 
-        $type = $synchronization->getTargetType(); 
+        $type = $synchronization->getTargetType();
 
         switch($type){
             case 'register/schema':
                 // Setup the object service
                 $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
                 // if we alreadey have an id, we need to get the object and update it
-                if($synchronizationContract->getTargetId()){
+                if ($synchronizationContract->getTargetId()){
                     $targetObject['id'] = $synchronizationContract->getTargetId();
                 }
                 // Extract register and schema from the targetId
@@ -173,13 +179,13 @@ class SynchronizationService
                 //@todo: implement
                 break;
             default:
-                throw new \Exception("Unsupported target type: $type");
+                throw new Exception("Unsupported target type: $type");
         }
     }
 
     /**
      * Get all the object from a source
-     * 
+     *
      * @param SynchronizationContract $synchronizationContract
      * @return void
      */
@@ -187,15 +193,15 @@ class SynchronizationService
     {
         $objects = [];
 
-        $type = $synchronization->getSourceType(); 
+        $type = $synchronization->getSourceType();
 
         switch($type){
             case 'register/schema':
                 // Setup the object service
                 $this->objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
-                
+
                 break;
-            case 'api':                
+            case 'api':
                 //@todo: implement
                 $source = $this->sourceMapper->find($synchronization->getSourceId());
                 $sourceObject = $this->callService->call($source);

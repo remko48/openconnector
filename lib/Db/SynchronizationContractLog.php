@@ -7,7 +7,7 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 class SynchronizationContractLog extends Entity implements JsonSerializable
-{    
+{
 	protected ?string $synchronizationId = null; // the id of the synchronization in the synchronization
 	protected ?string $jobListId = null; // the id of the job in the job list
 	protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
@@ -16,7 +16,7 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
 	protected ?string $userId = null; // the user which the job is running for security reasons
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
-	protected ?DateTime $created = null; // the date and time the job was created	
+	protected ?DateTime $created = null; // the date and time the job was created
 
     public function __construct() {
         $this->addType('jobId', 'string');
@@ -43,7 +43,7 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     {
         $jsonFields = $this->getJsonFields();
 
-        foreach($object as $key => $value) {
+        foreach ($object as $key => $value) {
             if (in_array($key, $jsonFields) === true && $value === []) {
                 $value = [];
             }
