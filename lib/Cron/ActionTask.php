@@ -60,7 +60,7 @@ class ActionTask extends TimedJob
             return;
         }
 
-        // lets get the job, the user might have deleted it in the mean time
+        // Let's get the job, the user might have deleted it in the mean time
         try {
             $job = $this->jobMapper->find($argument['jobId']);
         } catch (Exception $e) {
@@ -121,7 +121,7 @@ class ActionTask extends TimedJob
 
         $this->jobLogMapper->insert($jobLog);
 
-        // Lets report back about what we have just done
+        // Let's report back about what we have just done
         return $jobLog;
     }
 

@@ -32,7 +32,7 @@ class JobService
 	 */
     public function scheduleJob(Job $job): Job
     {
-        // Lets first check if the job should be disabled
+        // Let's first check if the job should be disabled
         if ($job->getIsEnabled() === false || $job->getJobListId()) {
 
             // @todo fix this (call to protected method)
@@ -41,12 +41,12 @@ class JobService
             return $this->jobMapper->update($job);
         }
 
-        // lets not update the job if it's already scheduled @todo we should
+        // Let's not update the job if it's already scheduled @todo we should
         if ($job->getJobListId()) {
             return $job;
         }
 
-        // Oke this is a new job lets schedule it
+        // Oke this is a new job let's schedule it
         $arguments = $job->getArguments();
         $arguments['jobId'] = $job->getId();
 

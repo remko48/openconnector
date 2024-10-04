@@ -49,7 +49,7 @@ class SynchronizationContractMapper extends QBMapper
 	}
 
 
-	public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract|bool
+	public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract|bool|null
 	{
 		$qb = $this->db->getQueryBuilder();
 

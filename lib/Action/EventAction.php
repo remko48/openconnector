@@ -7,16 +7,16 @@ use OCA\OpenConnector\Db\SourceMapper;
 
 /**
  * This class is used to run the action tasks for the OpenConnector app. It hooks into the cron job list and runs the classes that are set as the job class in the job.
- * 
+ *
  * @package OCA\OpenConnector\Cron
  */
-class EventAction 
-{    
+class EventAction
+{
     private CallService $callService;
     private SourceMapper $sourceMapper;
-    public function __construct(      
-        CallService $callService, 
-        SourceMapper $sourceMapper, 
+    public function __construct(
+        CallService $callService,
+        SourceMapper $sourceMapper,
     ) {
         $this->callService = $callService;
     }
@@ -26,7 +26,7 @@ class EventAction
     {
         // @todo: implement this
 
-        // Lets report back about what we have just done
+        // Let's report back about what we have just done
         return;
     }
 

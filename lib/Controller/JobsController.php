@@ -125,7 +125,7 @@ class JobsController extends Controller
 
         // Create the job
         $job = $this->jobMapper->createFromArray(object: $data);
-        // Lets schedule the job
+        // Let's schedule the job
         $job = $this->jobService->scheduleJob($job);
 
         return new JSONResponse($job);
@@ -157,7 +157,7 @@ class JobsController extends Controller
 
         // Create the job
         $job = $this->jobMapper->updateFromArray(id: (int) $id, object: $data);
-        // Lets schedule the job
+        // Let's schedule the job
         $job = $this->jobService->scheduleJob($job);
 
         return new JSONResponse($job);

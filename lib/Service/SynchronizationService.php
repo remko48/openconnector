@@ -97,7 +97,7 @@ class SynchronizationService
         $sourceHash = md5(serialize($object));
         $synchronizationContract->setSourceLastChecked(new DateTime());
 
-        // Lets prevent pointless updates @todo acount for omnidirectional sync
+        // Let's prevent pointless updates @todo acount for omnidirectional sync
         if ($sourceHash === $synchronizationContract->getSourceHash()){
             // The object has not changed
             return $synchronizationContract; // Fix: Add $ before synchronizationContract
@@ -147,7 +147,7 @@ class SynchronizationService
             $synchronization = $this->synchronizationMapper->find($synchronizationContract->getSynchronizationId());
         }
 
-        // Lets check if we need to create or update
+        // Let's check if we need to create or update
         $update = false;
         if ($synchronizationContract->getTargetId()){
             $update = true;

@@ -2,6 +2,7 @@
 
 namespace OCA\OpenConnector\Action;
 
+use Exception;
 use OCA\OpenConnector\Service\SynchronizationService;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
@@ -52,7 +53,7 @@ class SynchronizationAction
             return $response;
         }
 
-        // Lets find a synchronysation
+        // Let's find a synchronysation
         $response['stackTrace'][] = 'Getting synchronization';
         $synchronization = $this->synchronizationMapper->find((int) $argument['synchronizationId']);
         if (!$synchronization){
@@ -67,7 +68,7 @@ class SynchronizationAction
 
         $response['stackTrace'][] = 'Synchronized '.count($objects).' successfully';
 
-        // Lets report back about what we have just done
+        // Let's report back about what we have just done
         return $response;
     }
 
