@@ -44,7 +44,7 @@ class SynchronizationAction
 	 */
     public function run(array $argument): array
 	{
-        //@todo: for testing purposes 
+        //@todo: for testing purposes
         if (!isset($argument['synchronizationId'])) {
             $argument['synchronizationId'] = 1;
         }
