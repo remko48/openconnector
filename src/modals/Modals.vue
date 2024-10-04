@@ -12,6 +12,8 @@
 		<EditMapping />
 		<EditMappingMapping />
 		<DeleteMappingMapping />
+		<EditMappingCast />
+		<DeleteMappingCast />
 		<DeleteSynchronization />
 		<EditSynchronization />
 		<EditJobArgument />
@@ -43,34 +45,38 @@ import DeleteSourceConfiguration from './SourceConfiguration/DeleteSourceConfigu
 import ViewLog from './Log/ViewLog.vue'
 import EditMappingMapping from './mappingMapping/EditMappingMapping.vue'
 import DeleteMappingMapping from './mappingMapping/DeleteMappingMapping.vue'
+import EditMappingCast from './mappingCast/EditMappingCast.vue'
+import DeleteMappingCast from './mappingCast/DeleteMappingCast.vue'
 
 export default {
 	name: 'Modals',
 	components: {
-	  DeleteSource,
-	  EditSource,
-	  TestSource,
-	  DeleteJob,
-	  EditJob,
-	  TestJob,
-	  DeleteLog,
-	  EditLog,
-	  DeleteMapping,
-	  EditMapping,
-	  DeleteSynchronization,
-	  EditSynchronization,
-	  EditJobArgument,
-	  DeleteJobArgument,
-	  EditSourceConfiguration,
-	  DeleteSourceConfiguration,
-	  ViewLog,
-	  EditMappingMapping,
-	  DeleteMappingMapping,
+		DeleteSource,
+		EditSource,
+		TestSource,
+		DeleteJob,
+		EditJob,
+		TestJob,
+		DeleteLog,
+		EditLog,
+		DeleteMapping,
+		EditMapping,
+		DeleteSynchronization,
+		EditSynchronization,
+		EditJobArgument,
+		DeleteJobArgument,
+		EditSourceConfiguration,
+		DeleteSourceConfiguration,
+		ViewLog,
+		EditMappingMapping,
+		DeleteMappingMapping,
+		EditMappingCast,
+		DeleteMappingCast,
 	},
 	setup() {
-	  return {
+		return {
 			navigationStore,
-	  }
+		}
 	},
 }
 </script>
