@@ -27,9 +27,23 @@ class SynchronizationAction
         $this->synchronizationContractMapper = $synchronizationContractMapper;
     }
 
-    //@todo: make this a bit more generic :')
-    public function run($argument)
-    {
+	/**
+	 * Executes the synchronization process based on the provided arguments.
+	 * This method checks for a valid synchronization ID, processes a synchronization contract if provided,
+	 * or performs a general synchronization action. It returns a stack trace of operations performed.
+	 *
+	 * @todo Make this method more generic to handle different synchronization processes.
+	 * @todo Implement proper error handling when 'synchronizationId' is missing or invalid.
+	 * @todo Improve handling for testing purposes and synchronization contract logic.
+	 *
+	 * @param array $argument An array of arguments that can include 'synchronizationId' and 'synchronizationContractId'.
+	 *
+	 * @return array Returns an array containing the stack trace of actions performed and any warnings or messages.
+	 *
+	 * @throws Exception Throws an exception if the synchronization process fails or encounters an error.
+	 */
+    public function run(array $argument): array
+	{
         //@todo: for testing purposes
         if (!isset($argument['synchronizationId'])) {
             $argument['synchronizationId'] = 1;
