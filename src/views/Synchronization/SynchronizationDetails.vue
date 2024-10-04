@@ -89,7 +89,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
-										<BriefcaseAccountOutline disable-menu
+										<TimelineQuestionOutline disable-menu
 											:size="44" />
 									</template>
 									<template #subname>
@@ -115,7 +115,7 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
-import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
+import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
 
 export default {
 	name: 'SynchronizationDetails',
