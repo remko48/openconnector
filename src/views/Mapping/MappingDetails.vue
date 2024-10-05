@@ -27,6 +27,12 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							</template>
 							Add Mapping
 						</NcActionButton>
+						<NcActionButton @click="addMappingCast()">
+							<template #icon>
+								<SwapHorizontal :size="20" />
+							</template>
+							Add Cast
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteMapping')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -50,7 +56,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Mapping">
-							<div v-if="mappingStore.mappingItem?.mapping !== null && Object.keys(mappingStore.mappingItem?.mapping).length > 0">
+							<div v-if="mappingStore.mappingItem?.mapping !== null && Object.keys(mappingStore.mappingItem?.mapping || {}).length">
 								<NcListItem v-for="(value, key, i) in mappingStore.mappingItem?.mapping"
 									:key="`${key}${i}`"
 									:name="key"
@@ -83,13 +89,46 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="Object.keys(mappingStore.mappingItem?.mapping).length === 0" class="tabPanel">
+							<div v-if="!Object.keys(mappingStore.mappingItem?.mapping || {}).length" class="tabPanel">
 								No mapping found
 							</div>
 						</BTab>
 						<BTab title="Cast">
-							<div class="tabPanel">
-								No cast found
+							<div v-if="mappingStore.mappingItem?.cast !== null && Object.keys(mappingStore.mappingItem?.cast || {}).length">
+								<NcListItem v-for="(value, key, i) in mappingStore.mappingItem?.cast"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="mappingStore.mappingCastKey === key"
+									@click="setActiveMappingCastKey(key)">
+									<template #icon>
+										<SwapHorizontal
+											:class="mappingStore.mappingCastKey === key && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="editMappingCast(key)">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="deleteMappingCast(key)">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!Object.keys(mappingStore.mappingItem?.cast || {}).length" class="tabPanel">
+								No mapping found
 							</div>
 						</BTab>
 					</BTabs>
@@ -106,6 +145,7 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import MapPlus from 'vue-material-design-icons/MapPlus.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
+import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 
@@ -136,6 +176,23 @@ export default {
 			if (mappingStore.mappingMappingKey === mappingMappingKey) {
 				mappingStore.setMappingMappingKey(false)
 			} else { mappingStore.setMappingMappingKey(mappingMappingKey) }
+		},
+		deleteMappingCast(key) {
+			mappingStore.setMappingCastKey(key)
+			navigationStore.setModal('deleteMappingCast')
+		},
+		editMappingCast(key) {
+			mappingStore.setMappingCastKey(key)
+			navigationStore.setModal('editMappingCast')
+		},
+		addMappingCast() {
+			mappingStore.setMappingCastKey(null)
+			navigationStore.setModal('editMappingCast')
+		},
+		setActiveMappingCastKey(mappingCastKey) {
+			if (mappingStore.mappingCastKey === mappingCastKey) {
+				mappingStore.setMappingCastKey(false)
+			} else { mappingStore.setMappingCastKey(mappingCastKey) }
 		},
 	},
 }
