@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class Source extends Entity implements JsonSerializable
 {
+	protected ?string $uuid = null;
 	protected ?string $name = null;
 	protected ?string $description = null;
 	protected ?string $reference = null;
@@ -46,6 +47,7 @@ class Source extends Entity implements JsonSerializable
 	protected ?bool $test = null;
 
 	public function __construct() {
+		$this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
 		$this->addType('reference', 'string');

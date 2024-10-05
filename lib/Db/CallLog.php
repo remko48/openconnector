@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class CallLog extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
     protected ?int $statusCode = null;
     protected ?string $statusMessage = null;
     protected ?array $request = null;
@@ -19,6 +20,7 @@ class CallLog extends Entity implements JsonSerializable
     protected ?DateTime $createdAt = null;
 
     public function __construct() {
+        $this->addType('uuid', 'string');
         $this->addType('statusCode', 'integer');
         $this->addType('statusMessage', 'string');
         $this->addType('request', 'json');
@@ -64,6 +66,7 @@ class CallLog extends Entity implements JsonSerializable
     {
         return [
             'id' => $this->id,
+            'uuid' => $this->uuid,
             'statusCode' => $this->statusCode,
             'statusMessage' => $this->statusMessage,
             'request' => $this->request,

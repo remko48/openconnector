@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class Job extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
 	protected ?string $name = null;
 	protected ?string $description = null;
 	protected ?string $version = '0.0.0'; // The version of the endpoint
@@ -30,6 +31,7 @@ class Job extends Entity implements JsonSerializable
 	protected ?DateTime $updated = null; // the date and time the job was updated
 
 	public function __construct() {
+        $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
 		$this->addType('version', 'string');

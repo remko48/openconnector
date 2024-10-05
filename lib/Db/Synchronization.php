@@ -8,8 +8,10 @@ use OCP\AppFramework\Db\Entity;
 
 class Synchronization extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
 	protected ?string $name = null;	// The name of the synchronization
 	protected ?string $description = null;	// The description of the synchronization
+	protected ?string $version = null;	// The version of the synchronization
 	// Source
 	protected ?string $sourceId = null;	// The id of the source object
 	protected ?string $sourceType = null;	// The type of the source object (e.g. api, database, register/schema.)
@@ -34,8 +36,10 @@ class Synchronization extends Entity implements JsonSerializable
 
 
 	public function __construct() {
+        $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
+		$this->addType('version', 'string');
 		$this->addType('sourceId', 'string');
 		$this->addType('sourceType', 'string');
 		$this->addType('sourceHash', 'string');
@@ -89,7 +93,6 @@ class Synchronization extends Entity implements JsonSerializable
 	public function jsonSerialize(): array
 	{
 		return [
-			'id' => $this->id,
 			'id' => $this->id,
 			'uuid' => $this->uuid,
 			'name' => $this->name,

@@ -13,6 +13,7 @@ use OCP\AppFramework\Db\Entity;
  */
 class SynchronizationContract extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
 	protected ?string $synchronizationId = null; // The synchronization that this contract belongs to
 	// Source
 	protected ?string $sourceId = null; // The id of the object in the source
@@ -32,6 +33,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
 
 
 	public function __construct() {
+        $this->addType('uuid', 'string');
 		$this->addType('synchronizationId', 'string');
 		$this->addType('sourceId', 'string');
 		$this->addType('sourceHash', 'string');

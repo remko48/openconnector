@@ -9,6 +9,7 @@ use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * This class is used to run the action tasks for the OpenConnector app. It hooks into the cron job list and runs the classes that are set as the job class in the job.
@@ -98,6 +99,7 @@ class ActionTask extends TimedJob
 
         // Log the job
         $jobLog = new JobLog();
+        $jobLog->setUuid(Uuid::v4());
         $jobLog->setJobId($job->getId());
         $jobLog->setJobClass($job->getJobClass());
         $jobLog->setJobListId($job->getJobListId());

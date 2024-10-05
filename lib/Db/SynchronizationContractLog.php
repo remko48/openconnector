@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class SynchronizationContractLog extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
 	protected ?string $synchronizationId = null; // the id of the synchronization in the synchronization
 	protected ?string $jobListId = null; // the id of the job in the job list
 	protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
@@ -19,6 +20,7 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
 	protected ?DateTime $created = null; // the date and time the job was created
 
     public function __construct() {
+        $this->addType('uuid', 'string');
         $this->addType('jobId', 'string');
         $this->addType('jobListId', 'string');
         $this->addType('jobClass', 'string');
@@ -64,6 +66,7 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     {
         return [
             'id' => $this->id,
+            'uuid' => $this->uuid,
             'jobId' => $this->jobId,
             'jobListId' => $this->jobListId,
             'jobClass' => $this->jobClass,

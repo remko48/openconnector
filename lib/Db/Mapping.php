@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class Mapping extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
 	protected ?string $reference = null;
 	protected ?string $version = null;
 	protected ?string $name = null;
@@ -20,6 +21,7 @@ class Mapping extends Entity implements JsonSerializable
 	protected ?DateTime $dateModified = null;
 
 	public function __construct() {
+        $this->addType('uuid', 'string');
 		$this->addType('reference', 'string');
 		$this->addType('version', 'string');
 		$this->addType('name', 'string');

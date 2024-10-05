@@ -101,10 +101,6 @@ class ConsumerMapper extends QBMapper
 		if($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
-		// Set the version
-		if($obj->getVersion() === null){
-			$obj->setVersion('0.0.1');
-		} 
 		return $this->insert(entity: $obj);
 	}
 
@@ -119,18 +115,11 @@ class ConsumerMapper extends QBMapper
 	{
 		$obj = $this->find($id);
 		$obj->hydrate($object);
-		// Set uuid
-		if($obj->getUuid() === null){
-			$obj->setUuid(Uuid::v4());
-		}
+		
 		// Set or update the version
-		if($obj->getVersion() === null){
-			$obj->setVersion('0.0.1');
-		} else {
-			$version = explode('.', $obj->getVersion());
-			$version[2] = (int)$version[2] + 1;
-			$obj->setVersion(implode('.', $version));
-		}
+		$version = explode('.', $obj->getVersion());
+		$version[2] = (int)$version[2] + 1;
+		$obj->setVersion(implode('.', $version));
 
 		return $this->update($obj);
 	}

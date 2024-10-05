@@ -14,6 +14,7 @@ use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Response;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
+use Symfony\Component\Uid\Uuid;
 
 class CallService
 {
@@ -59,6 +60,7 @@ class CallService
 		if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
 			// Create and save the CallLog
 			$callLog = new CallLog();
+			$callLog->setUuid(Uuid::v4());
 			$callLog->setSourceId($this->source->getId());
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
@@ -73,6 +75,7 @@ class CallService
 		if (empty($this->source->getLocation()) === true) {
 			// Create and save the CallLog
 			$callLog = new CallLog();
+			$callLog->setUuid(Uuid::v4());
 			$callLog->setSourceId($this->source->getId());
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source has no location");
@@ -159,6 +162,7 @@ class CallService
 
 		// Create and save the CallLog
 		$callLog = new CallLog();
+		$callLog->setUuid(Uuid::v4());
 		$callLog->setSourceId($this->source->getId());
 		$callLog->setStatusCode($data['response']['statusCode']);
 		$callLog->setStatusMessage($data['response']['statusMessage']);

@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class Endpoint extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
 	protected ?string $name = null; // The name of the endpoint
 	protected ?string $description = null; // The description of the endpoint
 	protected ?string $reference = null; // The reference of the endpoint
@@ -22,6 +23,7 @@ class Endpoint extends Entity implements JsonSerializable
 	protected ?DateTime $updated = null;
 
 	public function __construct() {
+        $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
 		$this->addType('reference', 'string');
@@ -70,6 +72,7 @@ class Endpoint extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
+            'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
 			'reference' => $this->reference,
