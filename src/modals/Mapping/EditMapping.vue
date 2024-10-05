@@ -81,7 +81,6 @@ export default {
 	data() {
 		return {
 			mappingItem: {
-				id: mappingStore.mappingItem.id ?? null,
 				name: '',
 				description: '',
 				reference: '',
@@ -90,14 +89,32 @@ export default {
 			success: false,
 			loading: false,
 			error: false,
+			hasUpdated: false,
+		}
+	},
+	mounted() {
+		this.initializeMappingItem()
+	},
+	updated() {
+		if (navigationStore.modal === 'editMapping' && !this.hasUpdated) {
+			this.initializeMappingItem()
+			this.hasUpdated = true
 		}
 	},
 	methods: {
+		initializeMappingItem() {
+			if (mappingStore.mappingItem?.id) {
+				this.mappingItem = {
+					...mappingStore.mappingItem,
+				}
+			}
+		},
 		closeModal() {
 			navigationStore.setModal(false)
 			this.success = false
 			this.loading = false
 			this.error = false
+			this.hasUpdated = false
 			this.mappingItem = {
 				id: null,
 				name: '',
