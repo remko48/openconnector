@@ -49,7 +49,7 @@ class SynchronizationContractMapper extends QBMapper
 	}
 
 
-	public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract|bool
+	public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract|bool|null
 	{
 		$qb = $this->db->getQueryBuilder();
 
@@ -80,7 +80,7 @@ class SynchronizationContractMapper extends QBMapper
 			->setMaxResults($limit)
 			->setFirstResult($offset);
 
-        foreach($filters as $filter => $value) {
+        foreach ($filters as $filter => $value) {
 			if ($value === 'IS NOT NULL') {
 				$qb->andWhere($qb->expr()->isNotNull($filter));
 			} elseif ($value === 'IS NULL') {

@@ -6,16 +6,14 @@ use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
-class Mapping extends Entity implements JsonSerializable
+class Endpoint extends Entity implements JsonSerializable
 {
 	protected ?string $reference = null;
 	protected ?string $version = null;
 	protected ?string $name = null;
 	protected ?string $description = null;
-	protected ?array $mapping = null;
-	protected ?array $unset = null;
-	protected ?array $cast = null;
-	protected ?bool $passTrough = null;
+	protected ?array $schemas = null;
+	protected ?array $methods = null;
 	protected ?DateTime $dateCreated = null;
 	protected ?DateTime $dateModified = null;
 
@@ -24,10 +22,8 @@ class Mapping extends Entity implements JsonSerializable
 		$this->addType('version', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
-		$this->addType('mapping', 'json');
-		$this->addType('unset', 'json');
-		$this->addType('cast', 'json');
-		$this->addType('passTrough', 'boolean');
+		$this->addType('schemas', 'json');
+		$this->addType('methods', 'json');
 		$this->addType('dateCreated', 'datetime');
 		$this->addType('dateModified', 'datetime');
 	}
@@ -70,10 +66,8 @@ class Mapping extends Entity implements JsonSerializable
 			'version' => $this->version,
 			'name' => $this->name,
 			'description' => $this->description,
-			'mapping' => $this->mapping,
-			'unset' => $this->unset,
-			'cast' => $this->cast,
-			'passTrough' => $this->passTrough,
+			'schemas' => $this->schemas,
+			'methods' => $this->methods,
 			'dateCreated' => $this->dateCreated,
 			'dateModified' => $this->dateModified,
 		];

@@ -2,25 +2,25 @@
 
 namespace OCA\OpenConnector\Db;
 
-use OCA\OpenConnector\Db\Synchronization;
+use OCA\OpenConnector\Db\Mapping;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
-class SynchronizationMapper extends QBMapper
+class EndpointMapper extends QBMapper
 {
 	public function __construct(IDBConnection $db)
 	{
-		parent::__construct($db, 'openconnector_synchronizations');
+		parent::__construct($db, 'openconnector_endpoints');
 	}
 
-	public function find(int $id): Synchronization
+	public function find(int $id): Mapping
 	{
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
-			->from('openconnector_synchronizations')
+			->from('openconnector_endpoints')
 			->where(
 				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
 			);
@@ -33,7 +33,7 @@ class SynchronizationMapper extends QBMapper
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
-			->from('openconnector_synchronizations')
+			->from('openconnector_endpoints')
 			->setMaxResults($limit)
 			->setFirstResult($offset);
 
@@ -57,18 +57,18 @@ class SynchronizationMapper extends QBMapper
 		return $this->findEntities(query: $qb);
 	}
 
-	public function createFromArray(array $object): Synchronization
+	public function createFromArray(array $object): Mapping
 	{
-		$synchronization = new Synchronization();
-		$synchronization->hydrate(object: $object);
-		return $this->insert(entity: $synchronization);
+		$endpoint = new Mapping();
+		$endpoint->hydrate(object: $object);
+		return $this->insert(entity: $endpoint);
 	}
 
-	public function updateFromArray(int $id, array $object): Synchronization
+	public function updateFromArray(int $id, array $object): Mapping
 	{
-		$synchronization = $this->find($id);
-		$synchronization->hydrate($object);
+		$endpoint = $this->find($id);
+		$endpoint->hydrate($object);
 
-		return $this->update($synchronization);
+		return $this->update($endpoint);
 	}
 }

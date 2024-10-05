@@ -7,7 +7,7 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 class JobLog extends Entity implements JsonSerializable
-{    
+{
 	protected string $level = 'INFO'; // log level
 	protected string $message = 'success'; // log message
 	protected ?string $jobId = null; // the id of the job in the job
@@ -20,7 +20,7 @@ class JobLog extends Entity implements JsonSerializable
 	protected ?DateTime $expires = null; // when the log will be cleared
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
-	protected ?DateTime $created = null; // the date and time the job was created	
+	protected ?DateTime $created = null; // the date and time the job was created
 
     public function __construct() {
         $this->addType('level', 'string');
@@ -51,7 +51,7 @@ class JobLog extends Entity implements JsonSerializable
     {
         $jsonFields = $this->getJsonFields();
 
-        foreach($object as $key => $value) {
+        foreach ($object as $key => $value) {
             if (in_array($key, $jsonFields) === true && $value === []) {
                 $value = [];
             }

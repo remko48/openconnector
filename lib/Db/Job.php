@@ -15,7 +15,7 @@ class Job extends Entity implements JsonSerializable
 	protected ?int $interval = 3600; // seconds in an hour
 	protected ?int $executionTime = 3600; // maximum execution time in seconds
 	protected ?bool $timeSensitive = true; // if the job is time sensitive and should be executed even if the server is under heavy load
-	protected ?bool $allowParallelRuns = false; // if the job can be executed in parallel	
+	protected ?bool $allowParallelRuns = false; // if the job can be executed in parallel
 	protected ?bool $isEnabled = true; // if the job is enabled
 	protected ?bool $singleRun = false; // if set, the job will only run once and then disable itself
 	protected ?DateTime $scheduleAfter = null; // if the job should be executed after a certain date and time
@@ -25,7 +25,7 @@ class Job extends Entity implements JsonSerializable
 	protected ?int $errorRetention = 86400; // seconds to save error logs
 	protected ?DateTime $lastRun = null; // the last time the job was run
 	protected ?DateTime $nextRun = null; // the next time the job will be run
-	protected ?DateTime $created = null; // the date and time the job was created	
+	protected ?DateTime $created = null; // the date and time the job was created
 	protected ?DateTime $updated = null; // the date and time the job was updated
 
 	public function __construct() {
@@ -63,7 +63,7 @@ class Job extends Entity implements JsonSerializable
 	{
 		$jsonFields = $this->getJsonFields();
 
-		foreach($object as $key => $value) {
+		foreach ($object as $key => $value) {
 			if (in_array($key, $jsonFields) === true && $value === []) {
 				$value = [];
 			}

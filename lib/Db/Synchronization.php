@@ -13,14 +13,14 @@ class Synchronization extends Entity implements JsonSerializable
 	// Source
 	protected ?string $sourceId = null;	// The id of the source object
 	protected ?string $sourceType = null;	// The type of the source object (e.g. api, database, register/schema.)
-	protected ?string $sourceHash = null;	// The hash of the source object when it was last synced.	
+	protected ?string $sourceHash = null;	// The hash of the source object when it was last synced.
 	protected ?string $sourceTargetMapping = null;	// The mapping of the source object to the target object
 	protected ?array $sourceConfig = null; // The configuration of the object in the source
-	protected ?DateTime $sourceLastChanged = null;	// The last changed date of the source object	
+	protected ?DateTime $sourceLastChanged = null;	// The last changed date of the source object
 	protected ?DateTime $sourceLastChecked = null;	// The last checked date of the source object
 	protected ?DateTime $sourceLastSynced = null;	// The last synced date of the source object
 	// Target
-	protected ?string $targetId = null;	// The id of the target object	
+	protected ?string $targetId = null;	// The id of the target object
 	protected ?string $targetType = null;	// The type of the target object (e.g. api, database, register/schema.)
 	protected ?string $targetHash = null;	// The hash of the target object
 	protected ?string $targetSourceMapping = null;	// The mapping of the target object to the source object
@@ -29,7 +29,7 @@ class Synchronization extends Entity implements JsonSerializable
 	protected ?DateTime $targetLastChecked = null;	// The last checked date of the target object
 	protected ?DateTime $targetLastSynced = null;	// The last synced date of the target object
 	// General
-	protected ?DateTime $created = null;	// The date and time the synchronization was created	
+	protected ?DateTime $created = null;	// The date and time the synchronization was created
 	protected ?DateTime $updated = null;	// The date and time the synchronization was updated
 
 
@@ -69,7 +69,7 @@ class Synchronization extends Entity implements JsonSerializable
 	{
 		$jsonFields = $this->getJsonFields();
 
-		foreach($object as $key => $value) {
+		foreach ($object as $key => $value) {
 			if (in_array($key, $jsonFields) === true && $value === []) {
 				$value = [];
 			}

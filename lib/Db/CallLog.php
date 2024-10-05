@@ -7,7 +7,7 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 class CallLog extends Entity implements JsonSerializable
-{    
+{
     protected ?int $statusCode = null;
     protected ?string $statusMessage = null;
     protected ?array $request = null;
@@ -43,7 +43,7 @@ class CallLog extends Entity implements JsonSerializable
     {
         $jsonFields = $this->getJsonFields();
 
-        foreach($object as $key => $value) {
+        foreach ($object as $key => $value) {
             if (in_array($key, $jsonFields) === true && $value === []) {
                 $value = [];
             }
