@@ -7,6 +7,7 @@ use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Symfony\Component\Uid\Uuid;
 
 class SynchronizationMapper extends QBMapper
 {
@@ -59,16 +60,36 @@ class SynchronizationMapper extends QBMapper
 
 	public function createFromArray(array $object): Synchronization
 	{
-		$synchronization = new Synchronization();
-		$synchronization->hydrate(object: $object);
-		return $this->insert(entity: $synchronization);
+		$obj = new Synchronization();
+		$obj->hydrate(object: $object);
+		// Set uuid
+		if($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
+		// Set the version
+		if($obj->getVersion() === null){
+			$obj->setVersion('0.0.1');
+		} 
+		return $this->insert(entity: $obj);
 	}
 
 	public function updateFromArray(int $id, array $object): Synchronization
 	{
-		$synchronization = $this->find($id);
-		$synchronization->hydrate($object);
+		$obj = $this->find($id);
+		$obj->hydrate($object);
+		// Set uuid
+		if($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
+		// Set or update the version
+		if($obj->getVersion() === null){
+			$obj->setVersion('0.0.1');
+		} else {
+			$version = explode('.', $obj->getVersion());
+			$version[2] = (int)$version[2] + 1;
+			$obj->setVersion(implode('.', $version));
+		}
 
-		return $this->update($synchronization);
+		return $this->update($obj);
 	}
 }

@@ -81,6 +81,8 @@ class SynchronizationContract extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
+			'uuid' => $this->uuid,
+			'version' => $this->version,
 			'synchronizationId' => $this->synchronization,
 			'sourceId' => $this->sourceId,
 			'sourceHash' => $this->sourceHash,

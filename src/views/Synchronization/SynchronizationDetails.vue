@@ -33,6 +33,10 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
+						<b>id:</b>
+						<p>{{ synchronizationStore.synchronizationItem.uuid }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
 						<b>Created:</b>
 						<p>
 							{{ synchronizationStore.synchronizationItem.created

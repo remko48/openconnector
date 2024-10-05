@@ -182,7 +182,7 @@ class JobsController extends Controller
     }
 
     /**
-     * Retrieves call logs for a source
+     * Retrieves call logs for a job
      *
      * This method returns all the call logs associated with a source based on its ID.
      *
@@ -203,9 +203,9 @@ class JobsController extends Controller
         }
     }
     /**
-     * Test a source
+     * Test a job
      *
-     * This method fires a test call to the source and returns the response.
+     * This method fires a test call to the job and returns the response.
      *
      * @NoAdminRequired
      * @NoCSRFRequired

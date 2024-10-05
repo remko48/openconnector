@@ -90,8 +90,11 @@ class Synchronization extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
+			'id' => $this->id,
+			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
+			'version' => $this->version,
 			'sourceId' => $this->sourceId,
 			'sourceType' => $this->sourceType,
 			'sourceHash' => $this->sourceHash,

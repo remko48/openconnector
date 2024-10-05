@@ -118,10 +118,11 @@ class Source extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
+			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
-			'reference' => $this->reference,
 			'version' => $this->version,
+			'reference' => $this->reference,
 			'location' => $this->location,
 			'isEnabled' => $this->isEnabled,
 			'type' => $this->type,

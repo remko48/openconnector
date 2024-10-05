@@ -5,6 +5,7 @@ namespace OCA\OpenConnector\Db;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Symfony\Component\Uid\Uuid;
 
 class CallLogMapper extends QBMapper
 {
@@ -57,17 +58,25 @@ class CallLogMapper extends QBMapper
 
     public function createFromArray(array $object): CallLog
     {
-        $callLog = new CallLog();
-        $callLog->hydrate($object);
-        return $this->insert($callLog);
+        $obj = new CallLog();
+		$obj->hydrate($object);
+		// Set uuid
+		if($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
+        return $this->insert($obj);
     }
 
     public function updateFromArray(int $id, array $object): CallLog
     {
-        $callLog = $this->find($id);
-        $callLog->hydrate($object);
+        $obj = $this->find($id);
+		$obj->hydrate($object);;
+		// Set uuid
+		if($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
 
-        return $this->update($callLog);
+        return $this->update($obj);
     }
 
     public function clearLogs(): Bool

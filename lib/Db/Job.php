@@ -10,6 +10,7 @@ class Job extends Entity implements JsonSerializable
 {
 	protected ?string $name = null;
 	protected ?string $description = null;
+	protected ?string $version = '0.0.0'; // The version of the endpoint
 	protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
 	protected ?array $arguments = null;
 	protected ?int $interval = 3600; // seconds in an hour
@@ -31,6 +32,7 @@ class Job extends Entity implements JsonSerializable
 	public function __construct() {
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
+		$this->addType('version', 'string');
 		$this->addType('jobClass', 'string');
 		$this->addType('arguments', 'json');
 		$this->addType('interval', 'integer');
@@ -84,8 +86,10 @@ class Job extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
+			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
+			'version' => $this->version,
 			'jobClass' => $this->jobClass,
 			'arguments' => $this->arguments,
 			'interval' => $this->interval,

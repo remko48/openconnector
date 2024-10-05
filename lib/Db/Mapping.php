@@ -66,10 +66,11 @@ class Mapping extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
-			'reference' => $this->reference,
-			'version' => $this->version,
+			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
+			'version' => $this->version,
+			'reference' => $this->reference,
 			'mapping' => $this->mapping,
 			'unset' => $this->unset,
 			'cast' => $this->cast,

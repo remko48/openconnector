@@ -5,6 +5,7 @@ namespace OCA\OpenConnector\Db;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Symfony\Component\Uid\Uuid;
 
 class JobLogMapper extends QBMapper
 {
@@ -57,16 +58,23 @@ class JobLogMapper extends QBMapper
 
     public function createFromArray(array $object): JobLog
     {
-        $jobLog = new JobLog();
-        $jobLog->hydrate($object);
-        return $this->insert($jobLog);
+        $obj = new JobLog();
+		$obj->hydrate($object);
+		// Set uuid
+		if($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
+        return $this->insert($obj);
     }
 
     public function updateFromArray(int $id, array $object): JobLog
     {
-        $jobLog = $this->find($id);
-        $jobLog->hydrate($object);
+        $obj = $this->find($id);
+		$obj->hydrate($object);
+		if($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
 
-        return $this->update($jobLog);
+        return $this->update($obj);
     }
 }
