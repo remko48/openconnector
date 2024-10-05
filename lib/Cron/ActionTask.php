@@ -81,7 +81,11 @@ class ActionTask extends TimedJob
 		$time_start = microtime(true);
 
         $action =  $this->containerInterface->get($job->getJobClass());
-        $result = $action->run($job->getArguments());
+        $arguments = $job->getArguments();
+        if(!is_array($arguments)){
+            $arguments = [];
+        }
+        $result = $action->run($arguments);
 
         $time_end = microtime(true);
         $executionTime = ( $time_end - $time_start ) * 1000;

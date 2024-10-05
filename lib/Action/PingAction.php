@@ -34,7 +34,7 @@ class PingAction
 	 *
 	 * @return array An array containing the execution stack trace of the actions performed.
 	 */
-    public function run(array $arguments): array
+    public function run(array $arguments = []): array
 	{
 		$response = [];
 		$response['stackTrace'][] = 'Running PingAction';

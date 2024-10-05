@@ -22,12 +22,12 @@ class EventAction
     }
 
     //@todo: make this a bit more generic :')
-    public function run($argument)
+    public function run(array $argument = []): array
     {
         // @todo: implement this
 
         // Let's report back about what we have just done
-        return;
+        return [];
     }
 
 }

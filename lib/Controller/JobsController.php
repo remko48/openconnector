@@ -202,6 +202,7 @@ class JobsController extends Controller
             return new JSONResponse(['error' => 'Job not found'], 404);
         }
     }
+    
     /**
      * Test a job
      *

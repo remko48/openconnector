@@ -20,7 +20,7 @@ import { navigationStore } from '../store/store.js'
 					<Api :size="20" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem :active="navigationStore.selected === 'webhooks'" name="Webhooks" @click="navigationStore.setSelected('webhooks')">
+			<NcAppNavigationItem :active="navigationStore.selected === 'consumers'" name="Consumers" @click="navigationStore.setSelected('consumers')">
 				<template #icon>
 					<Webhook :size="20" />
 				</template>

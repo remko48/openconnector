@@ -10,17 +10,6 @@ import { jobStore, navigationStore } from '../../store/store.js'
 		<div class="modalContent">
 			<h2>Test job</h2>
 
-			<form @submit.prevent="handleSubmit">
-				<div class="form-group">
-					<div class="testJobDetailGrid">
-						<NcTextField
-							id="jobId"
-							label="Job ID"
-							:value.sync="testJobItem.jobId" />
-					</div>
-				</div>
-			</form>
-
 			<NcButton
 				:disabled="loading"
 				type="primary"
@@ -69,9 +58,6 @@ export default {
 	},
 	data() {
 		return {
-			testJobItem: {
-				jobId: '',
-			},
 			success: false,
 			loading: false,
 			error: false,
@@ -83,15 +69,12 @@ export default {
 			this.success = false
 			this.loading = false
 			this.error = false
-			this.testJobItem = {
-				jobId: '',
-			}
 		},
 		async testJob() {
 			this.loading = true
 
 			try {
-				await jobStore.testJob(this.testJobItem.jobId)
+				await jobStore.testJob()
 				this.success = true
 				this.loading = false
 				this.error = false

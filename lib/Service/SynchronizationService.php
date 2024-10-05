@@ -12,6 +12,7 @@ use OCA\OpenConnector\Db\SynchronizationContract;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
 use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
+use Symfony\Component\Uid\Uuid;
 
 use Psr\Container\ContainerInterface;
 use DateInterval;
@@ -64,6 +65,7 @@ class SynchronizationService
 
             if (!($synchronizationContract instanceof SynchronizationContract)) {
                 $synchronizationContract = new SynchronizationContract();
+                $synchronizationContract->setUuid(Uuid::v4());
                 $synchronizationContract->setSynchronizationId($synchronization->id);
                 $synchronizationContract->setSourceId($object['id']);
                 $synchronizationContract->setSourceHash(md5(serialize($object)));
@@ -202,10 +204,7 @@ class SynchronizationService
 
                 break;
             case 'api':
-                //@todo: implement
-                $source = $this->sourceMapper->find($synchronization->getSourceId());
-                $sourceObject = $this->callService->call($source);
-                $objects = $this->getAllObjectsFromArray($sourceObject, $source);
+                $objects = $this->getAllObjectsFromApi($synchronization);
                 break;
             case 'database':
                 //@todo: implement
@@ -213,14 +212,93 @@ class SynchronizationService
         }
         return $objects;
     }
-
-    public function getAllObjectsFromArray(CallLog $callLog, Source $source)
+    /**
+     * Retrieves all objects from an API source for a given synchronization.
+     *
+     * @param Synchronization $synchronization The synchronization object containing source information.
+     * @return array An array of all objects retrieved from the API.
+     */
+    public function getAllObjectsFromApi(Synchronization $synchronization)
     {
-
-        // lekeer hacky (only works on github for now)
-        //$sourceObject = $this->callService->get($source->getUrl());
-        $response = $callLog->getResponse();
+        $objects = [];
+        // Retrieve the source object based on the synchronization's source ID
+        $source = $this->sourceMapper->find($synchronization->getSourceId());
+        
+        // Make the initial API call
+        $response = $this->callService->call($source)->getResponse();
         $body = json_decode($response['body'], true);
-        return $body['items'];
+        $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+        $nextLink = $this->getNextlinkFromCall($body, $synchronization);
+
+        // Continue making API calls if there are more pages of results
+        while ($nextLink !== null && $nextLink !== '' && $nextLink !== false) {
+            $endpoint = str_replace($source->getLocation(), '', $nextLink);
+            $response = $this->callService->call($source, $endpoint)->getResponse();
+            $body = json_decode($response['body'], true);
+            $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+            $nextLink = $this->getNextlinkFromCall($body, $synchronization);
+        }
+        
+        return $objects;        
+    }
+
+    /**
+     * Extracts all objects from the API response body.
+     *
+     * @param array $body The decoded JSON body of the API response.
+     * @param Synchronization $synchronization The synchronization object containing source configuration.
+     * @return array An array of items extracted from the response body.
+     * @throws Exception If the position of objects in the return body cannot be determined.
+     */
+    public function getAllObjectsFromArray(array $array, Synchronization $synchronization)
+    {
+        // Get the source configuration from the synchronization object
+        $sourceConfig = $synchronization->getSourceConfig();
+        
+        // Check if a specific objects position is defined in the source configuration
+        if (isset($sourceConfig['objectsPosition'])) {
+            $position = $sourceConfig['objectsPosition'];
+            // Use Dot notation to access nested array elements
+            $dot = new Dot($array);
+            if ($dot->has($position)) {
+                // Return the objects at the specified position
+                return $dot->get($position);
+            } else {
+                // Throw an exception if the specified position doesn't exist
+                throw new Exception("Cannot find the specified position of objects in the return body.");
+            }
+        }
+        
+        // Check for common keys where objects might be stored
+        // If 'items' key exists, return its value
+        if (isset($array['items'])) {
+            return $array['items'];
+        }
+        
+        // If 'result' key exists, return its value
+        if (isset($array['result'])) {
+            return $array['result'];
+        }
+        
+        // If 'results' key exists, return its value
+        if (isset($array['results'])) {
+            return $array['results'];
+        }
+        
+        // If no objects can be found, throw an exception
+        throw new Exception("Cannot determine the position of objects in the return body.");
+    }
+
+    /**
+     * Retrieves the next link for pagination from the API response body.
+     *
+     * @param array $body The decoded JSON body of the API response.
+     * @param Synchronization $synchronization The synchronization object (unused in this method, but kept for consistency).
+     * @return string|bool The URL for the next page of results, or false if there is no next page.
+     */
+    public function getNextlinkFromCall(array $body, Synchronization $synchronization): string | bool | null
+    {
+        // Check if the 'next' key exists in the response body
+        return $body['next'];
     }
 }

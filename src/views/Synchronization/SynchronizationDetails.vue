@@ -204,6 +204,10 @@ export default {
 		Pencil,
 		TrashCanOutline,
 	},
+	mounted() {
+		synchronizationStore.refreshSynchronizationLogs()
+		synchronizationStore.refreshSynchronizationContracts()
+	},
 	data() {
 		return {
 			contracts: [],

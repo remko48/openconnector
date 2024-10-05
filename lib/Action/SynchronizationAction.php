@@ -42,7 +42,7 @@ class SynchronizationAction
 	 *
 	 * @throws Exception Throws an exception if the synchronization process fails or encounters an error.
 	 */
-    public function run(array $argument): array
+    public function run(array $argument = []): array
 	{
         $response = [];
 
