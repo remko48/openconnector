@@ -20,7 +20,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 
 		<template #actions>
 			<NcButton
-				@click="navigationStore.setDialog(false)">
+				@click="closeModal">
 				<template #icon>
 					<Cancel :size="20" />
 				</template>
@@ -68,9 +68,15 @@ export default {
 			success: false,
 			loading: false,
 			error: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setDialog(false)
+			clearTimeout(this.closeTimeoutFunc)
+			this.success = null
+		},
 		async deleteSynchronization() {
 			this.loading = true
 			try {
@@ -80,10 +86,7 @@ export default {
 				this.loading = false
 				this.error = false
 				synchronizationStore.setSynchronizationItem(null)
-				setTimeout(() => {
-					this.success = false
-					navigationStore.setDialog(false)
-				}, 2000)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false
