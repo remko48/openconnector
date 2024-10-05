@@ -145,7 +145,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #icon>
-										<MathLog disable-menu
+										<TimelineQuestionOutline disable-menu
 											:size="44" />
 									</template>
 									<template #subname>
@@ -183,11 +183,13 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
+import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import MathLog from 'vue-material-design-icons/MathLog.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+
 export default {
 	name: 'SourceDetails',
 	components: {
