@@ -99,10 +99,10 @@ class SynchronizationService
         $sourceHash = md5(serialize($object));
         $synchronizationContract->setSourceLastChecked(new DateTime());
 
-        // Let's prevent pointless updates @todo acount for omnidirectional sync
-        if ($sourceHash === $synchronizationContract->getSourceHash()){
-            // The object has not changed
-            return $synchronizationContract; // Fix: Add $ before synchronizationContract
+        // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
+        if ($sourceHash === $synchronizationContract->getSourceHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
+            // The object has not changed and the config has not been updated since last check
+            return $synchronizationContract; 
         }
 
         // The object has changed, oke let do mappig and bla die bla

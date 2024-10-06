@@ -203,7 +203,7 @@ class SynchronizationsController extends Controller
     public function logs(int $id): JSONResponse
     {
         try {
-            $logs = $this->contractsLogMapper->findAll(null, null, ['job_id' => $id]);
+            $logs = $this->synchronizationContractLogMapper->findAll(null, null, ['synchronization_id' => $id]);
             return new JSONResponse($logs);
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Logs not found'], 404);
