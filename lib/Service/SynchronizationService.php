@@ -9,6 +9,8 @@ use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\Synchronization;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContract;
+use OCA\OpenConnector\Db\SynchronizationContractLog;
+use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
 use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
@@ -24,10 +26,10 @@ class SynchronizationService
     private CallService $callService;
     private MappingService $mappingService;
     private ContainerInterface $containerInterface;
-    private Synchronization $synchronization;
     private SynchronizationMapper $synchronizationMapper;
     private SourceMapper $sourceMapper;
     private SynchronizationContractMapper $synchronizationContractMapper;
+    private SynchronizationContractLogMapper $synchronizationContractLogMapper;
     private ObjectService $objectService;
     private Source $source;
 
@@ -38,13 +40,15 @@ class SynchronizationService
 		ContainerInterface $containerInterface,
         SourceMapper $sourceMapper,
 		SynchronizationMapper $synchronizationMapper,
-		SynchronizationContractMapper $synchronizationContractMapper
+		SynchronizationContractMapper $synchronizationContractMapper,
+        SynchronizationContractLogMapper $synchronizationContractLogMapper
 	) {
 		$this->callService = $callService;
 		$this->mappingService = $mappingService;
 		$this->containerInterface = $containerInterface;
 		$this->synchronizationMapper = $synchronizationMapper;
 		$this->synchronizationContractMapper = $synchronizationContractMapper;
+        $this->synchronizationContractLogMapper = $synchronizationContractLogMapper;
         $this->sourceMapper = $sourceMapper;
 	}
 
@@ -102,7 +106,8 @@ class SynchronizationService
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
         if ($sourceHash === $synchronizationContract->getSourceHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
             // The object has not changed and the config has not been updated since last check
-            return $synchronizationContract; 
+            // return $synchronizationContract; 
+            // @todo: somehow this always returns true, so we never do the updateTarget
         }
 
         // The object has changed, oke let do mappig and bla die bla
