@@ -77,4 +77,25 @@ class JobLogMapper extends QBMapper
 
         return $this->update($obj);
     }
+
+    /**
+     * Get the last call log.
+     *
+     * @return CallLog|null The last call log or null if no logs exist.
+     */
+    public function getLastCallLog(): ?JobLog
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        $qb->select('*')
+           ->from('openconnector_job_logs')
+           ->orderBy('created', 'DESC')
+           ->setMaxResults(1);
+
+        try {
+            return $this->findEntity($qb);
+        } catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+            return null;
+        }
+    }
 }

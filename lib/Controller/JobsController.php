@@ -195,14 +195,13 @@ class JobsController extends Controller
     public function logs(int $id): JSONResponse
     {
         try {
-            $job = $this->jobMapper->find($id);
-            $jobLogs = $this->jobLogMapper->findAll(null, null, ['job_id' => $job->getId()]);
+            $jobLogs = $this->jobLogMapper->findAll(null, null, ['job_id' => $id]);
             return new JSONResponse($jobLogs);
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Job not found'], 404);
         }
     }
-    
+
     /**
      * Test a job
      *
@@ -223,8 +222,8 @@ class JobsController extends Controller
             if (!$job->getJobListId()) {
                 return new JSONResponse(data: ['error' => 'Job not scheduled'], statusCode: 404);
             }
-            $log = $this->IJobList->getById($job->getJobListId())->start($this->IJobList);
-            return new JSONResponse($log);
+            $this->IJobList->getById($job->getJobListId())->start($this->IJobList);
+            return new JSONResponse($this->jobLogMapper->getLastCallLog());
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
         }

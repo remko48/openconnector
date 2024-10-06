@@ -129,6 +129,16 @@ class SynchronizationService
 
         $this->updateTarget($synchronizationContract, $targetObject);
 
+        // Log it
+        $log = new SynchronizationContractLog();
+        $log->setUuid(Uuid::v4());
+        $log->setSynchronizationId($synchronizationContract->getSynchronizationId());
+        $log->setSynchronizationContractId($synchronizationContract->getId());
+        $log->setSource($object);
+        $log->setTarget($targetObject);
+        $log->setExpires(new DateTime('+1 day')); // @todo make this configurable
+        $this->synchronizationContractLogMapper->insert($log);
+
         return $synchronizationContract;
 
     }

@@ -71,7 +71,6 @@ class SynchronizationContractMapper extends QBMapper
 		}
 	}
 
-
 	public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $searchConditions = [], ?array $searchParams = []): array
 	{
 		$qb = $this->db->getQueryBuilder();
@@ -124,4 +123,60 @@ class SynchronizationContractMapper extends QBMapper
 
 		return $this->update($obj);
 	}
+
+	/**
+	 * Find synchronization contracts by type and ID
+	 *
+	 * This method searches for synchronization contracts where either the source or target
+	 * matches the given type and ID.
+	 *
+	 * @param string $type The type to search for (e.g., 'user', 'group', etc.)
+	 * @param string $id The ID to search for within the given type
+	 * @return array An array of SynchronizationContract entities matching the criteria
+	 */
+	public function findByTypeAndId(string $type, string $id): array
+	{
+		$qb = $this->db->getQueryBuilder();
+
+		// Build a query to select all columns from the synchronization contracts table
+		$qb->select('*')
+			->from('openconnector_synchronization_contracts')
+			->where(
+				$qb->expr()->orX(
+					// Check if the contract matches as a source
+					$qb->expr()->andX(
+						$qb->expr()->eq('source_type', $qb->createNamedParameter($type)),
+						$qb->expr()->eq('source_id', $qb->createNamedParameter($id))
+					),
+					// Check if the contract matches as a target
+					$qb->expr()->andX(
+						$qb->expr()->eq('target_type', $qb->createNamedParameter($type)),
+						$qb->expr()->eq('target_id', $qb->createNamedParameter($id))
+					)
+				)
+			);
+
+		// Execute the query and return the resulting entities
+		return $this->findEntities($qb);
+	}
+
+    /**
+     * Get the total count of all call logs.
+     *
+     * @return int The total number of call logs in the database.
+     */
+    public function getTotalCallCount(): int
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        // Select count of all logs
+        $qb->select($qb->createFunction('COUNT(*) as count'))
+           ->from('openconnector_synchronization_contracts');
+
+        $result = $qb->execute();
+        $row = $result->fetch();
+
+        // Return the total count
+        return (int)$row['count'];
+    }
 }

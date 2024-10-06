@@ -2,7 +2,7 @@
 
 namespace OCA\OpenConnector\Db;
 
-use OCA\OpenConnector\Db\SynchronizationContract;
+use OCA\OpenConnector\Db\SynchronizationContractLog;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -13,15 +13,15 @@ class SynchronizationContractLogMapper extends QBMapper
 {
 	public function __construct(IDBConnection $db)
 	{
-		parent::__construct($db, 'openconnector_synchronization_contracts');
+		parent::__construct($db, 'openconnector_synchronization_contract_logs');
 	}
 
-	public function find(int $id): SynchronizationContract
+	public function find(int $id): SynchronizationContractLog
 	{
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
-			->from('openconnector_synchronization_contracts')
+			->from('openconnector_synchronization_contract_logs')
 			->where(
 				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
 			);
@@ -29,17 +29,14 @@ class SynchronizationContractLogMapper extends QBMapper
 		return $this->findEntity(query: $qb);
 	}
 
-	public function findOnSynchronizationIdSourceId(string $synchronizationId, string $sourceId): ?SynchronizationContract
+	public function findOnSynchronizationId(string $synchronizationId): ?SynchronizationContractLog
 	{
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
-			->from('openconnector_synchronization_contracts')
+			->from('openconnector_synchronization_contract_logs')
 			->where(
 				$qb->expr()->eq('synchronization_id', $qb->createNamedParameter($synchronizationId))
-			)
-			->andWhere(
-				$qb->expr()->eq('source_id', $qb->createNamedParameter($sourceId))
 			);
 
 		try {
@@ -48,36 +45,13 @@ class SynchronizationContractLogMapper extends QBMapper
 			return null;
 		}
 	}
-
-
-	public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract|bool|null
-	{
-		$qb = $this->db->getQueryBuilder();
-
-		$qb->select('*')
-			->from('openconnector_synchronization_contracts')
-			->where(
-				$qb->expr()->eq('synchronization_id', $qb->createNamedParameter($synchronization))
-			)
-			->andWhere(
-				$qb->expr()->eq('target_id', $qb->createNamedParameter($targetId))
-			);
-
-
-		try {
-			return $this->findEntity($qb);
-		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
-			return null;
-		}
-	}
-
 
 	public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $searchConditions = [], ?array $searchParams = []): array
 	{
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
-			->from('openconnector_synchronization_contracts')
+			->from('openconnector_synchronization_contract_logs')
 			->setMaxResults($limit)
 			->setFirstResult($offset);
 
@@ -101,27 +75,22 @@ class SynchronizationContractLogMapper extends QBMapper
 		return $this->findEntities(query: $qb);
 	}
 
-	public function createFromArray(array $object): SynchronizationContract
+	public function createFromArray(array $object): SynchronizationContractLog
 	{
-		$obj = new SynchronizationContract();
-		$obj->hydrate(object: $object);
+		$obj = new SynchronizationContractLog();
+		$obj->hydrate($object);
 		// Set uuid
 		if($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
-		return $this->insert(entity: $synchronizationContract);
+		return $this->insert($obj);
 	}
 
-	public function updateFromArray(int $id, array $object): SynchronizationContract
+	public function updateFromArray(int $id, array $object): SynchronizationContractLog
 	{
 		$obj = $this->find($id);
 		$obj->hydrate($object);
 		
-		// Set or update the version
-		$version = explode('.', $obj->getVersion());
-		$version[2] = (int)$version[2] + 1;
-		$obj->setVersion(implode('.', $version));
-
 		return $this->update($obj);
 	}
 }

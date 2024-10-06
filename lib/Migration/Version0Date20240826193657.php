@@ -217,7 +217,7 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addColumn('synchronization_id', 'integer', [
                 'notnull' => false,
             ]);
-            $table->addColumn('created_at', 'datetime',  [
+            $table->addColumn('created', 'datetime',  [
                 'notnull' => true,
                 'default' => 'CURRENT_TIMESTAMP'
             ]);
@@ -308,6 +308,22 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
             $table->setPrimaryKey(['id']);
             $table->addIndex(['uuid'], 'openconnector_consumers_uuid_index');
+        }
+
+        if (!$schema->hasTable('openconnector_source_contract_logs')) {
+            $table = $schema->createTable('openconnector_synchronization_contract_logs');
+            $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
+            $table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]);
+            $table->addColumn('synchronization_id', Types::STRING, ['notnull' => true, 'length' => 255]);
+            $table->addColumn('synchronization_contract_id', Types::STRING, ['notnull' => true, 'length' => 255]);
+            $table->addColumn('source', Types::JSON, ['notnull' => false]);
+            $table->addColumn('target', Types::JSON, ['notnull' => false]);
+            $table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
+            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+            $table->setPrimaryKey(['id']);
+            $table->addIndex(['uuid'], 'openconnector_sync_contract_logs_uuid_index');
+            $table->addIndex(['synchronization_id'], 'openconnector_sync_contract_logs_sync_index');
+            $table->addIndex(['synchronization_contract_id'], 'openconnector_sync_contract_logs_contract_index');
         }
 
 		return $schema;

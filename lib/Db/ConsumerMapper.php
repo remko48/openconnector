@@ -123,4 +123,24 @@ class ConsumerMapper extends QBMapper
 
 		return $this->update($obj);
 	}
+
+    /**
+     * Get the total count of all call logs.
+     *
+     * @return int The total number of call logs in the database.
+     */
+    public function getTotalCallCount(): int
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        // Select count of all logs
+        $qb->select($qb->createFunction('COUNT(*) as count'))
+           ->from('openconnector_consumers');
+
+        $result = $qb->execute();
+        $row = $result->fetch();
+
+        // Return the total count
+        return (int)$row['count'];
+    }
 }
