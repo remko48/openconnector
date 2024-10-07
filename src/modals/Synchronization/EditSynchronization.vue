@@ -34,8 +34,7 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 					required />
 
 				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
-					label="sourceTargetMapping"
-					required />
+					label="sourceTargetMapping" />
 
 				<NcTextField :value.sync="synchronizationItem.targetId"
 					label="targetId"
@@ -46,8 +45,7 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 					required />
 
 				<NcTextField :value.sync="synchronizationItem.targetSourceMapping"
-					label="targetSourceMapping"
-					required />
+					label="targetSourceMapping" />
 			</form>
 
 			<NcButton
@@ -71,7 +69,6 @@ import {
 	NcModal,
 	NcTextField,
 	NcTextArea,
-	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
@@ -84,7 +81,6 @@ export default {
 		NcButton,
 		NcTextField,
 		NcTextArea,
-		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
 		// Icons
