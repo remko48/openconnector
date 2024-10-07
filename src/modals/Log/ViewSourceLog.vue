@@ -3,9 +3,9 @@ import { logStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'viewLog'"
+	<NcModal v-if="navigationStore.modal === 'viewSourceLog'"
 		ref="modalRef"
-		label-id="viewLog"
+		label-id="viewSourceLog"
 		@close="closeModal">
 		<div class="logModalContent">
 			<div class="logModalContentHeader">
@@ -20,19 +20,12 @@ import { logStore, navigationStore } from '../../store/store.js'
 					<td class="keyColumn">
 						{{ key }}
 					</td>
-					<td>{{ value }}</td>
-				</tr>
-			</table>
-			<br>
-
-			<strong>Created At</strong>
-			<table>
-				<tr v-for="(value, key) in createdAtItems"
-					:key="key">
-					<td class="keyColumn">
-						{{ key }}
+					<td v-if="typeof value === 'string' && (key === 'created' || key === 'updated' || key === 'expires' || key === 'lastRun' || key === 'nextRun')">
+						{{ new Date(value).toLocaleString() }}
 					</td>
-					<td>{{ value }}</td>
+					<td v-else>
+						{{ value }}
+					</td>
 				</tr>
 			</table>
 			<br>
@@ -89,7 +82,7 @@ import {
 } from '@nextcloud/vue'
 
 export default {
-	name: 'ViewLog',
+	name: 'ViewSourceLog',
 	components: {
 		NcModal,
 	},
@@ -100,14 +93,13 @@ export default {
 			requestItems: {},
 			responseItems: {},
 			headersItems: {},
-			createdAtItems: {},
 		}
 	},
 	mounted() {
 		logStore.viewLogItem && this.splitItems()
 	},
 	updated() {
-		if (navigationStore.modal === 'viewLog' && !this.hasUpdated) {
+		if (navigationStore.modal === 'viewSourceLog' && !this.hasUpdated) {
 			logStore.viewLogItem && this.splitItems()
 			this.hasUpdated = true
 		}
@@ -115,7 +107,7 @@ export default {
 	methods: {
 		splitItems() {
 			Object.entries(logStore.viewLogItem).forEach(([key, value]) => {
-				if (key === 'request' || key === 'response' || key === 'createdAt') {
+				if (key === 'request' || key === 'response') {
 					this[`${key}Items`] = { ...value }
 				} else {
 					this.standardItems = { ...this.standardItems, [key]: value }
@@ -134,7 +126,6 @@ export default {
 			this.standardItems = {}
 			this.requestItems = {}
 			this.responseItems = {}
-			this.createdAtItems = {}
 			this.headersItems = {}
 		},
 	},

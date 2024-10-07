@@ -55,38 +55,6 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 				</div>
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
-						<BTab title="Logs">
-							<div v-if="sourceStore.sourceLogs?.length">
-								<NcListItem v-for="(log, i) in sourceStore.sourceLogs"
-									:key="log.id + i"
-									:class="checkIfStatusIsOk(log.statusCode) ? 'okStatus' : 'errorStatus'"
-									:name="`${log.statusMessage} (response time: ${(log.response.responseTime / 1000).toFixed(3)} seconds)`"
-									:bold="false"
-									:counter-number="log.statusCode"
-									:force-display-actions="true"
-									:active="logStore.activeLogKey === `sourceLog-${log.id}`"
-									@click="setActiveSourceLog(log.id)">
-									<template #icon>
-										<TimelineQuestionOutline disable-menu
-											:size="44" />
-									</template>
-									<template #subname>
-										{{ new Date(log.created).toLocaleString() }}
-									</template>
-									<template #actions>
-										<NcActionButton @click="viewLog(log)">
-											<template #icon>
-												<EyeOutline :size="20" />
-											</template>
-											View
-										</NcActionButton>
-									</template>
-								</NcListItem>
-							</div>
-							<div v-if="!sourceStore.sourceLogs?.length" class="tabPanel">
-								No logs found
-							</div>
-						</BTab>
 						<BTab title="Configurations">
 							<div v-if="sourceStore.sourceItem?.configuration !== null && Object.keys(sourceStore.sourceItem?.configuration).length > 0">
 								<NcListItem v-for="(value, key, i) in sourceStore.sourceItem?.configuration"
@@ -165,6 +133,38 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 								No jobs found
 							</div>
 						</BTab>
+						<BTab title="Logs">
+							<div v-if="sourceStore.sourceLogs?.length">
+								<NcListItem v-for="(log, i) in sourceStore.sourceLogs"
+									:key="log.id + i"
+									:class="checkIfStatusIsOk(log.statusCode) ? 'okStatus' : 'errorStatus'"
+									:name="`${log.statusMessage} (response time: ${(log.response.responseTime / 1000).toFixed(3)} seconds)`"
+									:bold="false"
+									:counter-number="log.statusCode"
+									:force-display-actions="true"
+									:active="logStore.activeLogKey === `sourceLog-${log.id}`"
+									@click="setActiveSourceLog(log.id)">
+									<template #icon>
+										<TimelineQuestionOutline disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ new Date(log.created).toLocaleString() }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="viewLog(log)">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!sourceStore.sourceLogs?.length" class="tabPanel">
+								No logs found
+							</div>
+						</BTab>
 					</BTabs>
 				</div>
 			</div>
@@ -221,7 +221,7 @@ export default {
 		},
 		viewLog(log) {
 			logStore.setViewLogItem(log)
-			navigationStore.setModal('viewLog')
+			navigationStore.setModal('viewSourceLog')
 		},
 		setActiveSourceConfigurationKey(sourceConfigurationKey) {
 			if (sourceStore.sourceConfigurationKey === sourceConfigurationKey) {

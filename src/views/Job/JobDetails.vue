@@ -99,39 +99,6 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
-						<BTab title="Logs">
-							<div v-if="jobStore.jobLogs?.length">
-								<NcListItem v-for="(log, i) in jobStore.jobLogs"
-									:key="log.id + i"
-									:class="getLevelColor(log.level)"
-									:name="log.message"
-									:bold="false"
-									:counter-number="log.level"
-									:force-display-actions="true"
-									:active="logStore.activeLogKey === `jobLog-${log.id}`"
-									@click="setActiveJobLog(log.id)">
-									>
-									<template #icon>
-										<TimelineQuestionOutline disable-menu
-											:size="44" />
-									</template>
-									<template #subname>
-										{{ new Date(log.created).toLocaleString() }}
-									</template>
-									<template #actions>
-										<NcActionButton @click="viewLog(log)">
-											<template #icon>
-												<EyeOutline :size="20" />
-											</template>
-											View
-										</NcActionButton>
-									</template>
-								</NcListItem>
-							</div>
-							<div v-if="!jobStore.jobLogs?.length" class="tabPanel">
-								No logs found
-							</div>
-						</BTab>
 						<BTab title="Job Arguments">
 							<div v-if="jobStore.jobItem?.arguments !== null && Object.keys(jobStore.jobItem?.arguments).length > 0">
 								<NcListItem v-for="(value, key, i) in jobStore.jobItem?.arguments"
@@ -168,6 +135,39 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 							</div>
 							<div v-if="jobStore.jobItem?.arguments === null || !Object.keys(jobStore.jobItem?.arguments).length" class="tabPanel">
 								No arguments found
+							</div>
+						</BTab>
+						<BTab title="Logs">
+							<div v-if="jobStore.jobLogs?.length">
+								<NcListItem v-for="(log, i) in jobStore.jobLogs"
+									:key="log.id + i"
+									:class="getLevelColor(log.level)"
+									:name="log.message"
+									:bold="false"
+									:counter-number="log.level"
+									:force-display-actions="true"
+									:active="logStore.activeLogKey === `jobLog-${log.id}`"
+									@click="setActiveJobLog(log.id)">
+									>
+									<template #icon>
+										<TimelineQuestionOutline disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ new Date(log.created).toLocaleString() }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="viewLog(log)">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!jobStore.jobLogs?.length" class="tabPanel">
+								No logs found
 							</div>
 						</BTab>
 					</BTabs>
