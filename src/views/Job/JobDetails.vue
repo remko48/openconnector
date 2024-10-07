@@ -1,5 +1,5 @@
 <script setup>
-import { jobStore, navigationStore } from '../../store/store.js'
+import { jobStore, navigationStore, logStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -95,6 +95,39 @@ import { jobStore, navigationStore } from '../../store/store.js'
 
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
+						<BTab title="Logs">
+							<div v-if="jobStore.jobLogs?.length">
+								<NcListItem v-for="(log, i) in jobStore.jobLogs"
+									:key="log.id + i"
+									:class="getLevelColor(log.level)"
+									:name="log.message"
+									:bold="false"
+									:counter-number="log.level"
+									:force-display-actions="true"
+									:active="logStore.activeLogKey === `jobLog-${log.id}`"
+									@click="setActiveJobLog(log.id)">
+									>
+									<template #icon>
+										<TimelineQuestionOutline disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ new Date(log.created).toLocaleString() }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="viewLog(log)">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!jobStore.jobLogs?.length" class="tabPanel">
+								No logs found
+							</div>
+						</BTab>
 						<BTab title="Job Arguments">
 							<div v-if="jobStore.jobItem?.arguments !== null && Object.keys(jobStore.jobItem?.arguments).length > 0">
 								<NcListItem v-for="(value, key, i) in jobStore.jobItem?.arguments"
@@ -133,26 +166,6 @@ import { jobStore, navigationStore } from '../../store/store.js'
 								No arguments found
 							</div>
 						</BTab>
-						<BTab title="Logs">
-							<div v-if="jobStore.jobLogs?.length">
-								<NcListItem v-for="(log, i) in jobStore.jobLogs"
-									:key="log.id + i"
-									:name="log.id"
-									:bold="false"
-									:force-display-actions="true">
-									<template #icon>
-										<TimelineQuestionOutline disable-menu
-											:size="44" />
-									</template>
-									<template #subname>
-										{{ log.created }}
-									</template>
-								</NcListItem>
-							</div>
-							<div v-if="!jobStore.jobLogs?.length" class="tabPanel">
-								No logs found
-							</div>
-						</BTab>
 					</BTabs>
 				</div>
 			</div>
@@ -172,6 +185,7 @@ import Delete from 'vue-material-design-icons/Delete.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
+import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 
 export default {
 	name: 'JobDetails',
@@ -207,13 +221,92 @@ export default {
 				jobStore.setJobArgumentKey(false)
 			} else { jobStore.setJobArgumentKey(jobArgumentKey) }
 		},
+		setActiveJobLog(jobLogId) {
+			if (logStore.activeLogKey === `jobLog-${jobLogId}`) {
+				logStore.setActiveLogKey(null)
+			} else {
+				logStore.setActiveLogKey(`jobLog-${jobLogId}`)
+			}
+		},
+		viewLog(log) {
+			logStore.setViewLogItem(log)
+			navigationStore.setModal('viewJobLog')
+		},
 		refreshJobLogs() {
 			jobStore.refreshJobLogs()
 		},
+		getLevelColor(level) {
+			switch (level) {
+			case 'SUCCESS':
+				return 'successLevel'
+			case 'INFO':
+				return 'infoLevel'
+			case 'NOTICE':
+				return 'noticeLevel'
+			case 'WARNING':
+				return 'warningLevel'
+			case 'ERROR':
+				return 'errorLevel'
+			case 'CRITICAL':
+				return 'criticalLevel'
+			case 'ALERT':
+				return 'alertLevel'
+			case 'EMERGENCY':
+				return 'emergencyLevel'
+			case 'DEBUG':
+				return 'debugLevel'
+			default:
+				return 'debugLevel'
+			}
+		},
+
 	},
 }
 </script>
 
 <style>
-/* Styles remain the same */
+	.successLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-success);
+		color: var(--OC-color-status-success);
+	}
+
+	.errorLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-error);
+		color: var(--OC-color-status-error);
+	}
+
+	.noticeLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-notice);
+		color: var(--OC-color-status-notice);
+	}
+
+	.warningLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-warning);
+		color: var(--OC-color-status-warning);
+	}
+
+	.infoLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-info);
+		color: var(--OC-color-status-info);
+	}
+
+	.criticalLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-critical);
+		color: var(--OC-color-status-critical);
+	}
+
+	.alertLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-alert);
+		color: var(--OC-color-status-alert);
+	}
+
+	.emergencyLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-emergency);
+		color: var(--OC-color-status-emergency);
+	}
+
+	.debugLevel * .counter-bubble__counter {
+		background-color: var(--OC-color-status-background-debug);
+		color: var(--OC-color-status-debug);
+	}
 </style>

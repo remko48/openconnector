@@ -21,6 +21,7 @@
 		<EditSourceConfiguration />
 		<DeleteSourceConfiguration />
 		<ViewLog />
+		<ViewJobLog />
 	</div>
 </template>
 
@@ -47,6 +48,7 @@ import EditMappingMapping from './mappingMapping/EditMappingMapping.vue'
 import DeleteMappingMapping from './mappingMapping/DeleteMappingMapping.vue'
 import EditMappingCast from './mappingCast/EditMappingCast.vue'
 import DeleteMappingCast from './mappingCast/DeleteMappingCast.vue'
+import ViewJobLog from './JobLog/ViewJobLog.vue'
 
 export default {
 	name: 'Modals',
@@ -72,6 +74,7 @@ export default {
 		DeleteMappingMapping,
 		EditMappingCast,
 		DeleteMappingCast,
+		ViewJobLog,
 	},
 	setup() {
 		return {
