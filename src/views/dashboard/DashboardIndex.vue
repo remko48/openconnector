@@ -35,7 +35,6 @@ import { NcAppContent } from '@nextcloud/vue'
 import VueApexCharts from 'vue-apexcharts'
 
 import { getTheme } from '../../services/getTheme.js'
-import { sourceStore } from '../../store/store.js'
 
 export default {
 	name: 'DashboardIndex',
@@ -153,12 +152,6 @@ export default {
 				}],
 			},
 		}
-	},
-	mounted() {
-		sourceStore.refreshSourceLogs()
-			.then(() => {
-				console.log(sourceStore.sourceLogs)
-			})
 	},
 }
 </script>

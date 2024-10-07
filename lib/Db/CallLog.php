@@ -74,7 +74,7 @@ class CallLog extends Entity implements JsonSerializable
             'sourceId' => $this->sourceId,
             'actionId' => $this->actionId,
             'synchronizationId' => $this->synchronizationId,
-            'expires' => $this->expires,
+            'expires' => isset($this->expires) ? $this->expires->format('c') : null,
             'created' => isset($this->created) ? $this->created->format('c') : null,
         ];
     }
