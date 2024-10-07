@@ -26,28 +26,22 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 					label="Description" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceId"
-					label="sourceId"
-					required />
+					label="sourceId" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceType"
-					label="sourceType"
-					required />
+					label="sourceType" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
-					label="sourceTargetMapping"
-					required />
+					label="sourceTargetMapping" />
 
 				<NcTextField :value.sync="synchronizationItem.targetId"
-					label="targetId"
-					required />
+					label="targetId" />
 
 				<NcTextField :value.sync="synchronizationItem.targetType"
-					label="targetType"
-					required />
+					label="targetType" />
 
 				<NcTextField :value.sync="synchronizationItem.targetSourceMapping"
-					label="targetSourceMapping"
-					required />
+					label="targetSourceMapping" />
 			</form>
 
 			<NcButton
@@ -71,7 +65,6 @@ import {
 	NcModal,
 	NcTextField,
 	NcTextArea,
-	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
@@ -84,7 +77,6 @@ export default {
 		NcButton,
 		NcTextField,
 		NcTextArea,
-		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
 		// Icons
