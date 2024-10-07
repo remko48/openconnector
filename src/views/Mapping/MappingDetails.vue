@@ -128,7 +128,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 								</NcListItem>
 							</div>
 							<div v-if="!Object.keys(mappingStore.mappingItem?.cast || {}).length" class="tabPanel">
-								No mapping found
+								No cast found
 							</div>
 						</BTab>
 					</BTabs>
