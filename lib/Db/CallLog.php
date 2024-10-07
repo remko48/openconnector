@@ -7,7 +7,8 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 class CallLog extends Entity implements JsonSerializable
-{    
+{
+    protected ?string $uuid = null;
     protected ?int $statusCode = null;
     protected ?string $statusMessage = null;
     protected ?array $request = null;
@@ -16,9 +17,10 @@ class CallLog extends Entity implements JsonSerializable
     protected ?int $actionId = null;
     protected ?int $synchronizationId = null;
     protected ?DateTime $expires = null;
-    protected ?DateTime $createdAt = null;
+    protected ?DateTime $created = null;
 
     public function __construct() {
+        $this->addType('uuid', 'string');
         $this->addType('statusCode', 'integer');
         $this->addType('statusMessage', 'string');
         $this->addType('request', 'json');
@@ -27,7 +29,7 @@ class CallLog extends Entity implements JsonSerializable
         $this->addType('actionId', 'integer');
         $this->addType('synchronizationId', 'integer');
         $this->addType('expires', 'datetime');
-        $this->addType('createdAt', 'datetime');
+        $this->addType('created', 'datetime');
     }
 
     public function getJsonFields(): array
@@ -43,7 +45,7 @@ class CallLog extends Entity implements JsonSerializable
     {
         $jsonFields = $this->getJsonFields();
 
-        foreach($object as $key => $value) {
+        foreach ($object as $key => $value) {
             if (in_array($key, $jsonFields) === true && $value === []) {
                 $value = [];
             }
@@ -64,6 +66,7 @@ class CallLog extends Entity implements JsonSerializable
     {
         return [
             'id' => $this->id,
+            'uuid' => $this->uuid,
             'statusCode' => $this->statusCode,
             'statusMessage' => $this->statusMessage,
             'request' => $this->request,
@@ -72,7 +75,7 @@ class CallLog extends Entity implements JsonSerializable
             'actionId' => $this->actionId,
             'synchronizationId' => $this->synchronizationId,
             'expires' => $this->expires,
-            'createdAt' => $this->createdAt,
+            'created' => isset($this->created) ? $this->created->format('c') : null,
         ];
     }
 }

@@ -7,17 +7,17 @@ use OCA\OpenConnector\Db\SourceMapper;
 
 /**
  * This class is used to run the action tasks for the OpenConnector app. It hooks into the cron job list and runs the classes that are set as the job class in the job.
- * 
+ *
  * @package OCA\OpenConnector\Cron
  */
-class PingAction 
-{    
+class PingAction
+{
     private CallService $callService;
     private SourceMapper $sourceMapper;
-    
-    public function __construct(      
-        CallService $callService, 
-        SourceMapper $sourceMapper, 
+
+    public function __construct(
+        CallService $callService,
+        SourceMapper $sourceMapper,
     ) {
         $this->callService = $callService;
 		$this->sourceMapper = $sourceMapper;
@@ -34,7 +34,7 @@ class PingAction
 	 *
 	 * @return array An array containing the execution stack trace of the actions performed.
 	 */
-    public function run(array $arguments): array
+    public function run(array $arguments = []): array
 	{
 		$response = [];
 		$response['stackTrace'][] = 'Running PingAction';
@@ -48,8 +48,7 @@ class PingAction
 			// @todo log and / or not default to just using the first source
 			$response['stackTrace'][] = "No sourceId in arguments, default to sourceId = 1";
             $source = $this->sourceMapper->find(1);
-            $this->callService->call($source);
-        }
+		}
 
 		$response['stackTrace'][] = "Calling callService...";
 		$callLog = $this->callService->call($source);

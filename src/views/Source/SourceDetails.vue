@@ -45,6 +45,10 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
+						<b>id:</b>
+						<p>{{ sourceStore.sourceItem.uuid }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
 						<b>location:</b>
 						<p>{{ sourceStore.sourceItem.location }}</p>
 					</div>

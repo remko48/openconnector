@@ -51,6 +51,10 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 				<span>{{ jobStore.jobItem.description }}</span>
 
 				<div class="detailGrid">
+					<div class="gridContent gridFullWidth">
+						<b>id:</b>
+						<p>{{ jobStore.jobItem.uuid }}</p>
+					</div>
 					<div class="gridContent">
 						<b>Status:</b>
 						<p>{{ jobStore.jobItem.status }}</p>
