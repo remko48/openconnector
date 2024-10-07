@@ -117,7 +117,6 @@ export default {
 					{ id: 'DELETE', label: 'DELETE' },
 				],
 				value: { id: 'GET', label: 'GET' },
-
 			},
 		}
 	},

@@ -3,7 +3,7 @@ import { logStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editLog'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editLog'" ref="modalRef" @close="closeModal">
 		<div class="modalContent">
 			<h2>Log {{ logStore.logItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
 			<NcNoteCard v-if="success" type="success">
@@ -70,9 +70,15 @@ export default {
 			success: false,
 			loading: false,
 			error: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setModal(false)
+			clearTimeout(this.closeTimeoutFunc)
+			this.success = null
+		},
 		async editLog() {
 			this.loading = true
 			try {
@@ -80,12 +86,7 @@ export default {
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(() => {
-					this.success = false
-					this.loading = false
-					this.error = false
-					navigationStore.setModal(false)
-				}, 2000)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false
