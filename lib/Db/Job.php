@@ -105,10 +105,10 @@ class Job extends Entity implements JsonSerializable
 			'jobListId' => $this->jobListId,
 			'logRetention' => $this->logRetention,
 			'errorRetention' => $this->errorRetention,
-			'lastRun' => $this->lastRun,
-			'nextRun' => $this->nextRun,
-			'created' => $this->created,
-			'updated' => $this->updated,
+			'lastRun' => isset($this->lastRun) ? $this->lastRun->format('c') : null,
+            'nextRun' => isset($this->nextRun) ? $this->nextRun->format('c') : null,
+            'created' => isset($this->created) ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
 		];
 	}
 }

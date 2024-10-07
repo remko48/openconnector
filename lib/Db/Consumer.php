@@ -106,8 +106,8 @@ class Consumer extends Entity implements JsonSerializable
 			'ips' => $this->ips,
 			'authorizationType' => $this->authorizationType,
 			'authorizationConfiguration' => $this->authorizationConfiguration,
-			'created' => $this->created,
-			'updated' => $this->updated,
+			'created' => isset($this->created) ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
 		];
 	}
 }

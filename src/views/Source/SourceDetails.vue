@@ -71,7 +71,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ log.createdAt.date }} - {{ log.createdAt.timezone }}
+										{{ new Date(log.created).toLocaleString() }}
 									</template>
 									<template #actions>
 										<NcActionButton @click="viewLog(log)">
