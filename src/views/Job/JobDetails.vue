@@ -83,6 +83,14 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						<b>Single Run:</b>
 						<p>{{ jobStore.jobItem.singleRun }}</p>
 					</div>
+					<div class="gridContent">
+						<b>Next Run:</b>
+						<p>{{ jobStore.jobItem.nextRun || 'N/A' }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Last Run:</b>
+						<p>{{ jobStore.jobItem.lastRun || 'N/A' }}</p>
+					</div>
 				</div>
 
 				<div class="tabContainer">
@@ -133,7 +141,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
-										<BriefcaseAccountOutline disable-menu
+										<TimelineQuestionOutline disable-menu
 											:size="44" />
 									</template>
 									<template #subname>
@@ -158,7 +166,7 @@ import { BTabs, BTab } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
-import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
+import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
