@@ -26,23 +26,19 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 					label="Description" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceId"
-					label="sourceId"
-					required />
+					label="sourceId" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceType"
-					label="sourceType"
-					required />
+					label="sourceType" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
 					label="sourceTargetMapping" />
 
 				<NcTextField :value.sync="synchronizationItem.targetId"
-					label="targetId"
-					required />
+					label="targetId" />
 
 				<NcTextField :value.sync="synchronizationItem.targetType"
-					label="targetType"
-					required />
+					label="targetType" />
 
 				<NcTextField :value.sync="synchronizationItem.targetSourceMapping"
 					label="targetSourceMapping" />
