@@ -8,6 +8,7 @@ export const useMappingStore = defineStore(
 			mappingItem: false,
 			mappingList: [],
 			mappingMappingKey: null,
+			mappingCastKey: null,
 		}),
 		actions: {
 			setMappingItem(mappingItem) {
@@ -23,6 +24,10 @@ export const useMappingStore = defineStore(
 			setMappingMappingKey(mappingMappingKey) {
 				this.mappingMappingKey = mappingMappingKey
 				console.log('Active mapping mapping key set to ' + mappingMappingKey)
+			},
+			setMappingCastKey(mappingCastKey) {
+				this.mappingCastKey = mappingCastKey
+				console.log('Active mapping cast key set to ' + mappingCastKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshMappingList(search = null) {

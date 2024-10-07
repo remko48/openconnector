@@ -125,7 +125,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!sourceStore?.sourceItem?.jobs?.length"  class="tabPanel">
+							<div v-if="!sourceStore?.sourceItem?.jobs?.length" class="tabPanel">
 								No jobs found
 							</div>
 						</BTab>
@@ -161,7 +161,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!sourceStore.sourceLogs?.length"  class="tabPanel">
+							<div v-if="!sourceStore.sourceLogs?.length" class="tabPanel">
 								No logs found
 							</div>
 						</BTab>
