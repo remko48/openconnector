@@ -83,6 +83,14 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						<b>Single Run:</b>
 						<p>{{ jobStore.jobItem.singleRun }}</p>
 					</div>
+					<div class="gridContent">
+						<b>Next Run:</b>
+						<p>{{ jobStore.jobItem.nextRun || 'N/A' }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Last Run:</b>
+						<p>{{ jobStore.jobItem.lastRun || 'N/A' }}</p>
+					</div>
 				</div>
 
 				<div class="tabContainer">
