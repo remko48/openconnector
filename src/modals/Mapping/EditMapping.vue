@@ -77,6 +77,7 @@ export default {
 			success: false,
 			loading: false,
 			error: false,
+			hasUpdated: false,
 			closeTimeoutFunc: null,
 		}
 	},
