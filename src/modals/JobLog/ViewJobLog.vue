@@ -20,7 +20,7 @@ import { logStore, navigationStore } from '../../store/store.js'
 					<td class="keyColumn">
 						{{ key }}
 					</td>
-					<td v-if="key === 'created'">
+					<td v-if="typeof value === 'string' && (key === 'created' || key === 'updated' || key === 'expires' || key === 'lastRun' || key === 'nextRun')">
 						{{ new Date(value).toLocaleString() }}
 					</td>
 					<td v-else>
