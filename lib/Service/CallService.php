@@ -64,8 +64,8 @@ class CallService
 			$callLog->setSourceId($this->source->getId());
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
-			$callLog->setCreatedAt(new \DateTime());
-			$callLog->setUpdatedAt(new \DateTime());
+			$callLog->setCreated(new \DateTime());
+			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -79,8 +79,8 @@ class CallService
 			$callLog->setSourceId($this->source->getId());
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source has no location");
-			$callLog->setCreatedAt(new \DateTime());
-			$callLog->setUpdatedAt(new \DateTime());
+			$callLog->setCreated(new \DateTime());
+			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -168,7 +168,7 @@ class CallService
 		$callLog->setStatusMessage($data['response']['statusMessage']);
 		$callLog->setRequest($data['request']);
 		$callLog->setResponse($data['response']);
-		$callLog->setCreatedAt(new \DateTime());
+		$callLog->setCreated(new \DateTime());
 
 		$this->callLogMapper->insert($callLog);
 
