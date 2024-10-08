@@ -6,7 +6,7 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 	<div class="detailContainer">
 		<div id="app-content">
 			<div>
-				<div class="head">
+				<div class="detailHeader">
 					<h1 class="h1">
 						{{ endpointStore.endpointItem.name }}
 					</h1>
@@ -29,6 +29,7 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 						</NcActionButton>
 					</NcActions>
 				</div>
+
 				<span>{{ endpointStore.endpointItem.description }}</span>
 
 				<div class="detailGrid">
