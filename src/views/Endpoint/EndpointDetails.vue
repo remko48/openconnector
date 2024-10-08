@@ -33,12 +33,59 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
-						<b>id:</b>
+						<b>uuid:</b>
 						<p>{{ endpointStore.endpointItem.uuid }}</p>
 					</div>
+					<div class="gridContent gridFullWidth" />
+
 					<div class="gridContent gridFullWidth">
-						<b>URL:</b>
-						<p>{{ endpointStore.endpointItem.url }}</p>
+						<b>Name:</b>
+						<p>{{ endpointStore.endpointItem.name }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Description:</b>
+						<p>{{ endpointStore.endpointItem.description }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Reference:</b>
+						<p>{{ endpointStore.endpointItem.reference }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Version:</b>
+						<p>{{ endpointStore.endpointItem.version }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Endpoint:</b>
+						<p>{{ endpointStore.endpointItem.endpoint }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Endpoint Array:</b>
+						<p>{{ endpointStore.endpointItem.endpointArray.join(', ') }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Endpoint Regex:</b>
+						<p>{{ endpointStore.endpointItem.endpointRegex }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Method:</b>
+						<p>{{ endpointStore.endpointItem.method }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Type:</b>
+						<p>{{ endpointStore.endpointItem.targetType }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>Target Id:</b>
+						<p>{{ endpointStore.endpointItem.targetId }}</p>
+					</div>
+
+					<div class="gridContent gridFullWidth">
+						<b>created:</b>
+						<p>{{ endpointStore.endpointItem.created }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
+						<b>updated:</b>
+						<p>{{ endpointStore.endpointItem.updated }}</p>
 					</div>
 				</div>
 				<!-- Add more endpoint-specific details here -->
