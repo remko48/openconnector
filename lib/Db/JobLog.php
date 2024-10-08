@@ -87,10 +87,11 @@ class JobLog extends Entity implements JsonSerializable
             'userId' => $this->userId,
             'sessionId' => $this->sessionId,
             'stackTrace' => $this->stackTrace,
-            'expires' => $this->expires,
-            'lastRun' => $this->lastRun,
-            'nextRun' => $this->nextRun,
-            'created' => $this->created,
+            'expires' => isset($this->expires) ? $this->expires->format('c') : null,
+            'lastRun' => isset($this->lastRun) ? $this->lastRun->format('c') : null,
+            'nextRun' => isset($this->nextRun) ? $this->nextRun->format('c') : null,
+            'created' => isset($this->created) ? $this->created->format('c') : null,
+            
         ];
     }
 }

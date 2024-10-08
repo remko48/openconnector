@@ -83,8 +83,9 @@ class Endpoint extends Entity implements JsonSerializable
 			'method' => $this->method,
 			'targetType' => $this->targetType,
 			'targetId' => $this->targetId,
-			'created' => $this->created,
-			'updated' => $this->updated,
+			'created' => isset($this->created) ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
+			
 		];
 	}
 }

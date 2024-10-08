@@ -65,7 +65,7 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdatedAt(new \DateTime());
+			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
