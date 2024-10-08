@@ -11,10 +11,10 @@ export const mockConsumerData = (): TConsumer[] => [
 		version: '1.0.0',
 		domains: ['mobile.example.com'],
 		ips: ['192.168.1.1'],
-		authorizationType: 'public',
+		authorizationType: 'basic',
 		authorizationConfiguration: [],
 		created: '2023-02-01T00:00:00Z',
-		updated: '2023-02-01T00:00:00Z'
+		updated: '2023-02-01T00:00:00Z',
 	},
 	{
 		id: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
@@ -25,10 +25,10 @@ export const mockConsumerData = (): TConsumer[] => [
 		version: '1.1.0',
 		domains: ['dashboard.example.com'],
 		ips: ['192.168.1.2'],
-		authorizationType: 'api-key',
+		authorizationType: 'basic',
 		authorizationConfiguration: [['key', '4c3edd34-a90d-4d2a-8894-adb5836ecde8']],
 		created: '2023-02-01T00:00:00Z',
-		updated: '2023-02-01T00:00:00Z'
+		updated: '2023-02-01T00:00:00Z',
 	},
 ]
 
