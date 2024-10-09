@@ -35,7 +35,8 @@
 		"elasticsearch/elasticsearch": "^v8.14.0",
 		"guzzlehttp/guzzle": "^7.0",
 		"symfony/uid": "^6.4",
-		"twig/twig": "^3.14"
+		"twig/twig": "^3.14",
+		"web-token/jwt-framework": "^3"
 	},
 	"require-dev": {
 		"nextcloud/ocp": "dev-stable29",

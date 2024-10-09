@@ -3,7 +3,19 @@
 namespace OCA\OpenConnector\Service;
 
 
+use DateTime;
 use GuzzleHttp\Client;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Core\JWK;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\Signature\Algorithm\HS384;
+use Jose\Component\Signature\Algorithm\HS512;
+use Jose\Component\Signature\Algorithm\RS256;
+use Jose\Component\Signature\Algorithm\RS384;
+use Jose\Component\Signature\Algorithm\RS512;
+use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\Serializer\CompactSerializer;
 use OAuthException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
@@ -23,6 +35,12 @@ class AuthenticationService
 		'username',
 		'password',
 	];
+
+	public const REQUIRED_PARAMETERS_JWT = [
+		'payload',
+		'secret',
+		'algorithm'
+	]
 
 	/**
 	 * Create call options for OAuth with Client Credentials
@@ -135,6 +153,106 @@ class AuthenticationService
 		}
 
 		return $result['access_token'];
+	}
+	private function getRSJWK(array $configuration): ?JWK
+	{
+		$stamp = microtime().getmypid();
+		file_put_contents("/srv/api/var/privatekey-$stamp", $configuration['secret']);
+		$jwk = null;
+		$filename = "/srv/api/var/privatekey-$stamp";
+		try{
+			$jwk = JWKFactory::createFromKeyFile(
+				$filename,
+				null,
+				['use' => 'sig']
+			);
+		}
+		catch(\Exception $exception) {
+
+		}
+
+		unlink($filename);
+
+		return $jwk;
+	}
+
+	private function getHSJWK(array $configuration): ?JWK
+	{
+		$jwk = null;
+
+		try {
+			$jwk = new JWK(
+				[
+					'kty' => 'oct',
+					'k'   => base64_encode(addslashes($configuration['secret']),
+				]
+			);
+		}
+		catch(\Exception $exception) {
+
+		}
+
+		return $jwk;
+	}
+
+	private function getJWTPayload(array $configuration): array
+	{
+		$now = new DateTime();
+		$stringifiedPayload = str_replace(search: '{{$timestamp}}', replace: $now->getTimestamp(), subject: $configuration['payload']);
+
+		return json_decode($stringifiedPayload, true);
+	}
+
+	private function getJWK(array $configuration): ?JWK
+	{
+		$jwk = null;
+		if (in_array(needle: $configuration['algorithm'], haystack: ['HS256', 'HS512'])) {
+			$jwk = $this->getHSJWK($configuration);
+		} else if (in_array(needle: $configuration['algorithm'], haystack: ['RS256', 'RS384', 'RS512'])) {
+			$jwk = $this->getRSJWK($configuration);
+		}
+
+		return $jwk;
+	}
+
+	private function generateJWT(array $payload, JWK $jwk, string $algorithm): string
+	{
+		$algorithmManager = new AlgorithmManager([
+			new HS256(),
+			new HS384(),
+			new HS512(),
+			new RS256(),
+			new RS384(),
+			new RS512()
+		]);
+		$jwsBuilder 	  = new JWSBuilder($algorithmManager);
+		$jwsSerializer	  = new CompactSerializer();
+
+
+		$jws = $jwsBuilder
+			->create()
+			->withPayload(json_encode($payload))
+			->addSignature($jwk, ['alg' => $algorithm])
+			->build();
+
+		return $jwsSerializer->serialize($jws, 0)
+	}
+
+	public function fetchJWTToken (array $configuration): string
+	{
+		$diff = array_diff(self::REQUIRED_PARAMETERS_JWT, array_keys(array: $configuration));
+		if ($diff !== []) {
+			throw new BadRequestException(message: 'Some required parameters are not set: [' . implode(separator: ',', array: $diff) . ']');
+		}
+
+		$payload = $this->getJWTPayload($configuration);
+		$jwk 	 = $this->getJWK($configuration);
+
+		if($jwk === null) {
+			throw new BadRequestException('No JWK key could be formed with given data');
+		}
+
+		return $this->generateJWT($payload, $jwk, $configuration['algorithm']);
 	}
 
 }
