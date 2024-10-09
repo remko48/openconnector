@@ -20,7 +20,7 @@ import { consumerStore, navigationStore } from '../../store/store.js'
 			</div>
 
 			<form v-if="success === null" @submit.prevent="handleSubmit">
-				<div class="form-group">
+				<div class="form-group editConsumerForm">
 					<NcTextField
 						label="Name*"
 						:value.sync="consumerItem.name" />
@@ -43,16 +43,12 @@ import { consumerStore, navigationStore } from '../../store/store.js'
 						helper-text="Enter domains separated by commas (e.g. example.com, example.org)." />
 
 					<NcTextArea
-						label="ips"
+						label="IPs"
 						:value.sync="consumerItem.ips"
 						helper-text="Enter IP's separated by commas (e.g. 127.0.0.1, 1.1.1.1)." />
 
 					<NcSelect v-bind="authorizationTypeOptions"
 						v-model="authorizationTypeOptions.value" />
-
-					<NcTextArea
-						label="Authorization Configuration"
-						:value.sync="consumerItem.authorizationConfiguration" />
 				</div>
 			</form>
 
@@ -147,7 +143,7 @@ export default {
 
 				// If the authorizationType of the consumerItem exists on the authorizationTypeOptions, apply it to the value
 				// this is done for future proofing incase we were to change the authorization Types
-				if (this.authorizationTypeOptions.options.map(i => i.label).indexOf(consumerStore.consumerItem.authorizationType) >= 0) {
+				if (this.authorizationTypeOptions.options.map(i => i.label).indexOf(consumerStore.consumerItem.authorizationType) !== -1) {
 					this.authorizationTypeOptions.value = { label: consumerStore.consumerItem.authorizationType }
 				}
 			}
@@ -192,3 +188,13 @@ export default {
 	},
 }
 </script>
+
+<style lang="css">
+.editConsumerForm .textarea__helper-text-message {
+    padding-block: 4px;
+    padding-inline: var(--border-radius-large);
+    display: flex;
+    align-items: center;
+    color: var(--color-text-maxcontrast);
+}
+</style>
