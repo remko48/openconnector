@@ -40,7 +40,7 @@ class AuthenticationService
 		'payload',
 		'secret',
 		'algorithm'
-	]
+	];
 
 	/**
 	 * Create call options for OAuth with Client Credentials
@@ -184,7 +184,7 @@ class AuthenticationService
 			$jwk = new JWK(
 				[
 					'kty' => 'oct',
-					'k'   => base64_encode(addslashes($configuration['secret']),
+					'k'   => base64_encode(addslashes($configuration['secret'])),
 				]
 			);
 		}
@@ -235,7 +235,7 @@ class AuthenticationService
 			->addSignature($jwk, ['alg' => $algorithm])
 			->build();
 
-		return $jwsSerializer->serialize($jws, 0)
+		return $jwsSerializer->serialize($jws, 0);
 	}
 
 	public function fetchJWTToken (array $configuration): string
