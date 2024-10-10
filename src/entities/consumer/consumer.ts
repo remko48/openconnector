@@ -3,12 +3,10 @@ import { TConsumer } from './consumer.types'
 
 export class Consumer implements TConsumer {
 
-	public id: string
+	public id: number
 	public uuid: string
 	public name: string
 	public description: string
-	public reference: string
-	public version: string
 	public domains: string[]
 	public ips: string[]
 	public authorizationType: 'none' | 'basic' | 'bearer' | 'apiKey' | 'oauth2' | 'jwt'
@@ -17,28 +15,32 @@ export class Consumer implements TConsumer {
 	public updated: string
 
 	constructor(consumer: TConsumer) {
-		this.id = consumer.id || ''
-		this.uuid = consumer.id || ''
+		this.id = consumer.id || null
+		this.uuid = consumer.uuid || ''
 		this.name = consumer.name || ''
 		this.description = consumer.description || ''
-		this.reference = consumer.reference || ''
-		this.version = consumer.version || ''
 		this.domains = consumer.domains || []
 		this.ips = consumer.ips || []
 		this.authorizationType = consumer.authorizationType || 'basic'
 		this.authorizationConfiguration = consumer.authorizationConfiguration || []
-		this.created = consumer.created || ''
-		this.updated = consumer.updated || ''
+
+		/* Convert dates back to valid javascript ISO date strings */
+		// @ts-expect-error -- this is valid javascript, Typescript just doesn't recognize it
+		this.created = !isNaN(new Date(consumer.created))
+			? new Date(consumer.created).toISOString()
+			: ''
+		// @ts-expect-error -- this is valid javascript, Typescript just doesn't recognize it
+		this.updated = !isNaN(new Date(consumer.updated))
+			? new Date(consumer.updated).toISOString()
+			: ''
 	}
 
 	public validate(): SafeParseReturnType<TConsumer, unknown> {
 		const schema = z.object({
-			id: z.string().optional(),
+			id: z.number().optional(),
 			uuid: z.string().uuid().or(z.literal('')).optional(),
 			name: z.string().max(255),
 			description: z.string(),
-			reference: z.string(),
-			version: z.string(),
 			domains: z.array(z.string()),
 			ips: z.array(z.string()),
 			authorizationType: z.enum(['none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt']),

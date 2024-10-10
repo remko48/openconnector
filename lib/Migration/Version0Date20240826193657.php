@@ -226,8 +226,8 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addColumn('description', Types::TEXT, ['notnull' => false]); // The description of the consumer
             $table->addColumn('domains', Types::JSON, ['notnull' => false]); // The domains the consumer is allowed to run from
             $table->addColumn('ips', Types::JSON, ['notnull' => false]); // The ips the consumer is allowed to run from
-            $table->addColumn('authorizationType', Types::STRING, ['notnull' => false, 'length' => 255]); // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.
-            $table->addColumn('authorizationConfiguration', Types::TEXT, ['notnull' => false]); // The authorization configuration of the consumer
+            $table->addColumn('authorization_type', Types::STRING, ['notnull' => false, 'length' => 255]); // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.
+            $table->addColumn('authorization_configuration', Types::TEXT, ['notnull' => false]); // The authorization configuration of the consumer
             $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']); // the date and time the consumer was created
             $table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']); // the date and time the consumer was updated
             $table->setPrimaryKey(['id']);

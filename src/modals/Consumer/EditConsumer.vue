@@ -29,14 +29,6 @@ import { consumerStore, navigationStore } from '../../store/store.js'
 						label="Description"
 						:value.sync="consumerItem.description" />
 
-					<NcTextField
-						label="Reference"
-						:value.sync="consumerItem.reference" />
-
-					<NcTextField
-						label="Version"
-						:value.sync="consumerItem.version" />
-
 					<NcTextArea
 						label="Domains"
 						:value.sync="consumerItem.domains"
@@ -95,8 +87,6 @@ export default {
 			consumerItem: {
 				name: '',
 				description: '',
-				reference: '',
-				version: '',
 				domains: '',
 				ips: '',
 				authorizationType: '',
@@ -158,8 +148,6 @@ export default {
 			this.consumerItem = {
 				name: '',
 				description: '',
-				reference: '',
-				version: '',
 				domains: '',
 				ips: '',
 				authorizationType: '',
@@ -172,9 +160,11 @@ export default {
 
 			await consumerStore.saveConsumer({
 				...this.consumerItem,
-				domains: this.consumerItem.domains.split(/ *, */g), // split on comma's, also take any spaces into consideration
-				ips: this.consumerItem.ips.split(/ *, */g),
+				domains: this.consumerItem.domains.trim().split(/ *, */g), // split on comma's, also take any spaces into consideration
+				ips: this.consumerItem.ips.trim().split(/ *, */g),
 				authorizationType: this.authorizationTypeOptions.value.label,
+				authorizationConfiguration: [['']],
+				// authorizationConfiguration is unclear as to what it does and why it exists, but to avoid any issues it'll still make a array array string
 			}).then(({ response }) => {
 				this.success = response.ok
 				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)

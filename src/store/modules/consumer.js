@@ -78,6 +78,11 @@ export const useConsumerStore = defineStore('consumer', {
 				throw new MissingParameterError('consumerItem')
 			}
 
+			// update "updated" date to current date
+			if (consumerItem.updated) {
+				consumerItem.updated = new Date().toISOString()
+			}
+
 			// convert to an entity
 			consumerItem = new Consumer(consumerItem)
 
@@ -85,7 +90,7 @@ export const useConsumerStore = defineStore('consumer', {
 			const validationResult = consumerItem.validate()
 			if (!validationResult.success) {
 				console.error(validationResult.error)
-				console.log(validationResult)
+				console.log(consumerItem)
 				throw new ValidationError(validationResult.error)
 			}
 

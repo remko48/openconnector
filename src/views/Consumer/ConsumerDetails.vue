@@ -48,14 +48,6 @@ import { consumerStore, navigationStore } from '../../store/store.js'
 						<p>{{ consumerStore.consumerItem.description }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
-						<b>Reference:</b>
-						<p>{{ consumerStore.consumerItem.reference }}</p>
-					</div>
-					<div class="gridContent gridFullWidth">
-						<b>Version:</b>
-						<p>{{ consumerStore.consumerItem.version }}</p>
-					</div>
-					<div class="gridContent gridFullWidth">
 						<b>Domains:</b>
 						<p>{{ consumerStore.consumerItem.domains.join(', ') }}</p>
 					</div>
@@ -74,11 +66,11 @@ import { consumerStore, navigationStore } from '../../store/store.js'
 
 					<div class="gridContent gridFullWidth">
 						<b>created:</b>
-						<p>{{ consumerStore.consumerItem.created }}</p>
+						<p>{{ new Date(consumerStore.consumerItem.created).toLocaleDateString() }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>updated:</b>
-						<p>{{ consumerStore.consumerItem.updated }}</p>
+						<p>{{ new Date(consumerStore.consumerItem.updated).toLocaleDateString() }}</p>
 					</div>
 				</div>
 				<!-- Add more consumer-specific details here -->
