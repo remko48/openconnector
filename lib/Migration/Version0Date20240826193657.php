@@ -220,24 +220,16 @@ use OCP\Migration\SimpleMigrationStep;
 
         if (!$schema->hasTable('openconnector_consumers')) {
             $table = $schema->createTable('openconnector_consumers');
-            $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-            $table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]);
-            $table->addColumn('version', Types::STRING, ['notnull' => true, 'length' => 255, 'default' => '0.0.1']);
-            $table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
-            $table->addColumn('description', Types::TEXT, ['notnull' => false]);
-            $table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('is_enabled', Types::BOOLEAN, ['notnull' => true, 'default' => true]);
-            $table->addColumn('type', Types::STRING, ['notnull' => true, 'length' => 50]);
-            $table->addColumn('configuration', Types::TEXT, ['notnull' => false]);
-            $table->addColumn('status', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('last_call', Types::DATETIME, ['notnull' => false]);
-            $table->addColumn('last_sync', Types::DATETIME, ['notnull' => false]);
-            $table->addColumn('object_count', Types::INTEGER, ['notnull' => false]);
-            $table->addColumn('test', Types::BOOLEAN, ['notnull' => false]);
-            $table->addColumn('logRetention', Types::INTEGER, ['notnull' => true, 'default' => 3600]);
-            $table->addColumn('errorRetention', Types::INTEGER, ['notnull' => true, 'default' => 86400]);
-            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-            $table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
+            $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]); // The id of the consumer
+            $table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]); // The uuid of the consumer
+            $table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]); // The name of the consumer
+            $table->addColumn('description', Types::TEXT, ['notnull' => false]); // The description of the consumer
+            $table->addColumn('domains', Types::JSON, ['notnull' => false]); // The domains the consumer is allowed to run from
+            $table->addColumn('ips', Types::JSON, ['notnull' => false]); // The ips the consumer is allowed to run from
+            $table->addColumn('authorizationType', Types::STRING, ['notnull' => false, 'length' => 255]); // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.
+            $table->addColumn('authorizationConfiguration', Types::TEXT, ['notnull' => false]); // The authorization configuration of the consumer
+            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']); // the date and time the consumer was created
+            $table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']); // the date and time the consumer was updated
             $table->setPrimaryKey(['id']);
             $table->addIndex(['uuid'], 'openconnector_consumers_uuid_index');
         }
