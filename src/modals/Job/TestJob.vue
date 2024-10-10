@@ -29,9 +29,27 @@ import { jobStore, navigationStore } from '../../store/store.js'
 			</NcNoteCard>
 
 			<div v-if="jobStore.jobTest">
-				<p><b>Status:</b> {{ jobStore.jobTest.status }}</p>
-				<p><b>Execution time:</b> {{ jobStore.jobTest.executionTime }} (Milliseconds)</p>
-				<p><b>Result:</b> {{ jobStore.jobTest.result }}</p>
+				<p><b>UUID:</b> {{ jobStore.jobTest.uuid }}</p>
+				<p><b>Level:</b> {{ jobStore.jobTest.level }}</p>
+				<p><b>Message:</b> {{ jobStore.jobTest.message }}</p>
+				<p><b>Job ID:</b> {{ jobStore.jobTest.jobId }}</p>
+				<p><b>Job List ID:</b> {{ jobStore.jobTest.jobListId }}</p>
+				<p><b>Job Class:</b> {{ jobStore.jobTest.jobClass }}</p>
+				<p><b>Arguments:</b></p>
+				<ul>
+					<li v-for="(value, key) in jobStore.jobTest.arguments" :key="key">
+						{{ key }}: {{ value }}
+					</li>
+				</ul>
+				<p><b>Execution Time:</b> {{ jobStore.jobTest.executionTime }} ms</p>
+				<p><b>User ID:</b> {{ jobStore.jobTest.userId || 'N/A' }}</p>
+				<p><b>Session ID:</b> {{ jobStore.jobTest.sessionId || 'N/A' }}</p>
+				<p><b>Stack Trace:</b></p>
+				<ol>
+					<li v-for="(step, index) in jobStore.jobTest.stackTrace" :key="index">
+						{{ step }}
+					</li>
+				</ol>
 			</div>
 		</div>
 	</NcModal>

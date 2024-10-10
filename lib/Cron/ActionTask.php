@@ -76,7 +76,7 @@ class ActionTask extends TimedJob
         }
 
         // if the next run is in the the future, we don't need to do anything
-        if ($job->getNextRun() && $job->getNextRun() > $this->time->getTime()) {
+        if ($job->getNextRun() && $job->getNextRun() > new DateTime()) {
             return;
         }
 
