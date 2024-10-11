@@ -51,10 +51,48 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 				</div>
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
-						<BTab title="Endpoints" active>
+						<BTab title="Configurations">
+							<div v-if="sourceStore.sourceItem?.configuration !== null && Object.keys(sourceStore.sourceItem?.configuration).length > 0">
+								<NcListItem v-for="(value, key, i) in sourceStore.sourceItem?.configuration"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="sourceStore.sourceConfigurationKey === key"
+									@click="setActiveSourceConfigurationKey(key)">
+									<template #icon>
+										<FileCogOutline
+											:class="sourceStore.sourceConfigurationKey === key && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="editSourceConfiguration(key)">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="deleteSourceConfiguration(key)">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="sourceStore.sourceItem?.configuration === null || Object.keys(sourceStore.sourceItem?.configuration).length === 0" class="tabPanel">
+								No configurations found
+							</div>
+						</BTab>
+						<BTab title="Endpoints" class="tabPanel">
 							No endpoints found
 						</BTab>
-						<BTab title="Synchronizations">
+						<BTab title="Synchronizations" class="tabPanel">
 							No synchronizations found
 						</BTab>
 						<BTab title="Logs">
@@ -114,6 +152,7 @@ import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionO
 import Plus from 'vue-material-design-icons/Plus.vue'
 import MathLog from 'vue-material-design-icons/MathLog.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 
 export default {
 	name: 'SourceDetails',
