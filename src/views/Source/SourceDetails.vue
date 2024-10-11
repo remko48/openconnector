@@ -89,45 +89,11 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 								No configurations found
 							</div>
 						</BTab>
-						<BTab title="Mappings">
-							<div v-if="sourceStore?.sourceItem?.mappings?.length">
-								<NcListItem v-for="(character, i) in filterCharacters"
-									:key="character.id + i"
-									:name="character.name"
-									:bold="false"
-									:force-display-actions="true">
-									<template #icon>
-										<BriefcaseAccountOutline disable-menu
-											:size="44" />
-									</template>
-									<template #subname>
-										{{ character.description }}
-									</template>
-								</NcListItem>
-							</div>
-							<div v-if="!sourceStore?.sourceItem?.mappings?.length" class="tabPanel">
-								No mappings found
-							</div>
+						<BTab title="Endpoints" class="tabPanel">
+							No endpoints found
 						</BTab>
-						<BTab title="Jobs">
-							<div v-if="sourceStore?.sourceItem?.jobs?.length">
-								<NcListItem v-for="(character, i) in filterCharacters"
-									:key="character.id + i"
-									:name="character.name"
-									:bold="false"
-									:force-display-actions="true">
-									<template #icon>
-										<BriefcaseAccountOutline disable-menu
-											:size="44" />
-									</template>
-									<template #subname>
-										{{ character.description }}
-									</template>
-								</NcListItem>
-							</div>
-							<div v-if="!sourceStore?.sourceItem?.jobs?.length" class="tabPanel">
-								No jobs found
-							</div>
+						<BTab title="Synchronizations" class="tabPanel">
+							No synchronizations found
 						</BTab>
 						<BTab title="Logs">
 							<div v-if="sourceStore.sourceLogs?.length">
@@ -182,13 +148,11 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
-import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
 import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import MathLog from 'vue-material-design-icons/MathLog.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 
 export default {
 	name: 'SourceDetails',
