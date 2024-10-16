@@ -10,17 +10,6 @@ import { jobStore, navigationStore } from '../../store/store.js'
 		<div class="modalContent">
 			<h2>Test job</h2>
 
-			<form @submit.prevent="handleSubmit">
-				<div class="form-group">
-					<div class="testJobDetailGrid">
-						<NcTextField
-							id="jobId"
-							label="Job ID"
-							:value.sync="testJobItem.jobId" />
-					</div>
-				</div>
-			</form>
-
 			<NcButton
 				:disabled="loading"
 				type="primary"
@@ -32,17 +21,74 @@ import { jobStore, navigationStore } from '../../store/store.js'
 				Test job
 			</NcButton>
 
-			<NcNoteCard v-if="jobStore.jobTest && jobStore.jobTest.success" type="success">
-				<p>The job test was successful.</p>
-			</NcNoteCard>
-			<NcNoteCard v-if="(jobStore.jobTest && !jobStore.jobTest.success) || error" type="error">
-				<p>An error occurred while testing the job: {{ jobStore.jobTest ? jobStore.jobTest.message : error }}</p>
-			</NcNoteCard>
-
 			<div v-if="jobStore.jobTest">
-				<p><b>Status:</b> {{ jobStore.jobTest.status }}</p>
-				<p><b>Execution time:</b> {{ jobStore.jobTest.executionTime }} (Milliseconds)</p>
-				<p><b>Result:</b> {{ jobStore.jobTest.result }}</p>
+				<NcNoteCard v-if="jobStore.jobTest?.message === 'success'" type="success">
+					<p>The job test was successful.</p>
+				</NcNoteCard>
+				<NcNoteCard v-if="(jobStore.jobTest?.message !== 'success') || error" type="error">
+					<p>An error occurred while testing the job: {{ jobStore.jobTest ? jobStore.jobTest.message : error }}</p>
+				</NcNoteCard>
+			</div>
+
+			<div v-if="jobStore.jobTest" class="jobTestTable">
+				<table>
+					<tr>
+						<th>UUID</th>
+						<td>{{ jobStore.jobTest.uuid }}</td>
+					</tr>
+					<tr>
+						<th>Level</th>
+						<td>{{ jobStore.jobTest.level }}</td>
+					</tr>
+					<tr>
+						<th>Message</th>
+						<td>{{ jobStore.jobTest.message }}</td>
+					</tr>
+					<tr>
+						<th>Job ID</th>
+						<td>{{ jobStore.jobTest.jobId }}</td>
+					</tr>
+					<tr>
+						<th>Job List ID</th>
+						<td>{{ jobStore.jobTest.jobListId }}</td>
+					</tr>
+					<tr>
+						<th>Job Class</th>
+						<td>{{ jobStore.jobTest.jobClass || 'N/A' }}</td>
+					</tr>
+					<tr>
+						<th>Arguments</th>
+						<td>
+							<ul>
+								<li v-for="(value, key) in jobStore.jobTest.arguments" :key="key">
+									{{ key }}: {{ value }}
+								</li>
+							</ul>
+						</td>
+					</tr>
+					<tr>
+						<th>Execution Time</th>
+						<td>{{ jobStore.jobTest.executionTime }} ms</td>
+					</tr>
+					<tr>
+						<th>User ID</th>
+						<td>{{ jobStore.jobTest.userId || 'N/A' }}</td>
+					</tr>
+					<tr>
+						<th>Session ID</th>
+						<td>{{ jobStore.jobTest.sessionId || 'N/A' }}</td>
+					</tr>
+					<tr>
+						<th>Stack Trace</th>
+						<td>
+							<ol>
+								<li v-for="(step, index) in jobStore.jobTest.stackTrace" :key="index">
+									{{ step }}
+								</li>
+							</ol>
+						</td>
+					</tr>
+				</table>
 			</div>
 		</div>
 	</NcModal>
@@ -53,7 +99,6 @@ import {
 	NcButton,
 	NcModal,
 	NcLoadingIcon,
-	NcTextField,
 	NcNoteCard,
 } from '@nextcloud/vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
@@ -64,14 +109,10 @@ export default {
 		NcModal,
 		NcButton,
 		NcLoadingIcon,
-		NcTextField,
 		NcNoteCard,
 	},
 	data() {
 		return {
-			testJobItem: {
-				jobId: '',
-			},
 			success: false,
 			loading: false,
 			error: false,
@@ -83,15 +124,12 @@ export default {
 			this.success = false
 			this.loading = false
 			this.error = false
-			this.testJobItem = {
-				jobId: '',
-			}
 		},
 		async testJob() {
 			this.loading = true
 
 			try {
-				await jobStore.testJob(this.testJobItem.jobId)
+				await jobStore.testJob()
 				this.success = true
 				this.loading = false
 				this.error = false
@@ -110,5 +148,16 @@ export default {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 5px;
+}
+
+.jobTestTable th,
+.jobTestTable td {
+  padding: 4px;
+}
+.jobTestTable th {
+    font-weight: bold
+}
+.jobTestTable ol {
+    margin-left: 1rem;
 }
 </style>

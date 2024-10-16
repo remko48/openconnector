@@ -15,16 +15,16 @@ use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Response;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
+use Symfony\Component\Uid\Uuid;
 
 class CallService
 {
-	private $callLogMapper;
+	private CallLogMapper $callLogMapper;
 
 	/**
 	 * The constructor sets al needed variables.
 	 *
-	 * @param AuthenticationService  $authenticationService The authentication service
-	 * @param MappingService         $mappingService        The mapping service
+	 * @param CallLogMapper $callLogMapper
 	 */
 	public function __construct(CallLogMapper $callLogMapper)
 	{
@@ -61,11 +61,12 @@ class CallService
 		if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
 			// Create and save the CallLog
 			$callLog = new CallLog();
+			$callLog->setUuid(Uuid::v4());
 			$callLog->setSourceId($this->source->getId());
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
-			$callLog->setCreatedAt(new \DateTime());
-			$callLog->setUpdatedAt(new \DateTime());
+			$callLog->setCreated(new \DateTime());
+			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -75,11 +76,12 @@ class CallService
 		if (empty($this->source->getLocation()) === true) {
 			// Create and save the CallLog
 			$callLog = new CallLog();
+			$callLog->setUuid(Uuid::v4());
 			$callLog->setSourceId($this->source->getId());
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source has no location");
-			$callLog->setCreatedAt(new \DateTime());
-			$callLog->setUpdatedAt(new \DateTime());
+			$callLog->setCreated(new \DateTime());
+			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -158,12 +160,13 @@ class CallService
 
 		// Create and save the CallLog
 		$callLog = new CallLog();
+		$callLog->setUuid(Uuid::v4());
 		$callLog->setSourceId($this->source->getId());
 		$callLog->setStatusCode($data['response']['statusCode']);
 		$callLog->setStatusMessage($data['response']['statusMessage']);
 		$callLog->setRequest($data['request']);
 		$callLog->setResponse($data['response']);
-		$callLog->setCreatedAt(new \DateTime());
+		$callLog->setCreated(new \DateTime());
 
 		$this->callLogMapper->insert($callLog);
 
