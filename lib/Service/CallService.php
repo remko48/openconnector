@@ -2,6 +2,7 @@
 
 namespace OCA\OpenConnector\Service;
 
+use Adbar\Dot;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenConnector\Db\Source;
@@ -89,9 +90,7 @@ class CallService
 
 		// Check if the source has a configuration and merge it with the given config
 		if (empty($this->source->getConfiguration()) === false) {
-//			echo json_encode($this->source->getConfiguration());
-			$config = array_merge_recursive($config, $this->source->getConfiguration());
-//			echo json_encode($config);
+			$config = array_merge_recursive($config, $this->applyConfigDot($this->source->getConfiguration()));
 		}
 
 		// Check if the config has a Content-Type header and overwrite it if it does
@@ -127,7 +126,6 @@ class CallService
 		// Let's log the call.
 		$this->source->setLastCall(new \DateTime());
 		// @todo: save the source
-
 		// Let's make the call.
 		$time_start = microtime(true);
 		try {
@@ -173,5 +171,35 @@ class CallService
 		$this->callLogMapper->insert($callLog);
 
 		return $callLog;
+	}
+
+	/**
+	 * Uses Adbar Dot to place the values of keys with a dot in it in the $config array
+	 * to the correct position in the then updated multidimensional $config array.
+	 *
+	 * @param array $config The config array.
+	 *
+	 * @return array The updated config array.
+	 */
+	private function applyConfigDot(array $config): array
+	{
+		$dotConfig = new Dot($config);
+		$unsetKeys = [];
+
+		// Check if there are keys containing a dot we want to map to a different position in the $config array.
+		foreach ($config as $key => $value) {
+			if (str_contains($key, '.')) {
+				$dotConfig->set($key, $value);
+				$unsetKeys[] = $key;
+			}
+		}
+
+		// Remove the old keys containing a dot that we mapped to a different position in the $config array.
+		$config = $dotConfig->all();
+		foreach ($unsetKeys as $key) {
+			unset($config[$key]);
+		}
+
+		return $config;
 	}
 }
