@@ -1,5 +1,5 @@
 export type TEndpoint = {
-    id?: string
+    id?: number
     uuid: string
     name: string
     description: string
