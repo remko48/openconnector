@@ -1,5 +1,6 @@
 import { SafeParseReturnType, z } from 'zod'
 import { TConsumer } from './consumer.types'
+import getValidISOstring from '../../services/getValidISOstring'
 
 export class Consumer implements TConsumer {
 
@@ -25,19 +26,13 @@ export class Consumer implements TConsumer {
 		this.authorizationConfiguration = consumer.authorizationConfiguration || []
 
 		/* Convert dates back to valid javascript ISO date strings */
-		// @ts-expect-error -- this is valid javascript, Typescript just doesn't recognize it
-		this.created = !isNaN(new Date(consumer.created))
-			? new Date(consumer.created).toISOString()
-			: ''
-		// @ts-expect-error -- this is valid javascript, Typescript just doesn't recognize it
-		this.updated = !isNaN(new Date(consumer.updated))
-			? new Date(consumer.updated).toISOString()
-			: ''
+		this.created = getValidISOstring(consumer.created)
+		this.updated = getValidISOstring(consumer.updated)
 	}
 
 	public validate(): SafeParseReturnType<TConsumer, unknown> {
 		const schema = z.object({
-			id: z.number().optional(),
+			id: z.number().or(z.null()),
 			uuid: z.string().uuid().or(z.literal('')).optional(),
 			name: z.string().max(255),
 			description: z.string(),
