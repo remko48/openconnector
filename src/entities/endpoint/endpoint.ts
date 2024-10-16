@@ -1,9 +1,10 @@
 import { SafeParseReturnType, z } from 'zod'
 import { TEndpoint } from './endpoint.types'
+import getValidISOstring from '../../services/getValidISOstring'
 
 export class Endpoint implements TEndpoint {
 
-	public id: string
+	public id: number
 	public uuid: string
 	public name: string
 	public description: string
@@ -19,7 +20,7 @@ export class Endpoint implements TEndpoint {
 	public updated: string
 
 	constructor(endpoint: TEndpoint) {
-		this.id = endpoint.id || ''
+		this.id = endpoint.id || null
 		this.uuid = endpoint.uuid || ''
 		this.name = endpoint.name || ''
 		this.description = endpoint.description || ''
@@ -31,15 +32,17 @@ export class Endpoint implements TEndpoint {
 		this.method = endpoint.method || 'GET'
 		this.targetType = endpoint.targetType || ''
 		this.targetId = endpoint.targetId || ''
-		this.created = endpoint.created || ''
-		this.updated = endpoint.updated || ''
+
+		// Convert the received ISO string to a valid ISO string using a Date object if necessary
+		this.created = getValidISOstring(endpoint.created)
+		this.updated = getValidISOstring(endpoint.updated)
 	}
 
 	// validate data before posting
 	// id's are optional, meaning that the id property is not required to exist on the posted content, NOT that it can be empty / '0'
 	public validate(): SafeParseReturnType<TEndpoint, unknown> {
 		const schema = z.object({
-			id: z.string().optional(),
+			id: z.number().or(z.null()),
 			uuid: z.string().uuid().or(z.literal('')).optional(),
 			name: z.string().max(255),
 			description: z.string(),

@@ -85,7 +85,6 @@ export const useEndpointStore = defineStore('endpoint', {
 			const validationResult = endpointItem.validate()
 			if (!validationResult.success) {
 				console.error(validationResult.error)
-				console.log(validationResult)
 				throw new ValidationError(validationResult.error)
 			}
 
