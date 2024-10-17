@@ -29,10 +29,17 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 						label="Description"
 						:value.sync="mappingItem.description" />
 
-					<NcCheckboxRadioSwitch
-						:checked.sync="mappingItem.passThrough">
-						Pass Through
-					</NcCheckboxRadioSwitch>
+					<span class="flex-container">
+						<NcCheckboxRadioSwitch
+							:checked.sync="mappingItem.passThrough">
+							Pass Through
+						</NcCheckboxRadioSwitch>
+						<a v-tooltip="'When turning passThrough on, all data from the original object is copied to the new object (passed through the mapper)'"
+							href="https://commongateway.github.io/CoreBundle/pages/Features/Mappings"
+							target="_blank">
+							<HelpCircleOutline :size="20" />
+						</a>
+					</span>
 				</div>
 			</form>
 
@@ -45,13 +52,6 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 						<ContentSaveOutline v-if="!loading" :size="20" />
 					</template>
 					Save
-				</NcButton>
-				<NcButton type="secondary"
-					@click="openLink('https://commongateway.github.io/CoreBundle/pages/Features/Mappings', '_blank')">
-					<template #icon>
-						<BookOpenVariant :size="20" />
-					</template>
-					Documentation
 				</NcButton>
 			</div>
 		</div>
@@ -69,9 +69,7 @@ import {
 	NcCheckboxRadioSwitch,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
-import BookOpenVariant from 'vue-material-design-icons/BookOpenVariant.vue'
-
-import openLink from '../../services/openLink.js'
+import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
 
 export default {
 	name: 'EditMapping',
@@ -91,7 +89,7 @@ export default {
 			mappingItem: {
 				name: '',
 				description: '',
-				passThrough: true,
+				passThrough: false,
 			},
 			success: null,
 			loading: false,
@@ -128,7 +126,7 @@ export default {
 				id: null,
 				name: '',
 				description: '',
-				passThrough: true,
+				passThrough: false,
 			}
 		},
 		async editMapping() {
@@ -152,6 +150,12 @@ export default {
 <style scoped>
 .buttons {
     display: flex;
+    gap: 10px;
+}
+
+.flex-container {
+    display: flex;
+    align-items: center;
     gap: 10px;
 }
 </style>

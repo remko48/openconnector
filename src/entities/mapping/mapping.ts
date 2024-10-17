@@ -27,7 +27,7 @@ export class Mapping implements TMapping {
 		this.mapping = mapping.mapping || []
 		this.unset = mapping.unset || []
 		this.cast = mapping.cast || []
-		this.passThrough = mapping.passThrough ?? true
+		this.passThrough = mapping.passThrough ?? false
 		this.dateCreated = mapping.dateCreated || ''
 		this.dateModified = mapping.dateModified || ''
 	}
