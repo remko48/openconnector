@@ -12,7 +12,7 @@ export class Mapping implements TMapping {
 	public mapping: any[]
 	public unset: any[] | null
 	public cast: any[] | null
-	public passTrough: boolean | null
+	public passThrough: boolean | null
 	public dateCreated: string | null
 	public dateModified: string | null
 
@@ -25,7 +25,7 @@ export class Mapping implements TMapping {
 		this.mapping = mapping.mapping || []
 		this.unset = mapping.unset || null
 		this.cast = mapping.cast || null
-		this.passTrough = mapping.passTrough ?? true
+		this.passThrough = mapping.passThrough ?? true
 		this.dateCreated = mapping.dateCreated || null
 		this.dateModified = mapping.dateModified || null
 	}

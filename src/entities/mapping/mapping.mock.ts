@@ -12,7 +12,7 @@ export const mockMappingData = (): TMapping[] => [
 			{ source: 'lastName', target: 'family_name' },
 			{ source: 'email', target: 'email_address' },
 		],
-		passTrough: true,
+		passThrough: true,
 	},
 	{
 		id: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
@@ -24,7 +24,7 @@ export const mockMappingData = (): TMapping[] => [
 			{ source: 'productPrice', target: 'price' },
 			{ source: 'productDescription', target: 'description' },
 		],
-		passTrough: false,
+		passThrough: false,
 		unset: ['internal_id', 'created_by'],
 		cast: [
 			{ field: 'price', type: 'float' },

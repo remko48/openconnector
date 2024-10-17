@@ -8,7 +8,7 @@ export type TMapping = {
     mapping: any[]
     unset?: any[] | null
     cast?: any[] | null
-    passTrough?: boolean | null
+    passThrough?: boolean | null
     dateCreated?: string | null
     dateModified?: string | null
 }
