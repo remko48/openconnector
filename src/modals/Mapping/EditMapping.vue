@@ -9,6 +9,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 		@close="closeModal">
 		<div class="modalContent">
 			<h2>Mapping {{ mappingStore.mappingItem?.id ? 'Edit' : 'Add' }}</h2>
+
 			<NcNoteCard v-if="success" type="success">
 				<p>Mapping successfully added</p>
 			</NcNoteCard>
@@ -27,20 +28,32 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 						id="description"
 						label="Description"
 						:value.sync="mappingItem.description" />
+
+					<NcCheckboxRadioSwitch
+						:checked.sync="mappingItem.passThrough">
+						Pass Through
+					</NcCheckboxRadioSwitch>
 				</div>
 			</form>
 
-			<NcButton
-				v-if="!success"
-				:disabled="loading"
-				type="primary"
-				@click="editMapping()">
-				<template #icon>
-					<NcLoadingIcon v-if="loading" :size="20" />
-					<ContentSaveOutline v-if="!loading" :size="20" />
-				</template>
-				Save
-			</NcButton>
+			<div v-if="!success" class="buttons">
+				<NcButton :disabled="loading"
+					type="primary"
+					@click="editMapping()">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+						<ContentSaveOutline v-if="!loading" :size="20" />
+					</template>
+					Save
+				</NcButton>
+				<NcButton type="secondary"
+					@click="openLink('https://commongateway.github.io/CoreBundle/pages/Features/Mappings', '_blank')">
+					<template #icon>
+						<BookOpenVariant :size="20" />
+					</template>
+					Documentation
+				</NcButton>
+			</div>
 		</div>
 	</NcModal>
 </template>
@@ -53,8 +66,12 @@ import {
 	NcNoteCard,
 	NcTextField,
 	NcTextArea,
+	NcCheckboxRadioSwitch,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
+import BookOpenVariant from 'vue-material-design-icons/BookOpenVariant.vue'
+
+import openLink from '../../services/openLink.js'
 
 export default {
 	name: 'EditMapping',
@@ -65,6 +82,7 @@ export default {
 		NcNoteCard,
 		NcTextField,
 		NcTextArea,
+		NcCheckboxRadioSwitch,
 		// Icons
 		ContentSaveOutline,
 	},
@@ -73,8 +91,9 @@ export default {
 			mappingItem: {
 				name: '',
 				description: '',
+				passThrough: true,
 			},
-			success: false,
+			success: null,
 			loading: false,
 			error: false,
 			hasUpdated: false,
@@ -101,7 +120,7 @@ export default {
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = false
+			this.success = null
 			this.loading = false
 			this.error = false
 			this.hasUpdated = false
@@ -109,22 +128,30 @@ export default {
 				id: null,
 				name: '',
 				description: '',
+				passThrough: true,
 			}
 		},
 		async editMapping() {
 			this.loading = true
-			try {
-				await mappingStore.saveMapping(this.mappingItem)
-				// Close modal or show success message
-				this.success = true
-				this.loading = false
+
+			mappingStore.saveMapping({
+				...this.mappingItem,
+			}).then(({ response }) => {
+				this.success = response.ok
 				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			} catch (error) {
-				this.loading = false
-				this.success = false
+			}).catch((error) => {
 				this.error = error.message || 'An error occurred while saving the mapping'
-			}
+			}).finally(() => {
+				this.loading = false
+			})
 		},
 	},
 }
 </script>
+
+<style scoped>
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+</style>
