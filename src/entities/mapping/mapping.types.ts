@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type TMapping = {
-    id: string
+    id: number
+    uuid: string
     reference: string
     version: string
     name: string
@@ -8,7 +9,7 @@ export type TMapping = {
     mapping: any[]
     unset: any[]
     cast: any[]
-    passTrough: boolean
+    passThrough: boolean
     dateCreated: string
     dateModified: string
 }
