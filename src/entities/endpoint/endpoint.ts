@@ -21,7 +21,7 @@ export class Endpoint extends ReadonlyBaseClass implements TEndpoint {
 	public readonly updated: string
 
 	constructor(endpoint: TEndpoint) {
-		const processedEndpoint = {
+		const processedEndpoint: TEndpoint = {
 			id: endpoint.id || null,
 			uuid: endpoint.uuid || '',
 			name: endpoint.name || '',

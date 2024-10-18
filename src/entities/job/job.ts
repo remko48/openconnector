@@ -27,12 +27,12 @@ export class Job extends ReadonlyBaseClass implements TJob {
 	public readonly updated: string
 
 	constructor(job: TJob) {
-		const processedJob = {
+		const processedJob: TJob = {
 			id: job.id || '',
 			name: job.name || '',
 			description: job.description || '',
 			jobClass: job.jobClass || 'OCA\\OpenConnector\\Action\\PingAction',
-			arguments: job.arguments || '',
+			arguments: job.arguments || {},
 			interval: job.interval || 3600,
 			executionTime: job.executionTime || 3600,
 			timeSensitive: job.timeSensitive ?? true,

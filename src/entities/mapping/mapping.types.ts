@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type TMapping = {
-    id?: string
-    reference?: string | null
+    id: string
+    reference: string
     version: string
     name: string
-    description?: string | null
+    description: string
     mapping: any[]
-    unset?: any[] | null
-    cast?: any[] | null
-    passTrough?: boolean | null
-    dateCreated?: string | null
-    dateModified?: string | null
+    unset: any[]
+    cast: any[]
+    passTrough: boolean
+    dateCreated: string
+    dateModified: string
 }

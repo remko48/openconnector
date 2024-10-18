@@ -17,7 +17,7 @@ export class Consumer extends ReadonlyBaseClass implements TConsumer {
 	public readonly updated: string
 
 	constructor(consumer: TConsumer) {
-		const processedConsumer = {
+		const processedConsumer: TConsumer = {
 			id: consumer.id || null,
 			uuid: consumer.uuid || '',
 			name: consumer.name || '',

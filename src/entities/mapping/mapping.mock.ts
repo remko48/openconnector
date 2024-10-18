@@ -13,6 +13,11 @@ export const mockMappingData = (): TMapping[] => [
 			{ source: 'email', target: 'email_address' },
 		],
 		passTrough: true,
+		reference: '',
+		unset: [],
+		cast: [],
+		dateCreated: '',
+		dateModified: '',
 	},
 	{
 		id: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
@@ -30,6 +35,9 @@ export const mockMappingData = (): TMapping[] => [
 			{ field: 'price', type: 'float' },
 			{ field: 'inStock', type: 'boolean' },
 		],
+		reference: '',
+		dateCreated: '',
+		dateModified: '',
 	},
 ]
 
