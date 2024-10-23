@@ -4,15 +4,15 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 
 <template>
 	<NcDialog v-if="navigationStore.dialog === 'deleteSynchronization'"
-		name="Synchronisatie verwijderen"
+		name="Delete synchronization"
 		size="normal"
 		:can-close="false">
 		<p v-if="!success">
-			Wil je <b>{{ synchronizationStore.synchronizationItem.name }}</b> definitief verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+			Do you want to delete <b>{{ synchronizationStore.synchronizationItem.name }}</b>? This action cannot be undone.
 		</p>
 
 		<NcNoteCard v-if="success" type="success">
-			<p>Synchronisatie succesvol verwijderd</p>
+			<p>Successfully deleted synchronization</p>
 		</NcNoteCard>
 		<NcNoteCard v-if="error" type="error">
 			<p>{{ error }}</p>
@@ -20,11 +20,11 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 
 		<template #actions>
 			<NcButton
-				@click="navigationStore.setDialog(false)">
+				@click="closeModal">
 				<template #icon>
 					<Cancel :size="20" />
 				</template>
-				{{ success ? 'Sluiten' : 'Annuleer' }}
+				{{ success ? 'Close' : 'Cancel' }}
 			</NcButton>
 			<NcButton
 				v-if="!success"
@@ -35,7 +35,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<TrashCanOutline v-if="!loading" :size="20" />
 				</template>
-				Verwijderen
+				Delete
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -68,9 +68,15 @@ export default {
 			success: false,
 			loading: false,
 			error: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setDialog(false)
+			clearTimeout(this.closeTimeoutFunc)
+			this.success = null
+		},
 		async deleteSynchronization() {
 			this.loading = true
 			try {
@@ -79,14 +85,12 @@ export default {
 				this.success = true
 				this.loading = false
 				this.error = false
-				setTimeout(() => {
-					this.success = false
-					navigationStore.setDialog(false)
-				}, 2000)
+				synchronizationStore.setSynchronizationItem(null)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'Er is een fout opgetreden bij het verwijderen van de synchronisatie'
+				this.error = error.message || 'An error occurred while deleting the synchronization'
 			}
 		},
 	},

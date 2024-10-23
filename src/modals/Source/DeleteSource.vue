@@ -4,15 +4,15 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 
 <template>
 	<NcDialog v-if="navigationStore.dialog === 'deleteSource'"
-		name="Bron verwijderen"
+		name="Delete source"
 		size="normal"
 		:can-close="false">
 		<p v-if="!success">
-			Wil je <b>{{ sourceStore.sourceItem.name }}</b> definitief verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+			Do you want to delete <b>{{ sourceStore.sourceItem.name }}</b>? This action cannot be undone.
 		</p>
 
 		<NcNoteCard v-if="success" type="success">
-			<p>Bron succesvol verwijderd</p>
+			<p>Successfully deleted source</p>
 		</NcNoteCard>
 		<NcNoteCard v-if="error" type="error">
 			<p>{{ error }}</p>
@@ -20,11 +20,11 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 
 		<template #actions>
 			<NcButton
-				@click="navigationStore.setDialog(false)">
+				@click="closeModal">
 				<template #icon>
 					<Cancel :size="20" />
 				</template>
-				{{ success ? 'Sluiten' : 'Annuleer' }}
+				{{ success ? 'Close' : 'Cancel' }}
 			</NcButton>
 			<NcButton
 				v-if="!success"
@@ -35,7 +35,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<TrashCanOutline v-if="!loading" :size="20" />
 				</template>
-				Verwijderen
+				Delete
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -65,12 +65,18 @@ export default {
 	},
 	data() {
 		return {
-			success: false,
+			success: null,
 			loading: false,
 			error: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setDialog(false)
+			clearTimeout(this.closeTimeoutFunc)
+			this.success = null
+		},
 		async deleteSource() {
 			this.loading = true
 			try {
@@ -79,14 +85,12 @@ export default {
 				this.success = true
 				this.loading = false
 				this.error = false
-				setTimeout(() => {
-					this.success = false
-					navigationStore.setDialog(false)
-				}, 2000)
+				sourceStore.setSourceItem(null)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'Er is een fout opgetreden bij het verwijderen van de bron'
+				this.error = error.message || 'An error occurred while deleting the source'
 			}
 		},
 	},

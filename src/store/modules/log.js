@@ -7,6 +7,8 @@ export const useLogStore = defineStore(
 		state: () => ({
 			logItem: false,
 			logList: [],
+			activeLogKey: null,
+			viewLogItem: null,
 		}),
 		actions: {
 			setLogItem(logItem) {
@@ -18,6 +20,14 @@ export const useLogStore = defineStore(
 					(logItem) => new Log(logItem),
 				)
 				console.log('Log list set to ' + logList.length + ' items')
+			},
+			setViewLogItem(logItem) {
+				this.viewLogItem = logItem
+				console.log('Active log item set to ' + logItem)
+			},
+			setActiveLogKey(activeLogKey) {
+				this.activeLogKey = activeLogKey
+				console.log('Active log key set to ' + activeLogKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshLogList(search = null) {
@@ -97,7 +107,7 @@ export const useLogStore = defineStore(
 				// Create a copy of the log item and remove empty properties
 				const logToSave = { ...this.logItem }
 				Object.keys(logToSave).forEach(key => {
-					if (logToSave[key] === '' || (Array.isArray(logToSave[key]) && logToSave[key].length === 0)) {
+					if (logToSave[key] === '' || (Array.isArray(logToSave[key]) && !logToSave[key].length)) {
 						delete logToSave[key]
 					}
 				})

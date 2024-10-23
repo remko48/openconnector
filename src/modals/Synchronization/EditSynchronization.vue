@@ -1,51 +1,59 @@
 <script setup>
-import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, sourceStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editSynchronization'" ref="modalRef" @close="navigationStore.setModal(false)">
+	<NcModal v-if="navigationStore.modal === 'editSynchronization'"
+		ref="modalRef"
+		label-id="editSynchronization"
+		@close="closeModal">
 		<div class="modalContent">
-			<h2>Synchronisatie {{ synchronizationStore.synchronizationItem.id ? 'Aanpassen' : 'Aanmaken' }}</h2>
+			<h2>Synchronization{{ synchronizationItem.id ? 'Edit' : 'Add' }}</h2>
+
 			<NcNoteCard v-if="success" type="success">
-				<p>Synchronisatie succesvol toegevoegd</p>
+				<p>Synchronization successfully added</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
 			</NcNoteCard>
 
 			<form v-if="!success" @submit.prevent="handleSubmit">
-				<div class="form-group">
-					<label for="name">Naam:</label>
-					<input id="name" v-model="synchronizationStore.synchronizationItem.name" required>
-				</div>
-				<div class="form-group">
-					<label for="description">Beschrijving:</label>
-					<textarea id="description" v-model="synchronizationStore.synchronizationItem.description" />
-				</div>
-				<div class="form-group">
-					<label for="source">Bron:</label>
-					<NcSelect id="source" v-model="synchronizationStore.synchronizationItem.source" :options="sourceOptions" />
-				</div>
-				<div class="form-group">
-					<label for="target">Doel:</label>
-					<NcSelect id="target" v-model="synchronizationStore.synchronizationItem.target" :options="targetOptions" />
-				</div>
-				<div class="form-group">
-					<label for="schedule">Schema:</label>
-					<input id="schedule" v-model="synchronizationStore.synchronizationItem.schedule" placeholder="Cron expressie">
-				</div>
+				<NcTextField :value.sync="synchronizationItem.name"
+					label="Name"
+					required />
+
+				<NcTextArea :value.sync="synchronizationItem.description"
+					label="Description" />
+
+				<NcTextField :value.sync="synchronizationItem.sourceId"
+					label="sourceId" />
+
+				<NcTextField :value.sync="synchronizationItem.sourceType"
+					label="sourceType" />
+
+				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
+					label="sourceTargetMapping" />
+
+				<NcTextField :value.sync="synchronizationItem.targetId"
+					label="targetId" />
+
+				<NcTextField :value.sync="synchronizationItem.targetType"
+					label="targetType" />
+
+				<NcTextField :value.sync="synchronizationItem.targetSourceMapping"
+					label="targetSourceMapping" />
 			</form>
 
 			<NcButton
 				v-if="!success"
-				:disabled="loading"
+				:disabled="loading || !synchronizationItem.name"
 				type="primary"
 				@click="editSynchronization()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<ContentSaveOutline v-if="!loading" :size="20" />
 				</template>
-				Opslaan
+				Save
 			</NcButton>
 		</div>
 	</NcModal>
@@ -55,7 +63,8 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
-	NcSelect,
+	NcTextField,
+	NcTextArea,
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
@@ -66,7 +75,8 @@ export default {
 	components: {
 		NcModal,
 		NcButton,
-		NcSelect,
+		NcTextField,
+		NcTextArea,
 		NcLoadingIcon,
 		NcNoteCard,
 		// Icons
@@ -78,23 +88,57 @@ export default {
 			loading: false,
 			error: false,
 			sourceOptions: [], // This should be populated with available sources
+			source: {},
 			targetOptions: [], // This should be populated with available targets
+			synchronizationItem: {
+				name: '',
+				description: '',
+				sourceId: '',
+				sourceType: 'api',
+				sourceTargetMapping: '',
+				targetId: '',
+				targetType: 'register/schema',
+				targetSourceMapping: '',
+			}, // Initialize with empty fields
+			hasUpdated: false, // Flag to prevent constant looping
+			sourceLoading: false,
+			closeTimeoutFunc: null,
+		}
+	},
+	updated() {
+		if (navigationStore.modal === 'editSynchronization' && !this.hasUpdated) {
+			synchronizationStore.synchronizationItem && (this.synchronizationItem = { ...synchronizationStore.synchronizationItem })
+			this.hasUpdated = true
 		}
 	},
 	methods: {
+		closeModal() {
+			this.success = false
+			this.loading = false
+			this.error = false
+			this.hasUpdated = false
+			clearTimeout(this.closeTimeoutFunc)
+			navigationStore.setModal(false)
+			this.synchronizationItem = {
+				name: '',
+				description: '',
+				sourceId: '',
+				sourceType: 'api',
+				sourceTargetMapping: '',
+				targetId: '',
+				targetType: 'register/schema',
+				targetSourceMapping: '',
+			}
+		},
 		async editSynchronization() {
 			this.loading = true
 			try {
-				await synchronizationStore.saveSynchronization()
-				// Close modal or show success message
+				await synchronizationStore.saveSynchronization({
+					...this.synchronizationItem,
+				})
 				this.success = true
 				this.loading = false
-				setTimeout(() => {
-					this.success = false
-					this.loading = false
-					this.error = false
-					navigationStore.setModal(false)
-				}, 2000)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false

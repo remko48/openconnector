@@ -7,6 +7,8 @@ export const useSynchronizationStore = defineStore(
 		state: () => ({
 			synchronizationItem: false,
 			synchronizationList: [],
+			synchronizationContracts: [],
+			synchronizationLogs: [],
 		}),
 		actions: {
 			setSynchronizationItem(synchronizationItem) {
@@ -18,6 +20,18 @@ export const useSynchronizationStore = defineStore(
 					(synchronizationItem) => new Synchronization(synchronizationItem),
 				)
 				console.log('Synchronization list set to ' + synchronizationList.length + ' items')
+			},
+			setSynchronizationContracts(synchronizationContracts) {
+				this.synchronizationContracts = synchronizationContracts.map(
+					(synchronizationContract) => new SynchronizationContract(synchronizationContract),
+				)
+				console.log('Synchronization contracts set to ' + synchronizationContracts.length + ' items')
+			},
+			setSynchronizationLogs(synchronizationLogs) {
+				this.synchronizationLogs = synchronizationLogs.map(
+					(synchronizationLog) => new SynchronizationLog(synchronizationLog),
+				)
+				console.log('Synchronization logs set to ' + synchronizationLogs.length + ' items')
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshSynchronizationList(search = null) {
@@ -34,6 +48,56 @@ export const useSynchronizationStore = defineStore(
 							response.json().then(
 								(data) => {
 									this.setSynchronizationList(data.results)
+								},
+							)
+						},
+					)
+					.catch(
+						(err) => {
+							console.error(err)
+						},
+					)
+			},
+			/* istanbul ignore next */ // ignore this for Jest until moved into a service
+			async refreshSynchronizationContracts(search = null) {
+				// @todo this might belong in a service?
+				let endpoint = `/index.php/apps/openconnector/api/synchronizations-contracts/${this.synchronizationItem.id}`
+				if (search !== null && search !== '') {
+					endpoint = endpoint + '?_search=' + search
+				}
+				return fetch(endpoint, {
+					method: 'GET',
+				})
+					.then(
+						(response) => {
+							response.json().then(
+								(data) => {
+									this.setSynchronizationContracts(data.results)
+								},
+							)
+						},
+					)
+					.catch(
+						(err) => {
+							console.error(err)
+						},
+					)
+			},
+			/* istanbul ignore next */ // ignore this for Jest until moved into a service
+			async refreshSynchronizationLogs(search = null) {
+				// @todo this might belong in a service?
+				let endpoint = `/index.php/apps/openconnector/api/synchronizations-logs/${this.synchronizationItem.id}`
+				if (search !== null && search !== '') {
+					endpoint = endpoint + '?_search=' + search
+				}
+				return fetch(endpoint, {
+					method: 'GET',
+				})
+					.then(
+						(response) => {
+							response.json().then(
+								(data) => {
+									this.setSynchronizationLogs(data.results)
 								},
 							)
 						},
@@ -81,26 +145,18 @@ export const useSynchronizationStore = defineStore(
 					})
 			},
 			// Create or save a synchronization from store
-			saveSynchronization() {
-				if (!this.synchronizationItem) {
+			saveSynchronization(synchronizationItem) {
+				if (!synchronizationItem) {
 					throw new Error('No synchronization item to save')
 				}
 
 				console.log('Saving synchronization...')
 
-				const isNewSynchronization = !this.synchronizationItem.id
+				const isNewSynchronization = !synchronizationItem?.id
 				const endpoint = isNewSynchronization
 					? '/index.php/apps/openconnector/api/synchronizations'
-					: `/index.php/apps/openconnector/api/synchronizations/${this.synchronizationItem.id}`
+					: `/index.php/apps/openconnector/api/synchronizations/${synchronizationItem.id}`
 				const method = isNewSynchronization ? 'POST' : 'PUT'
-
-				// Create a copy of the synchronization item and remove empty properties
-				const synchronizationToSave = { ...this.synchronizationItem }
-				Object.keys(synchronizationToSave).forEach(key => {
-					if (synchronizationToSave[key] === '' || (Array.isArray(synchronizationToSave[key]) && synchronizationToSave[key].length === 0)) {
-						delete synchronizationToSave[key]
-					}
-				})
 
 				return fetch(
 					endpoint,
@@ -109,15 +165,15 @@ export const useSynchronizationStore = defineStore(
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify(synchronizationToSave),
+						body: JSON.stringify(synchronizationItem),
 					},
 				)
 					.then((response) => response.json())
 					.then((data) => {
 						this.setSynchronizationItem(data)
 						console.log('Synchronization saved')
-						// Refresh the synchronization list
-						return this.refreshSynchronizationList()
+
+						this.refreshSynchronizationList()
 					})
 					.catch((err) => {
 						console.error('Error saving synchronization:', err)

@@ -7,6 +7,8 @@ export const useMappingStore = defineStore(
 		state: () => ({
 			mappingItem: false,
 			mappingList: [],
+			mappingMappingKey: null,
+			mappingCastKey: null,
 		}),
 		actions: {
 			setMappingItem(mappingItem) {
@@ -18,6 +20,14 @@ export const useMappingStore = defineStore(
 					(mappingItem) => new Mapping(mappingItem),
 				)
 				console.log('Mapping list set to ' + mappingList.length + ' items')
+			},
+			setMappingMappingKey(mappingMappingKey) {
+				this.mappingMappingKey = mappingMappingKey
+				console.log('Active mapping mapping key set to ' + mappingMappingKey)
+			},
+			setMappingCastKey(mappingCastKey) {
+				this.mappingCastKey = mappingCastKey
+				console.log('Active mapping cast key set to ' + mappingCastKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshMappingList(search = null) {
@@ -81,48 +91,37 @@ export const useMappingStore = defineStore(
 					})
 			},
 			// Create or save a mapping from store
-			saveMapping() {
-				if (!this.mappingItem) {
+			async saveMapping(mappingItem) {
+				if (!mappingItem) {
 					throw new Error('No mapping item to save')
 				}
 
 				console.log('Saving mapping...')
 
-				const isNewMapping = !this.mappingItem.id
+				const isNewMapping = !mappingItem.id
 				const endpoint = isNewMapping
 					? '/index.php/apps/openconnector/api/mappings'
-					: `/index.php/apps/openconnector/api/mappings/${this.mappingItem.id}`
+					: `/index.php/apps/openconnector/api/mappings/${mappingItem.id}`
 				const method = isNewMapping ? 'POST' : 'PUT'
 
-				// Create a copy of the mapping item and remove empty properties
-				const mappingToSave = { ...this.mappingItem }
-				Object.keys(mappingToSave).forEach(key => {
-					if (mappingToSave[key] === '' || (Array.isArray(mappingToSave[key]) && mappingToSave[key].length === 0)) {
-						delete mappingToSave[key]
-					}
-				})
-
-				return fetch(
+				const response = await fetch(
 					endpoint,
 					{
 						method,
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify(mappingToSave),
+						body: JSON.stringify(mappingItem),
 					},
 				)
-					.then((response) => response.json())
-					.then((data) => {
-						this.setMappingItem(data)
-						console.log('Mapping saved')
-						// Refresh the mapping list
-						return this.refreshMappingList()
-					})
-					.catch((err) => {
-						console.error('Error saving mapping:', err)
-						throw err
-					})
+
+				const data = await response.json()
+				const entity = new Mapping(data)
+
+				this.setMappingItem(entity)
+				this.refreshMappingList()
+
+				return { response, data, entity }
 			},
 		},
 	},

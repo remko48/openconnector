@@ -1,11 +1,33 @@
 :root {
   --OC-margin-10: 10px;
   --OC-margin-20: 20px;
+  --OC-margin-30: 30px;
+  --OC-margin-40: 40px;
   --OC-margin-50: 50px;
+  --OC-color-status-background-debug: #f2f2f2;
+  --OC-color-status-debug: #4a4a4a;
+  --OC-color-status-background-success: #d4edda;
+  --OC-color-status-success: #155724;
+  --OC-color-status-background-info: #cce5ff;
+  --OC-color-status-info: #004085;
+  --OC-color-status-background-notice: #d1ecf1;
+  --OC-color-status-notice: #0c5460;
+  --OC-color-status-background-warning: #fff3cd;
+  --OC-color-status-warning: #856404;
+  --OC-color-status-background-error: #ffc061;
+  --OC-color-status-error: #59401a;
+  --OC-color-status-background-critical: #f8d7da;
+  --OC-color-status-critical: #721c24;
+  --OC-color-status-background-alert: #ff959e;
+  --OC-color-status-alert: #480f14;
+  --OC-color-status-background-emergency: #000000;
+  --OC-color-status-emergency: #ffffff;
 }
 
-/* Pages */
 
+
+
+/* Pages */
 .pageHeader {
   margin-block-start: var(--app-navigation-padding);
   margin-inline-start: calc(
@@ -16,13 +38,20 @@
 }
 
 /* Lists */
-
 .listHeader {
   position: sticky;
   top: 0;
   z-index: 1000;
   background-color: var(--color-main-background);
   border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+}
+
+.emptyListHeader {
+  margin-block-start: var(--OC-margin-10);
+  margin-inline-start: var(--OC-margin-10);
+  margin-inline-end: var(--OC-margin-10);
 }
 
 .searchField {
@@ -37,6 +66,10 @@
 }
 
 /* Detail pages */
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+}
 
 .detailContainer {
   margin-block-start: var(--OC-margin-20);
@@ -107,6 +140,14 @@
 }
 
 /* Modals */
+.modalContent {
+  margin: var(--OC-margin-30);
+  text-align: center;
+}
+.modalContent > *:not(:last-child) {
+  margin-block-end: 1rem;
+}
+
 .form-group > * {
   margin-block-end: 10px;
 }
@@ -127,7 +168,6 @@
 }
 
 /* File drag and drop */
-
 .filesListDragDropNotice {
   width: 100%;
   min-height: 113px;
@@ -161,4 +201,15 @@
 .filesListDragDropNoticeTitle {
   margin-left: 16px;
   color: inherit;
+}
+
+.h1 {
+  display: block !important;
+  font-size: 2em !important;
+  margin-block-start: 0.67em !important;
+  margin-block-end: 0.67em !important;
+  margin-inline-start: 0px !important;
+  margin-inline-end: 0px !important;
+  font-weight: bold !important;
+  unicode-bidi: isolate !important;
 }

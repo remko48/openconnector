@@ -4,18 +4,8 @@
     "editor.formatOnSave": true,
     "eslint.format.enable": true,
     "cSpell.words": [
-        "depubliceren",
-        "Depubliceren",
-        "gedepubliceerd",
-        "Matadata",
         "nextcloud",
-        "opencatalogi",
-        "organisation",
-        "Organisation",
-        "organisations",
-        "Organisations",
         "pinia",
-        "Toegangs"
     ],
     "[javascript]": {
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"

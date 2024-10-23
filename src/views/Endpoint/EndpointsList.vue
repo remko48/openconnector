@@ -22,7 +22,7 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 						</template>
 						Ververs
 					</NcActionButton>
-					<NcActionButton @click="endpointStore.setEndpointItem({}); navigationStore.setModal('editEndpoint')">
+					<NcActionButton @click="endpointStore.setEndpointItem(null); navigationStore.setModal('editEndpoint')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
@@ -69,7 +69,7 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 			appearance="dark"
 			name="Endpoints aan het laden" />
 
-		<div v-if="endpointStore.endpointList.length === 0">
+		<div v-if="!endpointStore.endpointList.length" class="emptyListHeader">
 			Er zijn nog geen endpoints gedefinieerd.
 		</div>
 	</NcAppContentList>

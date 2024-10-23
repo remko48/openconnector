@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class Source extends Entity implements JsonSerializable
 {
+	protected ?string $uuid = null;
 	protected ?string $name = null;
 	protected ?string $description = null;
 	protected ?string $reference = null;
@@ -36,6 +37,8 @@ class Source extends Entity implements JsonSerializable
 	protected ?array $configuration = null;
 	protected ?array $endpointsConfig = null;
 	protected ?string $status = null;
+	protected ?int $logRetention = 3600; // seconds to save all logs
+	protected ?int $errorRetention = 86400; // seconds to save error logs
 	protected ?DateTime $lastCall = null;
 	protected ?DateTime $lastSync = null;
 	protected ?int $objectCount = null;
@@ -44,6 +47,7 @@ class Source extends Entity implements JsonSerializable
 	protected ?bool $test = null;
 
 	public function __construct() {
+		$this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
 		$this->addType('reference', 'string');
@@ -72,6 +76,8 @@ class Source extends Entity implements JsonSerializable
 		$this->addType('configuration', 'json');
 		$this->addType('endpointsConfig', 'json');
 		$this->addType('status', 'string');
+		$this->addType('logRetention', 'integer');
+		$this->addType('errorRetention', 'integer');
 		$this->addType('lastCall', 'datetime');
 		$this->addType('lastSync', 'datetime');
 		$this->addType('objectCount', 'integer');
@@ -93,7 +99,7 @@ class Source extends Entity implements JsonSerializable
 	{
 		$jsonFields = $this->getJsonFields();
 
-		foreach($object as $key => $value) {
+		foreach ($object as $key => $value) {
 			if (in_array($key, $jsonFields) === true && $value === []) {
 				$value = [];
 			}
@@ -114,10 +120,11 @@ class Source extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
+			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
-			'reference' => $this->reference,
 			'version' => $this->version,
+			'reference' => $this->reference,
 			'location' => $this->location,
 			'isEnabled' => $this->isEnabled,
 			'type' => $this->type,
@@ -142,11 +149,13 @@ class Source extends Entity implements JsonSerializable
 			'configuration' => $this->configuration,
 			'endpointsConfig' => $this->endpointsConfig,
 			'status' => $this->status,
+			'logRetention' => $this->logRetention,
+			'errorRetention' => $this->errorRetention,
 			'lastCall' => $this->lastCall,
 			'lastSync' => $this->lastSync,
 			'objectCount' => $this->objectCount,
-			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified,
+			'dateCreated' => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
+			'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
 			'test' => $this->test
 		];
 	}
