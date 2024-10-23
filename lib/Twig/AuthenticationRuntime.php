@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\openconnector\lib\Twig;
+namespace OCA\OpenConnector\Twig;
 
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
@@ -24,7 +24,7 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 			configuration: $source->getAuthenticationConfig()
 		);
 	}
-	public function jwtToken(string $endpoint, string $sourceId): string
+	public function jwtToken(string $sourceId): string
 	{
 		$source = $this->sourceMapper->find(id: (int) $sourceId);
 

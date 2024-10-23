@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\openconnector\lib\Twig;
+namespace OCA\OpenConnector\Twig;
 
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;

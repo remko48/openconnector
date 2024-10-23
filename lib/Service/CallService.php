@@ -15,20 +15,35 @@ use GuzzleHttp\Psr7\Response;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
 use Symfony\Component\Uid\Uuid;
+use Twig\Environment;
 
 class CallService
 {
-	private CallLogMapper $callLogMapper;
+	private Client $client;
 
 	/**
 	 * The constructor sets al needed variables.
 	 *
 	 * @param CallLogMapper $callLogMapper
+	 * @param Environment $twig
 	 */
-	public function __construct(CallLogMapper $callLogMapper)
+	public function __construct(
+		private readonly CallLogMapper $callLogMapper,
+		private readonly Environment   $twig,
+	)
 	{
 		$this->client                = new Client([]);
-		$this->callLogMapper = $callLogMapper;
+	}
+
+	private function renderConfiguration(array $configuration, Source $source): array
+	{
+		$encoded  = json_encode(value: $configuration);
+		$rendered = $this->twig->createTemplate(template: $encoded)->render(context: ['source' => $source]);
+
+		$renderedConfig = json_decode(json: $rendered, associative: true);
+		var_dump($renderedConfig);
+
+		return $renderedConfig;
 	}
 
 	/**
@@ -99,7 +114,7 @@ class CallService
 			$overwriteContentType = $config['headers']['Content-Type'];
 		}
 
-		// decapiitilized fall back for content-type
+		// decapitalized fall back for content-type
 		if (isset($config['headers']['content-type']) === true) {
 			$overwriteContentType = $config['headers']['content-type'];
 		}
@@ -115,8 +130,10 @@ class CallService
 			$config['headers'] = [];
 		}
 
-		// We want to suprres guzzle exceptions and return the response instead
+		// We want to surpress guzzle exceptions and return the response instead
 		$config['http_errors'] = false;
+
+		$config = $this->renderConfiguration(configuration: $config, source: $source);
 
 		// Set the URL to call and add an endpoint if needed
 		$url = $this->source->getLocation().$endpoint;
