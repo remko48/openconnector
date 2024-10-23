@@ -18,9 +18,12 @@ use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use OAuthException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 
 class AuthenticationService
 {
+
 	public const REQUIRED_PARAMETERS_CLIENT_CREDENTIALS = [
 		'grant_type',
 		'scope',
@@ -41,6 +44,13 @@ class AuthenticationService
 		'secret',
 		'algorithm'
 	];
+
+	public function __construct(
+		ArrayLoader $loader
+	)
+	{
+		$this->twig = new Environment(loader: $loader);
+	}
 
 	/**
 	 * Create call options for OAuth with Client Credentials
@@ -144,6 +154,7 @@ class AuthenticationService
 		//@todo: custom config
 
 		$client = new Client();
+
 		$response = $client->post(uri: $endpoint, options: $callConfig);
 
 		$result = json_decode(json: $response->getBody()->getContents(), associative: true);
@@ -178,29 +189,19 @@ class AuthenticationService
 
 	private function getHSJWK(array $configuration): ?JWK
 	{
-		$jwk = null;
-
-		try {
-			$jwk = new JWK(
-				[
-					'kty' => 'oct',
-					'k'   => base64_encode(addslashes($configuration['secret'])),
-				]
-			);
-		}
-		catch(\Exception $exception) {
-
-		}
-
-		return $jwk;
+		return new JWK(
+			[
+				'kty' => 'oct',
+				'k'   => rtrim(string: base64_encode(addslashes($configuration['secret'])), characters: '='),
+			]
+		);
 	}
 
 	private function getJWTPayload(array $configuration): array
 	{
-		$now = new DateTime();
-		$stringifiedPayload = str_replace(search: '{{$timestamp}}', replace: $now->getTimestamp(), subject: $configuration['payload']);
+		$renderedPayload = $this->twig->createTemplate($configuration['payload'])->render($configuration);
 
-		return json_decode($stringifiedPayload, true);
+		return json_decode($renderedPayload, true);
 	}
 
 	private function getJWK(array $configuration): ?JWK
@@ -229,11 +230,15 @@ class AuthenticationService
 		$jwsSerializer	  = new CompactSerializer();
 
 
-		$jws = $jwsBuilder
-			->create()
-			->withPayload(json_encode($payload))
-			->addSignature($jwk, ['alg' => $algorithm])
-			->build();
+		try {
+			$jws = $jwsBuilder
+				->create()
+				->withPayload(json_encode($payload))
+				->addSignature($jwk, ['alg' => $algorithm])
+				->build();
+		} catch (\Exception $e) {
+			return $e->getMessage();
+		}
 
 		return $jwsSerializer->serialize($jws, 0);
 	}
