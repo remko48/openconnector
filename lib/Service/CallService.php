@@ -3,6 +3,7 @@
 namespace OCA\OpenConnector\Service;
 
 use Adbar\Dot;
+use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenConnector\Db\Source;
@@ -15,12 +16,16 @@ use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Response;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
+use OCA\OpenConnector\Twig\AuthenticationExtension;
+use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
 use Symfony\Component\Uid\Uuid;
 use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 
 class CallService
 {
 	private Client $client;
+	private Environment $twig;
 
 	/**
 	 * The constructor sets al needed variables.
@@ -30,21 +35,34 @@ class CallService
 	 */
 	public function __construct(
 		private readonly CallLogMapper $callLogMapper,
-		private readonly Environment   $twig,
+		ArrayLoader $loader,
+		AuthenticationService $authenticationService
 	)
 	{
-		$this->client                = new Client([]);
+		$this->client = new Client([]);
+		$this->twig = new Environment($loader);
+		$this->twig->addExtension(new AuthenticationExtension());
+		$this->twig->addRuntimeLoader(new AuthenticationRuntimeLoader($authenticationService));
 	}
 
+	private function renderValue(array|string $value, Source $source): array|string
+	{
+			if (is_array($value) === false
+				&& str_contains(haystack: $value, needle: "{{") === true
+				&& str_contains(haystack: $value, needle: "}}") === true
+			) {
+				return $this->twig->createTemplate(template: $value, name: "sourceConfig")->render(context: ['source' => $source]);
+			} else if (is_array($value) === true){
+				$value = array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $value);
+			}
+
+			return $value;
+	}
 	private function renderConfiguration(array $configuration, Source $source): array
 	{
-		$encoded  = json_encode(value: $configuration);
-		$rendered = $this->twig->createTemplate(template: $encoded)->render(context: ['source' => $source]);
+		$configuration = array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
 
-		$renderedConfig = json_decode(json: $rendered, associative: true);
-		var_dump($renderedConfig);
-
-		return $renderedConfig;
+		return $configuration;
 	}
 
 	/**
