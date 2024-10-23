@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Controller;
 
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
+use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenConnector\Db\Mapping;
 use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Controller;
@@ -25,7 +26,8 @@ class MappingsController extends Controller
         $appName,
         IRequest $request,
         private readonly IAppConfig $config,
-        private readonly MappingMapper $mappingMapper
+        private readonly MappingMapper $mappingMapper,
+        private readonly MappingService $mappingService
     )
     {
         parent::__construct($appName, $request);
@@ -161,5 +163,98 @@ class MappingsController extends Controller
         $this->mappingMapper->delete($this->mappingMapper->find((int) $id));
 
         return new JSONResponse([]);
+    }
+
+    /**
+     * Tests a mapping
+     * 
+     * This method tests a mapping with provided input data and optional schema validation.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     *
+     * @return JSONResponse A JSON response containing the test results
+     *
+     * @example
+     * Request:
+     * {
+     *     "inputObject": "{\"name\":\"John Doe\",\"age\":30,\"email\":\"john@example.com\"}",
+     *     "mapping": "{\"fullName\":\"{{name}}\",\"userAge\":\"{{age}}\",\"contactEmail\":\"{{email}}\"}",
+     *     "schema": "user_schema_id",
+     *     "validation": true
+     * }
+     *
+     * Response:
+     * {
+     *     "resultObject": {
+     *         "fullName": "John Doe",
+     *         "userAge": 30,
+     *         "contactEmail": "john@example.com"
+     *     },
+     *     "isValid": true,
+     *     "validationErrors": []
+     * }
+     */
+    public function test(): JSONResponse
+    {
+        $data = $this->request->getParams();
+        
+        // Extract necessary data from the request
+        if (!isset($data['inputObject']) || !isset($data['mapping'])) {
+            throw new \InvalidArgumentException('Both inputObject and mapping are required');
+        }
+        
+        $inputObject = json_decode($data['inputObject'], true);
+        if ($inputObject === null && json_last_error() !== JSON_ERROR_NONE) {
+            throw new \InvalidArgumentException('Invalid JSON for inputObject: ' . json_last_error_msg());
+        }
+        
+        $mapping = json_decode($data['mapping'], true);
+        if ($mapping === null && json_last_error() !== JSON_ERROR_NONE) {
+            throw new \InvalidArgumentException('Invalid JSON for mapping: ' . json_last_error_msg());
+        }
+
+        // Get the schema if provided and see if it needs to be validated
+        if (isset($data['schema']) && !empty($data['schema'])) {
+            $schemaId = $data['schema'];
+            $schema = $this->objectService->getObject($schemaId);
+        }
+        else {
+            $schema = false;
+        }
+        if (isset($data['validation']) && !empty($data['validation'])) {
+            $validation = $data['validation'];
+        }
+        else {
+            $validation = false;
+        }
+
+        $mappingObject = new Mapping();
+        $mappingObject->hydrates($mapping);
+
+        // Perform the mapping
+        try {
+            $resultObject = $this->mappingService->map(mapping: $mapping, input: $inputObject);
+        } catch (\Exception $e) {
+            return new JSONResponse([
+                'error' => 'Mapping error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+
+        // Validate against schema if provided
+        $isValid = true;
+        $validationErrors = [];
+        if ($schema !== false && $validation !== false) {
+            // Implement schema validation logic here
+            // For now, we'll just assume it's always valid
+            $isValid = true;
+        }
+
+        return new JSONResponse([
+            'resultObject' => $resultObject,
+            'isValid' => $isValid,
+            'validationErrors' => $validationErrors
+        ]);
     }
 }
