@@ -48,6 +48,11 @@ class AuthenticationService
 		'algorithm'
 	];
 
+	/**
+	 * Setting up the class with required service.
+	 *
+	 * @param ArrayLoader $loader
+	 */
 	public function __construct(
 		ArrayLoader $loader
 	)
@@ -64,7 +69,8 @@ class AuthenticationService
 	 */
 	private function createClientCredentialConfig(array $configuration): array
 	{
-		if(($diff = array_diff(self::REQUIRED_PARAMETERS_CLIENT_CREDENTIALS, array_keys(array: $configuration))) !== []) {
+		$diff = array_diff(self::REQUIRED_PARAMETERS_CLIENT_CREDENTIALS, array_keys(array: $configuration));
+		if ($diff !== []) {
 			throw new BadRequestException(message: 'Some required parameters are not set: ['.implode(separator: ',', array: $diff).']');
 		}
 
@@ -110,8 +116,8 @@ class AuthenticationService
 	 */
 	private function createPasswordConfig(array $configuration): array
 	{
-
-		if(($diff = array_diff(self::REQUIRED_PARAMETERS_PASSWORD, array_keys(array: $configuration))) !== []) {
+		$diff  = array_diff(self::REQUIRED_PARAMETERS_PASSWORD, array_keys(array: $configuration));
+		if($diff !== []) {
 			throw new BadRequestException(message: 'Some required parameters are not set: ['.implode(separator: ',', array: $diff).']');
 		}
 
@@ -131,7 +137,6 @@ class AuthenticationService
 				'password' => $configuration['password'],
 			];
 		}
-
 
 		return $callConfig;
 	}
@@ -180,21 +185,27 @@ class AuthenticationService
 
 		return $result['access_token'];
 	}
+
+	/**
+	 * Get RSA key for RS and PS (asymmetrical) encryption.
+	 *
+	 * @param array $configuration
+	 * @return JWK|null
+	 */
 	private function getRSJWK(array $configuration): ?JWK
 	{
 		$stamp = microtime().getmypid();
 		$filename = "privatekey-$stamp";
 		file_put_contents($filename, base64_decode($configuration['secret']));
 		$jwk = null;
-		try{
+		try {
 			$jwk = JWKFactory::createFromKeyFile(
 				$filename,
 				null,
 				['use' => 'sig']
 			);
 		}
-		catch(\Exception $exception) {
-			var_dump($exception->getMessage());
+		catch (Exception $exception) {
 			throw $exception;
 		}
 
@@ -203,6 +214,13 @@ class AuthenticationService
 		return $jwk;
 	}
 
+	/**
+	 * Get OCT key for HS (symmetrical) encryption.
+	 *
+	 * @param array $configuration The source configuration.
+	 *
+	 * @return JWK|null
+	 */
 	private function getHSJWK(array $configuration): ?JWK
 	{
 		return new JWK(
@@ -213,6 +231,15 @@ class AuthenticationService
 		);
 	}
 
+	/**
+	 * Generates the JWT Payload by rendering the payload before decoding it.
+	 *
+	 * @param array $configuration The source auth configuration.
+	 *
+	 * @return array The resulting JWT payload.
+	 * @throws \Twig\Error\LoaderError
+	 * @throws \Twig\Error\SyntaxError
+	 */
 	private function getJWTPayload(array $configuration): array
 	{
 		$renderedPayload = $this->twig->createTemplate($configuration['payload'])->render($configuration);
@@ -220,18 +247,33 @@ class AuthenticationService
 		return json_decode($renderedPayload, true);
 	}
 
+	/**
+	 * Gets the JWK key based upon algorithm and secret in the configuration.
+	 *
+	 * @param array $configuration The auth configuration for the source.
+	 * @return JWK|null The resulting JWK key.
+	 */
 	private function getJWK(array $configuration): ?JWK
 	{
 		$jwk = null;
-		if (in_array(needle: $configuration['algorithm'], haystack: ['HS256', 'HS512'])) {
-			$jwk = $this->getHSJWK($configuration);
-		} else if (in_array(needle: $configuration['algorithm'], haystack: ['RS256', 'RS384', 'RS512', 'PS256'])) {
-			$jwk = $this->getRSJWK($configuration);
+		if (in_array(needle: $configuration['algorithm'], haystack: ['HS256', 'HS512']) === true) {
+			return $this->getHSJWK($configuration);
+		} else if (in_array(needle: $configuration['algorithm'], haystack: ['RS256', 'RS384', 'RS512', 'PS256']) === true) {
+			return $this->getRSJWK($configuration);
 		}
 
-		return $jwk;
+		throw new BadRequestException('Algorithm not supported by key generator');
 	}
 
+	/**
+	 * Generates a signed JWT token based on key, payload and algorithm.
+	 *
+	 * @param array $payload The payload for the JWT token
+	 * @param JWK $jwk The JWT Key for the token.
+	 * @param string $algorithm The algorithm.
+	 * @param string|null $x5t If applicable: The Base64 encoded SHA-1 thumbprint of the used certificate.
+	 * @return string
+	 */
 	private function generateJWT(array $payload, JWK $jwk, string $algorithm, ?string $x5t = null): string
 	{
 		$algorithmManager = new AlgorithmManager([
@@ -246,9 +288,8 @@ class AuthenticationService
 		$jwsBuilder 	  = new JWSBuilder($algorithmManager);
 		$jwsSerializer	  = new CompactSerializer();
 
-
 		$header = ['alg' => $algorithm, 'typ' => 'JWT'];
-		if($x5t !== null) {
+		if ($x5t !== null) {
 			$header['x5t'] = $x5t;
 		}
 
@@ -258,13 +299,20 @@ class AuthenticationService
 				->withPayload(json_encode($payload))
 				->addSignature($jwk, $header)
 				->build();
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			return $e->getMessage();
 		}
 
 		return $jwsSerializer->serialize($jws, 0);
 	}
 
+	/**
+	 * Generates a JWT token that can be used for authentication.
+	 *
+	 * @param array $configuration The auth configuration for the JWT token. Must at least contain payload, algorithm and secret.
+	 *
+	 * @return string The generated JWT token
+	 */
 	public function fetchJWTToken (array $configuration): string
 	{
 		$diff = array_diff(self::REQUIRED_PARAMETERS_JWT, array_keys(array: $configuration));
@@ -275,11 +323,11 @@ class AuthenticationService
 		$payload = $this->getJWTPayload($configuration);
 		$jwk 	 = $this->getJWK($configuration);
 
-		if($jwk === null) {
+		if ($jwk === null) {
 			throw new BadRequestException('No JWK key could be formed with given data');
 		}
 
-		if(isset($configuration['x5t']) === true) {
+		if (isset($configuration['x5t']) === true) {
 			return $this->generateJWT($payload, $jwk, $configuration['algorithm'], x5t: $configuration['x5t']);
 		}
 
