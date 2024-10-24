@@ -3,6 +3,7 @@
 namespace OCA\OpenConnector\Service;
 
 use Adbar\Dot;
+use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenConnector\Db\Source;
@@ -15,21 +16,53 @@ use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Response;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
+use OCA\OpenConnector\Twig\AuthenticationExtension;
+use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
 use Symfony\Component\Uid\Uuid;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 
 class CallService
 {
-	private CallLogMapper $callLogMapper;
+	private Client $client;
+	private Environment $twig;
 
 	/**
 	 * The constructor sets al needed variables.
 	 *
 	 * @param CallLogMapper $callLogMapper
+	 * @param Environment $twig
 	 */
-	public function __construct(CallLogMapper $callLogMapper)
+	public function __construct(
+		private readonly CallLogMapper $callLogMapper,
+		ArrayLoader $loader,
+		AuthenticationService $authenticationService
+	)
 	{
-		$this->client                = new Client([]);
-		$this->callLogMapper = $callLogMapper;
+		$this->client = new Client([]);
+		$this->twig = new Environment($loader);
+		$this->twig->addExtension(new AuthenticationExtension());
+		$this->twig->addRuntimeLoader(new AuthenticationRuntimeLoader($authenticationService));
+	}
+
+	private function renderValue(array|string $value, Source $source): array|string
+	{
+			if (is_array($value) === false
+				&& str_contains(haystack: $value, needle: "{{") === true
+				&& str_contains(haystack: $value, needle: "}}") === true
+			) {
+				return $this->twig->createTemplate(template: $value, name: "sourceConfig")->render(context: ['source' => $source]);
+			} else if (is_array($value) === true){
+				$value = array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $value);
+			}
+
+			return $value;
+	}
+	private function renderConfiguration(array $configuration, Source $source): array
+	{
+		$configuration = array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
+
+		return $configuration;
 	}
 
 	/**
@@ -98,7 +131,7 @@ class CallService
 			$overwriteContentType = $config['headers']['Content-Type'];
 		}
 
-		// decapiitilized fall back for content-type
+		// decapitalized fall back for content-type
 		if (isset($config['headers']['content-type']) === true) {
 			$overwriteContentType = $config['headers']['content-type'];
 		}
@@ -114,8 +147,10 @@ class CallService
 			$config['headers'] = [];
 		}
 
-		// We want to suprres guzzle exceptions and return the response instead
+		// We want to surpress guzzle exceptions and return the response instead
 		$config['http_errors'] = false;
+
+		$config = $this->renderConfiguration(configuration: $config, source: $source);
 
 		// Set the URL to call and add an endpoint if needed
 		$url = $this->source->getLocation().$endpoint;
