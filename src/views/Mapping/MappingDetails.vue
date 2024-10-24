@@ -33,6 +33,12 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							</template>
 							Add Cast
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('testMapping')">
+							<template #icon>
+								<TestTube :size="20" />
+							</template>
+							Test
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteMapping')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -152,6 +158,7 @@ import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import TestTube from 'vue-material-design-icons/TestTube.vue'
 
 export default {
 	name: 'MappingDetails',
