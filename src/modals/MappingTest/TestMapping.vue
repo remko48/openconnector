@@ -61,36 +61,49 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 								</p>
 							</template>
 							<!-- eslint-disable-next-line vue/no-unused-vars  -->
-							<template #option="{ id, label, summary }">
-								<div class="mapping-option">
-									<SitemapOutline :size="25" />
-									<span>
+							<template #option="{ id, label, summary, removeStyle }">
+								<div :class="removeStyle !== true && 'mapping-option'">
+									<!-- custom style is enabled -->
+									<SitemapOutline v-if="!removeStyle" :size="25" />
+									<span v-if="!removeStyle">
 										<h6 style="margin: 0">
 											{{ label }}
 										</h6>
 										{{ summary }}
 									</span>
+									<!-- custom style is disabled -->
+									<p v-if="removeStyle">
+										{{ label }}
+									</p>
 								</div>
 							</template>
 						</NcSelect>
 
-						<!-- <NcButton
+						<NcButton
 							aria-label="Edit mapping"
+							:disabled="customMapping"
 							size="normal"
-							type="primary"
-							@click="editMapping = true">
+							:type="editMapping ? 'primary' : 'secondary'"
+							@click="editMapping = !editMapping">
 							<template #icon>
 								<Pencil :size="20" />
 							</template>
-							Edit mapping
-						</NcButton> -->
+							Toggle edit mapping
+						</NcButton>
 					</div>
+
+					<NcTextArea v-if="editMapping || customMapping"
+						class="edit-mapping-textarea"
+						:label="customMapping ? 'Create Mapping' : 'Edit Mapping'"
+						:value.sync="mapping"
+						:error="!validJson(mapping)"
+						:error-message="!validJson(mapping) ? 'Invalid JSON' : ''" />
 
 					<NcTextArea
 						label="Input object"
 						:value.sync="inputObject"
-						:error="!validInputObjectJson"
-						:error-message="!validInputObjectJson ? 'Invalid JSON' : ''" />
+						:error="!validJson(inputObject)"
+						:error-message="!validJson(inputObject) ? 'Invalid JSON' : ''" />
 
 					<NcSelect v-if="isOpenRegisterInstalled"
 						v-bind="schemas"
@@ -125,7 +138,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 			</form>
 
 			<div class="buttons">
-				<NcButton :disabled="loading || !mappings.value || !inputObject || !validInputObjectJson"
+				<NcButton :disabled="loading || !mappings.value || !inputObject || !validJson(mapping) || !validJson(inputObject)"
 					type="primary"
 					@click="testMapping()">
 					<template #icon>
@@ -193,6 +206,7 @@ export default {
 	data() {
 		return {
 			inputObject: '',
+			mapping: '', // for editing the current mapping / making a new one
 			mappings: [],
 			mappingsLoading: false,
 			isOpenRegisterInstalled: true, // defines if the openregister app is installed, defaults to true
@@ -207,12 +221,21 @@ export default {
 		}
 	},
 	computed: {
-		validInputObjectJson() {
-			try {
-				JSON.parse(this.inputObject)
-				return true
-			} catch (e) {
-				return false
+		/**
+		 * defined wether the mapping is a custom mapping or not.
+		 * "No mapping" is an option within the mappings dropdown.
+		 * when selected you will need to fully provide your own mapping.
+		 */
+		customMapping() {
+			return this.mappings.value.id === 'no-mapping'
+		},
+	},
+	watch: {
+		'mappings.value.id'(newVal) {
+			if (newVal === 'no-mapping') {
+				this.mapping = ''
+			} else {
+				this.mapping = JSON.stringify(this.mappings.value.fullMapping.mapping, null, 2)
 			}
 		},
 	},
@@ -238,12 +261,21 @@ export default {
 						: null
 
 					this.mappings = {
-						options: mappingStore.mappingList.map((mapping) => ({
-							id: mapping.id,
-							label: mapping.name,
-							summary: mapping.description,
-							fullMapping: mapping,
-						})),
+						options: [
+							{
+								id: 'no-mapping',
+								label: 'No mapping',
+								summary: 'No mapping available',
+								fullMapping: null,
+								removeStyle: true,
+							},
+							...mappingStore.mappingList.map((mapping) => ({
+								id: mapping.id,
+								label: mapping.name,
+								summary: mapping.description,
+								fullMapping: mapping,
+							})),
+						],
 						value: selectedMapping
 							? {
 								id: selectedMapping.id,
@@ -337,18 +369,43 @@ export default {
 			this.success = null
 			this.result = {}
 
-			mappingStore.testMapping({
-				mapping: this.mappings.value.fullMapping,
+			console.log({
+				mapping: this.editMapping
+					? {
+						...this.mappings.value.fullMapping,
+						mapping: JSON.parse(this.mapping),
+					}
+					: this.mappings.value.fullMapping,
 				inputObject: this.inputObject,
 				schema: this.schemas.value?.fullSchema,
-			}).then(({ response, data }) => {
-				this.success = response.ok
-				this.result = data
-			}).catch((error) => {
-				this.error = error.message || 'An error occurred while testing the mapping'
-			}).finally(() => {
-				this.loading = false
 			})
+
+			mappingStore.testMapping({
+				mapping: this.editMapping
+					? { // apply the edited mapping to the full mapping
+						...this.mappings.value.fullMapping,
+						mapping: JSON.parse(this.mapping),
+					} // use the full mapping as is
+					: this.mappings.value.fullMapping,
+				inputObject: this.inputObject,
+				schema: this.schemas.value?.fullSchema,
+			})
+				.then(({ response, data }) => {
+					this.success = response.ok
+					this.result = data
+				}).catch((error) => {
+					this.error = error.message || 'An error occurred while testing the mapping'
+				}).finally(() => {
+					this.loading = false
+				})
+		},
+		validJson(object) {
+			try {
+				JSON.parse(object)
+				return true
+			} catch (e) {
+				return false
+			}
 		},
 	},
 }
@@ -366,6 +423,10 @@ export default {
     gap: 10px;
 }
 
+textarea.textarea__input {
+    resize: vertical !important;
+}
+
 /* Mapping edit */
 .mapping-edit-container {
     display: flex;
@@ -375,6 +436,10 @@ export default {
 }
 .mapping-edit-container .button-vue {
     margin-top: 4px;
+}
+
+.edit-mapping-textarea textarea {
+    height: 150px !important;
 }
 
 /* Mapping option */
