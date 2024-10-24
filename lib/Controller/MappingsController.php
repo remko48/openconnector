@@ -213,17 +213,10 @@ class MappingsController extends Controller
         }
 
         // Decode the input object from JSON
-        $inputObject = json_decode($data['inputObject'], true);
-        if ($inputObject === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON for `inputObject`: ' . json_last_error_msg());
-        }
+        $inputObject = $data['inputObject'];
 
         // Decode the mapping from JSON
-//        $mapping = json_decode($data['mapping'], true);
 		$mapping = $data['mapping'];
-        if ($mapping === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON for `mapping`: ' . json_last_error_msg());
-        }
 
         // Initialize schema and validation flags
         $schema = false;
