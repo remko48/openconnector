@@ -3,6 +3,11 @@
 namespace OCA\OpenConnector\Service;
 
 use OCA\OpenConnector\Db\Mapping;
+use OCA\OpenConnector\Db\MappingMapper;
+use OCA\OpenConnector\Twig\AuthenticationExtension;
+use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
+use OCA\OpenConnector\Twig\MappingExtension;
+use OCA\OpenConnector\Twig\MappingRuntimeLoader;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 //use Twig\Environment;
@@ -28,9 +33,12 @@ class MappingService
      * @param SessionInterface $session The current session
      */
     public function __construct(
-		ArrayLoader $loader
+		ArrayLoader $loader,
+		MappingMapper $mappingMapper
     ) {
-        $this->twig    = new Environment($loader);
+        $this->twig = new Environment($loader);
+		$this->twig->addExtension(new MappingExtension());
+		$this->twig->addRuntimeLoader(new MappingRuntimeLoader(mappingService: $this, mappingMapper: $mappingMapper));
 
     }//end __construct()
 

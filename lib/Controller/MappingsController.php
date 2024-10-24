@@ -179,7 +179,13 @@ class MappingsController extends Controller
      * Request:
      * {
      *     "inputObject": "{\"name\":\"John Doe\",\"age\":30,\"email\":\"john@example.com\"}",
-     *     "mapping": "{\"fullName\":\"{{name}}\",\"userAge\":\"{{age}}\",\"contactEmail\":\"{{email}}\"}",
+     *     "mapping": {
+	 * 			"mapping": {
+	 * 				"fullName":"{{name}}",
+	 * 				"userAge":"{{age}}",
+	 * 				"contactEmail":"{{email}}"
+	 * 			}
+	 * 	   },
      *     "schema": "user_schema_id",
      *     "validation": true
      * }
@@ -213,7 +219,8 @@ class MappingsController extends Controller
         }
 
         // Decode the mapping from JSON
-        $mapping = json_decode($data['mapping'], true);
+//        $mapping = json_decode($data['mapping'], true);
+		$mapping = $data['mapping'];
         if ($mapping === null && json_last_error() !== JSON_ERROR_NONE) {
             throw new \InvalidArgumentException('Invalid JSON for `mapping`: ' . json_last_error_msg());
         }
@@ -235,7 +242,7 @@ class MappingsController extends Controller
 
         // Create a new Mapping object and hydrate it with the provided mapping
         $mappingObject = new Mapping();
-        $mappingObject->hydrate(['mapping' => $mapping]);
+        $mappingObject->hydrate($mapping);
 
         // Perform the mapping operation
         try {
