@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 //use Twig\Error\LoaderError;
 //use Twig\Error\SyntaxError;
 use Adbar\Dot;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 
 class MappingService
 {
@@ -17,7 +19,7 @@ class MappingService
      *
      * @var Environment
      */
-    //private Environment $twig;
+    private Environment $twig;
 
     /**
      * Setting up the base class with required services.
@@ -26,9 +28,9 @@ class MappingService
      * @param SessionInterface $session The current session
      */
     public function __construct(
-        //Environment $twig,
+		ArrayLoader $loader
     ) {
-        //$this->twig    = $twig;
+        $this->twig    = new Environment($loader);
 
     }//end __construct()
 
@@ -62,18 +64,16 @@ class MappingService
     /**
      * Maps (transforms) an array (input) to a different array (output).
      *
-     * @param Mapping $mappingObject The mapping object that forms the recipe for the mapping
+     * @param Mapping $mapping The mapping object that forms the recipe for the mapping
      * @param array   $input         The array that need to be mapped (transformed) otherwise known as input
      * @param bool    $list          Wheter we want a list instead of a sngle item
      *
-     * @throws LoaderError|SyntaxError Twig Exceptions
-     *
      * @return array The result (output) of the mapping process
+     *@throws LoaderError|SyntaxError Twig Exceptions
+     *
      */
-    public function mapping(Mapping $mappingObject, array $input, bool $list = false): array
+    public function executeMapping(Mapping $mapping, array $input, bool $list = false): array
     {
-        // Make sure we don't have BSONDocument (MongoDB) in our input.
-        $input = $this->bsonDocumentToArray($input);
 
         // Check for list
         if ($list === true) {
@@ -94,7 +94,7 @@ class MappingService
                     $value = array_merge((array) $value, ['value' => $value], $extraValues);
                 }
 
-                $list[$key] = $this->mapping($mappingObject, $value);
+                $list[$key] = $this->executeMapping($mapping, $value);
             }
 
             return $list;
@@ -107,7 +107,7 @@ class MappingService
 
         // Determine pass trough.
         // Let's get the dot array based on https://github.com/adbario/php-dot-notation.
-        if ($mappingObject->getPassThrough()) {
+        if ($mapping->getPassThrough()) {
             $dotArray = new Dot($input);
             // @todo: error loging
             // isset($this->style) === true && $this->style->info('Mapping *with* pass trough');
@@ -120,7 +120,7 @@ class MappingService
         $dotInput = new Dot($input);
 
         // Let's do the actual mapping.
-        foreach ($mappingObject->getMapping() as $key => $value) {
+        foreach ($mapping->getMapping() as $key => $value) {
             // If the value exists in the input dot take it from there.
             if ($dotInput->has($value)) {
                 $dotArray->set($key, $dotInput->get($value));
@@ -128,12 +128,12 @@ class MappingService
             }
 
             // Render the value from twig.
-            // $dotArray->set($key, $this->twig->createTemplate($value)->render($input));
-            $dotArray->set($key, $input);
+			$dotArray->set($key, $this->twig->createTemplate($value)->render($input));
+//            $dotArray->set($key, $input);
         }
 
         // Unset unwanted key's.
-        $unsets = ($mappingObject->getUnset() ?? []);
+        $unsets = ($mapping->getUnset() ?? []);
         foreach ($unsets as $unset) {
             if ($dotArray->has($unset) === false) {
                 // @todo: error loging
@@ -145,7 +145,7 @@ class MappingService
         }
 
         // Cast values to a specific type.
-        $casts = ($mappingObject->getCast() ?? []);
+        $casts = ($mapping->getCast() ?? []);
 
         foreach ($casts as $key => $cast) {
             if ($dotArray->has($key) === false) {
