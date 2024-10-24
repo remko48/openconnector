@@ -11,12 +11,15 @@ use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\Algorithm\HS384;
 use Jose\Component\Signature\Algorithm\HS512;
+use Jose\Component\Signature\Algorithm\PS256;
 use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\Algorithm\RS384;
 use Jose\Component\Signature\Algorithm\RS512;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
+use Jose\Component\Signature\Serializer\JSONFlattenedSerializer;
 use OAuthException;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -82,6 +85,18 @@ class AuthenticationService
 			];
 		}
 		//@todo: check for off-cases, i.e. camelCase (not according to OAuth standards)
+
+		if(isset($configuration['client_assertion_type']) === true && $configuration['client_assertion_type'] === 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer') {
+			$callConfig['form_params']['client_assertion_type'] = $configuration['client_assertion_type'];
+			$callConfig['form_params']['client_assertion'] = $this->fetchJWTToken([
+				'algorithm' => 'PS256',
+				'secret'    => $configuration['private_key'],
+				'x5t'       => $configuration['x5t'],
+				'payload'   => $configuration['payload'],
+			]);
+		}
+
+
 
 		return $callConfig;
 	}
@@ -168,9 +183,9 @@ class AuthenticationService
 	private function getRSJWK(array $configuration): ?JWK
 	{
 		$stamp = microtime().getmypid();
-		file_put_contents("/srv/api/var/privatekey-$stamp", $configuration['secret']);
+		$filename = "privatekey-$stamp";
+		file_put_contents($filename, base64_decode($configuration['secret']));
 		$jwk = null;
-		$filename = "/srv/api/var/privatekey-$stamp";
 		try{
 			$jwk = JWKFactory::createFromKeyFile(
 				$filename,
@@ -179,7 +194,8 @@ class AuthenticationService
 			);
 		}
 		catch(\Exception $exception) {
-
+			var_dump($exception->getMessage());
+			throw $exception;
 		}
 
 		unlink($filename);
@@ -209,14 +225,14 @@ class AuthenticationService
 		$jwk = null;
 		if (in_array(needle: $configuration['algorithm'], haystack: ['HS256', 'HS512'])) {
 			$jwk = $this->getHSJWK($configuration);
-		} else if (in_array(needle: $configuration['algorithm'], haystack: ['RS256', 'RS384', 'RS512'])) {
+		} else if (in_array(needle: $configuration['algorithm'], haystack: ['RS256', 'RS384', 'RS512', 'PS256'])) {
 			$jwk = $this->getRSJWK($configuration);
 		}
 
 		return $jwk;
 	}
 
-	private function generateJWT(array $payload, JWK $jwk, string $algorithm): string
+	private function generateJWT(array $payload, JWK $jwk, string $algorithm, ?string $x5t = null): string
 	{
 		$algorithmManager = new AlgorithmManager([
 			new HS256(),
@@ -224,17 +240,23 @@ class AuthenticationService
 			new HS512(),
 			new RS256(),
 			new RS384(),
-			new RS512()
+			new RS512(),
+			new PS256(),
 		]);
 		$jwsBuilder 	  = new JWSBuilder($algorithmManager);
 		$jwsSerializer	  = new CompactSerializer();
 
 
+		$header = ['alg' => $algorithm, 'typ' => 'JWT'];
+		if($x5t !== null) {
+			$header['x5t'] = $x5t;
+		}
+
 		try {
 			$jws = $jwsBuilder
 				->create()
 				->withPayload(json_encode($payload))
-				->addSignature($jwk, ['alg' => $algorithm])
+				->addSignature($jwk, $header)
 				->build();
 		} catch (\Exception $e) {
 			return $e->getMessage();
@@ -255,6 +277,10 @@ class AuthenticationService
 
 		if($jwk === null) {
 			throw new BadRequestException('No JWK key could be formed with given data');
+		}
+
+		if(isset($configuration['x5t']) === true) {
+			return $this->generateJWT($payload, $jwk, $configuration['algorithm'], x5t: $configuration['x5t']);
 		}
 
 		return $this->generateJWT($payload, $jwk, $configuration['algorithm']);
