@@ -56,32 +56,44 @@ class SynchronizationService
 	 * Synchronizes a given synchronization (or a complete source).
 	 *
 	 * @param Synchronization $synchronization
+	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
+     * 
 	 * @return array
 	 * @throws Exception
 	 */
-    public function synchronize(Synchronization $synchronization): array
+    public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
-        $objectList = $this->getAllObjectsFromSource($synchronization);
+        $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
         foreach ($objectList as $key => $object) {
             // Get the synchronization contract for this object
-            $synchronizationContract = $this->synchronizationContractMapper->findOnSynchronizationIdSourceId($synchronization->id, $object['id']);
+            $synchronizationContract = $this->synchronizationContractMapper->findOnSynchronizationIdSourceId(synchronizationId: $synchronization->id, sourceId: $object['id']);
 
-            if (!($synchronizationContract instanceof SynchronizationContract)) {
+            if ($synchronizationContract instanceof SynchronizationContract === false) {
                 $synchronizationContract = new SynchronizationContract();
                 $synchronizationContract->setUuid(Uuid::v4());
                 $synchronizationContract->setSynchronizationId($synchronization->id);
                 $synchronizationContract->setSourceId($object['id']);
                 $synchronizationContract->setSourceHash(md5(serialize($object)));
 
-                $synchronizationContract = $this->synchronizeContract($synchronizationContract, $synchronization, $object);
-                $objectList[$key] = $this->synchronizationContractMapper->insert($synchronizationContract);
+                $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
 
-            }
-            else{
+                if ($isTest === false) {
+                    $objectList[$key] = $this->synchronizationContractMapper->insert(entity: $synchronizationContract);
+                } else {
+                    $objectList[$key] = $synchronizationContract;
+                }        
+            } else {
                 // @todo this is wierd
-                $synchronizationContract = $this->synchronizeContract($synchronizationContract, $synchronization, $object);
-                $objectList[$key] = $this->synchronizationContractMapper->update($synchronizationContract);
+                $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
+                if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
+                    // If this is a regular synchronizationContract update it to the database.
+                    $objectList[$key] = $this->synchronizationContractMapper->update(entity: $synchronizationContract);
+                } elseif ($isTest === true && is_array($synchronizationContract) === true) {
+                    // If this is a log and contract array return for the test endpoint.
+                    $logAndContractArray = $synchronizationContract;
+                    return $logAndContractArray;
+                }
             }
         }
 
@@ -90,14 +102,17 @@ class SynchronizationService
 
 	/**
 	 * Synchronize a contract
+     * 
 	 * @param SynchronizationContract $synchronizationContract
-	 * @param Synchronization|null $synchronization
+	 * @param Synchronization|null    $synchronization
 	 * @param array $object
+	 * @param bool|null               $isTest False by default, currently added for synchronziation-test endpoint
+     * 
+	 * @throws Exception
 	 *
 	 * @return SynchronizationContract
-	 * @throws Exception
 	 */
-    public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [])
+    public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false)
     {
         // Let create a source hash for the object
         $sourceHash = md5(serialize($object));
@@ -116,9 +131,8 @@ class SynchronizationService
 
         // let do the mapping if provided
         if ($synchronization->getSourceTargetMapping()){
-            $targetObject = $this->mappingService->executeMapping($synchronization->getSourceTargetMapping(), $object);
-        }
-        else{
+            $targetObject = $this->mappingService->executeMapping(mapping: $synchronization->getSourceTargetMapping(), input: $object);
+        } else {
             $targetObject = $object;
         }
 
@@ -131,8 +145,9 @@ class SynchronizationService
         $synchronizationContract->setSourceLastSynced(new DateTime());
 
         // Do the magic!!
-
-        $this->updateTarget($synchronizationContract, $targetObject);
+        if ($isTest === false) {
+            $this->updateTarget(synchronizationContract: $synchronizationContract, targetObject: $targetObject);
+        }
 
         // Log it
         $log = new SynchronizationContractLog();
@@ -142,20 +157,28 @@ class SynchronizationService
         $log->setSource($object);
         $log->setTarget($targetObject);
         $log->setExpires(new DateTime('+1 day')); // @todo make this configurable
-        $this->synchronizationContractLogMapper->insert($log);
+        
+        if ($isTest === false) {
+            $this->synchronizationContractLogMapper->insert($log);
+        }
+
+        if ($isTest === true) {
+            return ['log' => $log->jsonSerialize(), 'contract' => $synchronizationContract->jsonSerialize()];
+        }
 
         return $synchronizationContract;
 
     }
 
 	/**
-	 *  Write the data to the target
+	 * Write the data to the target
 	 *
 	 * @param SynchronizationContract $synchronizationContract
-	 * @param array $targetObject
+	 * @param array                   $targetObject
+     * 
+	 * @throws Exception
 	 *
 	 * @return void
-	 * @throws Exception
 	 */
     public function updateTarget(SynchronizationContract $synchronizationContract, array $targetObject): void
 	{
@@ -203,23 +226,25 @@ class SynchronizationService
     /**
      * Get all the object from a source
      *
-     * @param SynchronizationContract $synchronizationContract
-     * @return void
+     * @param Synchronization $synchronization
+	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
+     * 
+     * @return array
      */
-    public function getAllObjectsFromSource(Synchronization $synchronization)
+    public function getAllObjectsFromSource(Synchronization $synchronization, ?bool $isTest = false)
     {
         $objects = [];
 
         $type = $synchronization->getSourceType();
 
-        switch($type){
+        switch ($type) {
             case 'register/schema':
                 // Setup the object service
                 $this->objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
 
                 break;
             case 'api':
-                $objects = $this->getAllObjectsFromApi($synchronization);
+                $objects = $this->getAllObjectsFromApi(synchronization: $synchronization, isTest: $isTest);
                 break;
             case 'database':
                 //@todo: implement
@@ -227,13 +252,16 @@ class SynchronizationService
         }
         return $objects;
     }
+
     /**
      * Retrieves all objects from an API source for a given synchronization.
      *
      * @param Synchronization $synchronization The synchronization object containing source information.
+     * @param bool            $isTest          If we only want to return a single object (for example a test)  
+     *  
      * @return array An array of all objects retrieved from the API.
      */
-    public function getAllObjectsFromApi(Synchronization $synchronization)
+    public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false)
     {
         $objects = [];
         // Retrieve the source object based on the synchronization's source ID
@@ -243,6 +271,12 @@ class SynchronizationService
         $response = $this->callService->call($source)->getResponse();
         $body = json_decode($response['body'], true);
         $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+        
+        // Return single object or empty array.
+        if ($isTest === true) {
+            return [$objects[0]] ?? [];
+        }
+
         $nextLink = $this->getNextlinkFromCall($body, $synchronization);
 
         // Continue making API calls if there are more pages of results
@@ -262,8 +296,10 @@ class SynchronizationService
      *
      * @param array $body The decoded JSON body of the API response.
      * @param Synchronization $synchronization The synchronization object containing source configuration.
-     * @return array An array of items extracted from the response body.
+     * 
      * @throws Exception If the position of objects in the return body cannot be determined.
+     * 
+     * @return array An array of items extracted from the response body.
      */
     public function getAllObjectsFromArray(array $array, Synchronization $synchronization)
     {
@@ -271,7 +307,7 @@ class SynchronizationService
         $sourceConfig = $synchronization->getSourceConfig();
 
         // Check if a specific objects position is defined in the source configuration
-        if (isset($sourceConfig['objectsPosition'])) {
+        if (isset($sourceConfig['objectsPosition']) === true) {
             $position = $sourceConfig['objectsPosition'];
             // Use Dot notation to access nested array elements
             $dot = new Dot($array);
@@ -286,17 +322,17 @@ class SynchronizationService
 
         // Check for common keys where objects might be stored
         // If 'items' key exists, return its value
-        if (isset($array['items'])) {
+        if (isset($array['items']) === true) {
             return $array['items'];
         }
 
         // If 'result' key exists, return its value
-        if (isset($array['result'])) {
+        if (isset($array['result']) === true) {
             return $array['result'];
         }
 
         // If 'results' key exists, return its value
-        if (isset($array['results'])) {
+        if (isset($array['results']) === true) {
             return $array['results'];
         }
 
@@ -309,6 +345,7 @@ class SynchronizationService
      *
      * @param array $body The decoded JSON body of the API response.
      * @param Synchronization $synchronization The synchronization object (unused in this method, but kept for consistency).
+     * 
      * @return string|bool The URL for the next page of results, or false if there is no next page.
      */
     public function getNextlinkFromCall(array $body, Synchronization $synchronization): string | bool | null
