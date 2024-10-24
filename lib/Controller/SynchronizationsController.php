@@ -4,7 +4,7 @@ namespace OCA\OpenConnector\Controller;
 
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
-use OCA\OpenConnector\Db\Synchronization;
+use OCA\OpenConnector\Service\SynchronizationService;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
 use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
@@ -13,6 +13,8 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
+use Exception;
+use OCP\AppFramework\Db\DoesNotExistException;
 
 class SynchronizationsController extends Controller
 {
@@ -29,7 +31,8 @@ class SynchronizationsController extends Controller
         private readonly IAppConfig $config,
         private readonly SynchronizationMapper $synchronizationMapper,
         private readonly SynchronizationContractMapper $synchronizationContractMapper,
-        private readonly SynchronizationContractLogMapper $synchronizationContractLogMapper
+        private readonly SynchronizationContractLogMapper $synchronizationContractLogMapper,
+        private readonly SynchronizationService $synchronizationService
     )
     {
         parent::__construct($appName, $request);    
@@ -208,5 +211,56 @@ class SynchronizationsController extends Controller
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Logs not found'], 404);
         }
+    }
+
+    /**
+     * Tests a synchronization
+     *
+     * This method tests a synchronization without persisting anything to the database.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * 
+     * @param int $id The ID of the synchronization
+     *
+     * @return JSONResponse A JSON response containing the test results
+     *
+     * @example
+     * Request:
+     * empty POST
+     *
+     * Response:
+     * {
+     *     "resultObject": {
+     *         "fullName": "John Doe",
+     *         "userAge": 30,
+     *         "contactEmail": "john@example.com"
+     *     },
+     *     "isValid": true,
+     *     "validationErrors": []
+     * }
+     */
+    public function test(int $id): JSONResponse
+    {
+        try {
+            return new JSONResponse(data: $this->synchronizationMapper->find(id: (int) $id));
+        } catch (DoesNotExistException $exception) {
+            return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
+        }
+
+        // Try to synchronize 
+        try {
+            $logAndContractArray = $this->synchronizationService->synchronize(synchronization: $synchronization, isTest: true);
+            // Return the result as a JSON response
+            return new JSONResponse(data: $logAndContractArray, statusCode: 200);
+        } catch (Exception $e) {
+            // If synchronizaiton fails, return an error response
+            return new JSONResponse([
+                'error' => 'Synchronization error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+
+        return new JSONResponse($resultFromTest, 200);
     }
 }
