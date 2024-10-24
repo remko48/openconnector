@@ -197,60 +197,68 @@ class MappingsController extends Controller
      */
     public function test(): JSONResponse
     {
+        // Get all parameters from the request
         $data = $this->request->getParams();
         
-        // Extract necessary data from the request
+        // Validate that required parameters are present
         if (!isset($data['inputObject']) || !isset($data['mapping'])) {
-            throw new \InvalidArgumentException('Both inputObject and mapping are required');
+            throw new \InvalidArgumentException('Both `inputObject` and `mapping` are required');
         }
         
+        // Decode the input object from JSON
         $inputObject = json_decode($data['inputObject'], true);
         if ($inputObject === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON for inputObject: ' . json_last_error_msg());
+            throw new \InvalidArgumentException('Invalid JSON for `inputObject`: ' . json_last_error_msg());
         }
         
+        // Decode the mapping from JSON
         $mapping = json_decode($data['mapping'], true);
         if ($mapping === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON for mapping: ' . json_last_error_msg());
+            throw new \InvalidArgumentException('Invalid JSON for `mapping`: ' . json_last_error_msg());
         }
 
-        // Get the schema if provided and see if it needs to be validated
+        // Initialize schema and validation flags
+        $schema = false;
+        $validation = false;
+
+        // If a schema is provided, retrieve it
         if (isset($data['schema']) && !empty($data['schema'])) {
             $schemaId = $data['schema'];
             $schema = $this->objectService->getObject($schemaId);
         }
-        else {
-            $schema = false;
-        }
+
+        // Check if validation is requested
         if (isset($data['validation']) && !empty($data['validation'])) {
             $validation = $data['validation'];
         }
-        else {
-            $validation = false;
-        }
 
+        // Create a new Mapping object and hydrate it with the provided mapping
         $mappingObject = new Mapping();
-        $mappingObject->hydrates($mapping);
+        $mappingObject->hydrate($mapping);
 
-        // Perform the mapping
+        // Perform the mapping operation
         try {
             $resultObject = $this->mappingService->map(mapping: $mapping, input: $inputObject);
         } catch (\Exception $e) {
+            // If mapping fails, return an error response
             return new JSONResponse([
                 'error' => 'Mapping error',
                 'message' => $e->getMessage()
             ], 400);
         }
 
-        // Validate against schema if provided
+        // Initialize validation variables
         $isValid = true;
         $validationErrors = [];
+
+        // Perform schema validation if both schema and validation are provided
         if ($schema !== false && $validation !== false) {
-            // Implement schema validation logic here
+            // TODO: Implement schema validation logic here
             // For now, we'll just assume it's always valid
             $isValid = true;
         }
 
+        // Return the result as a JSON response
         return new JSONResponse([
             'resultObject' => $resultObject,
             'isValid' => $isValid,
