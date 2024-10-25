@@ -51,7 +51,7 @@ class AuthenticationService
 	/**
 	 * Setting up the class with required service.
 	 *
-	 * @param ArrayLoader $loader
+	 * @param ArrayLoader $loader The ArrayLoader for Twig.
 	 */
 	public function __construct(
 		ArrayLoader $loader
