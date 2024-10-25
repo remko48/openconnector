@@ -6,7 +6,8 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 	<NcModal ref="modalRef"
 		label-id="testMapping"
 		@close="closeModal">
-		<div class="modalContent">
+		<!-- Do not remove this seemingly useless class "TestMappingMainModal" -->
+		<div class="modalContent TestMappingMainModal">
 			<h2>Mapping test</h2>
 
 			<NcNoteCard v-if="!isOpenRegisterInstalled"
@@ -79,8 +80,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							</template>
 						</NcSelect>
 
-						<NcButton
-							aria-label="Edit mapping"
+						<NcButton aria-label="Edit mapping"
 							:disabled="customMapping"
 							size="normal"
 							:type="editMapping ? 'primary' : 'secondary'"
@@ -88,22 +88,52 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							<template #icon>
 								<Pencil :size="20" />
 							</template>
-							Toggle edit mapping
+							Toggle edit
 						</NcButton>
 					</div>
 
-					<NcTextArea v-if="editMapping || customMapping"
-						class="edit-mapping-textarea"
-						:label="customMapping ? 'Create Mapping' : 'Edit Mapping'"
-						:value.sync="mapping"
-						:error="!validJson(mapping)"
-						:error-message="!validJson(mapping) ? 'Invalid JSON' : ''" />
+					<!-- EDIT FIELDS -->
+					<div v-if="editMapping || customMapping">
+						<h4>{{ customMapping ? 'Create Mapping' : 'Edit Mapping' }}</h4>
+						<NcTextArea class="edit-mapping-textarea"
+							:label="customMapping ? 'Create Mapping' : 'Edit Mapping'"
+							:value.sync="mapping"
+							:error="!validJson(mapping)"
+							:helper-text="!validJson(mapping) ? 'Invalid JSON' : ''" />
 
+						<NcTextArea class="edit-mapping-textarea"
+							:label="customMapping ? 'Create Cast' : 'Edit Cast'"
+							:value.sync="cast"
+							:error="!validJson(cast)"
+							:helper-text="!validJson(cast) ? 'Invalid JSON' : ''" />
+
+						<NcButton aria-label="save mapping changes"
+							:disabled="!validJson(mapping) || !validJson(cast) || savingMapping"
+							size="normal"
+							type="primary"
+							@click="saveMappingChanges">
+							<template #icon>
+								<NcLoadingContent v-if="savingMapping" :size="20" />
+								<ContentSave v-else :size="20" />
+							</template>
+							Save changes
+						</NcButton>
+
+						<NcNoteCard v-if="savingMappingSuccess" type="success">
+							<p>Mapping successfully saved</p>
+						</NcNoteCard>
+						<NcNoteCard v-if="savingMappingSuccess === false" type="error">
+							<p>Mapping failed to save</p>
+						</NcNoteCard>
+					</div>
+
+					<!-- NORMAL FIELD -->
+					<h4>Add Input Object</h4>
 					<NcTextArea
 						label="Input object"
 						:value.sync="inputObject"
 						:error="!validJson(inputObject)"
-						:error-message="!validJson(inputObject) ? 'Invalid JSON' : ''" />
+						:helper-text="!validJson(inputObject) ? 'Invalid JSON' : ''" />
 
 					<NcSelect v-if="isOpenRegisterInstalled"
 						v-bind="schemas"
@@ -187,8 +217,11 @@ import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
 import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
+import ContentSave from 'vue-material-design-icons/ContentSave.vue'
 
 import openLink from '../../services/openLink.js'
+
+import { Mapping } from '../../entities/index.js'
 
 export default {
 	name: 'TestMapping',
@@ -205,15 +238,23 @@ export default {
 	},
 	data() {
 		return {
+			// default data
 			inputObject: '',
 			mapping: '', // for editing the current mapping / making a new one
+			cast: '', // for editing the current mapping / making a new one
+			savingMapping: false,
+			savingMappingSuccess: null,
+			// Mappings download for dropdown
 			mappings: [],
 			mappingsLoading: false,
+			// schema's download for dropdown
 			isOpenRegisterInstalled: true, // defines if the openregister app is installed, defaults to true
 			noOpenRegisterToInstall: false, // defines if the openregister app is NOT available on the server, defaults to false
 			schemas: [],
 			schemasLoading: false,
-			editMapping: false,
+			// generic toggle states
+			editMapping: false, // toggle's the edit fields for editing mapping
+			// rest
 			result: {}, // result from the testMapping function
 			success: null,
 			loading: false,
@@ -227,15 +268,17 @@ export default {
 		 * when selected you will need to fully provide your own mapping.
 		 */
 		customMapping() {
-			return this.mappings.value.id === 'no-mapping'
+			return this.mappings.value?.id === 'no-mapping'
 		},
 	},
 	watch: {
 		'mappings.value.id'(newVal) {
 			if (newVal === 'no-mapping') {
 				this.mapping = ''
+				this.cast = ''
 			} else {
 				this.mapping = JSON.stringify(this.mappings.value.fullMapping.mapping, null, 2)
+				this.cast = JSON.stringify(this.mappings.value.fullMapping.cast, null, 2)
 			}
 		},
 	},
@@ -244,12 +287,16 @@ export default {
 		this.fetchSchemas()
 	},
 	methods: {
-		fetchMappings() {
+		fetchMappings(currentMappingItem = null) {
 			this.mappingsLoading = true
 
 			mappingStore.refreshMappingList()
 				.then(() => {
-					const selectedMapping = mappingStore.mappingList.find((mapping) => mapping.id === (mappingStore.mappingItem?.id || Symbol('mapping item id not found')))
+					if (currentMappingItem) {
+						currentMappingItem = mappingStore.mappingItem || null
+					}
+
+					const selectedMapping = mappingStore.mappingList.find((mapping) => mapping.id === (currentMappingItem?.id || Symbol('mapping item id not found')))
 
 					const fallbackMapping = mappingStore.mappingList[0]
 						? {
@@ -288,6 +335,28 @@ export default {
 				})
 				.finally(() => {
 					this.mappingsLoading = false
+				})
+		},
+		saveMappingChanges() {
+			this.savingMapping = true
+
+			const newMappingItem = new Mapping({
+				...this.mappings.value.fullMapping,
+				mapping: JSON.parse(this.mapping),
+				cast: JSON.parse(this.cast),
+			})
+
+			mappingStore.saveMapping(newMappingItem)
+				.then(({ response, entity }) => {
+					this.savingMappingSuccess = response.ok
+					response.ok && this.fetchMappings(entity)
+				})
+				.catch((e) => {
+					this.savingMappingSuccess = false
+				})
+				.finally(() => {
+					setTimeout(() => (this.savingMappingSuccess = null), 2000)
+					this.savingMapping = false
 				})
 		},
 		async fetchSchemas() {
@@ -369,22 +438,12 @@ export default {
 			this.success = null
 			this.result = {}
 
-			console.log({
-				mapping: this.editMapping
-					? {
-						...this.mappings.value.fullMapping,
-						mapping: JSON.parse(this.mapping),
-					}
-					: this.mappings.value.fullMapping,
-				inputObject: this.inputObject,
-				schema: this.schemas.value?.fullSchema,
-			})
-
 			mappingStore.testMapping({
 				mapping: this.editMapping
 					? { // apply the edited mapping to the full mapping
 						...this.mappings.value.fullMapping,
 						mapping: JSON.parse(this.mapping),
+						cast: JSON.parse(this.cast),
 					} // use the full mapping as is
 					: this.mappings.value.fullMapping,
 				inputObject: this.inputObject,
@@ -411,6 +470,13 @@ export default {
 }
 </script>
 
+<style>
+/* modal */
+div[class='modal-container']:has(.TestMappingMainModal) {
+    /* width: 90vw !important; */
+}
+</style>
+
 <style scoped>
 .buttons {
     display: flex;
@@ -423,7 +489,7 @@ export default {
     gap: 10px;
 }
 
-textarea.textarea__input {
+.textarea :deep(textarea) {
     resize: vertical !important;
 }
 
@@ -438,8 +504,8 @@ textarea.textarea__input {
     margin-top: 4px;
 }
 
-.edit-mapping-textarea textarea {
-    height: 150px !important;
+.edit-mapping-textarea :deep(textarea) {
+    height: 150px;
 }
 
 /* Mapping option */
