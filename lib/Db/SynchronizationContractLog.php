@@ -71,8 +71,8 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
             'target' => $this->target,
             'userId' => $this->userId,
             'sessionId' => $this->sessionId,
-            'expires' => $this->expires,
-            'created' => $this->created,
+            'expires' => isset($this->expires) ? $this->expires->format('c') : null,
+            'created' => isset($this->created) ? $this->created->format('c') : null,
         ];
     }
 }
