@@ -156,7 +156,7 @@ export const useMappingStore = defineStore('mapping', {
 			if (typeof mappingTestObject.inputObject !== 'object') {
 				mappingTestObject.inputObject = JSON.parse(mappingTestObject.inputObject)
 			}
-			if (typeof mappingTestObject.schema !== 'object') {
+			if (!!mappingTestObject.schema && typeof mappingTestObject.schema !== 'object') {
 				mappingTestObject.schema = JSON.parse(mappingTestObject.schema)
 			}
 
