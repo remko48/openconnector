@@ -21,6 +21,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Container\ContainerInterface;
 use DateInterval;
 use DateTime;
+use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Http\NotFoundResponse;
 
 class SynchronizationService
@@ -42,6 +43,7 @@ class SynchronizationService
 		MappingService $mappingService,
 		ContainerInterface $containerInterface,
         SourceMapper $sourceMapper,
+        MappingMapper $mappingMapper,
 		SynchronizationMapper $synchronizationMapper,
 		SynchronizationContractMapper $synchronizationContractMapper,
         SynchronizationContractLogMapper $synchronizationContractLogMapper
@@ -50,6 +52,7 @@ class SynchronizationService
 		$this->mappingService = $mappingService;
 		$this->containerInterface = $containerInterface;
 		$this->synchronizationMapper = $synchronizationMapper;
+		$this->mappingMapper = $mappingMapper;
 		$this->synchronizationContractMapper = $synchronizationContractMapper;
         $this->synchronizationContractLogMapper = $synchronizationContractLogMapper;
         $this->sourceMapper = $sourceMapper;
@@ -81,11 +84,14 @@ class SynchronizationService
 
                 $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
 
-                if ($isTest === false) {
+                if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
+                    // If this is a regular synchronizationContract create it to the database.
                     $objectList[$key] = $this->synchronizationContractMapper->insert(entity: $synchronizationContract);
-                } else {
-                    $objectList[$key] = $synchronizationContract;
-                }
+                } elseif ($isTest === true && is_array($synchronizationContract) === true) {
+                    // If this is a log and contract array return for the test endpoint.
+                    $logAndContractArray = $synchronizationContract;
+                    return $logAndContractArray;
+                }        
             } else {
                 // @todo this is wierd
                 $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
@@ -140,7 +146,12 @@ class SynchronizationService
 
         // let do the mapping if provided
         if ($synchronization->getSourceTargetMapping()){
-            $targetObject = $this->mappingService->executeMapping(mapping: $mapping, input: $object);
+            try {
+                $sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
+            } catch (DoesNotExistException $exception) {
+                throw new Exception("Could not find mapping with id: {$synchronization->getSourceTargetMapping()}");
+            }
+            $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
         } else {
             $targetObject = $object;
         }
@@ -192,7 +203,7 @@ class SynchronizationService
     public function updateTarget(SynchronizationContract $synchronizationContract, array $targetObject): void
 	{
          // The function can be called solo set let's make sure we have the full synchronization object
-         if (!$synchronization){
+        if (isset($synchronization) === false) {
             $synchronization = $this->synchronizationMapper->find($synchronizationContract->getSynchronizationId());
         }
 
@@ -213,6 +224,7 @@ class SynchronizationService
                     $targetObject['id'] = $synchronizationContract->getTargetId();
                 }
                 // Extract register and schema from the targetId
+                // The targetId needs to be filled in as: {registerId} + / + {schemaId} for example: 1/1
                 $targetId = $synchronization->getTargetId();
                 list($register, $schema) = explode('/', $targetId);
                 // Save the object to the target
