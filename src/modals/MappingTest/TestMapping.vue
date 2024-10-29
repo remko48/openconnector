@@ -1,5 +1,5 @@
 <script setup>
-import { mappingStore, navigationStore } from '../../store/store.js'
+import { navigationStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -11,10 +11,16 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 			<h2>Mapping test</h2>
 
 			<div class="content">
-				<TestMappingInputObject :input-object="inputObject"
-					@input-object-changed="(value) => inputObject = value" />
-				<div />
-				<div />
+				<TestMappingInputObject
+					:input-object="inputObject.value"
+					@input-object-changed="receiveInputObject" />
+				<TestMappingMappingSelect
+					:input-object="inputObject"
+					:mapping-item="mapping.selected"
+					@mapping-selected="receiveMappingSelected"
+					@mapping-test="receiveMappingTest" />
+				<TestMappingResult
+					:mapping-test="mappingTest" />
 			</div>
 		</div>
 	</NcModal>
@@ -23,141 +29,53 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 <script>
 import {
 	NcModal,
-	NcSelect,
-	NcTextArea,
-	NcButton,
-	NcLoadingIcon,
-	NcNoteCard,
-	NcGuestContent,
 } from '@nextcloud/vue'
 import TestMappingInputObject from './components/TestMappingInputObject.vue'
-
-import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
-import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
-import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
-import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
-import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
-import Pencil from 'vue-material-design-icons/Pencil.vue'
-import ContentSave from 'vue-material-design-icons/ContentSave.vue'
-
-import openLink from '../../services/openLink.js'
-
-import { Mapping } from '../../entities/index.js'
+import TestMappingMappingSelect from './components/TestMappingMappingSelect.vue'
+import TestMappingResult from './components/TestMappingResult.vue'
 
 export default {
 	name: 'TestMapping',
 	components: {
 		NcModal,
-		NcButton,
-		NcLoadingIcon,
-		NcNoteCard,
-		NcSelect,
-		NcTextArea,
-		NcGuestContent,
-		// Icons
-		ContentSaveOutline,
 	},
 	data() {
 		return {
 			// default data
-			inputObject: '',
-			mappingItem: null,
-			// rest
-			result: {}, // result from the testMapping function
-			success: null,
-			loading: false,
-			error: false,
+			inputObject: {
+				value: '',
+				isValid: false,
+			},
+			mapping: {
+				selected: {}, // selected mapping object
+				mappings: [], // all mappings
+				loading: false, // loading state of the mappings
+			},
+			mappingTest: {
+				result: {}, // result from the testMapping function
+				success: null,
+				loading: false,
+				error: false,
+			},
 		}
 	},
-	mounted() {
-		this.fetchMappings()
-	},
 	methods: {
-		fetchMappings(currentMappingItem = null) {
-			this.mappingsLoading = true
-
-			mappingStore.refreshMappingList()
-				.then(() => {
-					if (currentMappingItem) {
-						currentMappingItem = mappingStore.mappingItem || null
-					}
-
-					const selectedMapping = mappingStore.mappingList.find((mapping) => mapping.id === (currentMappingItem?.id || Symbol('mapping item id not found')))
-
-					const fallbackMapping = mappingStore.mappingList[0]
-						? {
-							id: mappingStore.mappingList[0].id,
-							label: mappingStore.mappingList[0].name,
-							summary: mappingStore.mappingList[0].description,
-							fullMapping: mappingStore.mappingList[0],
-						}
-						: null
-
-					this.mappings = {
-						options: [
-							{
-								id: 'no-mapping',
-								label: 'No mapping',
-								summary: 'No mapping available',
-								fullMapping: null,
-								removeStyle: true,
-							},
-							...mappingStore.mappingList.map((mapping) => ({
-								id: mapping.id,
-								label: mapping.name,
-								summary: mapping.description,
-								fullMapping: mapping,
-							})),
-						],
-						value: selectedMapping
-							? {
-								id: selectedMapping.id,
-								label: selectedMapping.name,
-								summary: selectedMapping.description,
-								fullMapping: selectedMapping,
-							}
-							: fallbackMapping,
-					}
-				})
-				.finally(() => {
-					this.mappingsLoading = false
-				})
+		receiveInputObject(value) {
+			this.inputObject = value
+		},
+		receiveMappingSelected(value) {
+			value.selected && (this.mapping.selected = value.selected)
+			value.mappings && (this.mapping.mappings = value.mappings)
+			value.loading && (this.mapping.loading = value.loading)
+		},
+		receiveMappingTest(value) {
+			value.result && (this.mappingTest.result = value.result)
+			value.success && (this.mappingTest.success = value.success)
+			value.loading && (this.mappingTest.loading = value.loading)
+			value.error && (this.mappingTest.error = value.error)
 		},
 		closeModal() {
 			navigationStore.setModal(false)
-		},
-		async testMapping() {
-			this.loading = true
-			this.success = null
-			this.result = {}
-
-			mappingStore.testMapping({
-				mapping: this.editMapping
-					? { // apply the edited mapping to the full mapping
-						...this.mappings.value.fullMapping,
-						mapping: JSON.parse(this.mapping),
-						cast: JSON.parse(this.cast),
-					} // use the full mapping as is
-					: this.mappings.value.fullMapping,
-				inputObject: this.inputObject,
-				schema: this.schemas.value?.fullSchema,
-			})
-				.then(({ response, data }) => {
-					this.success = response.ok
-					this.result = data
-				}).catch((error) => {
-					this.error = error.message || 'An error occurred while testing the mapping'
-				}).finally(() => {
-					this.loading = false
-				})
-		},
-		validJson(object) {
-			try {
-				JSON.parse(object)
-				return true
-			} catch (e) {
-				return false
-			}
 		},
 	},
 }
@@ -166,61 +84,27 @@ export default {
 <style>
 /* modal */
 div[class='modal-container']:has(.TestMappingMainModal) {
-    /* width: 90vw !important; */
+    width: clamp(800px, 100%, 1200px) !important;
 }
 </style>
 
 <style scoped>
-.buttons {
+.content {
+    height: 600px;
     display: flex;
-    gap: 10px;
+    flex-direction: row;
 }
-
-.flex-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.content > * {
+    height: 100%;
+    overflow: auto;
 }
-
-.textarea :deep(textarea) {
-    resize: vertical !important;
+.content > *:first-child {
+    width: calc(100% / 4);
 }
-
-/* Mapping edit */
-.mapping-edit-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 10px;
+.content > *:nth-child(2) {
+    width: calc(100% / 2);
 }
-.mapping-edit-container .button-vue {
-    margin-top: 4px;
-}
-
-.edit-mapping-textarea :deep(textarea) {
-    height: 150px;
-}
-
-/* Mapping option */
-.mapping-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.mapping-option > .material-design-icon {
-    margin-top: 2px;
-}
-.mapping-option > h6 {
-    line-height: 0.8;
-}
-
-/* install OR buttons */
-.notecard {
-    text-align: left;
-}
-.install-buttons {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
+.content > *:last-child {
+    width: calc(100% / 4);
 }
 </style>
