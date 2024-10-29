@@ -2,6 +2,7 @@
 
 namespace OCA\OpenConnector\Controller;
 
+use Exception;
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Db\Job;
@@ -35,7 +36,7 @@ class JobsController extends Controller
     )
     {
         parent::__construct($appName, $request);
-        $this->IJobList = $jobList;
+        $this->jobList = $jobList;
     }
 
     /**
@@ -219,13 +220,24 @@ class JobsController extends Controller
     {
         try {
             $job = $this->jobMapper->find(id: $id);
-            if (!$job->getJobListId()) {
-                return new JSONResponse(data: ['error' => 'Job not scheduled'], statusCode: 404);
-            }
-            $this->IJobList->getById($job->getJobListId())->start($this->IJobList);
-            return new JSONResponse($this->jobLogMapper->getLastCallLog());
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
+        }
+
+        if (!$job->getJobListId()) {
+            return new JSONResponse(data: ['error' => 'Job not scheduled'], statusCode: 404);
+        }
+
+        try {
+            $this->jobList->getById($job->getJobListId())->start($this->jobList);
+            $lastLog = $this->jobLogMapper->getLastCallLog();
+            if ($lastLog !== null) {
+                return new JSONResponse(data: $lastLog, statusCode: 200);
+            }
+
+            return new JSONResponse(data: ['error' => 'No job log could be found, job did not went succesfully or failed to log anything'], statusCode: 500);
+        } catch (Exception $exception) {
+            return new JSONResponse(data: ['error' => $exception->getMessage()], statusCode: 400);
         }
     }
 }
