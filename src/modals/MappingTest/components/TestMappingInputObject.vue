@@ -6,10 +6,10 @@
 	<div class="input-object-container">
 		<h4>Input object</h4>
 
-		<NcTextArea v-model="localInputObject"
+		<NcTextArea :value.sync="inputObject"
 			class="textarea"
-			:error="!validJson(localInputObject)"
-			:helper-text="!validJson(localInputObject) ? 'Invalid JSON' : ''"
+			:error="!validJson(inputObject)"
+			:helper-text="!validJson(inputObject) ? 'Invalid JSON' : ''"
 			@input="emitInputObjectChanged($event)" />
 	</div>
 </template>
@@ -24,21 +24,10 @@ export default {
 	components: {
 		NcTextArea,
 	},
-	props: {
-		inputObject: {
-			type: String,
-			required: true,
-		},
-	},
 	data() {
 		return {
-			localInputObject: '',
+			inputObject: '',
 		}
-	},
-	watch: {
-		inputObject(newVal) {
-			this.localInputObject = newVal
-		},
 	},
 	methods: {
 		emitInputObjectChanged(event) {

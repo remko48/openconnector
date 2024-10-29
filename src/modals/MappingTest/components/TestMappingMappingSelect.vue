@@ -75,10 +75,6 @@ export default {
 		NcLoadingIcon,
 	},
 	props: {
-		mappingItem: {
-			type: Object,
-			required: true,
-		},
 		inputObject: {
 			type: Object,
 			required: true,
@@ -98,11 +94,6 @@ export default {
 		}
 	},
 	watch: {
-		// activates when prop is received
-		mappingItem(newVal) {
-			if (!newVal?.id) return
-			this.mappings.value = this.mappings.options.find((option) => option.id === (newVal?.id || Symbol('mapping item id not found'))) || null
-		},
 		mappingTest: {
 			handler(newVal) {
 				this.$emit('mapping-test', {

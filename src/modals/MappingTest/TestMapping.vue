@@ -12,11 +12,9 @@ import { navigationStore } from '../../store/store.js'
 
 			<div class="content">
 				<TestMappingInputObject
-					:input-object="inputObject.value"
 					@input-object-changed="receiveInputObject" />
 				<TestMappingMappingSelect
 					:input-object="inputObject"
-					:mapping-item="mapping.selected"
 					@mapping-selected="receiveMappingSelected"
 					@mapping-test="receiveMappingTest" />
 				<TestMappingResult
