@@ -1,7 +1,3 @@
-<script setup>
-// import { navigationStore } from '../../store/store.js'
-</script>
-
 <template>
 	<div class="input-object-container">
 		<h4>Input object</h4>

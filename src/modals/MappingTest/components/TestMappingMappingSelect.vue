@@ -122,7 +122,7 @@ export default {
 
 			mappingStore.refreshMappingList()
 				.then(() => {
-					if (currentMappingItem) {
+					if (!currentMappingItem) {
 						currentMappingItem = mappingStore.mappingItem || null
 					}
 
