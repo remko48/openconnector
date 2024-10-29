@@ -25,14 +25,12 @@
 <script>
 import {
 	NcNoteCard,
-	NcGuestContent,
 } from '@nextcloud/vue'
 
 export default {
 	name: 'TestMappingResult',
 	components: {
 		NcNoteCard,
-		NcGuestContent,
 	},
 	props: {
 		mappingTest: {

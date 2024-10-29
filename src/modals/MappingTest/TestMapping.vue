@@ -15,6 +15,7 @@ import { navigationStore } from '../../store/store.js'
 					@input-object-changed="receiveInputObject" />
 				<TestMappingMappingSelect
 					:input-object="inputObject"
+					@schema="receiveSchema"
 					@mapping-selected="receiveMappingSelected"
 					@mapping-test="receiveMappingTest" />
 				<TestMappingResult
@@ -55,6 +56,18 @@ export default {
 				loading: false,
 				error: false,
 			},
+			schema: {
+				OpenRegisterInstalled: {
+					isInstalled: true,
+					isAvailable: true,
+					install: this.installOpenRegister,
+				},
+				selected: {},
+				schemas: [],
+				success: null,
+				loading: false,
+				error: false,
+			},
 		}
 	},
 	methods: {
@@ -74,6 +87,36 @@ export default {
 		},
 		closeModal() {
 			navigationStore.setModal(false)
+		},
+		async installOpenRegister() {
+			console.info('Installing Open Register')
+			const token = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+
+			const response = await fetch('/index.php/settings/apps/enable', {
+				headers: {
+					accept: '*/*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					'content-type': 'application/json',
+					pragma: 'no-cache',
+					requesttoken: token,
+					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: '{"appIds":["openregister"],"groups":[]}',
+				method: 'POST',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!response.ok) {
+				console.info('Failed to install Open Register')
+				this.schema.OpenRegisterInstalled.isAvailable = false
+			} else {
+				console.info('Open Register installed')
+				this.schema.OpenRegisterInstalled.isInstalled = true
+				this.fetchSchemas()
+			}
 		},
 	},
 }
