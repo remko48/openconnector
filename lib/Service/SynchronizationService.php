@@ -6,6 +6,7 @@ use Exception;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Db\SourceMapper;
+use OCA\OpenConnector\Db\MappignMapper;
 use OCA\OpenConnector\Db\Synchronization;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContract;
@@ -15,11 +16,12 @@ use OCA\OpenConnector\Db\SynchronizationContractMapper;
 use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
 use Symfony\Component\Uid\Uuid;
+use OCP\AppFramework\Db\DoesNotExistException;
 
 use Psr\Container\ContainerInterface;
 use DateInterval;
 use DateTime;
-
+use OCP\AppFramework\Http\NotFoundResponse;
 
 class SynchronizationService
 {
@@ -28,6 +30,7 @@ class SynchronizationService
     private ContainerInterface $containerInterface;
     private SynchronizationMapper $synchronizationMapper;
     private SourceMapper $sourceMapper;
+    private MappingMapper $mappingMapper;
     private SynchronizationContractMapper $synchronizationContractMapper;
     private SynchronizationContractLogMapper $synchronizationContractLogMapper;
     private ObjectService $objectService;
@@ -57,7 +60,7 @@ class SynchronizationService
 	 *
 	 * @param Synchronization $synchronization
 	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
-     * 
+     *
 	 * @return array
 	 * @throws Exception
 	 */
@@ -82,7 +85,7 @@ class SynchronizationService
                     $objectList[$key] = $this->synchronizationContractMapper->insert(entity: $synchronizationContract);
                 } else {
                     $objectList[$key] = $synchronizationContract;
-                }        
+                }
             } else {
                 // @todo this is wierd
                 $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
@@ -102,12 +105,12 @@ class SynchronizationService
 
 	/**
 	 * Synchronize a contract
-     * 
+     *
 	 * @param SynchronizationContract $synchronizationContract
 	 * @param Synchronization|null    $synchronization
 	 * @param array $object
 	 * @param bool|null               $isTest False by default, currently added for synchronziation-test endpoint
-     * 
+     *
 	 * @throws Exception
 	 *
 	 * @return SynchronizationContract
@@ -129,9 +132,15 @@ class SynchronizationService
         $synchronizationContract->setSourceHash($sourceHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
 
+        try {
+            $mapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
+        } catch (DoesNotExistException $exception) {
+            return new Exception($exception->getMessage());
+        }
+
         // let do the mapping if provided
         if ($synchronization->getSourceTargetMapping()){
-            $targetObject = $this->mappingService->executeMapping(mapping: $synchronization->getSourceTargetMapping(), input: $object);
+            $targetObject = $this->mappingService->executeMapping(mapping: $mapping, input: $object);
         } else {
             $targetObject = $object;
         }
@@ -157,7 +166,7 @@ class SynchronizationService
         $log->setSource($object);
         $log->setTarget($targetObject);
         $log->setExpires(new DateTime('+1 day')); // @todo make this configurable
-        
+
         if ($isTest === false) {
             $this->synchronizationContractLogMapper->insert($log);
         }
@@ -175,7 +184,7 @@ class SynchronizationService
 	 *
 	 * @param SynchronizationContract $synchronizationContract
 	 * @param array                   $targetObject
-     * 
+     *
 	 * @throws Exception
 	 *
 	 * @return void
@@ -228,7 +237,7 @@ class SynchronizationService
      *
      * @param Synchronization $synchronization
 	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
-     * 
+     *
      * @return array
      */
     public function getAllObjectsFromSource(Synchronization $synchronization, ?bool $isTest = false)
@@ -257,8 +266,8 @@ class SynchronizationService
      * Retrieves all objects from an API source for a given synchronization.
      *
      * @param Synchronization $synchronization The synchronization object containing source information.
-     * @param bool            $isTest          If we only want to return a single object (for example a test)  
-     *  
+     * @param bool            $isTest          If we only want to return a single object (for example a test)
+     *
      * @return array An array of all objects retrieved from the API.
      */
     public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false)
@@ -271,7 +280,7 @@ class SynchronizationService
         $response = $this->callService->call($source)->getResponse();
         $body = json_decode($response['body'], true);
         $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
-        
+
         // Return single object or empty array.
         if ($isTest === true) {
             return [$objects[0]] ?? [];
@@ -296,9 +305,9 @@ class SynchronizationService
      *
      * @param array $body The decoded JSON body of the API response.
      * @param Synchronization $synchronization The synchronization object containing source configuration.
-     * 
+     *
      * @throws Exception If the position of objects in the return body cannot be determined.
-     * 
+     *
      * @return array An array of items extracted from the response body.
      */
     public function getAllObjectsFromArray(array $array, Synchronization $synchronization)
@@ -345,7 +354,7 @@ class SynchronizationService
      *
      * @param array $body The decoded JSON body of the API response.
      * @param Synchronization $synchronization The synchronization object (unused in this method, but kept for consistency).
-     * 
+     *
      * @return string|bool The URL for the next page of results, or false if there is no next page.
      */
     public function getNextlinkFromCall(array $body, Synchronization $synchronization): string | bool | null

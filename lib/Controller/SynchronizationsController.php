@@ -35,13 +35,13 @@ class SynchronizationsController extends Controller
         private readonly SynchronizationService $synchronizationService
     )
     {
-        parent::__construct($appName, $request);    
+        parent::__construct($appName, $request);
 
     }
 
     /**
      * Returns the template of the main app's page
-     * 
+     *
      * This method renders the main page of the application, adding any necessary data to the template.
      *
      * @NoAdminRequired
@@ -50,17 +50,17 @@ class SynchronizationsController extends Controller
      * @return TemplateResponse The rendered template response
      */
     public function page(): TemplateResponse
-    {           
+    {
         return new TemplateResponse(
             'openconnector',
             'index',
             []
         );
     }
-    
+
     /**
      * Retrieves a list of all synchronizations
-     * 
+     *
      * This method returns a JSON response containing an array of all synchronizations in the system.
      *
      * @NoAdminRequired
@@ -82,7 +82,7 @@ class SynchronizationsController extends Controller
 
     /**
      * Retrieves a single synchronization by its ID
-     * 
+     *
      * This method returns a JSON response containing the details of a specific synchronization.
      *
      * @NoAdminRequired
@@ -102,7 +102,7 @@ class SynchronizationsController extends Controller
 
     /**
      * Creates a new synchronization
-     * 
+     *
      * This method creates a new synchronization based on POST data.
      *
      * @NoAdminRequired
@@ -119,17 +119,17 @@ class SynchronizationsController extends Controller
                 unset($data[$key]);
             }
         }
-        
+
         if (isset($data['id'])) {
             unset($data['id']);
         }
-        
+
         return new JSONResponse($this->synchronizationMapper->createFromArray(object: $data));
     }
 
     /**
      * Updates an existing synchronization
-     * 
+     *
      * This method updates an existing synchronization based on its ID.
      *
      * @NoAdminRequired
@@ -155,7 +155,7 @@ class SynchronizationsController extends Controller
 
     /**
      * Deletes a synchronization
-     * 
+     *
      * This method deletes a synchronization based on its ID.
      *
      * @NoAdminRequired
@@ -220,7 +220,7 @@ class SynchronizationsController extends Controller
      *
      * @NoAdminRequired
      * @NoCSRFRequired
-     * 
+     *
      * @param int $id The ID of the synchronization
      *
      * @return JSONResponse A JSON response containing the test results
@@ -243,12 +243,12 @@ class SynchronizationsController extends Controller
     public function test(int $id): JSONResponse
     {
         try {
-            return new JSONResponse(data: $this->synchronizationMapper->find(id: (int) $id));
+            $synchronization = $this->synchronizationMapper->find(id: (int) $id);
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
         }
 
-        // Try to synchronize 
+        // Try to synchronize
         try {
             $logAndContractArray = $this->synchronizationService->synchronize(synchronization: $synchronization, isTest: true);
             // Return the result as a JSON response
