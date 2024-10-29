@@ -91,7 +91,7 @@ class SynchronizationService
                     // If this is a log and contract array return for the test endpoint.
                     $logAndContractArray = $synchronizationContract;
                     return $logAndContractArray;
-                }        
+                }
             } else {
                 // @todo this is wierd
                 $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
