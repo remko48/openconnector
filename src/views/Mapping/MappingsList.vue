@@ -52,6 +52,12 @@ import { mappingStore, navigationStore, searchStore } from '../../store/store.js
 							</template>
 							Bewerken
 						</NcActionButton>
+						<NcActionButton @click="mappingStore.setMappingItem(mapping); navigationStore.setModal('testMapping')">
+							<template #icon>
+								<TestTube :size="20" />
+							</template>
+							Test
+						</NcActionButton>
 						<NcActionButton @click="mappingStore.setMappingItem(mapping); navigationStore.setDialog('deleteMapping')">
 							<template #icon>
 								<TrashCanOutline />
@@ -83,6 +89,7 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import TestTube from 'vue-material-design-icons/TestTube.vue'
 
 export default {
 	name: 'MappingsList',
