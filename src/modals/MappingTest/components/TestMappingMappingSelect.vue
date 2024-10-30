@@ -43,16 +43,52 @@ import { mappingStore } from '../../../store/store.js'
 					</template>
 				</NcSelect>
 
-				<NcButton :disabled="mappingTest.loading || !mappings.value || !inputObject.isValid"
-					type="success"
-					@click="testMapping()">
-					<template #icon>
-						<NcLoadingIcon v-if="mappingTest.loading" :size="20" />
-						<ContentSaveOutline v-if="!mappingTest.loading" :size="20" />
+				<NcSelect v-bind="schemas"
+					v-model="schemas.value"
+					input-label="Schema"
+					:loading="schemasLoading"
+					:disabled="!openRegister.isInstalled"
+					required
+					@input="emitSchemaSelected">
+					<!-- eslint-disable-next-line vue/no-unused-vars vue/no-template-shadow  -->
+					<template #no-options="{ search, searching, loading }">
+						<p v-if="loading">
+							Loading...
+						</p>
+						<p v-if="!loading && !schemas.options?.length">
+							Er zijn geen schemas beschikbaar
+						</p>
 					</template>
-					Test
-				</NcButton>
+					<!-- eslint-disable-next-line vue/no-unused-vars  -->
+					<template #option="{ id, label, fullSchema, removeStyle }">
+						<div :class="removeStyle !== true && 'mapping-option'">
+							<!-- custom style is enabled -->
+							<FileTreeOutline v-if="!removeStyle" :size="25" />
+							<span v-if="!removeStyle">
+								<h6 style="margin: 0">
+									{{ label }}
+								</h6>
+								{{ fullSchema.summary }}
+							</span>
+							<!-- custom style is disabled -->
+							<p v-if="removeStyle">
+								{{ label }}
+							</p>
+						</div>
+					</template>
+				</NcSelect>
 			</div>
+
+			<NcButton :disabled="mappingTest.loading || !mappings.value || !inputObject.isValid"
+				class="test-button"
+				type="success"
+				@click="testMapping()">
+				<template #icon>
+					<NcLoadingIcon v-if="mappingTest.loading" :size="20" />
+					<ContentSaveOutline v-if="!mappingTest.loading" :size="20" />
+				</template>
+				Test
+			</NcButton>
 		</div>
 	</div>
 </template>
@@ -65,6 +101,7 @@ import {
 } from '@nextcloud/vue'
 
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
+import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 export default {
@@ -76,6 +113,10 @@ export default {
 	},
 	props: {
 		inputObject: {
+			type: Object,
+			required: true,
+		},
+		openRegister: {
 			type: Object,
 			required: true,
 		},
@@ -91,9 +132,12 @@ export default {
 				loading: false,
 				error: false,
 			},
+			schemas: [],
+			schemasLoading: false,
 		}
 	},
 	watch: {
+		// watch data and emit
 		mappingTest: {
 			handler(newVal) {
 				this.$emit('mapping-test', {
@@ -107,13 +151,24 @@ export default {
 				loading: newVal,
 			})
 		},
+		schemasLoading(newVal) {
+			this.$emit('schema-selected', {
+				loading: newVal,
+			})
+		},
 	},
 	mounted() {
 		this.fetchMappings()
+		this.fetchSchemas()
 	},
 	methods: {
 		emitMappingSelected(event) {
 			this.$emit('mapping-selected', {
+				selected: event,
+			})
+		},
+		emitSchemaSelected(event) {
+			this.$emit('schema-selected', {
 				selected: event,
 			})
 		},
@@ -166,12 +221,64 @@ export default {
 					this.mappingsLoading = false
 				})
 		},
+		async fetchSchemas() {
+			this.schemasLoading = true
+
+			// checking if OpenRegister is installed
+			console.info('Fetching schemas from Open Register')
+			const response = await fetch('/index.php/apps/openregister/api/schemas', {
+				headers: {
+					accept: '*/*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					pragma: 'no-cache',
+					'x-requested-with': 'XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: null,
+				method: 'GET',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!response.ok) {
+				console.info('Open Register is not installed')
+				this.schemasLoading = false
+				this.$emit('open-register', {
+					isInstalled: false,
+				})
+				return
+			}
+
+			const responseData = (await response.json()).results
+
+			this.schemas = {
+				options: responseData.map((schema) => ({
+					id: schema.id,
+					label: schema.title,
+					fullSchema: schema,
+				})),
+				value: null,
+			}
+
+			// emit the current selected mapping after mappings initialization
+			this.$emit('schema-selected', {
+				schemas: this.schemas,
+				selected: this.schemas.value,
+			})
+
+			this.schemasLoading = false
+		},
 		async testMapping() {
-			this.loading = true
+			this.mappingTest.loading = true
+			this.mappingTest.error = false
+			this.mappingTest.success = null
+			this.mappingTest.result = {}
 
 			mappingStore.testMapping({
 				mapping: this.mappings.value.fullMapping,
 				inputObject: JSON.parse(this.inputObject.value),
+				schema: this.schemas.value?.fullSchema,
 			})
 				.then(({ response, data }) => {
 					this.mappingTest.success = response.ok
@@ -189,6 +296,10 @@ export default {
 </script>
 
 <style scoped>
+.test-button {
+    float: right;
+}
+
 .content {
     text-align: left;
 }

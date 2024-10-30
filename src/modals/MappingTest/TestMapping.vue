@@ -10,15 +10,52 @@ import { navigationStore } from '../../store/store.js'
 		<div class="modalContent TestMappingMainModal">
 			<h2>Mapping test</h2>
 
+			<div v-if="!openRegister.isInstalled" class="openregister-notecard">
+				<NcNoteCard
+					:type="openRegister.isAvailable ? 'info' : 'error'"
+					:heading="openRegister.isAvailable ? 'Open Register is not installed' : 'Failed to install Open Register'">
+					<p>
+						{{ openRegister.isAvailable
+							? 'Some features require Open Register to be installed'
+							: 'This either means that Open Register is not available on this server or you need to confirm your password' }}
+					</p>
+
+					<div class="install-buttons">
+						<NcButton v-if="openRegister.isAvailable"
+							aria-label="Install OpenRegister"
+							size="small"
+							type="primary"
+							@click="installOpenRegister">
+							<template #icon>
+								<CloudDownload :size="20" />
+							</template>
+							Install OpenRegister
+						</NcButton>
+						<NcButton
+							aria-label="Install OpenRegister Manually"
+							size="small"
+							type="secondary"
+							@click="openLink('/index.php/settings/apps/organization/openregister', '_blank')">
+							<template #icon>
+								<OpenInNew :size="20" />
+							</template>
+							Install OpenRegister Manually
+						</NcButton>
+					</div>
+				</NcNoteCard>
+			</div>
+
 			<div class="content">
-				<TestMappingInputObject
+				<TestMappingInputObject ref="inputObjectRef"
 					@input-object-changed="receiveInputObject" />
-				<TestMappingMappingSelect
+				<TestMappingMappingSelect ref="mappingSelectRef"
 					:input-object="inputObject"
-					@schema="receiveSchema"
+					:open-register="openRegister"
+					@open-register="receiveOpenRegister"
+					@schema-selected="receiveSchemaSelected"
 					@mapping-selected="receiveMappingSelected"
 					@mapping-test="receiveMappingTest" />
-				<TestMappingResult
+				<TestMappingResult ref="mappingResultRef"
 					:mapping-test="mappingTest" />
 			</div>
 		</div>
@@ -28,7 +65,13 @@ import { navigationStore } from '../../store/store.js'
 <script>
 import {
 	NcModal,
+	NcNoteCard,
+	NcButton,
 } from '@nextcloud/vue'
+
+import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
+import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+
 import TestMappingInputObject from './components/TestMappingInputObject.vue'
 import TestMappingMappingSelect from './components/TestMappingMappingSelect.vue'
 import TestMappingResult from './components/TestMappingResult.vue'
@@ -37,6 +80,8 @@ export default {
 	name: 'TestMapping',
 	components: {
 		NcModal,
+		NcNoteCard,
+		NcButton,
 	},
 	data() {
 		return {
@@ -56,12 +101,11 @@ export default {
 				loading: false,
 				error: false,
 			},
+			openRegister: {
+				isInstalled: true,
+				isAvailable: true,
+			},
 			schema: {
-				OpenRegisterInstalled: {
-					isInstalled: true,
-					isAvailable: true,
-					install: this.installOpenRegister,
-				},
 				selected: {},
 				schemas: [],
 				success: null,
@@ -77,13 +121,24 @@ export default {
 		receiveMappingSelected(value) {
 			value.selected && (this.mapping.selected = value.selected)
 			value.mappings && (this.mapping.mappings = value.mappings)
-			value.loading && (this.mapping.loading = value.loading)
+			value.loading !== undefined && (this.mapping.loading = value.loading) // boolean
 		},
 		receiveMappingTest(value) {
 			value.result && (this.mappingTest.result = value.result)
-			value.success && (this.mappingTest.success = value.success)
-			value.loading && (this.mappingTest.loading = value.loading)
-			value.error && (this.mappingTest.error = value.error)
+			value.success !== undefined && (this.mappingTest.success = value.success) // boolean
+			value.loading !== undefined && (this.mappingTest.loading = value.loading) // boolean
+			value.error !== undefined && (this.mappingTest.error = value.error) // boolean / string
+		},
+		receiveSchemaSelected(value) {
+			value.selected && (this.schema.selected = value.selected)
+			value.schemas && (this.schema.schemas = value.schemas)
+			value.success !== undefined && (this.schema.success = value.success) // boolean
+			value.loading !== undefined && (this.schema.loading = value.loading) // boolean
+			value.error !== undefined && (this.schema.error = value.error) // boolean / string
+		},
+		receiveOpenRegister(value) {
+			value.isInstalled !== undefined && (this.openRegister.isInstalled = value.isInstalled) // boolean
+			value.isAvailable !== undefined && (this.openRegister.isAvailable = value.isAvailable) // boolean
 		},
 		closeModal() {
 			navigationStore.setModal(false)
@@ -111,11 +166,11 @@ export default {
 
 			if (!response.ok) {
 				console.info('Failed to install Open Register')
-				this.schema.OpenRegisterInstalled.isAvailable = false
+				this.openRegister.isAvailable = false
 			} else {
 				console.info('Open Register installed')
-				this.schema.OpenRegisterInstalled.isInstalled = true
-				this.fetchSchemas()
+				this.openRegister.isInstalled = true
+				this.$refs.mappingSelectRef.fetchSchemas()
 			}
 		},
 	},
@@ -125,7 +180,7 @@ export default {
 <style>
 /* modal */
 div[class='modal-container']:has(.TestMappingMainModal) {
-    width: clamp(800px, 100%, 1200px) !important;
+    width: clamp(1000px, 100%, 1200px) !important;
 }
 </style>
 
@@ -139,13 +194,36 @@ div[class='modal-container']:has(.TestMappingMainModal) {
     height: 100%;
     overflow: auto;
 }
+.content > *:not(:last-child) {
+    border-right: 1px solid gray;
+}
 .content > *:first-child {
-    width: calc(100% / 4);
+    width: 25%;
+    padding-right: 0.5rem;
 }
 .content > *:nth-child(2) {
-    width: calc(100% / 2);
+    width: 50%;
+    padding: 0 0.5rem;
 }
 .content > *:last-child {
-    width: calc(100% / 4);
+    width: 25%;
+    padding-left: 0.5rem;
+}
+
+.content > :deep(h4) {
+    margin-top: 0;
+}
+
+/* Open Register note card */
+.openregister-notecard {
+    margin-bottom: 1rem;
+}
+.openregister-notecard > .notecard {
+    width: fit-content;
+}
+.install-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
 }
 </style>
