@@ -15,8 +15,6 @@ import { navigationStore } from '../../store/store.js'
 					@input-object-changed="receiveInputObject" />
 				<TestMappingMappingSelect ref="mappingSelectRef"
 					:input-object="inputObject"
-					:open-register="openRegister"
-					@open-register="receiveOpenRegister"
 					@schema-selected="receiveSchemaSelected"
 					@mapping-selected="receiveMappingSelected"
 					@mapping-test="receiveMappingTest" />
@@ -59,10 +57,6 @@ export default {
 				loading: false,
 				error: false,
 			},
-			openRegister: {
-				isInstalled: true,
-				isAvailable: true,
-			},
 			schema: {
 				selected: {},
 				schemas: [],
@@ -94,42 +88,8 @@ export default {
 			value.loading !== undefined && (this.schema.loading = value.loading) // boolean
 			value.error !== undefined && (this.schema.error = value.error) // boolean / string
 		},
-		receiveOpenRegister(value) {
-			value.isInstalled !== undefined && (this.openRegister.isInstalled = value.isInstalled) // boolean
-			value.isAvailable !== undefined && (this.openRegister.isAvailable = value.isAvailable) // boolean
-		},
 		closeModal() {
 			navigationStore.setModal(false)
-		},
-		async installOpenRegister() {
-			console.info('Installing Open Register')
-			const token = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
-
-			const response = await fetch('/index.php/settings/apps/enable', {
-				headers: {
-					accept: '*/*',
-					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
-					'cache-control': 'no-cache',
-					'content-type': 'application/json',
-					pragma: 'no-cache',
-					requesttoken: token,
-					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
-				},
-				referrerPolicy: 'no-referrer',
-				body: '{"appIds":["openregister"],"groups":[]}',
-				method: 'POST',
-				mode: 'cors',
-				credentials: 'include',
-			})
-
-			if (!response.ok) {
-				console.info('Failed to install Open Register')
-				this.openRegister.isAvailable = false
-			} else {
-				console.info('Open Register installed')
-				this.openRegister.isInstalled = true
-				this.$refs.mappingSelectRef.fetchSchemas()
-			}
 		},
 	},
 }

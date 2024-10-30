@@ -37,7 +37,7 @@ import { mappingStore } from '../../../store/store.js'
 					</NcButton>
 				</div>
 				<div class="close-button">
-					<NcButton
+					<!-- <NcButton
 						aria-label="Close"
 						size="small"
 						type="error"
@@ -46,7 +46,15 @@ import { mappingStore } from '../../../store/store.js'
 							<Close :size="20" />
 						</template>
 						Close
-					</NcButton>
+					</NcButton> -->
+					<NcActions>
+						<NcActionButton @click="closeAlert = true">
+							<template #icon>
+								<Close :size="20" />
+							</template>
+							Close
+						</NcActionButton>
+					</NcActions>
 				</div>
 			</NcNoteCard>
 		</div>
@@ -144,6 +152,8 @@ import { mappingStore } from '../../../store/store.js'
 import {
 	NcSelect,
 	NcButton,
+	NcActions,
+	NcActionButton,
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
@@ -161,15 +171,13 @@ export default {
 	components: {
 		NcSelect,
 		NcButton,
+		NcActions,
+		NcActionButton,
 		NcLoadingIcon,
 		NcNoteCard,
 	},
 	props: {
 		inputObject: {
-			type: Object,
-			required: true,
-		},
-		openRegister: {
 			type: Object,
 			required: true,
 		},
@@ -188,6 +196,10 @@ export default {
 			},
 			schemas: [],
 			schemasLoading: false,
+			openRegister: {
+				isInstalled: false,
+				isAvailable: true,
+			},
 		}
 	},
 	watch: {
@@ -345,14 +357,57 @@ export default {
 					this.mappingTest.loading = false
 				})
 		},
+		async installOpenRegister() {
+			console.info('Installing Open Register')
+			const token = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+
+			const response = await fetch('/index.php/settings/apps/enable', {
+				headers: {
+					accept: '*/*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					'content-type': 'application/json',
+					pragma: 'no-cache',
+					requesttoken: token,
+					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: '{"appIds":["openregister"],"groups":[]}',
+				method: 'POST',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!response.ok) {
+				console.info('Failed to install Open Register')
+				this.openRegister.isAvailable = false
+			} else {
+				console.info('Open Register installed')
+				this.openRegister.isInstalled = true
+				this.fetchSchemas()
+			}
+		},
 	},
 }
 </script>
 
 <style scoped>
-.test-button, .close-button {
+.test-button {
     float: right;
 	margin-block-start: var(--OC-margin-10);
+}
+
+/* close button for notecard */
+.openregister-notecard .notecard {
+    position: relative;
+}
+.close-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+.close-button .button-vue--vue-tertiary:hover:not(:disabled) {
+    background-color: rgba(var(--color-info-rgb), 0.1);
 }
 
 .content {
