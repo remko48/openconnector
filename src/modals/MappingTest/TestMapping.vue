@@ -10,41 +10,6 @@ import { navigationStore } from '../../store/store.js'
 		<div class="modalContent TestMappingMainModal">
 			<h2>Mapping test</h2>
 
-			<div v-if="!openRegister.isInstalled" class="openregister-notecard">
-				<NcNoteCard
-					:type="openRegister.isAvailable ? 'info' : 'error'"
-					:heading="openRegister.isAvailable ? 'Open Register is not installed' : 'Failed to install Open Register'">
-					<p>
-						{{ openRegister.isAvailable
-							? 'Some features require Open Register to be installed'
-							: 'This either means that Open Register is not available on this server or you need to confirm your password' }}
-					</p>
-
-					<div class="install-buttons">
-						<NcButton v-if="openRegister.isAvailable"
-							aria-label="Install OpenRegister"
-							size="small"
-							type="primary"
-							@click="installOpenRegister">
-							<template #icon>
-								<CloudDownload :size="20" />
-							</template>
-							Install OpenRegister
-						</NcButton>
-						<NcButton
-							aria-label="Install OpenRegister Manually"
-							size="small"
-							type="secondary"
-							@click="openLink('/index.php/settings/apps/organization/openregister', '_blank')">
-							<template #icon>
-								<OpenInNew :size="20" />
-							</template>
-							Install OpenRegister Manually
-						</NcButton>
-					</div>
-				</NcNoteCard>
-			</div>
-
 			<div class="content">
 				<TestMappingInputObject ref="inputObjectRef"
 					@input-object-changed="receiveInputObject" />
@@ -65,12 +30,7 @@ import { navigationStore } from '../../store/store.js'
 <script>
 import {
 	NcModal,
-	NcNoteCard,
-	NcButton,
 } from '@nextcloud/vue'
-
-import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
-import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 
 import TestMappingInputObject from './components/TestMappingInputObject.vue'
 import TestMappingMappingSelect from './components/TestMappingMappingSelect.vue'
@@ -80,8 +40,6 @@ export default {
 	name: 'TestMapping',
 	components: {
 		NcModal,
-		NcNoteCard,
-		NcButton,
 	},
 	data() {
 		return {
@@ -199,15 +157,16 @@ div[class='modal-container']:has(.TestMappingMainModal) {
 }
 .content > *:first-child {
     width: 25%;
-    padding-right: 0.5rem;
+    padding-right: var(--OC-margin-30);
 }
 .content > *:nth-child(2) {
     width: 50%;
-    padding: 0 0.5rem;
+     padding: 0 var(--OC-margin-30);
 }
 .content > *:last-child {
     width: 25%;
-    padding-left: 0.5rem;
+	 padding-left: var(--OC-margin-30);
+
 }
 
 .content > :deep(h4) {
@@ -216,15 +175,12 @@ div[class='modal-container']:has(.TestMappingMainModal) {
 
 /* Open Register note card */
 .openregister-notecard {
-    margin-bottom: 1rem;
+   display: flex;
+   justify-content: center;
 }
 .openregister-notecard > .notecard {
     width: fit-content;
-    max-width: 500px;
+    /* max-width: 500px; */
 }
-.install-buttons {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
+
 </style>

@@ -4,6 +4,53 @@ import { mappingStore } from '../../../store/store.js'
 
 <template>
 	<div>
+		<div v-if="!openRegister.isInstalled && !closeAlert" class="openregister-notecard">
+			<NcNoteCard
+				:type="openRegister.isAvailable ? 'info' : 'error'"
+				:heading="openRegister.isAvailable ? 'Open Register is not installed' : 'Failed to install Open Register'">
+				<p>
+					{{ openRegister.isAvailable
+						? 'Some features require Open Register to be installed'
+						: 'This either means that Open Register is not available on this server or you need to confirm your password' }}
+				</p>
+
+				<div class="install-buttons">
+					<NcButton v-if="openRegister.isAvailable"
+						aria-label="Install OpenRegister"
+						size="small"
+						type="primary"
+						@click="installOpenRegister">
+						<template #icon>
+							<CloudDownload :size="20" />
+						</template>
+						Install OpenRegister
+					</NcButton>
+					<NcButton
+						aria-label="Install OpenRegister Manually"
+						size="small"
+						type="secondary"
+						@click="openLink('/index.php/settings/apps/organization/openregister', '_blank')">
+						<template #icon>
+							<OpenInNew :size="20" />
+						</template>
+						Install OpenRegister Manually
+					</NcButton>
+				</div>
+				<div class="close-button">
+					<NcButton
+						aria-label="Close"
+						size="small"
+						type="error"
+						@click="closeAlert = true">
+						<template #icon>
+							<Close :size="20" />
+						</template>
+						Close
+					</NcButton>
+				</div>
+			</NcNoteCard>
+		</div>
+
 		<h4>Test mapping</h4>
 
 		<div class="content">
@@ -98,7 +145,12 @@ import {
 	NcSelect,
 	NcButton,
 	NcLoadingIcon,
+	NcNoteCard,
 } from '@nextcloud/vue'
+
+import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
+import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import Close from 'vue-material-design-icons/Close.vue'
 
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
@@ -110,6 +162,7 @@ export default {
 		NcSelect,
 		NcButton,
 		NcLoadingIcon,
+		NcNoteCard,
 	},
 	props: {
 		inputObject: {
@@ -125,6 +178,7 @@ export default {
 		return {
 			mappings: [],
 			mappingsLoading: false,
+			closeAlert: false,
 			// mapping test
 			mappingTest: {
 				result: {}, // result from the testMapping function
@@ -296,8 +350,9 @@ export default {
 </script>
 
 <style scoped>
-.test-button {
+.test-button, .close-button {
     float: right;
+	margin-block-start: var(--OC-margin-10);
 }
 
 .content {
@@ -310,13 +365,23 @@ export default {
 }
 
 .mapping-select {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
+    display: grid;
+	grid-template-columns: repeat(2, 1fr);
     gap: 10px;
 }
+
+.mapping-select > .v-select {
+    min-width: auto;
+}
+
 .mapping-select > .button-vue {
-    margin-bottom: 4px !important;
+    margin-block-end: 4px !important;
+}
+
+.install-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-block-start: 1rem;
 }
 
 /* Mapping option */
@@ -326,7 +391,7 @@ export default {
     gap: 10px;
 }
 .mapping-option > .material-design-icon {
-    margin-top: 2px;
+    margin-block-start: 2px;
 }
 .mapping-option > h6 {
     line-height: 0.8;
