@@ -332,7 +332,7 @@ export default {
 			mappingStore.testMapping({
 				mapping: this.mappings.value.fullMapping,
 				inputObject: JSON.parse(this.inputObject.value),
-				schema: this.schemas.value?.fullSchema,
+				schema: this.schemas.value?.id,
 			})
 				.then(({ response, data }) => {
 					this.mappingTest.success = response.ok
