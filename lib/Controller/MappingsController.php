@@ -8,10 +8,12 @@ use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenConnector\Db\Mapping;
 use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
+use Opis\JsonSchema\Errors\ErrorFormatter;
 
 class MappingsController extends Controller
 {
@@ -201,8 +203,10 @@ class MappingsController extends Controller
      *     "validationErrors": []
      * }
      */
-    public function test(): JSONResponse
+    public function test(ObjectService $objectService): JSONResponse
     {
+		$openRegisters = $objectService->getOpenRegisters();
+
         // Get all parameters from the request
         $data = $this->request->getParams();
 
@@ -223,13 +227,27 @@ class MappingsController extends Controller
         $validation = false;
 
         // If a schema is provided, retrieve it
-        if (isset($data['schema']) && !empty($data['schema'])) {
+        if (empty($data['schema']) === false) {
+			if ($openRegisters === null) {
+				return new JSONResponse(data: [
+					'error'   => 'Setup error',
+					'message' => 'OpenRegisters must be installed to validate schema.'
+				],statusCode: 412);
+			}
+
             $schemaId = $data['schema'];
-            $schema = $this->objectService->getObject($schemaId);
+			try {
+				$schema = $openRegisters->getMapper('schema')->find($schemaId);
+			} catch (DoesNotExistException $exception) {
+				return new JSONResponse(data: [
+					'error' => 'Not found',
+					'message' => 'The specified schema could not be found.',
+				], statusCode: 404);
+			}
         }
 
         // Check if validation is requested
-        if (isset($data['validation']) && !empty($data['validation'])) {
+        if (empty($data['validation']) === false) {
             $validation = $data['validation'];
         }
 
@@ -253,10 +271,14 @@ class MappingsController extends Controller
         $validationErrors = [];
 
         // Perform schema validation if both schema and validation are provided
-        if ($schema !== false && $validation !== false) {
-            // TODO: Implement schema validation logic here
-            // For now, we'll just assume it's always valid
-            $isValid = true;
+        if ($schema !== false && $validation !== false && $openRegisters !== null) {
+			$result = $openRegisters->validateObject(object: $resultObject, schemaObject: $schema->getSchemaObject());
+
+			$isValid = $result->isValid();
+
+			if($result->hasError() === true) {
+				$validationErrors = (new ErrorFormatter())->format(error: $result->error());
+			}
         }
 
         // Return the result as a JSON response
