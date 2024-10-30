@@ -236,25 +236,60 @@ class SynchronizationService
     public function getAllObjectsFromApi(Synchronization $synchronization)
     {
         $objects = [];
-        // Retrieve the source object based on the synchronization's source ID
         $source = $this->sourceMapper->find($synchronization->getSourceId());
 
         // Make the initial API call
         $response = $this->callService->call($source)->getResponse();
         $body = json_decode($response['body'], true);
         $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
-        $nextLink = $this->getNextlinkFromCall($body, $synchronization);
 
-        // Continue making API calls if there are more pages of results
-        while ($nextLink !== null && $nextLink !== '' && $nextLink !== false) {
-            $endpoint = str_replace($source->getLocation(), '', $nextLink);
+        // Return a single object or empty array if in test mode
+        if ($isTest === true) {
+            return [$objects[0]] ?? [];
+        }
+
+        // Current page is 2 because the first call made above is page 1.
+        $currentPage = 2;
+
+        // Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
+        while ($endpoint = $this->getNextEndpoint($body, $source, $synchronization, $currentPage)) {
             $response = $this->callService->call($source, $endpoint)->getResponse();
             $body = json_decode($response['body'], true);
             $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
-            $nextLink = $this->getNextlinkFromCall($body, $synchronization);
+
+            $currentPage++;
         }
 
         return $objects;
+    }
+
+    /**
+     * Determines the next API endpoint based on either a provided next link or a pagination query.
+     *
+     * @param array           $body
+     * @param mixed           $source
+     * @param Synchronization $synchronization Synchronization object to retrieve next link details.
+     * @param int      $currentPage The current page number for pagination, used if no next link is available.
+     *
+     * @return string|null The next endpoint URL if a next link or pagination query is available, or null if neither exists.
+     */
+    private function getNextEndpoint(array $body, $source, Synchronization $synchronization, int $currentPage): ?string
+    {
+        $nextLink = $this->getNextlinkFromCall($body, $synchronization);
+
+        if ($nextLink) {
+            return str_replace($source->getLocation(), '', $nextLink);
+        }
+
+        // If paginationQuery exists, replace any placeholder with the current page number
+        $paginationQuery = $source->getConfiguration()['paginationQuery'] ?? null;
+
+        if ($paginationQuery) {
+            // Replace placeholder "{page}" in the paginationQuery with the current page number
+            return "{$source->getLocation()}?$paginationQuery=$currentPage";
+        }
+
+        return null;
     }
 
     /**
