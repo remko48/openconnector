@@ -220,6 +220,7 @@ div[class='modal-container']:has(.TestMappingMainModal) {
 }
 .openregister-notecard > .notecard {
     width: fit-content;
+    max-width: 500px;
 }
 .install-buttons {
     display: flex;
