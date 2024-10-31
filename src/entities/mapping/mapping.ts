@@ -35,7 +35,7 @@ export class Mapping extends ReadonlyBaseClass implements TMapping {
 			dateModified: getValidISOstring(mapping.dateModified) ?? '',
 		}
 
-        super(processedMapping)
+		super(processedMapping)
 	}
 
 	public validate(): SafeParseReturnType<TMapping, unknown> {

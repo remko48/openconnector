@@ -290,7 +290,6 @@ export default {
 			})
 		},
 		setupEditFields(id) {
-			console.log('setting up edit field', id)
 			if (id === this.uniqueMappingId) { // "No mapping" option selected (Symbol comparisons can only return true if its the same symbol from the same variable)
 				this.mappingItem = {
 					name: '',
