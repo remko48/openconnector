@@ -37,16 +37,6 @@ import { mappingStore } from '../../../store/store.js'
 					</NcButton>
 				</div>
 				<div class="close-button">
-					<!-- <NcButton
-						aria-label="Close"
-						size="small"
-						type="error"
-						@click="closeAlert = true">
-						<template #icon>
-							<Close :size="20" />
-						</template>
-						Close
-					</NcButton> -->
 					<NcActions>
 						<NcActionButton @click="closeAlert = true">
 							<template #icon>
