@@ -276,7 +276,7 @@ class MappingsController extends Controller
 
 			$isValid = $result->isValid();
 
-			if($result->hasError() === true) {
+			if ($result->hasError() === true) {
 				// Class imported without use because it only exists when OpenRegisters is installed.
 				$validationErrors = (new \Opis\JsonSchema\Errors\ErrorFormatter())->format(error: $result->error());
 			}
