@@ -12,9 +12,9 @@ export class Mapping extends ReadonlyBaseClass implements TMapping {
 	public readonly version: string
 	public readonly name: string
 	public readonly description: string
-	public readonly mapping: any[]
+	public readonly mapping: Record<string, unknown>
 	public readonly unset: any[]
-	public readonly cast: any[]
+	public readonly cast: Record<string, unknown>
 	public readonly passThrough: boolean
 	public readonly dateCreated: string
 	public readonly dateModified: string
@@ -27,9 +27,9 @@ export class Mapping extends ReadonlyBaseClass implements TMapping {
 			version: mapping.version || '',
 			name: mapping.name || '',
 			description: mapping.description || '',
-			mapping: mapping.mapping || [],
+			mapping: (mapping.mapping && !Array.isArray(mapping.mapping)) ? mapping.mapping : {},
 			unset: mapping.unset || [],
-			cast: mapping.cast || [],
+			cast: (mapping.cast && !Array.isArray(mapping.cast)) ? mapping.cast : {},
 			passThrough: mapping.passThrough ?? true,
 			dateCreated: getValidISOstring(mapping.dateCreated) ?? '',
 			dateModified: getValidISOstring(mapping.dateModified) ?? '',
@@ -46,9 +46,9 @@ export class Mapping extends ReadonlyBaseClass implements TMapping {
 			version: z.string().max(255),
 			name: z.string().max(255),
 			description: z.string(),
-			mapping: z.array(z.any()),
+			mapping: z.record(z.any()),
 			unset: z.array(z.any()),
-			cast: z.array(z.any()),
+			cast: z.record(z.any()),
 			passThrough: z.boolean(),
 			dateCreated: z.string().or(z.literal('')),
 			dateModified: z.string().or(z.literal('')),

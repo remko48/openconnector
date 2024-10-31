@@ -20,6 +20,9 @@ export default {
 	components: {
 		NcTextArea,
 	},
+	props: {
+		// none
+	},
 	data() {
 		return {
 			inputObject: '',

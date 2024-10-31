@@ -6,9 +6,9 @@ export type TMapping = {
     version: string
     name: string
     description: string
-    mapping: any[]
+    mapping: Record<string, unknown>
     unset: any[]
-    cast: any[]
+    cast: Record<string, unknown>
     passThrough: boolean
     dateCreated: string
     dateModified: string
