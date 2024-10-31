@@ -124,16 +124,56 @@ import { mappingStore } from '../../../store/store.js'
 				</NcSelect>
 			</div>
 
-			<NcButton :disabled="mappingTest.loading || !mappings.value || !inputObject.isValid"
-				class="test-button"
-				type="success"
-				@click="testMapping()">
-				<template #icon>
-					<NcLoadingIcon v-if="mappingTest.loading" :size="20" />
-					<ContentSaveOutline v-if="!mappingTest.loading" :size="20" />
-				</template>
-				Test
-			</NcButton>
+			<div class="edit-mapping">
+				<h4>Edit mapping</h4>
+
+				<NcTextField :value.sync="mappingItem.name"
+					label="name" />
+
+				<NcTextArea :value.sync="mappingItem.description"
+					label="description" />
+
+				<NcTextArea :value.sync="mappingItem.mapping"
+					label="mapping"
+					:error="!validJson(mappingItem.mapping)"
+					:helper-text="!validJson(mappingItem.mapping) ? 'Invalid JSON' : ''" />
+
+				<NcTextArea :value.sync="mappingItem.cast"
+					label="cast"
+					:error="!validJson(mappingItem.cast)"
+					:helper-text="!validJson(mappingItem.cast) ? 'Invalid JSON' : ''" />
+
+				<div class="buttons">
+					<NcButton class="reset-button"
+						type="secondary"
+						@click="setupEditFields(mappings.value?.id)">
+						<template #icon>
+							<Refresh :size="20" />
+						</template>
+						Reset
+					</NcButton>
+					<NcButton class="save-button"
+						type="primary"
+						@click="saveMappingChanges()">
+						<template #icon>
+							<NcLoadingIcon v-if="savingMapping" :size="20" />
+							<ContentSaveOutline v-if="!savingMapping" :size="20" />
+						</template>
+						Save
+					</NcButton>
+
+					<NcButton :disabled="mappingTest.loading || !mappings.value || !inputObject.isValid"
+						class="test-button"
+						type="success"
+						@click="testMapping()">
+						<template #icon>
+							<NcLoadingIcon v-if="mappingTest.loading" :size="20" />
+							<TestTube v-if="!mappingTest.loading" :size="20" />
+						</template>
+						Test
+					</NcButton>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -141,6 +181,8 @@ import { mappingStore } from '../../../store/store.js'
 <script>
 import {
 	NcSelect,
+	NcTextField,
+	NcTextArea,
 	NcButton,
 	NcActions,
 	NcActionButton,
@@ -155,11 +197,17 @@ import Close from 'vue-material-design-icons/Close.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
+import TestTube from 'vue-material-design-icons/TestTube.vue'
+import Refresh from 'vue-material-design-icons/Refresh.vue'
+
+import { Mapping } from '../../../entities/index.js'
 
 export default {
 	name: 'TestMappingMappingSelect',
 	components: {
 		NcSelect,
+		NcTextField,
+		NcTextArea,
 		NcButton,
 		NcActions,
 		NcActionButton,
@@ -176,7 +224,16 @@ export default {
 		return {
 			mappings: [],
 			mappingsLoading: false,
-			closeAlert: false,
+			mappingItem: {
+				name: '',
+				description: '',
+				mapping: '{}',
+				cast: '{}',
+			},
+			// use uniqueMappingId as the "No mapping" option's ID to avoid any possible truthy comparisons
+			uniqueMappingId: Symbol('No Mapping'), // Symbol creates a truly unique value, so unique making 2 of the same symbol will never be the same.
+			savingMapping: false,
+			savingMappingSuccess: null,
 			// mapping test
 			mappingTest: {
 				result: {}, // result from the testMapping function
@@ -187,12 +244,16 @@ export default {
 			schemas: [],
 			schemasLoading: false,
 			openRegister: {
-				isInstalled: false,
+				isInstalled: true,
 				isAvailable: true,
 			},
+			closeAlert: false,
 		}
 	},
 	watch: {
+		'mappings.value.id'(newVal) {
+			this.setupEditFields(newVal)
+		},
 		// watch data and emit
 		mappingTest: {
 			handler(newVal) {
@@ -228,10 +289,26 @@ export default {
 				selected: event,
 			})
 		},
-		fetchMappings(currentMappingItem = null) {
+		setupEditFields(id) {
+			console.log('setting up edit field', id)
+			if (id === this.uniqueMappingId) { // "No mapping" option selected (Symbol comparisons can only return true if its the same symbol from the same variable)
+				this.mappingItem = {
+					name: '',
+					description: '',
+					mapping: '{}',
+					cast: '{}',
+				}
+			} else {
+				this.mappingItem.name = this.mappings.value.fullMapping.name
+				this.mappingItem.description = this.mappings.value.fullMapping.description
+				this.mappingItem.mapping = JSON.stringify(this.mappings.value.fullMapping.mapping, null, 2)
+				this.mappingItem.cast = JSON.stringify(this.mappings.value.fullMapping.cast, null, 2)
+			}
+		},
+		async fetchMappings(currentMappingItem = null) {
 			this.mappingsLoading = true
 
-			mappingStore.refreshMappingList()
+			return mappingStore.refreshMappingList()
 				.then(() => {
 					if (!currentMappingItem) {
 						currentMappingItem = mappingStore.mappingItem || null
@@ -250,6 +327,11 @@ export default {
 
 					this.mappings = {
 						options: [
+							{
+								id: this.uniqueMappingId,
+								label: 'No mapping',
+								removeStyle: true,
+							},
 							...mappingStore.mappingList.map((mapping) => ({
 								id: mapping.id,
 								label: mapping.name,
@@ -332,7 +414,13 @@ export default {
 			this.mappingTest.result = {}
 
 			mappingStore.testMapping({
-				mapping: this.mappings.value.fullMapping,
+				mapping: {
+					...this.mappings.value.fullMapping,
+					name: this.mappingItem.name,
+					description: this.mappingItem.description,
+					mapping: JSON.parse(this.mappingItem.mapping),
+					cast: JSON.parse(this.mappingItem.cast),
+				},
 				inputObject: JSON.parse(this.inputObject.value),
 				schema: this.schemas.value?.id,
 			})
@@ -345,6 +433,33 @@ export default {
 				})
 				.finally(() => {
 					this.mappingTest.loading = false
+				})
+		},
+		saveMappingChanges() {
+			this.savingMapping = true
+
+			const newMappingItem = new Mapping({
+				...this.mappings.value?.fullMapping,
+				name: this.mappingItem.name,
+				description: this.mappingItem.description,
+				mapping: JSON.parse(this.mappingItem.mapping),
+				cast: JSON.parse(this.mappingItem.cast),
+			})
+
+			mappingStore.saveMapping(newMappingItem)
+				.then(({ response, entity }) => {
+					this.savingMappingSuccess = response.ok
+					response.ok && this.fetchMappings(entity)
+						.then(() => {
+							this.setupEditFields(entity.id)
+						})
+				})
+				.catch((e) => {
+					this.savingMappingSuccess = false
+				})
+				.finally(() => {
+					setTimeout(() => (this.savingMappingSuccess = null), 2000)
+					this.savingMapping = false
 				})
 		},
 		async installOpenRegister() {
@@ -377,16 +492,19 @@ export default {
 				this.fetchSchemas()
 			}
 		},
+		validJson(object) {
+			try {
+				JSON.parse(object)
+				return true
+			} catch (e) {
+				return false
+			}
+		},
 	},
 }
 </script>
 
 <style scoped>
-.test-button {
-    float: right;
-	margin-block-start: var(--OC-margin-10);
-}
-
 /* close button for notecard */
 .openregister-notecard .notecard {
     position: relative;
@@ -446,5 +564,20 @@ export default {
 /* remove box-shadow around search input */
 .v-select :deep(.vs__search) {
     box-shadow: none !important;
+}
+
+.edit-mapping > h4 {
+    margin-block-start: 2rem !important;
+    margin-block-end: 1rem !important;
+}
+
+.buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-block-start: var(--OC-margin-10);
+}
+
+.test-button {
+    margin-left: auto;
 }
 </style>

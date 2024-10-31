@@ -10,9 +10,9 @@ export class Mapping implements TMapping {
 	public version: string
 	public name: string
 	public description: string
-	public mapping: any[]
+	public mapping: Record<string, unknown>
 	public unset: any[]
-	public cast: any[]
+	public cast: Record<string, unknown>
 	public passThrough: boolean
 	public dateCreated: string
 	public dateModified: string
@@ -24,9 +24,9 @@ export class Mapping implements TMapping {
 		this.version = mapping.version || '0.0.0'
 		this.name = mapping.name || ''
 		this.description = mapping.description || ''
-		this.mapping = mapping.mapping || []
+		this.mapping = (mapping.mapping && !Array.isArray(mapping.mapping)) ? mapping.mapping : {}
 		this.unset = mapping.unset || []
-		this.cast = mapping.cast || []
+		this.cast = (mapping.cast && !Array.isArray(mapping.cast)) ? mapping.cast : {}
 		this.passThrough = mapping.passThrough ?? false
 		this.dateCreated = mapping.dateCreated || ''
 		this.dateModified = mapping.dateModified || ''
@@ -40,9 +40,9 @@ export class Mapping implements TMapping {
 			version: z.string().max(255),
 			name: z.string().max(255),
 			description: z.string(),
-			mapping: z.array(z.any()),
+			mapping: z.record(z.any()),
 			unset: z.array(z.any()),
-			cast: z.array(z.any()),
+			cast: z.record(z.any()),
 			passThrough: z.boolean(),
 			dateCreated: z.string().or(z.literal('')),
 			dateModified: z.string().or(z.literal('')),
