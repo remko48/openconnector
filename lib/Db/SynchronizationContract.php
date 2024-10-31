@@ -90,16 +90,16 @@ class SynchronizationContract extends Entity implements JsonSerializable
 			'synchronizationId' => $this->synchronizationId,
 			'sourceId' => $this->sourceId,
 			'sourceHash' => $this->sourceHash,
-			'sourceLastChanged' => $this->sourceLastChanged,
-			'sourceLastChecked' => $this->sourceLastChecked,
-			'sourceLastSynced' => $this->sourceLastSynced,
+			'sourceLastChanged' => isset($this->sourceLastChanged) ? $this->sourceLastChanged->format('c') : null,
+			'sourceLastChecked' => isset($this->sourceLastChecked) ? $this->sourceLastChecked->format('c') : null,
+			'sourceLastSynced' => isset($this->sourceLastSynced) ? $this->sourceLastSynced->format('c') : null,
 			'targetId' => $this->targetId,
 			'targetHash' => $this->targetHash,
-			'targetLastChanged' => $this->targetLastChanged,
-			'targetLastChecked' => $this->targetLastChecked,
-			'targetLastSynced' => $this->targetLastSynced,
-			'created' => $this->created,
-			'updated' => $this->updated
+			'targetLastChanged' => isset($this->targetLastChanged) ? $this->targetLastChanged->format('c') : null,
+			'targetLastChecked' => isset($this->targetLastChecked) ? $this->targetLastChecked->format('c') : null,
+			'targetLastSynced' => isset($this->targetLastSynced) ? $this->targetLastSynced->format('c') : null,
+			'created' => isset($this->created) ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null
 		];
 	}
 }
