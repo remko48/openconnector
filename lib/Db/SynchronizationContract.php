@@ -17,8 +17,8 @@ class SynchronizationContract extends Entity implements JsonSerializable
     protected ?string $version = null;
 	protected ?string $synchronizationId = null; // The synchronization that this contract belongs to
 	// Source
-	protected ?string $sourceId = null; // The id of the object in the source
-	protected ?string $sourceHash = null; // The hash of the object in the source
+	protected ?string $originId = null; // The id of the object in the source
+	protected ?string $originHash = null; // The hash of the object in the source
 	protected ?DateTime $sourceLastChanged = null; // The last changed date of the object in the source
 	protected ?DateTime $sourceLastChecked = null; // The last checked date of the object in the source
 	protected ?DateTime $sourceLastSynced = null; // The last synced date of the object in the source
@@ -37,8 +37,8 @@ class SynchronizationContract extends Entity implements JsonSerializable
         $this->addType('uuid', 'string');
         $this->addType('version', 'string');
 		$this->addType('synchronizationId', 'string');
-		$this->addType('sourceId', 'string');
-		$this->addType('sourceHash', 'string');
+		$this->addType('originId', 'string');
+		$this->addType('originHash', 'string');
 		$this->addType('sourceLastChanged', 'datetime');
 		$this->addType('sourceLastChecked', 'datetime');
 		$this->addType('sourceLastSynced', 'datetime');
@@ -88,8 +88,8 @@ class SynchronizationContract extends Entity implements JsonSerializable
 			'uuid' => $this->uuid,
 			'version' => $this->version,
 			'synchronizationId' => $this->synchronizationId,
-			'sourceId' => $this->sourceId,
-			'sourceHash' => $this->sourceHash,
+			'originId' => $this->originId,
+			'originHash' => $this->originHash,
 			'sourceLastChanged' => isset($this->sourceLastChanged) ? $this->sourceLastChanged->format('c') : null,
 			'sourceLastChecked' => isset($this->sourceLastChecked) ? $this->sourceLastChecked->format('c') : null,
 			'sourceLastSynced' => isset($this->sourceLastSynced) ? $this->sourceLastSynced->format('c') : null,

@@ -29,7 +29,7 @@ class SynchronizationContractMapper extends QBMapper
 		return $this->findEntity(query: $qb);
 	}
 
-	public function findOnSynchronizationIdSourceId(string $synchronizationId, string $sourceId): ?SynchronizationContract
+	public function findSynchronizationContractWithOriginId(string $synchronizationId, string $originId): ?SynchronizationContract
 	{
 		$qb = $this->db->getQueryBuilder();
 
@@ -39,7 +39,7 @@ class SynchronizationContractMapper extends QBMapper
 				$qb->expr()->eq('synchronization_id', $qb->createNamedParameter($synchronizationId))
 			)
 			->andWhere(
-				$qb->expr()->eq('source_id', $qb->createNamedParameter($sourceId))
+				$qb->expr()->eq('origin_id', $qb->createNamedParameter($originId))
 			);
 
 		try {
@@ -105,10 +105,11 @@ class SynchronizationContractMapper extends QBMapper
 		$obj = new SynchronizationContract();
 		$obj->hydrate(object: $object);
 		// Set uuid
-		if($obj->getUuid() === null){
+		if ($obj->getUuid() === null) {
 			$obj->setUuid(Uuid::v4());
 		}
-		return $this->insert(entity: $synchronizationContract);
+
+		return $this->insert(entity: $obj);
 	}
 
 	public function updateFromArray(int $id, array $object): SynchronizationContract
@@ -146,7 +147,7 @@ class SynchronizationContractMapper extends QBMapper
 					// Check if the contract matches as a source
 					$qb->expr()->andX(
 						$qb->expr()->eq('source_type', $qb->createNamedParameter($type)),
-						$qb->expr()->eq('source_id', $qb->createNamedParameter($id))
+						$qb->expr()->eq('origin_id', $qb->createNamedParameter($id))
 					),
 					// Check if the contract matches as a target
 					$qb->expr()->andX(

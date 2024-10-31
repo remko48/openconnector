@@ -185,7 +185,7 @@ class SynchronizationsController extends Controller
     public function contracts(int $id): JSONResponse
     {
         try {
-            $contracts = $this->synchronizationContractMapper->findAll($null, null, ['synchronization_id' => $id]);
+            $contracts = $this->synchronizationContractMapper->findAll(null, null, ['synchronization_id' => $id]);
             return new JSONResponse($contracts);
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Contracts not found'], 404);
@@ -202,7 +202,7 @@ class SynchronizationsController extends Controller
      *
      * @param int $id The ID of the source to retrieve logs for
      * @return JSONResponse A JSON response containing the call logs
-     */
+    */
     public function logs(int $id): JSONResponse
     {
         try {

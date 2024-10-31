@@ -17,6 +17,7 @@ use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
 use Symfony\Component\Uid\Uuid;
 use OCP\AppFramework\Db\DoesNotExistException;
+use Adbar\Dot;
 
 use Psr\Container\ContainerInterface;
 use DateInterval;
@@ -63,33 +64,44 @@ class SynchronizationService
 	 *
 	 * @param Synchronization $synchronization
 	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
+     * 
+	 * @throws Exception
      *
 	 * @return array
-	 * @throws Exception
 	 */
     public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
         $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
         foreach ($objectList as $key => $object) {
+            
+            // Check for origin id.
+            $originId = $this->getOriginId($synchronization, $object);
+            
             // Get the synchronization contract for this object
-            $synchronizationContract = $this->synchronizationContractMapper->findOnSynchronizationIdSourceId(synchronizationId: $synchronization->id, sourceId: $object['id']);
+            $synchronizationContract = $this->synchronizationContractMapper->findSynchronizationContractWithOriginId(synchronizationId: $synchronization->id, originId: $originId);
 
             if ($synchronizationContract instanceof SynchronizationContract === false) {
-                $synchronizationContract = new SynchronizationContract();
-                $synchronizationContract->setUuid(Uuid::v4());
-                $synchronizationContract->setSynchronizationId($synchronization->id);
-                $synchronizationContract->setSourceId($object['id']);
-                $synchronizationContract->setSourceHash(md5(serialize($object)));
+                // Only persist if not test
+                if ($isTest === false) {
+                    $synchronizationContract = $this->synchronizationContractMapper->createFromArray([
+                        'synchronizationId' => $synchronization->getId(),
+                        'originId' => $originId,
+                        'originHash' => md5(serialize($object))
+                    ]);
+                } else {
+                    $synchronizationContract = new SynchronizationContract();
+                    $synchronizationContract->setSynchronizationId($synchronization->getId());
+                    $synchronizationContract->setOriginId($originId);
+                    $synchronizationContract->setOriginHash(md5(serialize($object)));
+                }
 
                 $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
 
-                if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
-                    // If this is a regular synchronizationContract create it to the database.
-                    $objectList[$key] = $this->synchronizationContractMapper->insert(entity: $synchronizationContract);
-                } elseif ($isTest === true && is_array($synchronizationContract) === true) {
+                if ($isTest === true && is_array($synchronizationContract) === true) {
                     // If this is a log and contract array return for the test endpoint.
                     $logAndContractArray = $synchronizationContract;
+
                     return $logAndContractArray;
                 }
             } else {
@@ -104,9 +116,34 @@ class SynchronizationService
                     return $logAndContractArray;
                 }
             }
+
+            $this->synchronizationContractMapper->update($synchronizationContract);
         }
 
         return $objectList;
+    }
+
+    /**
+     * Gets id from object as is in the origin
+     * 
+     * @param Synchronization $synchronization
+     * @param array $object
+     * 
+     * @return string|int id
+     */
+    private function getOriginId(Synchronization $synchronization, array $object)
+    {
+        $originIdLocation = 'id';
+        if ($synchronization->getOriginIdLocation() !== null) {
+            $originIdLocation = $synchronization->getOriginIdLocation();
+        }
+        $objectDot = new Dot($object);
+        $originId = $objectDot->get($originIdLocation);
+        if ($originId === null) {
+            throw new Exception('Could not find origin id in object for key: ' . $originIdLocation);
+        }
+
+        return $originId;
     }
 
 	/**
@@ -124,33 +161,28 @@ class SynchronizationService
     public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false)
     {
         // Let create a source hash for the object
-        $sourceHash = md5(serialize($object));
+        $originHash = md5(serialize($object));
         $synchronizationContract->setSourceLastChecked(new DateTime());
 
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
-        if ($sourceHash === $synchronizationContract->getSourceHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
+        if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
             // The object has not changed and the config has not been updated since last check
             // return $synchronizationContract;
             // @todo: somehow this always returns true, so we never do the updateTarget
         }
 
         // The object has changed, oke let do mappig and bla die bla
-        $synchronizationContract->setSourceHash($sourceHash);
+        $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
 
         try {
-            $mapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
+            $sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
         } catch (DoesNotExistException $exception) {
             return new Exception($exception->getMessage());
         }
 
         // let do the mapping if provided
-        if ($synchronization->getSourceTargetMapping()){
-            try {
-                $sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
-            } catch (DoesNotExistException $exception) {
-                throw new Exception("Could not find mapping with id: {$synchronization->getSourceTargetMapping()}");
-            }
+        if ($sourceTargetMapping) {
             $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
         } else {
             $targetObject = $object;
@@ -166,20 +198,18 @@ class SynchronizationService
 
         // Do the magic!!
         if ($isTest === false) {
-            $this->updateTarget(synchronizationContract: $synchronizationContract, targetObject: $targetObject);
+            $synchronizationContract = $this->updateTarget(synchronizationContract: $synchronizationContract, targetObject: $targetObject);
         }
 
         // Log it
-        $log = new SynchronizationContractLog();
-        $log->setUuid(Uuid::v4());
-        $log->setSynchronizationId($synchronizationContract->getSynchronizationId());
-        $log->setSynchronizationContractId($synchronizationContract->getId());
-        $log->setSource($object);
-        $log->setTarget($targetObject);
-        $log->setExpires(new DateTime('+1 day')); // @todo make this configurable
-
         if ($isTest === false) {
-            $this->synchronizationContractLogMapper->insert($log);
+            $log = $this->synchronizationContractLogMapper->createFromArray([
+                'synchronizationId' => $synchronizationContract->getSynchronizationId(),
+                'synchronizationContractId' => $synchronizationContract->getId(),
+                'source' => $object,
+                'target' => $targetObject,
+                'expires' => new DateTime('+1 day')
+            ]);
         }
 
         if ($isTest === true) {
@@ -198,9 +228,9 @@ class SynchronizationService
      *
 	 * @throws Exception
 	 *
-	 * @return void
+	 * @return SynchronizationContract
 	 */
-    public function updateTarget(SynchronizationContract $synchronizationContract, array $targetObject): void
+    public function updateTarget(SynchronizationContract $synchronizationContract, array $targetObject): SynchronizationContract
 	{
          // The function can be called solo set let's make sure we have the full synchronization object
         if (isset($synchronization) === false) {
@@ -215,20 +245,24 @@ class SynchronizationService
 
         $type = $synchronization->getTargetType();
 
-        switch($type){
+        switch ($type) {
             case 'register/schema':
                 // Setup the object service
                 $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
-                // if we alreadey have an id, we need to get the object and update it
-                if ($synchronizationContract->getTargetId()){
+
+                // if we already have an id, we need to get the object and update it
+                if ($synchronizationContract->getTargetId() !== null) {
                     $targetObject['id'] = $synchronizationContract->getTargetId();
                 }
+
                 // Extract register and schema from the targetId
                 // The targetId needs to be filled in as: {registerId} + / + {schemaId} for example: 1/1
                 $targetId = $synchronization->getTargetId();
                 list($register, $schema) = explode('/', $targetId);
+
                 // Save the object to the target
                 $target = $objectService->saveObject($register, $schema, $targetObject);
+
                 // Get the id form the target object
                 $synchronizationContract->setTargetId($target->getUuid());
                 break;
@@ -242,6 +276,8 @@ class SynchronizationService
             default:
                 throw new Exception("Unsupported target type: $type");
         }
+
+        return $synchronizationContract;
     }
 
     /**
@@ -271,6 +307,7 @@ class SynchronizationService
                 //@todo: implement
                 break;
         }
+
         return $objects;
     }
 
@@ -291,13 +328,6 @@ class SynchronizationService
         $response = $this->callService->call($source)->getResponse();
         $body = json_decode($response['body'], true);
         $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
-
-        // Return single object or empty array.
-        if ($isTest === true) {
-            return [$objects[0]] ?? [];
-        }
-
-        $nextLink = $this->getNextlinkFromCall($body, $synchronization);
 
         // Return a single object or empty array if in test mode
         if ($isTest === true) {

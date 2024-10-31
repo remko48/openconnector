@@ -15,6 +15,10 @@ use OCP\IRequest;
 use OCP\BackgroundJob\IJobList;
 use OCA\OpenConnector\Db\JobLogMapper;
 use OCA\OpenConnector\Service\JobService;
+use OCP\AppFramework\Db\DoesNotExistException;
+
+use OCA\OpenConnector\Service\SynchronizationService;
+use OCA\OpenConnector\Db\SynchronizationMapper;
 
 class JobsController extends Controller
 {
@@ -33,6 +37,8 @@ class JobsController extends Controller
         private JobLogMapper $jobLogMapper,
         private JobService $jobService,
         private IJobList $jobList,
+        private SynchronizationService $synchronizationService,
+        private SynchronizationMapper $synchronizationMapper
     )
     {
         parent::__construct($appName, $request);
@@ -223,6 +229,7 @@ class JobsController extends Controller
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
         }
+
 
         if (!$job->getJobListId()) {
             return new JSONResponse(data: ['error' => 'Job not scheduled'], statusCode: 404);

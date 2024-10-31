@@ -108,6 +108,7 @@ class MappingService
             return $list;
         }//end if
 
+        $originalInput = $input;
         $input = $this->encodeArrayKeys($input, '.', '&#46;');
 
         // @todo: error loging
@@ -136,7 +137,7 @@ class MappingService
             }
 
             // Render the value from twig.
-			$dotArray->set($key, $this->twig->createTemplate($value)->render($input));
+			$dotArray->set($key, $this->twig->createTemplate($value)->render($originalInput));
 //            $dotArray->set($key, $input);
         }
 
