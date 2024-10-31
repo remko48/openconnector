@@ -13,7 +13,7 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
-use Opis\JsonSchema\Errors\ErrorFormatter;
+use OCP\IURLGenerator;
 
 class MappingsController extends Controller
 {
@@ -203,7 +203,7 @@ class MappingsController extends Controller
      *     "validationErrors": []
      * }
      */
-    public function test(ObjectService $objectService): JSONResponse
+    public function test(ObjectService $objectService, IURLGenerator $urlGenerator): JSONResponse
     {
 		$openRegisters = $objectService->getOpenRegisters();
 
@@ -272,12 +272,13 @@ class MappingsController extends Controller
 
         // Perform schema validation if both schema and validation are provided
         if ($schema !== false && $validation !== false && $openRegisters !== null) {
-			$result = $openRegisters->validateObject(object: $resultObject, schemaObject: $schema->getSchemaObject());
+			$result = $openRegisters->validateObject(object: $resultObject, schemaObject: $schema->getSchemaObject($urlGenerator));
 
 			$isValid = $result->isValid();
 
 			if($result->hasError() === true) {
-				$validationErrors = (new ErrorFormatter())->format(error: $result->error());
+				// Class imported without use because it only exists when OpenRegisters is installed.
+				$validationErrors = (new \Opis\JsonSchema\Errors\ErrorFormatter())->format(error: $result->error());
 			}
         }
 
