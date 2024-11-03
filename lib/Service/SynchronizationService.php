@@ -64,6 +64,12 @@ class SynchronizationService
         $objectList = $this->getAllObjectsFromSource($synchronization);
 
         foreach ($objectList as $key => $object) {
+            // If the source configuration contains a dot notation for the id location, we need to extract the id from the source object
+            if ($synchronization->getSourceConfig() && isset($synchronization->getSourceConfig()['idLocation'])) {
+                $dot = new Dot($object);
+                $object['id'] = $dot->get($synchronization->getSourceConfig()['idLocation']);
+            }
+
             // Get the synchronization contract for this object
             $synchronizationContract = $this->synchronizationContractMapper->findOnSynchronizationIdSourceId($synchronization->id, $object['id']);
 
@@ -284,20 +290,20 @@ class SynchronizationService
             }
         }
 
-        // Check for common keys where objects might be stored
-        // If 'items' key exists, return its value
-        if (isset($array['items'])) {
-            return $array['items'];
+        // the source configuration might contain a dot notation for resuluts    location, if so we need to extract the objects from the source object
+        if ($synchronization->getSourceConfig() && isset($synchronization->getSourceConfig()['resultsLocation'])){
+            $dot = new Dot($array);
+            $return = $dot->get($synchronization->getSourceConfig()['resultsLocation']);
         }
 
-        // If 'result' key exists, return its value
-        if (isset($array['result'])) {
-            return $array['result'];
-        }
+        // Define common keys to check for objects
+        $commonKeys = ['items', 'result', 'results'];
 
-        // If 'results' key exists, return its value
-        if (isset($array['results'])) {
-            return $array['results'];
+        // Loop through common keys and return first match found
+        foreach ($commonKeys as $key) {
+            if (isset($array[$key])) {
+                return $array[$key];
+            }
         }
 
         // If no objects can be found, throw an exception
