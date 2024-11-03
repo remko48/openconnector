@@ -8,10 +8,12 @@ use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenConnector\Db\Mapping;
 use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 
 class MappingsController extends Controller
 {
@@ -35,7 +37,7 @@ class MappingsController extends Controller
 
     /**
      * Returns the template of the main app's page
-     * 
+     *
      * This method renders the main page of the application, adding any necessary data to the template.
      *
      * @NoAdminRequired
@@ -44,17 +46,17 @@ class MappingsController extends Controller
      * @return TemplateResponse The rendered template response
      */
     public function page(): TemplateResponse
-    {           
+    {
         return new TemplateResponse(
             'openconnector',
             'index',
             []
         );
     }
-    
+
     /**
      * Retrieves a list of all mappings
-     * 
+     *
      * This method returns a JSON response containing an array of all mappings in the system.
      *
      * @NoAdminRequired
@@ -76,7 +78,7 @@ class MappingsController extends Controller
 
     /**
      * Retrieves a single mapping by its ID
-     * 
+     *
      * This method returns a JSON response containing the details of a specific mapping.
      *
      * @NoAdminRequired
@@ -96,7 +98,7 @@ class MappingsController extends Controller
 
     /**
      * Creates a new mapping
-     * 
+     *
      * This method creates a new mapping based on POST data.
      *
      * @NoAdminRequired
@@ -113,17 +115,17 @@ class MappingsController extends Controller
                 unset($data[$key]);
             }
         }
-        
+
         if (isset($data['id'])) {
             unset($data['id']);
         }
-        
+
         return new JSONResponse($this->mappingMapper->createFromArray(object: $data));
     }
 
     /**
      * Updates an existing mapping
-     * 
+     *
      * This method updates an existing mapping based on its ID.
      *
      * @NoAdminRequired
@@ -149,7 +151,7 @@ class MappingsController extends Controller
 
     /**
      * Deletes a mapping
-     * 
+     *
      * This method deletes a mapping based on its ID.
      *
      * @NoAdminRequired
@@ -167,7 +169,7 @@ class MappingsController extends Controller
 
     /**
      * Tests a mapping
-     * 
+     *
      * This method tests a mapping with provided input data and optional schema validation.
      *
      * @NoAdminRequired
@@ -179,7 +181,13 @@ class MappingsController extends Controller
      * Request:
      * {
      *     "inputObject": "{\"name\":\"John Doe\",\"age\":30,\"email\":\"john@example.com\"}",
-     *     "mapping": "{\"fullName\":\"{{name}}\",\"userAge\":\"{{age}}\",\"contactEmail\":\"{{email}}\"}",
+     *     "mapping": {
+	 * 			"mapping": {
+	 * 				"fullName":"{{name}}",
+	 * 				"userAge":"{{age}}",
+	 * 				"contactEmail":"{{email}}"
+	 * 			}
+	 * 	   },
      *     "schema": "user_schema_id",
      *     "validation": true
      * }
@@ -195,40 +203,51 @@ class MappingsController extends Controller
      *     "validationErrors": []
      * }
      */
-    public function test(): JSONResponse
+    public function test(ObjectService $objectService, IURLGenerator $urlGenerator): JSONResponse
     {
+		$openRegisters = $objectService->getOpenRegisters();
+
         // Get all parameters from the request
         $data = $this->request->getParams();
-        
+
+
         // Validate that required parameters are present
         if (!isset($data['inputObject']) || !isset($data['mapping'])) {
             throw new \InvalidArgumentException('Both `inputObject` and `mapping` are required');
         }
-        
+
         // Decode the input object from JSON
-        $inputObject = json_decode($data['inputObject'], true);
-        if ($inputObject === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON for `inputObject`: ' . json_last_error_msg());
-        }
-        
+        $inputObject = $data['inputObject'];
+
         // Decode the mapping from JSON
-        $mapping = json_decode($data['mapping'], true);
-        if ($mapping === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON for `mapping`: ' . json_last_error_msg());
-        }
+		$mapping = $data['mapping'];
 
         // Initialize schema and validation flags
         $schema = false;
         $validation = false;
 
         // If a schema is provided, retrieve it
-        if (isset($data['schema']) && !empty($data['schema'])) {
+        if (empty($data['schema']) === false) {
+			if ($openRegisters === null) {
+				return new JSONResponse(data: [
+					'error'   => 'Setup error',
+					'message' => 'OpenRegisters must be installed to validate schema.'
+				],statusCode: 412);
+			}
+
             $schemaId = $data['schema'];
-            $schema = $this->objectService->getObject($schemaId);
+			try {
+				$schema = $openRegisters->getMapper('schema')->find($schemaId);
+			} catch (DoesNotExistException $exception) {
+				return new JSONResponse(data: [
+					'error' => 'Not found',
+					'message' => 'The specified schema could not be found.',
+				], statusCode: 404);
+			}
         }
 
         // Check if validation is requested
-        if (isset($data['validation']) && !empty($data['validation'])) {
+        if (empty($data['validation']) === false) {
             $validation = $data['validation'];
         }
 
@@ -238,7 +257,7 @@ class MappingsController extends Controller
 
         // Perform the mapping operation
         try {
-            $resultObject = $this->mappingService->map(mapping: $mapping, input: $inputObject);
+            $resultObject = $this->mappingService->executeMapping(mapping: $mappingObject, input: $inputObject);
         } catch (\Exception $e) {
             // If mapping fails, return an error response
             return new JSONResponse([
@@ -252,10 +271,15 @@ class MappingsController extends Controller
         $validationErrors = [];
 
         // Perform schema validation if both schema and validation are provided
-        if ($schema !== false && $validation !== false) {
-            // TODO: Implement schema validation logic here
-            // For now, we'll just assume it's always valid
-            $isValid = true;
+        if ($schema !== false && $validation !== false && $openRegisters !== null) {
+			$result = $openRegisters->validateObject(object: $resultObject, schemaObject: $schema->getSchemaObject($urlGenerator));
+
+			$isValid = $result->isValid();
+
+			if ($result->hasError() === true) {
+				// Class imported without use because it only exists when OpenRegisters is installed.
+				$validationErrors = (new \Opis\JsonSchema\Errors\ErrorFormatter())->format(error: $result->error());
+			}
         }
 
         // Return the result as a JSON response

@@ -1,3 +1,7 @@
+<script setup>
+import { navigationStore } from '../store/store.js'
+</script>
+
 <template>
 	<div>
 		<EditEndpoint />
@@ -14,6 +18,7 @@
 		<EditLog />
 		<DeleteMapping />
 		<EditMapping />
+		<TestMapping v-if="navigationStore.modal === 'testMapping'" />
 		<EditMappingMapping />
 		<DeleteMappingMapping />
 		<EditMappingCast />
@@ -30,8 +35,6 @@
 </template>
 
 <script>
-import { navigationStore } from '../store/store.js'
-
 import EditEndpoint from './Endpoint/EditEndpoint.vue'
 import DeleteEndpoint from './Endpoint/DeleteEndpoint.vue'
 import EditConsumer from './Consumer/EditConsumer.vue'
@@ -46,6 +49,7 @@ import EditLog from './Log/EditLog.vue'
 import DeleteLog from './Log/DeleteLog.vue'
 import EditMapping from './Mapping/EditMapping.vue'
 import DeleteMapping from './Mapping/DeleteMapping.vue'
+import TestMapping from './MappingTest/TestMapping.vue'
 import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
 import EditJobArgument from './JobArgument/EditJobArgument.vue'
@@ -76,6 +80,7 @@ export default {
 		EditLog,
 		DeleteMapping,
 		EditMapping,
+		TestMapping,
 		DeleteSynchronization,
 		EditSynchronization,
 		EditJobArgument,
