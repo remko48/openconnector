@@ -8,7 +8,7 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 		label-id="editSynchronization"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>Synchronization{{ synchronizationItem.id ? 'Edit' : 'Add' }}</h2>
+			<h2>{{ synchronizationItem.id ? 'Edit' : 'Add' }} Synchronization</h2>
 
 			<NcNoteCard v-if="success" type="success">
 				<p>Synchronization successfully added</p>
@@ -30,6 +30,12 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 
 				<NcTextField :value.sync="synchronizationItem.sourceType"
 					label="sourceType" />
+
+				<NcTextField :value.sync="synchronizationItem.sourceConfig.idPosition"
+					label="(optional) Position of id in source object" />
+
+				<NcTextField :value.sync="synchronizationItem.sourceConfig.resultsPosition"
+					label="(optional) Position of results in source object" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
 					label="sourceTargetMapping" />
@@ -95,9 +101,14 @@ export default {
 				description: '',
 				sourceId: '',
 				sourceType: 'api',
+				sourceConfig: {
+					idPosition: '',
+					resultsPosition: '',
+				},
 				sourceTargetMapping: '',
 				targetId: '',
 				targetType: 'register/schema',
+				targetConfig: {},
 				targetSourceMapping: '',
 			}, // Initialize with empty fields
 			hasUpdated: false, // Flag to prevent constant looping

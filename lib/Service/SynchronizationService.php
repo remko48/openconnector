@@ -64,10 +64,10 @@ class SynchronizationService
         $objectList = $this->getAllObjectsFromSource($synchronization);
 
         foreach ($objectList as $key => $object) {
-            // If the source configuration contains a dot notation for the id location, we need to extract the id from the source object
-            if ($synchronization->getSourceConfig() && isset($synchronization->getSourceConfig()['idLocation'])) {
+            // If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
+            if (!empty($synchronization->getSourceConfig()['idPosition'])) {
                 $dot = new Dot($object);
-                $object['id'] = $dot->get($synchronization->getSourceConfig()['idLocation']);
+                $object['id'] = $dot->get($synchronization->getSourceConfig()['idPosition']);
             }
 
             // Get the synchronization contract for this object
@@ -277,7 +277,7 @@ class SynchronizationService
         $sourceConfig = $synchronization->getSourceConfig();
 
         // Check if a specific objects position is defined in the source configuration
-        if (isset($sourceConfig['objectsPosition'])) {
+        if (!empty($sourceConfig['objectsPosition'])) {
             $position = $sourceConfig['objectsPosition'];
             // Use Dot notation to access nested array elements
             $dot = new Dot($array);
@@ -288,12 +288,6 @@ class SynchronizationService
                 // Throw an exception if the specified position doesn't exist
                 throw new Exception("Cannot find the specified position of objects in the return body.");
             }
-        }
-
-        // the source configuration might contain a dot notation for resuluts    location, if so we need to extract the objects from the source object
-        if ($synchronization->getSourceConfig() && isset($synchronization->getSourceConfig()['resultsLocation'])){
-            $dot = new Dot($array);
-            $return = $dot->get($synchronization->getSourceConfig()['resultsLocation']);
         }
 
         // Define common keys to check for objects
