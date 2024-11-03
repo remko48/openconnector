@@ -245,8 +245,18 @@ class SynchronizationService
         // Retrieve the source object based on the synchronization's source ID
         $source = $this->sourceMapper->find($synchronization->getSourceId());
 
+        // Lets get the source config
+        $sourceConfig = $synchronization->getSourceConfig();
+        $endpoint = $sourceConfig['endpoint'] ?? '';
+        $headers = $sourceConfig['headers'] ?? [];
+        $query = $sourceConfig['query'] ?? [];
+        $config = [
+            'headers' => $headers,
+            'query' => $query,
+        ];
+
         // Make the initial API call
-        $response = $this->callService->call($source)->getResponse();
+        $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
         $body = json_decode($response['body'], true);
         $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
         $nextLink = $this->getNextlinkFromCall($body, $synchronization);

@@ -37,6 +37,9 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 				<NcTextField :value.sync="synchronizationItem.sourceConfig.resultsPosition"
 					label="(optional) Position of results in source object" />
 
+				<NcTextField :value.sync="synchronizationItem.sourceConfig.endpoint"
+					label="(optional) Endpoint on which to fetch data" />
+
 				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
 					label="sourceTargetMapping" />
 
@@ -104,6 +107,9 @@ export default {
 				sourceConfig: {
 					idPosition: '',
 					resultsPosition: '',
+					endpoint: '',
+					headers: {},
+					query: {},
 				},
 				sourceTargetMapping: '',
 				targetId: '',
