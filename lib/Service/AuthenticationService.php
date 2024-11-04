@@ -92,7 +92,7 @@ class AuthenticationService
 		}
 		//@todo: check for off-cases, i.e. camelCase (not according to OAuth standards)
 
-		if(isset($configuration['client_assertion_type']) === true && $configuration['client_assertion_type'] === 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer') {
+		if (isset($configuration['client_assertion_type']) === true && $configuration['client_assertion_type'] === 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer') {
 			$callConfig['form_params']['client_assertion_type'] = $configuration['client_assertion_type'];
 			$callConfig['form_params']['client_assertion'] = $this->fetchJWTToken([
 				'algorithm' => 'PS256',
