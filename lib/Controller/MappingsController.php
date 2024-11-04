@@ -2,6 +2,8 @@
 
 namespace OCA\OpenConnector\Controller;
 
+use Exception;
+use InvalidArgumentException;
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\MappingService;
@@ -212,8 +214,8 @@ class MappingsController extends Controller
 
 
         // Validate that required parameters are present
-        if (!isset($data['inputObject']) || !isset($data['mapping'])) {
-            throw new \InvalidArgumentException('Both `inputObject` and `mapping` are required');
+        if (isset($data['inputObject']) === false || isset($data['mapping']) === false) {
+            throw new InvalidArgumentException('Both `inputObject` and `mapping` are required');
         }
 
         // Decode the input object from JSON
@@ -258,7 +260,7 @@ class MappingsController extends Controller
         // Perform the mapping operation
         try {
             $resultObject = $this->mappingService->executeMapping(mapping: $mappingObject, input: $inputObject);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // If mapping fails, return an error response
             return new JSONResponse([
                 'error' => 'Mapping error',
