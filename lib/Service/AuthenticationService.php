@@ -117,7 +117,7 @@ class AuthenticationService
 	private function createPasswordConfig(array $configuration): array
 	{
 		$diff  = array_diff(self::REQUIRED_PARAMETERS_PASSWORD, array_keys(array: $configuration));
-		if($diff !== []) {
+		if ($diff !== []) {
 			throw new BadRequestException(message: 'Some required parameters are not set: ['.implode(separator: ',', array: $diff).']');
 		}
 
@@ -128,7 +128,7 @@ class AuthenticationService
 			]
 		];
 
-		if($configuration['authentication'] === 'body') {
+		if ($configuration['authentication'] === 'body') {
 			$callConfig['form_params']['username'] = $configuration['username'];
 			$callConfig['form_params']['password'] = $configuration['password'];
 		} else if ($configuration['authentication'] === 'basic_auth') {
