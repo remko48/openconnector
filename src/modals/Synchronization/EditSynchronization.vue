@@ -25,8 +25,11 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 				<NcTextArea :value.sync="synchronizationItem.description"
 					label="Description" />
 
-				<NcTextField :value.sync="synchronizationItem.sourceId"
-					label="sourceId" />
+                <NcTextField :value.sync="synchronizationItem.originIdLocation"
+                    label="originIdLocation" />
+
+                <NcTextField :value.sync="synchronizationItem.sourceId"
+                    label="sourceId" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceType"
 					label="sourceType" />
@@ -102,6 +105,7 @@ export default {
 			synchronizationItem: {
 				name: '',
 				description: '',
+				originIdLocation: '',
 				sourceId: '',
 				sourceType: 'api',
 				sourceConfig: {
@@ -139,6 +143,7 @@ export default {
 			this.synchronizationItem = {
 				name: '',
 				description: '',
+				originIdLocation: '',
 				sourceId: '',
 				sourceType: 'api',
 				sourceTargetMapping: '',

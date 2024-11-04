@@ -110,6 +110,7 @@ class MappingService
             return $list;
         }//end if
 
+        $originalInput = $input;
         $input = $this->encodeArrayKeys($input, '.', '&#46;');
 
         // @todo: error logging

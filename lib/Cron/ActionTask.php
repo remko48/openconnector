@@ -59,7 +59,7 @@ class ActionTask extends TimedJob
     public function run($argument)
     {
         // if we do not have a job id then everything is wrong
-        if (isset($arguments['jobId']) && is_int($argument['jobId'])) {
+        if (isset($arguments['jobId']) === true && is_int($argument['jobId']) === true) {
             return;
         }
 
@@ -71,12 +71,12 @@ class ActionTask extends TimedJob
         }
 
         // If the job is not enabled, we don't need to do anything
-        if (!$job->getIsEnabled()) {
+        if ($job->getIsEnabled() === false) {
             return;
         }
 
         // if the next run is in the the future, we don't need to do anything
-        if ($job->getNextRun() && $job->getNextRun() > new DateTime()) {
+        if ($job->getNextRun() !== null && $job->getNextRun() > new DateTime()) {
             return;
         }
 
@@ -84,7 +84,7 @@ class ActionTask extends TimedJob
 
         $action =  $this->containerInterface->get($job->getJobClass());
         $arguments = $job->getArguments();
-        if(!is_array($arguments)){
+        if (is_array($arguments) === false) {
             $arguments = [];
         }
         $result = $action->run($arguments);
@@ -93,7 +93,7 @@ class ActionTask extends TimedJob
         $executionTime = ( $time_end - $time_start ) * 1000;
 
         // deal with single run
-        if ($job->isSingleRun()) {
+        if ($job->isSingleRun() === true) {
             $job->setIsEnabled(false);
         }
 
@@ -104,30 +104,28 @@ class ActionTask extends TimedJob
         $this->jobMapper->update($job);
 
         // Log the job
-        $jobLog = new JobLog();
-        $jobLog->setUuid(Uuid::v4());
-        $jobLog->setJobId($job->getId());
-        $jobLog->setJobClass($job->getJobClass());
-        $jobLog->setJobListId($job->getJobListId());
-        $jobLog->setArguments($job->getArguments());
-        $jobLog->setLastRun($job->getLastRun());
-        $jobLog->setNextRun($job->getNextRun());
-        $jobLog->setExecutionTime($executionTime);
+        $jobLog = $this->jobLogMapper->createFromArray([
+            'jobId'         => $job->getId(),
+            'jobClass'      => $job->getJobClass(),
+            'jobListId'     => $job->getJobListId(),
+            'arguments'     => $job->getArguments(),
+            'lastRun'       => $job->getLastRun(),
+            'nextRun'       => $job->getNextRun(),
+            'executionTime' => $executionTime
+        ]);
 
         // Get the result and set it to the job log
-        if (is_array($result)) {
-            if (isset($result['level'])) {
+        if (is_array($result) === true) {
+            if (isset($result['level']) === true) {
                 $jobLog->setLevel($result['level']);
             }
-            if (isset($result['message'])) {
+            if (isset($result['message']) === true) {
                 $jobLog->setMessage($result['message']);
             }
-            if (isset($result['stackTrace'])) {
+            if (isset($result['stackTrace']) === true) {
                 $jobLog->setStackTrace($result['stackTrace']);
             }
         }
-
-        $this->jobLogMapper->insert($jobLog);
 
         // Let's report back about what we have just done
         return $jobLog;

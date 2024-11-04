@@ -12,6 +12,7 @@ class Synchronization extends Entity implements JsonSerializable
 	protected ?string $name = null;	// The name of the synchronization
 	protected ?string $description = null;	// The description of the synchronization
 	protected ?string $version = null;	// The version of the synchronization
+	protected ?string $originIdLocation = null;	// The location of the id in the origin object (in the source)
 	// Source
 	protected ?string $sourceId = null;	// The id of the source object
 	protected ?string $sourceType = null;	// The type of the source object (e.g. api, database, register/schema.)
@@ -40,6 +41,7 @@ class Synchronization extends Entity implements JsonSerializable
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
 		$this->addType('version', 'string');
+		$this->addType('originIdLocation', 'string');
 		$this->addType('sourceId', 'string');
 		$this->addType('sourceType', 'string');
 		$this->addType('sourceHash', 'string');
@@ -98,22 +100,23 @@ class Synchronization extends Entity implements JsonSerializable
 			'name' => $this->name,
 			'description' => $this->description,
 			'version' => $this->version,
+			'originIdLocation' => $this->originIdLocation,
 			'sourceId' => $this->sourceId,
 			'sourceType' => $this->sourceType,
 			'sourceHash' => $this->sourceHash,
 			'sourceTargetMapping' => $this->sourceTargetMapping,
 			'sourceConfig' => $this->sourceConfig,
-			'sourceLastChanged' => $this->sourceLastChanged,
-			'sourceLastChecked' => $this->sourceLastChecked,
-			'sourceLastSynced' => $this->sourceLastSynced,
+			'sourceLastChanged' => isset($this->sourceLastChanged) ? $this->sourceLastChanged->format('c') : null,
+			'sourceLastChecked' => isset($this->sourceLastChecked) ? $this->sourceLastChecked->format('c') : null,
+			'sourceLastSynced' => isset($this->sourceLastSynced) ? $this->sourceLastSynced->format('c') : null,
 			'targetId' => $this->targetId,
 			'targetType' => $this->targetType,
 			'targetHash' => $this->targetHash,
 			'targetSourceMapping' => $this->targetSourceMapping,
 			'targetConfig' => $this->targetConfig,
-			'targetLastChanged' => $this->targetLastChanged,
-			'targetLastChecked' => $this->targetLastChecked,
-			'targetLastSynced' => $this->targetLastSynced,
+			'targetLastChanged' => isset($this->targetLastChanged) ? $this->targetLastChanged->format('c') : null,
+			'targetLastChecked' => isset($this->targetLastChecked) ? $this->targetLastChecked->format('c') : null,
+			'targetLastSynced' => isset($this->targetLastSynced) ? $this->targetLastSynced->format('c') : null,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
 			'updated' => isset($this->updated) ? $this->updated->format('c') : null
 		];
