@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 //use Twig\Error\SyntaxError;
 use Adbar\Dot;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
 use Twig\Loader\ArrayLoader;
 
 class MappingService
@@ -26,12 +28,12 @@ class MappingService
      */
     private Environment $twig;
 
-    /**
-     * Setting up the base class with required services.
-     *
-     * @param Environment      $twig    The twig environment
-     * @param SessionInterface $session The current session
-     */
+	/**
+	 * Setting up the base class with required services.
+	 *
+	 * @param ArrayLoader   $loader		   The ArrayLoader for Twig.
+	 * @param MappingMapper $mappingMapper The mapping mapper.
+	 */
     public function __construct(
 		ArrayLoader $loader,
 		MappingMapper $mappingMapper
@@ -73,8 +75,8 @@ class MappingService
      * Maps (transforms) an array (input) to a different array (output).
      *
      * @param Mapping $mapping The mapping object that forms the recipe for the mapping
-     * @param array   $input         The array that need to be mapped (transformed) otherwise known as input
-     * @param bool    $list          Wheter we want a list instead of a sngle item
+     * @param array   $input   The array that need to be mapped (transformed) otherwise known as input
+     * @param bool    $list    Whether we want a list instead of a single item
      *
      * @return array The result (output) of the mapping process
      *@throws LoaderError|SyntaxError Twig Exceptions
@@ -111,19 +113,16 @@ class MappingService
         $originalInput = $input;
         $input = $this->encodeArrayKeys($input, '.', '&#46;');
 
-        // @todo: error loging
-        // isset($this->style) === true && $this->style->info('Mapping array based on mapping object '.$mappingObject->getName().' (id:'.$mappingObject->getId()->toString().' / ref:'.$mappingObject->getReference().') v:'.$mappingObject->getversion());
+        // @todo: error logging
 
         // Determine pass trough.
         // Let's get the dot array based on https://github.com/adbario/php-dot-notation.
         if ($mapping->getPassThrough()) {
             $dotArray = new Dot($input);
-            // @todo: error loging
-            // isset($this->style) === true && $this->style->info('Mapping *with* pass trough');
+            // @todo: error logging
         } else {
             $dotArray = new Dot();
-            // @todo: error loging
-            // isset($this->style) === true && $this->style->info('Mapping *without* pass trough');
+            // @todo: error logging
         }
 
         $dotInput = new Dot($input);
@@ -138,15 +137,13 @@ class MappingService
 
             // Render the value from twig.
 			$dotArray->set($key, $this->twig->createTemplate($value)->render($originalInput));
-//            $dotArray->set($key, $input);
         }
 
         // Unset unwanted key's.
         $unsets = ($mapping->getUnset() ?? []);
         foreach ($unsets as $unset) {
             if ($dotArray->has($unset) === false) {
-                // @todo: error loging
-                // isset($this->style) === true && $this->style->info("Trying to unset an property that doesn't exist during mapping");
+                // @todo: error logging
                 continue;
             }
 
@@ -158,8 +155,7 @@ class MappingService
 
         foreach ($casts as $key => $cast) {
             if ($dotArray->has($key) === false) {
-                // @todo: error loging
-                //isset($this->style) === true && $this->style->info("Trying to cast an property that doesn't exist during mapping");
+                // @todo: error logging
                 continue;
             }
 
@@ -168,8 +164,7 @@ class MappingService
             }
 
             if ($cast === false) {
-                // @todo: error loging
-                //isset($this->style) === true && $this->style->info("Cast for property $key is an empty string");
+                // @todo: error logging
                 continue;
             }
 
@@ -280,7 +275,7 @@ class MappingService
             $value = base64_encode($value);
             break;
         case 'base64Decode':
-            $value = \Safe\base64_decode($value);
+            $value = base64_decode($value);
             break;
         case 'json':
             $value = json_encode($value);
@@ -399,10 +394,10 @@ class MappingService
      */
     public function coordinateStringToArray(string $coordinates): array
     {
-        $halfs           = explode(' ', $coordinates);
+        $halves          = explode(' ', $coordinates);
         $point           = [];
         $coordinateArray = [];
-        foreach ($halfs as $half) {
+        foreach ($halves as $half) {
             if (count($point) > 1) {
                 $coordinateArray[] = $point;
                 $point             = [];

@@ -14,14 +14,29 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 
 	}
 
-	public function oauthToken(string $endpoint, Source $source): string
+	/**
+	 * Add an oauth token to the configuration.
+	 *
+	 * @param Source $source
+	 * @return string
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 */
+	public function oauthToken(Source $source): string
 	{
 
 		return $this->authService->fetchOAuthTokens(
-			endpoint: $endpoint,
 			configuration: $source->getAuthenticationConfig()
 		);
 	}
+
+	/**
+	 * Add a jwt token to the configuration.
+	 *
+	 * @param Source $source The source to run.
+	 * @return string
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 */
 	public function jwtToken(Source $source): string
 	{
 		return $this->authService->fetchJWTToken(
