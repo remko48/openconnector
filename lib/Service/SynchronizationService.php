@@ -106,7 +106,7 @@ class SynchronizationService
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
         if ($sourceHash === $synchronizationContract->getSourceHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
             // The object has not changed and the config has not been updated since last check
-            // return $synchronizationContract; 
+            // return $synchronizationContract;
             // @todo: somehow this always returns true, so we never do the updateTarget
         }
 
@@ -116,7 +116,7 @@ class SynchronizationService
 
         // let do the mapping if provided
         if ($synchronization->getSourceTargetMapping()){
-            $targetObject = $this->mappingService->mapping($synchronization->getSourceTargetMapping(), $object);
+            $targetObject = $this->mappingService->executeMapping($synchronization->getSourceTargetMapping(), $object);
         }
         else{
             $targetObject = $object;
@@ -238,7 +238,7 @@ class SynchronizationService
         $objects = [];
         // Retrieve the source object based on the synchronization's source ID
         $source = $this->sourceMapper->find($synchronization->getSourceId());
-        
+
         // Make the initial API call
         $response = $this->callService->call($source)->getResponse();
         $body = json_decode($response['body'], true);
@@ -253,8 +253,8 @@ class SynchronizationService
             $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
             $nextLink = $this->getNextlinkFromCall($body, $synchronization);
         }
-        
-        return $objects;        
+
+        return $objects;
     }
 
     /**
@@ -269,7 +269,7 @@ class SynchronizationService
     {
         // Get the source configuration from the synchronization object
         $sourceConfig = $synchronization->getSourceConfig();
-        
+
         // Check if a specific objects position is defined in the source configuration
         if (isset($sourceConfig['objectsPosition'])) {
             $position = $sourceConfig['objectsPosition'];
@@ -283,23 +283,23 @@ class SynchronizationService
                 throw new Exception("Cannot find the specified position of objects in the return body.");
             }
         }
-        
+
         // Check for common keys where objects might be stored
         // If 'items' key exists, return its value
         if (isset($array['items'])) {
             return $array['items'];
         }
-        
+
         // If 'result' key exists, return its value
         if (isset($array['result'])) {
             return $array['result'];
         }
-        
+
         // If 'results' key exists, return its value
         if (isset($array['results'])) {
             return $array['results'];
         }
-        
+
         // If no objects can be found, throw an exception
         throw new Exception("Cannot determine the position of objects in the return body.");
     }

@@ -46,7 +46,7 @@ class CallLogMapper extends QBMapper
             }
         }
 
-        if (!empty($searchConditions)) {
+        if (empty($searchConditions) === false) {
             $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);
@@ -61,7 +61,7 @@ class CallLogMapper extends QBMapper
         $obj = new CallLog();
 		$obj->hydrate($object);
 		// Set uuid
-		if($obj->getUuid() === null){
+		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
         return $this->insert($obj);
@@ -72,7 +72,7 @@ class CallLogMapper extends QBMapper
         $obj = $this->find($id);
 		$obj->hydrate($object);;
 		// Set uuid
-		if($obj->getUuid() === null){
+		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
 

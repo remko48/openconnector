@@ -3,6 +3,8 @@
 namespace OCA\OpenConnector\Service;
 
 use Adbar\Dot;
+use Exception;
+use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenConnector\Db\Source;
@@ -15,36 +17,101 @@ use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Psr7\Response;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
+use OCA\OpenConnector\Twig\AuthenticationExtension;
+use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
 use Symfony\Component\Uid\Uuid;
+use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
+use Twig\Loader\ArrayLoader;
 
+/**
+ * This class provides functionality to handle API calls to a specified source within the NextCloud environment.
+ *
+ * It manages the execution of HTTP requests using the Guzzle HTTP client, while also rendering templates
+ * and managing call logs. It utilizes Twig for templating and Guzzle for making HTTP requests, and logs all calls.
+ *
+ * @todo We should test the effect of @Authors & @Package(s) in Class doc-blocks. And add them if possible.
+ */
 class CallService
 {
-	private CallLogMapper $callLogMapper;
+	private Client $client;
+	private Environment $twig;
 
 	/**
 	 * The constructor sets al needed variables.
 	 *
 	 * @param CallLogMapper $callLogMapper
+	 * @param ArrayLoader $loader
+	 * @param AuthenticationService $authenticationService
 	 */
-	public function __construct(CallLogMapper $callLogMapper)
+	public function __construct(
+		private readonly CallLogMapper $callLogMapper,
+		ArrayLoader $loader,
+		AuthenticationService $authenticationService
+	)
 	{
-		$this->client                = new Client([]);
-		$this->callLogMapper = $callLogMapper;
+		$this->client = new Client([]);
+		$this->twig = new Environment($loader);
+		$this->twig->addExtension(new AuthenticationExtension());
+		$this->twig->addRuntimeLoader(new AuthenticationRuntimeLoader($authenticationService));
+	}
+
+	/**
+	 * Renders a value using Twig templating if the value contains template syntax.
+	 * If the value is an array, recursively renders each element.
+	 *
+	 * @param array|string $value The value to render, which can be a string or an array.
+	 * @param Source $source The source object used as context for rendering templates.
+	 *
+	 * @return array|string The rendered value, either as a processed string or an array.
+	 * @throws LoaderError If there is an error loading a Twig template.
+	 * @throws SyntaxError If there is a syntax error in a Twig template.
+	 */
+	private function renderValue(array|string $value, Source $source): array|string
+	{
+			if (is_array($value) === false
+				&& str_contains(haystack: $value, needle: "{{") === true
+				&& str_contains(haystack: $value, needle: "}}") === true
+			) {
+				return $this->twig->createTemplate(template: $value, name: "sourceConfig")->render(context: ['source' => $source]);
+			} else if (is_array($value) === true){
+				$value = array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $value);
+			}
+
+			return $value;
+	}
+
+	/**
+	 * Renders configuration values using Twig templating, applying the provided source as context.
+	 * Recursively processes all values in the configuration array.
+	 *
+	 * @param array $configuration The configuration array to render.
+	 * @param Source $source The source object used as context for rendering templates.
+	 *
+	 * @return array The rendered configuration array.
+	 * @throws LoaderError If there is an error loading a Twig template.
+	 * @throws SyntaxError If there is a syntax error in a Twig template.
+	 */
+	private function renderConfiguration(array $configuration, Source $source): array
+	{
+		return array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
 	}
 
 	/**
 	 * Calls a source according to given configuration.
 	 *
-	 * @param Source $source             The source to call.
-	 * @param string $endpoint           The endpoint on the source to call.
-	 * @param string $method             The method on which to call the source.
-	 * @param array  $config             The additional configuration to call the source.
-	 * @param bool   $asynchronous       Whether or not to call the source asynchronously.
-	 * @param bool   $createCertificates Whether or not to create certificates for this source.
+	 * @param Source $source The source to call.
+	 * @param string $endpoint The endpoint on the source to call.
+	 * @param string $method The method on which to call the source.
+	 * @param array $config The additional configuration to call the source.
+	 * @param bool $asynchronous Whether to call the source asynchronously.
+	 * @param bool $createCertificates Whether to create certificates for this source.
+	 * @param bool $overruleAuth ???
 	 *
-	 * @throws Exception
-	 *
-	 * @return Response
+	 * @return CallLog
+	 * @throws GuzzleException
+	 * @throws \OCP\DB\Exception
 	 */
 	public function call(
 		Source $source,
@@ -98,7 +165,7 @@ class CallService
 			$overwriteContentType = $config['headers']['Content-Type'];
 		}
 
-		// decapiitilized fall back for content-type
+		// decapitalized fall back for content-type
 		if (isset($config['headers']['content-type']) === true) {
 			$overwriteContentType = $config['headers']['content-type'];
 		}
@@ -114,8 +181,10 @@ class CallService
 			$config['headers'] = [];
 		}
 
-		// We want to suprres guzzle exceptions and return the response instead
+		// We want to surpress guzzle exceptions and return the response instead
 		$config['http_errors'] = false;
+
+		$config = $this->renderConfiguration(configuration: $config, source: $source);
 
 		// Set the URL to call and add an endpoint if needed
 		$url = $this->source->getLocation().$endpoint;
