@@ -185,17 +185,22 @@ class SynchronizationService
         $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
 
-        try {
-            $sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
-        } catch (DoesNotExistException $exception) {
-            return new Exception($exception->getMessage());
-        }
-
-        // let do the mapping if provided
-        if ($sourceTargetMapping) {
-            $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
-        } else {
+        // If no source target mapping is defined, use original object
+        if (empty($synchronization->getSourceTargetMapping())) {
             $targetObject = $object;
+        } else {
+            try {
+                $sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
+            } catch (DoesNotExistException $exception) {
+                return new Exception($exception->getMessage());
+            }
+
+            // Execute mapping if found
+            if ($sourceTargetMapping) {
+                $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
+            } else {
+                $targetObject = $object;
+            }
         }
 
 
@@ -206,24 +211,35 @@ class SynchronizationService
         $synchronizationContract->setTargetLastSynced(new DateTime());
         $synchronizationContract->setSourceLastSynced(new DateTime());
 
-        // Do the magic!!
-        if ($isTest === false) {
-            $synchronizationContract = $this->updateTarget(synchronizationContract: $synchronizationContract, targetObject: $targetObject);
-        }
+        // prepare log
+        $log = [
+            'synchronizationId' => $synchronizationContract->getSynchronizationId(),
+            'synchronizationContractId' => $synchronizationContract->getId(), 
+            'source' => $object,
+            'target' => $targetObject,
+            'expires' => new DateTime('+1 day')
+        ];
 
-        // Log it
-        if ($isTest === false) {
-            $log = $this->synchronizationContractLogMapper->createFromArray([
-                'synchronizationId' => $synchronizationContract->getSynchronizationId(),
-                'synchronizationContractId' => $synchronizationContract->getId(),
-                'source' => $object,
-                'target' => $targetObject,
-                'expires' => new DateTime('+1 day')
-            ]);
-        }
+        // Handle synchronization based on test mode
+        switch ($isTest) {
+            case false:
+                // Update target and create log when not in test mode
+                $synchronizationContract = $this->updateTarget(
+                    synchronizationContract: $synchronizationContract, 
+                    targetObject: $targetObject
+                );
+                
+                // Create log entry for the synchronization
+                $log = $this->synchronizationContractLogMapper->createFromArray($log);
+                break;
 
-        if ($isTest === true) {
-            return ['log' => $log->jsonSerialize(), 'contract' => $synchronizationContract->jsonSerialize()];
+            case true:
+                // Return test data without updating target
+                return [
+                    'log' => $log,
+                    'contract' => $synchronizationContract->jsonSerialize()
+                ];
+                break;
         }
 
         return $synchronizationContract;
