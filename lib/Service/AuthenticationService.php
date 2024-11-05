@@ -163,7 +163,7 @@ class AuthenticationService
 			throw new BadRequestException(message: 'Grant type not set, cannot request token');
 		}
 		if (isset($configuration['tokenUrl']) === false) {
-			throw new BadRequestException(message: 'Grant type not set, cannot request token');
+			throw new BadRequestException(message: 'Token URL not set, cannot request token');
 		}
 
 		switch ($configuration['grant_type'])
