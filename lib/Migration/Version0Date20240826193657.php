@@ -122,6 +122,7 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('type', Types::STRING, ['notnull' => true, 'length' => 50]);
 			$table->addColumn('authorization_header', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('auth', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('pagination_config', Types::TEXT, ['notnull' => false]);
 			$table->addColumn('authentication_config', Types::TEXT, ['notnull' => false]);
 			$table->addColumn('authorization_passthrough_method', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('locale', Types::STRING, ['notnull' => false, 'length' => 255]);

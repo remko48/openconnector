@@ -20,6 +20,7 @@ class Source extends Entity implements JsonSerializable
 	protected ?string $auth = null;
 	protected ?array $authenticationConfig = null;
 	protected ?string $authorizationPassthroughMethod = null;
+	protected ?array $paginationConfig = null;
 	protected ?string $locale = null;
 	protected ?string $accept = null;
 	protected ?string $jwt = null;
@@ -59,6 +60,7 @@ class Source extends Entity implements JsonSerializable
 		$this->addType('auth', 'string');
 		$this->addType('authenticationConfig', 'json');
 		$this->addType('authorizationPassthroughMethod', 'string');
+		$this->addType('paginationConfig', 'json');
 		$this->addType('locale', 'string');
 		$this->addType('accept', 'string');
 		$this->addType('jwt', 'string');
@@ -132,6 +134,7 @@ class Source extends Entity implements JsonSerializable
 			'auth' => $this->auth,
 			'authenticationConfig' => $this->authenticationConfig,
 			'authorizationPassthroughMethod' => $this->authorizationPassthroughMethod,
+			'paginationConfig' => $this->authenticationConfig,
 			'locale' => $this->locale,
 			'accept' => $this->accept,
 			'jwt' => $this->jwt,
