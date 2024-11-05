@@ -24,6 +24,11 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 
+/**
+ * Service class for handling authentication on other services.
+ *
+ * @todo We should test the effect of @Authors & @Package(s) in Class doc-blocks. And add them if possible.
+ */
 class AuthenticationService
 {
 
@@ -144,7 +149,6 @@ class AuthenticationService
 	/**
 	 * Requests an OAuth Access Token with predefined configuration
 	 *
-	 * @param string $endpoint	   The OAuth token endpoint.
 	 * @param array $configuration The configuration for the OAuth call.
 
 	 * @return string The resulting access token
@@ -153,9 +157,12 @@ class AuthenticationService
 	 * @throws \GuzzleHttp\Exception\GuzzleException Thrown if the token endpoint does not respond with an access token.
 	 * @todo Convert GuzzleException to another error.
 	 */
-    public function fetchOAuthTokens (string $endpoint, array $configuration): string
+    public function fetchOAuthTokens (array $configuration): string
 	{
 		if (isset($configuration['grant_type']) === false) {
+			throw new BadRequestException(message: 'Grant type not set, cannot request token');
+		}
+		if (isset($configuration['tokenUrl']) === false) {
 			throw new BadRequestException(message: 'Grant type not set, cannot request token');
 		}
 
@@ -171,11 +178,10 @@ class AuthenticationService
 				throw new BadRequestException(message: 'Grant type not supported');
 
 		}
-		//@todo: custom config
 
 		$client = new Client();
 
-		$response = $client->post(uri: $endpoint, options: $callConfig);
+		$response = $client->post(uri: $configuration['tokenUrl'], options: $callConfig);
 
 		$result = json_decode(json: $response->getBody()->getContents(), associative: true);
 
