@@ -86,7 +86,7 @@ class AuthenticationService
 			]
 		];
 
-		if($configuration['authentication'] === 'body') {
+		if ($configuration['authentication'] === 'body') {
 			$callConfig['form_params']['client_id']     = $configuration['client_id'];
 			$callConfig['form_params']['client_secret'] = $configuration['client_secret'];
 		} else if ($configuration['authentication'] === 'basic_auth') {
@@ -185,7 +185,7 @@ class AuthenticationService
 
 		$result = json_decode(json: $response->getBody()->getContents(), associative: true);
 
-		if(isset($configuration['tokenLocation']) === true) {
+		if (isset($configuration['tokenLocation']) === true) {
 			return $result[$configuration['tokenLocation']];
 		}
 

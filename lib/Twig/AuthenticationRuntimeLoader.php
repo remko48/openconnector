@@ -11,16 +11,16 @@ class AuthenticationRuntimeLoader implements RuntimeLoaderInterface
 {
 	public function __construct(
 		private readonly AuthenticationService $authenticationService,
-	)
-	{
+	) {
+
 	}
 
-	public function load(string $class)
+	public function load(string $class): ?AuthenticationRuntime
 	{
-
 		if ($class === AuthenticationRuntime::class) {
 			return new AuthenticationRuntime($this->authenticationService);
 		}
+
 		return null;
 	}
 }

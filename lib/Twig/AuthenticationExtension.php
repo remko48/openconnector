@@ -7,7 +7,7 @@ use Twig\TwigFunction;
 
 class AuthenticationExtension extends AbstractExtension
 {
-	public function getFunctions()
+	public function getFunctions(): array
 	{
 		return [
 			new TwigFunction(name: 'oauthToken', callable: [AuthenticationRuntime::class, 'oauthToken']),
