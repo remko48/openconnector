@@ -21,6 +21,12 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('testSynchronization')">
+							<template #icon>
+								<Sync :size="20" />
+							</template>
+							Test
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -194,6 +200,7 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
+import Sync from 'vue-material-design-icons/Sync.vue'
 
 export default {
 	name: 'SynchronizationDetails',
@@ -204,14 +211,14 @@ export default {
 		Pencil,
 		TrashCanOutline,
 	},
-	mounted() {
-		synchronizationStore.refreshSynchronizationLogs()
-		synchronizationStore.refreshSynchronizationContracts()
-	},
 	data() {
 		return {
 			contracts: [],
 		}
+	},
+	mounted() {
+		synchronizationStore.refreshSynchronizationLogs()
+		synchronizationStore.refreshSynchronizationContracts()
 	},
 }
 </script>

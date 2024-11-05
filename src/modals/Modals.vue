@@ -25,6 +25,7 @@ import { navigationStore } from '../store/store.js'
 		<DeleteMappingCast />
 		<DeleteSynchronization />
 		<EditSynchronization />
+		<TestSynchronization />
 		<EditJobArgument />
 		<DeleteJobArgument />
 		<EditSourceConfiguration />
@@ -52,6 +53,7 @@ import DeleteMapping from './Mapping/DeleteMapping.vue'
 import TestMapping from './MappingTest/TestMapping.vue'
 import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
+import TestSynchronization from './Synchronization/TestSynchronization.vue'
 import EditJobArgument from './JobArgument/EditJobArgument.vue'
 import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
 import EditSourceConfiguration from './SourceConfiguration/EditSourceConfiguration.vue'
@@ -83,6 +85,7 @@ export default {
 		TestMapping,
 		DeleteSynchronization,
 		EditSynchronization,
+		TestSynchronization,
 		EditJobArgument,
 		DeleteJobArgument,
 		EditSourceConfiguration,
