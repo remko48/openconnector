@@ -75,7 +75,7 @@ class SynchronizationService
 
         foreach ($objectList as $key => $object) {
             // If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
-            $object['id'] = $this->getOriginId($synchronization, $object);
+            $originId = $this->getOriginId($synchronization, $object);
 
             // Get the synchronization contract for this object
             $synchronizationContract = $this->synchronizationContractMapper->findSynchronizationContractWithOriginId(synchronizationId: $synchronization->id, originId: $originId);
@@ -132,17 +132,27 @@ class SynchronizationService
      */
     private function getOriginId(Synchronization $synchronization, array $object)
     {
+        // Default ID position is 'id' if not specified in source config
         $originIdPosition = 'id';
+
+        // Check if a custom ID position is defined in the source configuration
         if (!empty($synchronization->getSourceConfig()['idPosition'])) {
-            $dot = new Dot($object);
-            $originIdPosition = $dot->get($synchronization->getSourceConfig()['idPosition']);
+            // Override default with custom ID position from config
+            $originIdPosition = $synchronization->getSourceConfig()['idPosition'];
         }
+
+        // Create Dot object for easy access to nested array values
         $objectDot = new Dot($object);
+
+        // Try to get the ID value from the specified position in the object
         $originId = $objectDot->get($originIdPosition);
+
+        // If no ID was found at the specified position, throw an error
         if ($originId === null) {
             throw new Exception('Could not find origin id in object for key: ' . $originIdPosition);
         }
 
+        // Return the found ID value
         return $originId;
     }
 

@@ -160,7 +160,6 @@ use OCP\Migration\SimpleMigrationStep;
 			$table->addColumn('version', Types::STRING, ['notnull' => true, 'length' => 255, 'default' => '0.0.1']);
 			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
 			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
-			$table->addColumn('origin_id_location', Types::STRING, ['notnull' => false, 'length' => 255]);
 			// Source
 			$table->addColumn('source_id', Types::STRING, ['notnull' => true, 'length' => 255]);
 			$table->addColumn('source_type', Types::STRING, ['notnull' => true, 'length' => 255]);
