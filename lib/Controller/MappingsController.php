@@ -259,8 +259,6 @@ class MappingsController extends Controller
 
         // Perform the mapping operation
         try {
-            // var_dump($mappingObject->getMapping()['title']);
-            // var_dump($inputObject['values']['case.subject_external']);
             $resultObject = $this->mappingService->executeMapping(mapping: $mappingObject, input: $inputObject);
         } catch (Exception $e) {
             // If mapping fails, return an error response
