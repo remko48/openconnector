@@ -188,7 +188,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 
 			console.log('Testing synchronization...')
 
-			const endpoint = `/index.php/apps/openconnector/api/synchronization-test/${this.synchronizationItem.id}`
+			const endpoint = `/index.php/apps/openconnector/api/synchronizations-test/${this.synchronizationItem.id}`
 
 			const response = await fetch(endpoint, {
 				method: 'POST',

@@ -2,7 +2,6 @@ export type TSynchronization = {
     id: number
     name: string
     description: string
-    originIdLocation: string
     sourceId: string
     sourceType: string
     sourceHash: string

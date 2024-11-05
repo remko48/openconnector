@@ -8,7 +8,6 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 	public id: number
 	public name: string
 	public description: string
-    public originIdLocation: string
 	public sourceId: string
 	public sourceType: string
 	public sourceHash: string
@@ -33,7 +32,6 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			id: synchronization.id || null,
 			name: synchronization.name || '',
 			description: synchronization.description || '',
-			originIdLocation: synchronization.originIdLocation || '',
 			sourceId: synchronization.sourceId || '',
 			sourceType: synchronization.sourceType || '',
 			sourceHash: synchronization.sourceHash || '',
@@ -62,7 +60,6 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			id: z.number().nullable(),
 			name: z.string(),
 			description: z.string(),
-			originIdLocation: z.string(),
 			sourceId: z.string(),
 			sourceType: z.string(),
 			sourceHash: z.string(),
