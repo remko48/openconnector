@@ -64,7 +64,7 @@ class SynchronizationService
 	 *
 	 * @param Synchronization $synchronization
 	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
-     * 
+     *
 	 * @throws Exception
      *
 	 * @return array
@@ -124,21 +124,22 @@ class SynchronizationService
 
     /**
      * Gets id from object as is in the origin
-     * 
+     *
      * @param Synchronization $synchronization
      * @param array $object
-     * 
+     *
      * @return string|int id
      */
     private function getOriginId(Synchronization $synchronization, array $object)
     {
         // Default ID position is 'id' if not specified in source config
         $originIdPosition = 'id';
+        $sourceConfig = $synchronization->getSourceConfig();
 
         // Check if a custom ID position is defined in the source configuration
-        if (!empty($synchronization->getSourceConfig()['idPosition'])) {
+        if (isset($sourceConfig['idPosition']) === true) {
             // Override default with custom ID position from config
-            $originIdPosition = $synchronization->getSourceConfig()['idPosition'];
+            $originIdPosition = $sourceConfig['idPosition'];
         }
 
         // Create Dot object for easy access to nested array values
@@ -214,7 +215,7 @@ class SynchronizationService
         // prepare log
         $log = [
             'synchronizationId' => $synchronizationContract->getSynchronizationId(),
-            'synchronizationContractId' => $synchronizationContract->getId(), 
+            'synchronizationContractId' => $synchronizationContract->getId(),
             'source' => $object,
             'target' => $targetObject,
             'expires' => new DateTime('+1 day')
@@ -225,10 +226,10 @@ class SynchronizationService
             case false:
                 // Update target and create log when not in test mode
                 $synchronizationContract = $this->updateTarget(
-                    synchronizationContract: $synchronizationContract, 
+                    synchronizationContract: $synchronizationContract,
                     targetObject: $targetObject
                 );
-                
+
                 // Create log entry for the synchronization
                 $log = $this->synchronizationContractLogMapper->createFromArray($log);
                 break;
@@ -372,18 +373,29 @@ class SynchronizationService
 
         // Current page is 2 because the first call made above is page 1.
         $currentPage = 2;
+        $url = $source->getLocation().$endpoint;
 
         // Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-        while ($endpoint = $this->getNextEndpoint($body, $source, $synchronization, $currentPage)) {
-            $response = $this->callService->call($source, $endpoint)->getResponse();
-            $body = json_decode($response['body'], true);
-
-            if (empty($body) === true) {
-                return $objects;
+        while (true) {
+            $nextEndpoint = $this->getNextEndpoint(body: $body, url: $url, sourceConfig: $sourceConfig, currentPage: $currentPage);
+            if ($nextEndpoint !== null) {
+                $endpoint = $nextEndpoint;
+            } else {
+                $config = $this->getNextPage($config, $sourceConfig, $currentPage);
             }
 
-            $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+            $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+            $body = json_decode($response['body'], true);
+            if (empty($body) === true) {
+                break;
+            }
 
+            $newObjects = $this->getAllObjectsFromArray($body, $synchronization);
+            if (empty($newObjects) === true) {
+                break;
+            }
+
+            $objects = array_merge($objects, $newObjects);
             $currentPage++;
         }
 
@@ -391,29 +403,42 @@ class SynchronizationService
     }
 
     /**
-     * Determines the next API endpoint based on either a provided next link or a pagination query.
+     * Determines the next API endpoint based on a provided next.
      *
-     * @param array           $body
-     * @param mixed           $source
-     * @param Synchronization $synchronization Synchronization object to retrieve next link details.
-     * @param int      $currentPage The current page number for pagination, used if no next link is available.
+     * @param array  $body
+     * @param string $url
      *
      * @return string|null The next endpoint URL if a next link or pagination query is available, or null if neither exists.
      */
-    private function getNextEndpoint(array $body, $source, Synchronization $synchronization, int $currentPage): ?string
+    private function getNextEndpoint(array $body, string $url, array $sourceConfig, int $currentPage): ?string
     {
-        $nextLink = $this->getNextlinkFromCall($body, $synchronization);
+        $nextLink = $this->getNextlinkFromCall($body);
 
         if ($nextLink) {
-            return str_replace($source->getLocation(), '', $nextLink);
+            return str_replace($url, '', $nextLink);
         }
 
-        // If paginationQuery exists, replace any placeholder with the current page number
-        $paginationQuery = $source->getPaginationConfig()['queryParam'] ?? 'page';
-
-        return "{$source->getLocation()}?$paginationQuery=$currentPage";
-
         return null;
+    }
+
+    /**
+     * Updatesc config with pagination from pagination config.
+     *
+     * @param array  $config
+     * @param array  $sourceConfig
+     * @param int    $currentPage The current page number for pagination, used if no next link is available.
+     *
+     * @return array $config
+     */
+    private function getNextPage(array $config, array $sourceConfig, int $currentPage)
+    {
+        // If paginationQuery exists, replace any placeholder with the current page number
+        $config['pagination'] = [
+            'paginationQuery' => $sourceConfig['paginationQuery'] ?? 'page',
+            'page' => $currentPage
+        ];
+
+        return $config;
     }
 
     /**
@@ -432,16 +457,20 @@ class SynchronizationService
         $sourceConfig = $synchronization->getSourceConfig();
 
         // Check if a specific objects position is defined in the source configuration
-        if (!empty($sourceConfig['objectsPosition'])) {
+        if (empty($sourceConfig['objectsPosition']) === false) {
             $position = $sourceConfig['objectsPosition'];
             // Use Dot notation to access nested array elements
             $dot = new Dot($array);
-            if ($dot->has($position)) {
+            if ($dot->has($position) === true) {
                 // Return the objects at the specified position
                 return $dot->get($position);
             } else {
                 // Throw an exception if the specified position doesn't exist
-                throw new Exception("Cannot find the specified position of objects in the return body.");
+                // var_dump($array);
+
+                return [];
+                // @todo log error
+                // throw new Exception("Cannot find the specified position of objects in the return body.");
             }
         }
 
@@ -450,11 +479,17 @@ class SynchronizationService
 
         // Loop through common keys and return first match found
         foreach ($commonKeys as $key) {
-            if (isset($array[$key])) {
+            if (isset($array[$key]) === true) {
                 return $array[$key];
             }
         }
 
+        // If 'results' key exists, return its value
+        if (isset($array['results']) === true) {
+            return $array['results'];
+        }
+
+        // var_dump($array);
         // If no objects can be found, throw an exception
         throw new Exception("Cannot determine the position of objects in the return body.");
     }
@@ -463,11 +498,10 @@ class SynchronizationService
      * Retrieves the next link for pagination from the API response body.
      *
      * @param array $body The decoded JSON body of the API response.
-     * @param Synchronization $synchronization The synchronization object (unused in this method, but kept for consistency).
      *
      * @return string|bool The URL for the next page of results, or false if there is no next page.
      */
-    public function getNextlinkFromCall(array $body, Synchronization $synchronization): string | bool | null
+    public function getNextlinkFromCall(array $body): string | bool | null
     {
         // Check if the 'next' key exists in the response body
         return $body['next'];
