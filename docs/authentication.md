@@ -26,10 +26,10 @@ When using OAuth, OpenConnector supports the following parameters:
 * `scope`: The scope(s) needed to perform the requests we want to do in the API.
 * `tokenUrl`: The URL used to fetch the actual access token. Usually this url can be recognised by its path ending on `/oauth/token`
 * `authentication`: Location of the credentials, either `body` for credentials included in the request body, or `basic_auth` when the credentials have to be sent as a basic_auth header. _[!warning] Only used when `grant_type` is `client_credentials`_
-* `client_id`: The client id of the OAuth client _[!note] Only used when `grant_type` is `client_credentials`_
-* `client_secret`: The secret for the OAuth client _[!note] Only used when `grant_type` is `client_credentials`_
-* `username`: The username for the OAuth client _[!note] Only used when `grant_type` is `password`_
-* `password`: The password for the OAuth client _[!note] Only used when `grant_type` is `client_credentials`_
+* `client_id`: The client id of the OAuth client _[!NOTE] Only used when `grant_type` is `client_credentials`_
+* `client_secret`: The secret for the OAuth client _[!NOTE] Only used when `grant_type` is `client_credentials`_
+* `username`: The username for the OAuth client _[!NOTE] Only used when `grant_type` is `password`_
+* `password`: The password for the OAuth client _[!NOTE] Only used when `grant_type` is `client_credentials`_
 
 This results in the following example:
 ```json
@@ -44,7 +44,7 @@ This results in the following example:
 ```
 ### Custom parameters
 
-> [!warning] Custom parameters are currently in beta, it is not recommended to use them in production environments.
+> [!WARNING] Custom parameters are currently in beta, it is not recommended to use them in production environments.
 
 At the moment, OpenConnector is tested with the following custom parameters:
 
