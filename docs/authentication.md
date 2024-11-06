@@ -25,19 +25,16 @@ When using OAuth, OpenConnector supports the following parameters:
 * `grant_type`: The type of grant we have to use at the source. Supported are `client_credentials` and `password`
 * `scope`: The scope(s) needed to perform the requests we want to do in the API.
 * `tokenUrl`: The URL used to fetch the actual access token. Usually this url can be recognised by its path ending on `/oauth/token`
-* `authentication`: Location of the credentials, either `body` for credentials included in the request body, or `basic_auth` when the credentials have to be sent as a basic_auth header. _[!warning] Only used when `grant_type` is `client_credentials`_
-* `client_id`: The client id of the OAuth client 
-  > [!NOTE] 
+* `authentication`: Location of the credentials, either `body` for credentials included in the request body, or `basic_auth` when the credentials have to be sent as a basic_auth header. 
+  > Only used when `grant_type` is `client_credentials`
+* `client_id`: The client id of the OAuth client  
   > Only used when `grant_type` is `client_credentials`
 * `client_secret`: The secret for the OAuth client 
-  > [!NOTE] 
   > Only used when `grant_type` is `client_credentials`
 * `username`: The username for the OAuth client 
-  > [!NOTE] 
   > Only used when `grant_type` is `password`
 * `password`: The password for the OAuth client
-  > [!NOTE] 
-  > Only used when `grant_type` is `client_credentials`
+  > Only used when `grant_type` is `password`
 
 This results in the following example:
 ```json
