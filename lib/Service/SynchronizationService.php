@@ -377,6 +377,11 @@ class SynchronizationService
         while ($endpoint = $this->getNextEndpoint($body, $source, $synchronization, $currentPage)) {
             $response = $this->callService->call($source, $endpoint)->getResponse();
             $body = json_decode($response['body'], true);
+
+            if (empty($body) === true) {
+                return $objects;
+            }
+
             $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
 
             $currentPage++;
@@ -404,12 +409,9 @@ class SynchronizationService
         }
 
         // If paginationQuery exists, replace any placeholder with the current page number
-        $paginationQuery = $source->getConfiguration()['paginationQuery'] ?? null;
+        $paginationQuery = $source->getPaginationConfig()['queryParam'] ?? 'page';
 
-        if ($paginationQuery) {
-            // Replace placeholder "{page}" in the paginationQuery with the current page number
-            return "{$source->getLocation()}?$paginationQuery=$currentPage";
-        }
+        return "{$source->getLocation()}?$paginationQuery=$currentPage";
 
         return null;
     }

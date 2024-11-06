@@ -3,6 +3,7 @@
 namespace OCA\OpenConnector\Service;
 
 use Adbar\Dot;
+use Exception;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
@@ -22,6 +23,14 @@ use Symfony\Component\Uid\Uuid;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 
+/**
+ * This class provides functionality to handle API calls to a specified source within the NextCloud environment.
+ *
+ * It manages the execution of HTTP requests using the Guzzle HTTP client, while also rendering templates
+ * and managing call logs. It utilizes Twig for templating and Guzzle for making HTTP requests, and logs all calls.
+ *
+ * @todo We should test the effect of @Authors & @Package(s) in Class doc-blocks. And add them if possible.
+ */
 class CallService
 {
 	private Client $client;
@@ -31,7 +40,8 @@ class CallService
 	 * The constructor sets al needed variables.
 	 *
 	 * @param CallLogMapper $callLogMapper
-	 * @param Environment $twig
+	 * @param ArrayLoader $loader
+	 * @param AuthenticationService $authenticationService
 	 */
 	public function __construct(
 		private readonly CallLogMapper $callLogMapper,
@@ -60,24 +70,23 @@ class CallService
 	}
 	private function renderConfiguration(array $configuration, Source $source): array
 	{
-		$configuration = array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
-
-		return $configuration;
+		return array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
 	}
 
 	/**
 	 * Calls a source according to given configuration.
 	 *
-	 * @param Source $source             The source to call.
-	 * @param string $endpoint           The endpoint on the source to call.
-	 * @param string $method             The method on which to call the source.
-	 * @param array  $config             The additional configuration to call the source.
-	 * @param bool   $asynchronous       Whether or not to call the source asynchronously.
-	 * @param bool   $createCertificates Whether or not to create certificates for this source.
+	 * @param Source $source The source to call.
+	 * @param string $endpoint The endpoint on the source to call.
+	 * @param string $method The method on which to call the source.
+	 * @param array $config The additional configuration to call the source.
+	 * @param bool $asynchronous Whether to call the source asynchronously.
+	 * @param bool $createCertificates Whether to create certificates for this source.
+	 * @param bool $overruleAuth ???
 	 *
-	 * @throws Exception
-	 *
-	 * @return Response
+	 * @return CallLog
+	 * @throws GuzzleException
+	 * @throws \OCP\DB\Exception
 	 */
 	public function call(
 		Source $source,

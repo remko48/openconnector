@@ -18,9 +18,19 @@ class MappingRuntime implements RuntimeExtensionInterface
 
 	}
 
+	/**
+	 * Execute a mapping with given parameters.
+	 *
+	 * @param Mapping|array|string|int $mapping The mapping to execute
+	 * @param array $input The input to run the mapping on
+	 * @param bool $list Whether the mapping runs on multiple instnaces of the object.
+	 * @return array
+	 * @throws \Twig\Error\LoaderError
+	 * @throws \Twig\Error\SyntaxError
+	 */
 	public function executeMapping(Mapping|array|string|int $mapping, array $input, bool $list = false): array
 	{
-		if(is_array($mapping) === true) {
+		if (is_array($mapping) === true) {
 			$mappingObject = new Mapping();
 			$mappingObject->hydrate($mapping);
 
