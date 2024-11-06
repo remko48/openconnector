@@ -231,7 +231,7 @@ class JobsController extends Controller
         }
 
 
-        if (!$job->getJobListId()) {
+        if ($job->getJobListId() === false) {
             return new JSONResponse(data: ['error' => 'Job not scheduled'], statusCode: 404);
         }
 
