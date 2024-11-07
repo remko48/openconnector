@@ -448,6 +448,7 @@ class MappingService
     public function getMappings(): array 
     {
         // Forward the findAll request to the mapper while maintaining encapsulation
+        // @todo: add filtering options
         return $this->mappingMapper->findAll();
     }
 
