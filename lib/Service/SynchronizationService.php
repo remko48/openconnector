@@ -383,7 +383,7 @@ class SynchronizationService
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
 		}
 
-		if(isset($sourceConfig['paginationQuery'])) {
+		if (isset($sourceConfig['paginationQuery']) === true) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
