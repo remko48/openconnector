@@ -3,7 +3,9 @@
 namespace OCA\OpenConnector\Service;
 
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use OCA\OpenConnector\Db\CallLog;
+use OCA\OpenConnector\Db\Mapping;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\MappignMapper;
@@ -15,6 +17,9 @@ use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
 use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\Uid\Uuid;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Adbar\Dot;
@@ -24,6 +29,8 @@ use DateInterval;
 use DateTime;
 use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Http\NotFoundResponse;
+use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
 
 class SynchronizationService
 {
@@ -63,11 +70,16 @@ class SynchronizationService
 	 * Synchronizes a given synchronization (or a complete source).
 	 *
 	 * @param Synchronization $synchronization
-	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
-     *
-	 * @throws Exception
-     *
+	 * @param bool|null $isTest False by default, currently added for synchronziation-test endpoint
+	 *
 	 * @return array
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws SyntaxError
+	 * @throws MultipleObjectsReturnedException
+	 * @throws \OCP\DB\Exception
 	 */
     public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
@@ -123,16 +135,17 @@ class SynchronizationService
         return $objectList;
     }
 
-    /**
-     * Gets id from object as is in the origin
-     *
-     * @param Synchronization $synchronization
-     * @param array $object
-     *
-     * @return string|int id
-     */
-    private function getOriginId(Synchronization $synchronization, array $object)
-    {
+	/**
+	 * Gets id from object as is in the origin
+	 *
+	 * @param Synchronization $synchronization
+	 * @param array $object
+	 *
+	 * @return string|int id
+	 * @throws Exception
+	 */
+    private function getOriginId(Synchronization $synchronization, array $object): int|string
+	{
         // Default ID position is 'id' if not specified in source config
         $originIdPosition = 'id';
         $sourceConfig = $synchronization->getSourceConfig();
@@ -160,18 +173,20 @@ class SynchronizationService
 
 	/**
 	 * Synchronize a contract
-     *
-	 * @param SynchronizationContract $synchronizationContract
-	 * @param Synchronization|null    $synchronization
-	 * @param array $object
-	 * @param bool|null               $isTest False by default, currently added for synchronziation-test endpoint
-     *
-	 * @throws Exception
 	 *
-	 * @return SynchronizationContract
+	 * @param SynchronizationContract $synchronizationContract
+	 * @param Synchronization|null $synchronization
+	 * @param array $object
+	 * @param bool|null $isTest False by default, currently added for synchronization-test endpoint
+	 *
+	 * @return SynchronizationContract|Exception|array
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 * @throws LoaderError
+	 * @throws SyntaxError
 	 */
-    public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false)
-    {
+    public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
+	{
         // Let create a source hash for the object
         $originHash = md5(serialize($object));
         $synchronizationContract->setSourceLastChecked(new DateTime());
@@ -223,26 +238,22 @@ class SynchronizationService
         ];
 
         // Handle synchronization based on test mode
-        switch ($isTest) {
-            case false:
-                // Update target and create log when not in test mode
-                $synchronizationContract = $this->updateTarget(
-                    synchronizationContract: $synchronizationContract,
-                    targetObject: $targetObject
-                );
+		if ($isTest === true) {
+			// Return test data without updating target
+			return [
+				'log' => $log,
+				'contract' => $synchronizationContract->jsonSerialize()
+			];
+		}
 
-                // Create log entry for the synchronization
-                $log = $this->synchronizationContractLogMapper->createFromArray($log);
-                break;
+		// Update target and create log when not in test mode
+		$synchronizationContract = $this->updateTarget(
+			synchronizationContract: $synchronizationContract,
+			targetObject: $targetObject
+		);
 
-            case true:
-                // Return test data without updating target
-                return [
-                    'log' => $log,
-                    'contract' => $synchronizationContract->jsonSerialize()
-                ];
-                break;
-        }
+		// Create log entry for the synchronization
+		$this->synchronizationContractLogMapper->createFromArray($log);
 
         return $synchronizationContract;
 
@@ -252,11 +263,11 @@ class SynchronizationService
 	 * Write the data to the target
 	 *
 	 * @param SynchronizationContract $synchronizationContract
-	 * @param array                   $targetObject
-     *
-	 * @throws Exception
+	 * @param array $targetObject
 	 *
 	 * @return SynchronizationContract
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
 	 */
     public function updateTarget(SynchronizationContract $synchronizationContract, array $targetObject): SynchronizationContract
 	{
@@ -308,16 +319,20 @@ class SynchronizationService
         return $synchronizationContract;
     }
 
-    /**
-     * Get all the object from a source
-     *
-     * @param Synchronization $synchronization
-	 * @param bool|null       $isTest False by default, currently added for synchronziation-test endpoint
-     *
-     * @return array
-     */
-    public function getAllObjectsFromSource(Synchronization $synchronization, ?bool $isTest = false)
-    {
+	/**
+	 * Get all the object from a source
+	 *
+	 * @param Synchronization $synchronization
+	 * @param bool|null $isTest False by default, currently added for synchronziation-test endpoint
+	 *
+	 * @return array
+	 * @throws ContainerExceptionInterface
+	 * @throws GuzzleException
+	 * @throws NotFoundExceptionInterface
+	 * @throws \OCP\DB\Exception
+	 */
+    public function getAllObjectsFromSource(Synchronization $synchronization, ?bool $isTest = false): array
+	{
         $objects = [];
 
         $type = $synchronization->getSourceType();
@@ -339,16 +354,18 @@ class SynchronizationService
         return $objects;
     }
 
-    /**
-     * Retrieves all objects from an API source for a given synchronization.
-     *
-     * @param Synchronization $synchronization The synchronization object containing source information.
-     * @param bool            $isTest          If we only want to return a single object (for example a test)
-     *
-     * @return array An array of all objects retrieved from the API.
-     */
-    public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false)
-    {
+	/**
+	 * Retrieves all objects from an API source for a given synchronization.
+	 *
+	 * @param Synchronization $synchronization The synchronization object containing source information.
+	 * @param bool $isTest If we only want to return a single object (for example a test)
+	 *
+	 * @return array An array of all objects retrieved from the API.
+	 * @throws GuzzleException
+	 * @throws \OCP\DB\Exception
+	 */
+    public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false): array
+	{
         $objects = [];
         $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
@@ -405,14 +422,16 @@ class SynchronizationService
         return $objects;
     }
 
-    /**
-     * Determines the next API endpoint based on a provided next.
-     *
-     * @param array  $body
-     * @param string $url
-     *
-     * @return string|null The next endpoint URL if a next link or pagination query is available, or null if neither exists.
-     */
+	/**
+	 * Determines the next API endpoint based on a provided next.
+	 *
+	 * @param array $body
+	 * @param string $url
+	 * @param array $sourceConfig
+	 * @param int $currentPage
+	 *
+	 * @return string|null The next endpoint URL if a next link or pagination query is available, or null if neither exists.
+	 */
     private function getNextEndpoint(array $body, string $url, array $sourceConfig, int $currentPage): ?string
     {
         $nextLink = $this->getNextlinkFromCall($body);
@@ -433,8 +452,8 @@ class SynchronizationService
      *
      * @return array $config
      */
-    private function getNextPage(array $config, array $sourceConfig, int $currentPage)
-    {
+    private function getNextPage(array $config, array $sourceConfig, int $currentPage): array
+	{
         // If paginationQuery exists, replace any placeholder with the current page number
         $config['pagination'] = [
             'paginationQuery' => $sourceConfig['paginationQuery'] ?? 'page',
@@ -454,8 +473,8 @@ class SynchronizationService
      *
      * @return array An array of items extracted from the response body.
      */
-    public function getAllObjectsFromArray(array $array, Synchronization $synchronization)
-    {
+    public function getAllObjectsFromArray(array $array, Synchronization $synchronization): array
+	{
         // Get the source configuration from the synchronization object
         $sourceConfig = $synchronization->getSourceConfig();
 
@@ -495,13 +514,13 @@ class SynchronizationService
         throw new Exception("Cannot determine the position of objects in the return body.");
     }
 
-    /**
-     * Retrieves the next link for pagination from the API response body.
-     *
-     * @param array $body The decoded JSON body of the API response.
-     *
-     * @return string|bool The URL for the next page of results, or false if there is no next page.
-     */
+	/**
+	 * Retrieves the next link for pagination from the API response body.
+	 *
+	 * @param array $body The decoded JSON body of the API response.
+	 *
+	 * @return string|bool|null The URL for the next page of results, or false if there is no next page.
+	 */
     public function getNextlinkFromCall(array $body): string | bool | null
     {
         // Check if the 'next' key exists in the response body
