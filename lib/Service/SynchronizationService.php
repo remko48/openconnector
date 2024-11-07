@@ -105,9 +105,9 @@ class SynchronizationService
                     return $logAndContractArray;
                 }
             } else {
-                // @todo this is wierd
-                $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
-                if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
+				// @todo this is wierd
+				$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
+				if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
                     // If this is a regular synchronizationContract update it to the database.
                     $objectList[$key] = $this->synchronizationContractMapper->update(entity: $synchronizationContract);
                 } elseif ($isTest === true && is_array($synchronizationContract) === true) {
@@ -380,7 +380,7 @@ class SynchronizationService
 		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
 		while($nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
             $usedNextEndpoint = true;
-			$response = $this->callService->call(source: $source, endpoint: $nextEndpoint, method: 'GET', config: $config)->getResponse();
+			$response = $this->callService->call(source: $source, endpoint: $nextEndpoint)->getResponse();
 			$body = json_decode($response['body'], true);
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
 		}
