@@ -415,4 +415,40 @@ class MappingService
 
     }//end coordinateStringToArray()
 
+
+    /**
+     * Retrieves a single mapping by its ID.
+     * 
+     * This is a wrapper function that provides controlled access to the mapping mapper.
+     * We use this wrapper pattern to ensure other Nextcloud apps can only interact with
+     * mappings through this service layer, rather than accessing the mapper directly.
+     * This maintains proper encapsulation and separation of concerns.
+     *
+     * @param string $mappingId The unique identifier of the mapping to retrieve
+     * @return Mapping The requested mapping entity
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If mapping is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple mappings found
+     */
+    public function getMapping(string $mappingId): Mapping
+    {
+        // Forward the find request to the mapper while maintaining encapsulation
+        return $this->mappingMapper->find($mappingId);
+    }
+
+    /**
+     * Retrieves all available mappings.
+     * 
+     * This is a wrapper function that provides controlled access to the mapping mapper.
+     * We use this wrapper pattern to ensure other Nextcloud apps can only interact with
+     * mappings through this service layer, rather than accessing the mapper directly.
+     * This maintains proper encapsulation and separation of concerns.
+     *
+     * @return array<Mapping> An array containing all mapping entities
+     */
+    public function getMappings(): array 
+    {
+        // Forward the findAll request to the mapper while maintaining encapsulation
+        return $this->mappingMapper->findAll();
+    }
+
 }
