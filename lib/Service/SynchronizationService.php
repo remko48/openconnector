@@ -436,7 +436,7 @@ class SynchronizationService
     {
         $nextLink = $this->getNextlinkFromCall($body);
 
-        if ($nextLink) {
+        if ($nextLink !== null) {
             return str_replace($url, '', $nextLink);
         }
 
@@ -519,11 +519,11 @@ class SynchronizationService
 	 *
 	 * @param array $body The decoded JSON body of the API response.
 	 *
-	 * @return string|bool|null The URL for the next page of results, or false if there is no next page.
+	 * @return string|null The URL for the next page of results, or null if there is no next page.
 	 */
-    public function getNextlinkFromCall(array $body): string | bool | null
+    public function getNextlinkFromCall(array $body): ?string
     {
         // Check if the 'next' key exists in the response body
-        return $body['next'];
+		return $body['next'] ?? null;
     }
 }
