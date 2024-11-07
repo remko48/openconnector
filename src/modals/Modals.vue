@@ -33,6 +33,7 @@ import { navigationStore } from '../store/store.js'
 		<ViewSourceLog />
 		<ViewJobLog />
 		<ViewSynchronizationLog />
+		<ViewSynchronizationContract />
 	</div>
 </template>
 
@@ -66,6 +67,7 @@ import EditMappingCast from './mappingCast/EditMappingCast.vue'
 import DeleteMappingCast from './mappingCast/DeleteMappingCast.vue'
 import ViewJobLog from './Log/ViewJobLog.vue'
 import ViewSynchronizationLog from './Log/ViewSynchronizationLog.vue'
+import ViewSynchronizationContract from './Log/ViewSynchronizationContract.vue'
 
 export default {
 	name: 'Modals',
@@ -99,6 +101,7 @@ export default {
 		DeleteMappingCast,
 		ViewJobLog,
 		ViewSynchronizationLog,
+		ViewSynchronizationContract,
 	},
 	setup() {
 		return {

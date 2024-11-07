@@ -131,9 +131,9 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Contracts">
 							<div v-if="synchronizationStore.synchronizationContracts?.length">
-								<NcListItem v-for="(value, key, i) in synchronizationStore.synchronizationContracts"
-									:key="`${key}${i}`"
-									:name="key"
+								<NcListItem v-for="(contract, i) in synchronizationStore.synchronizationContracts"
+									:key="`${contract.id}${i}`"
+									:name="contract.id.toString()"
 									:bold="false"
 									:force-display-actions="true"
 									:active="false">
@@ -143,10 +143,10 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ value }}
+										{{ new Date(contract.created).toLocaleString() }}
 									</template>
 									<template #actions>
-										<NcActionButton @click="viewLog(value)">
+										<NcActionButton @click="viewContract(contract)">
 											<template #icon>
 												<EyeOutline :size="20" />
 											</template>
@@ -163,7 +163,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							<div v-if="synchronizationStore.synchronizationLogs?.length">
 								<NcListItem v-for="(log, i) in synchronizationStore.synchronizationLogs"
 									:key="log.id + i"
-									:name="log.id"
+									:name="log.id.toString()"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
@@ -171,7 +171,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ log.created }}
+										{{ new Date(log.created).toLocaleString() }}
 									</template>
 									<template #actions>
 										<NcActionButton @click="viewLog(log)">
@@ -227,6 +227,10 @@ export default {
 		viewLog(log) {
 			logStore.setViewLogItem(log)
 			navigationStore.setModal('viewSynchronizationLog')
+		},
+		viewContract(contract) {
+			logStore.setViewLogItem(contract)
+			navigationStore.setModal('viewSynchronizationContract')
 		},
 	},
 }

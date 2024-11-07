@@ -3,13 +3,13 @@ import { logStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'viewSynchronizationLog'"
+	<NcModal v-if="navigationStore.modal === 'viewSynchronizationContract'"
 		ref="modalRef"
-		label-id="viewSynchronizationLog"
+		label-id="viewSynchronizationContract"
 		@close="closeModal">
 		<div class="logModalContent">
 			<div class="logModalContentHeader">
-				<h2>View Synchronization Log</h2>
+				<h2>View Synchronization Contract</h2>
 			</div>
 
 			<strong>Standard</strong>
@@ -28,30 +28,6 @@ import { logStore, navigationStore } from '../../store/store.js'
 					</td>
 				</tr>
 			</table>
-			<br>
-
-			<strong>Source</strong>
-			<table>
-				<tr v-for="(value, key) in sourceItems"
-					:key="key">
-					<td class="keyColumn">
-						{{ key }}
-					</td>
-					<td>{{ value }}</td>
-				</tr>
-			</table>
-			<br>
-
-			<strong>Target</strong>
-			<table>
-				<tr v-for="(value, key) in targetItems"
-					:key="key">
-					<td class="keyColumn">
-						{{ key }}
-					</td>
-					<td>{{ value }}</td>
-				</tr>
-			</table>
 		</div>
 	</NcModal>
 </template>
@@ -62,7 +38,7 @@ import {
 } from '@nextcloud/vue'
 
 export default {
-	name: 'ViewSynchronizationLog',
+	name: 'ViewSynchronizationContract',
 	components: {
 		NcModal,
 	},
@@ -78,7 +54,7 @@ export default {
 		logStore.viewLogItem && this.splitItems()
 	},
 	updated() {
-		if (navigationStore.modal === 'viewSynchronizationLog' && !this.hasUpdated) {
+		if (navigationStore.modal === 'viewSynchronizationContract' && !this.hasUpdated) {
 			logStore.viewLogItem && this.splitItems()
 			this.hasUpdated = true
 		}
