@@ -351,7 +351,7 @@ class SynchronizationService
     public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false)
     {
         $objects = [];
-        $source = $this->sourceMapper->find($synchronization->getSourceId());
+        $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
         // Lets get the source config
         $sourceConfig = $synchronization->getSourceConfig();
@@ -366,7 +366,7 @@ class SynchronizationService
         // Make the initial API call
         $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
         $body = json_decode($response['body'], true);
-        $objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+        $objects = array_merge($objects, $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization));
 
         // Return a single object or empty array if in test mode
         if ($isTest === true) {
@@ -380,7 +380,7 @@ class SynchronizationService
 		while($endpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
 			$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
 			$body = json_decode($response['body'], true);
-			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+			$objects = array_merge($objects, $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization));
 		}
 
 		if (isset($sourceConfig['paginationQuery']) === true) {
@@ -393,7 +393,7 @@ class SynchronizationService
 					break;
 				}
 
-				$newObjects = $this->getAllObjectsFromArray($body, $synchronization);
+				$newObjects = $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization);
 				$objects = array_merge($objects, $newObjects);
 				$currentPage++;
 			} while (empty($newObjects) === false);
