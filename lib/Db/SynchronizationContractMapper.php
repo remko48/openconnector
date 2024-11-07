@@ -145,7 +145,7 @@ class SynchronizationContractMapper extends QBMapper
         }
 
         // Add search conditions if provided
-        if (!empty($searchConditions)) {
+		if (empty($searchConditions) === false) {
             $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);

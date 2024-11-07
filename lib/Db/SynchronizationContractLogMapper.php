@@ -65,7 +65,7 @@ class SynchronizationContractLogMapper extends QBMapper
 			}
         }
 
-        if (!empty($searchConditions)) {
+        if (empty($searchConditions) === false) {
             $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);
@@ -80,7 +80,7 @@ class SynchronizationContractLogMapper extends QBMapper
 		$obj = new SynchronizationContractLog();
 		$obj->hydrate($object);
 		// Set uuid
-		if($obj->getUuid() === null){
+		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
 		return $this->insert($obj);
@@ -90,7 +90,7 @@ class SynchronizationContractLogMapper extends QBMapper
 	{
 		$obj = $this->find($id);
 		$obj->hydrate($object);
-		
+
 		return $this->update($obj);
 	}
 }

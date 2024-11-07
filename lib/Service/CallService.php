@@ -21,6 +21,8 @@ use OCA\OpenConnector\Twig\AuthenticationExtension;
 use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
 use Symfony\Component\Uid\Uuid;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
 use Twig\Loader\ArrayLoader;
 
 /**
@@ -55,6 +57,17 @@ class CallService
 		$this->twig->addRuntimeLoader(new AuthenticationRuntimeLoader($authenticationService));
 	}
 
+	/**
+	 * Renders a value using Twig templating if the value contains template syntax.
+	 * If the value is an array, recursively renders each element.
+	 *
+	 * @param array|string $value The value to render, which can be a string or an array.
+	 * @param Source $source The source object used as context for rendering templates.
+	 *
+	 * @return array|string The rendered value, either as a processed string or an array.
+	 * @throws LoaderError If there is an error loading a Twig template.
+	 * @throws SyntaxError If there is a syntax error in a Twig template.
+	 */
 	private function renderValue(array|string $value, Source $source): array|string
 	{
 			if (is_array($value) === false
@@ -68,6 +81,18 @@ class CallService
 
 			return $value;
 	}
+
+	/**
+	 * Renders configuration values using Twig templating, applying the provided source as context.
+	 * Recursively processes all values in the configuration array.
+	 *
+	 * @param array $configuration The configuration array to render.
+	 * @param Source $source The source object used as context for rendering templates.
+	 *
+	 * @return array The rendered configuration array.
+	 * @throws LoaderError If there is an error loading a Twig template.
+	 * @throws SyntaxError If there is a syntax error in a Twig template.
+	 */
 	private function renderConfiguration(array $configuration, Source $source): array
 	{
 		return array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);

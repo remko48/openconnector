@@ -48,7 +48,7 @@ class JobMapper extends QBMapper
 			}
         }
 
-        if (!empty($searchConditions)) {
+		if (empty($searchConditions) === false) {
             $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);
@@ -63,7 +63,7 @@ class JobMapper extends QBMapper
 		$obj = new Job();
 		$obj->hydrate($object);
 		// Set uuid
-		if($obj->getUuid() === null){
+		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
 		return $this->insert(entity: $obj);
@@ -73,7 +73,7 @@ class JobMapper extends QBMapper
 	{
 		$obj = $this->find($id);
 		$obj->hydrate($object);
-		
+
 		// Set or update the version
 		$version = explode('.', $obj->getVersion());
 		$version[2] = (int)$version[2] + 1;
