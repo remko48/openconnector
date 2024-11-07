@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, logStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -130,8 +130,8 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Contracts">
-							<div v-if="contracts.length">
-								<NcListItem v-for="(value, key, i) in contracts"
+							<div v-if="synchronizationStore.synchronizationContracts?.length">
+								<NcListItem v-for="(value, key, i) in synchronizationStore.synchronizationContracts"
 									:key="`${key}${i}`"
 									:name="key"
 									:bold="false"
@@ -146,17 +146,11 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 										{{ value }}
 									</template>
 									<template #actions>
-										<NcActionButton @click="editJobArgument(key)">
+										<NcActionButton @click="viewLog(value)">
 											<template #icon>
-												<Pencil :size="20" />
+												<EyeOutline :size="20" />
 											</template>
-											Edit
-										</NcActionButton>
-										<NcActionButton @click="deleteJobArgument(key)">
-											<template #icon>
-												<Delete :size="20" />
-											</template>
-											Delete
+											View
 										</NcActionButton>
 									</template>
 								</NcListItem>
@@ -178,6 +172,14 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 									</template>
 									<template #subname>
 										{{ log.created }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="viewLog(log)">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
 									</template>
 								</NcListItem>
 							</div>
@@ -201,6 +203,7 @@ import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
+import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 
 export default {
 	name: 'SynchronizationDetails',
@@ -219,6 +222,12 @@ export default {
 	mounted() {
 		synchronizationStore.refreshSynchronizationLogs()
 		synchronizationStore.refreshSynchronizationContracts()
+	},
+	methods: {
+		viewLog(log) {
+			logStore.setViewLogItem(log)
+			navigationStore.setModal('viewSynchronizationLog')
+		},
 	},
 }
 </script>

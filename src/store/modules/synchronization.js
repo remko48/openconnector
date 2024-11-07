@@ -22,17 +22,15 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			console.log('Synchronization list set to ' + synchronizationList.length + ' items')
 		},
 		setSynchronizationContracts(synchronizationContracts) {
-			this.synchronizationContracts = synchronizationContracts.map(
-				(synchronizationContract) => new SynchronizationContract(synchronizationContract),
-			)
-			console.log('Synchronization contracts set to ' + synchronizationContracts.length + ' items')
+			this.synchronizationContracts = synchronizationContracts
+			console.log('Synchronization contracts set to ' + synchronizationContracts?.length + ' items')
 		},
 		setSynchronizationLogs(synchronizationLogs) {
-			this.synchronizationLogs = synchronizationLogs.map(
-				(synchronizationLog) => new SynchronizationLog(synchronizationLog),
-			)
-			console.log('Synchronization logs set to ' + synchronizationLogs.length + ' items')
+			this.synchronizationLogs = synchronizationLogs
+
+			console.log('Synchronization logs set to ' + synchronizationLogs?.length + ' items')
 		},
+
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
 		async refreshSynchronizationList(search = null) {
 			// @todo this might belong in a service?
