@@ -243,7 +243,7 @@ class SynchronizationsController extends Controller
     public function test(int $id): JSONResponse
     {
         try {
-            $synchronization = $this->synchronizationMapper->find(id: (int) $id);
+            $synchronization = $this->synchronizationMapper->find(id: $id);
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
         }

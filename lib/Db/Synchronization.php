@@ -103,19 +103,19 @@ class Synchronization extends Entity implements JsonSerializable
 			'sourceHash' => $this->sourceHash,
 			'sourceTargetMapping' => $this->sourceTargetMapping,
 			'sourceConfig' => $this->sourceConfig,
-			'sourceLastChanged' => isset($this->sourceLastChanged) ? $this->sourceLastChanged->format('c') : null,
-			'sourceLastChecked' => isset($this->sourceLastChecked) ? $this->sourceLastChecked->format('c') : null,
-			'sourceLastSynced' => isset($this->sourceLastSynced) ? $this->sourceLastSynced->format('c') : null,
+			'sourceLastChanged' => isset($this->sourceLastChanged) === true ? $this->sourceLastChanged->format('c') : null,
+			'sourceLastChecked' => isset($this->sourceLastChecked) === true ? $this->sourceLastChecked->format('c') : null,
+			'sourceLastSynced' => isset($this->sourceLastSynced) === true ? $this->sourceLastSynced->format('c') : null,
 			'targetId' => $this->targetId,
 			'targetType' => $this->targetType,
 			'targetHash' => $this->targetHash,
 			'targetSourceMapping' => $this->targetSourceMapping,
 			'targetConfig' => $this->targetConfig,
-			'targetLastChanged' => isset($this->targetLastChanged) ? $this->targetLastChanged->format('c') : null,
-			'targetLastChecked' => isset($this->targetLastChecked) ? $this->targetLastChecked->format('c') : null,
-			'targetLastSynced' => isset($this->targetLastSynced) ? $this->targetLastSynced->format('c') : null,
-			'created' => isset($this->created) ? $this->created->format('c') : null,
-			'updated' => isset($this->updated) ? $this->updated->format('c') : null
+			'targetLastChanged' => isset($this->targetLastChanged) === true ? $this->targetLastChanged->format('c') : null,
+			'targetLastChecked' => isset($this->targetLastChecked) === true ? $this->targetLastChecked->format('c') : null,
+			'targetLastSynced' => isset($this->targetLastSynced) === true ? $this->targetLastSynced->format('c') : null,
+			'created' => isset($this->created) === true ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) === true ? $this->updated->format('c') : null
 		];
 	}
 }
