@@ -71,9 +71,9 @@ class SynchronizationService
 	 */
     public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
-        $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
-		var_dump(count($objectList), $objectList);
+
+        $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
         foreach ($objectList as $key => $object) {
             // If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
@@ -376,14 +376,16 @@ class SynchronizationService
         // Current page is 2 because the first call made above is page 1.
         $currentPage = 2;
 
+
 		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-		while($endpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
-			$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+		while($endpoint !== null) {
+			$response = $this->callService->call(source: $source, endpoint: $endpoint)->getResponse();
 			$body = json_decode($response['body'], true);
-			$objects = array_merge($objects, $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization));
+			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+			$endpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage);
 		}
 
-		if (isset($sourceConfig['paginationQuery']) === true) {
+		if (empty($sourceConfig['paginationQuery']) === false) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
@@ -398,28 +400,6 @@ class SynchronizationService
 				$currentPage++;
 			} while (empty($newObjects) === false);
 		}
-//        while (true) {
-//            $nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage);
-//            if ($nextEndpoint !== null) {
-//                $endpoint = $nextEndpoint;
-//            } else {
-//                $config = $this->getNextPage($config, $sourceConfig, $currentPage);
-//            }
-//
-//            $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
-//            $body = json_decode($response['body'], true);
-//            if (empty($body) === true) {
-//                break;
-//            }
-//
-//            $newObjects = $this->getAllObjectsFromArray($body, $synchronization);
-//            if (empty($newObjects) === true) {
-//                break;
-//            }
-//
-//            $objects = array_merge($objects, $newObjects);
-//            $currentPage++;
-//        }
 
         return $objects;
     }
