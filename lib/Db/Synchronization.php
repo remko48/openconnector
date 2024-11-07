@@ -103,19 +103,19 @@ class Synchronization extends Entity implements JsonSerializable
 			'sourceHash' => $this->sourceHash,
 			'sourceTargetMapping' => $this->sourceTargetMapping,
 			'sourceConfig' => $this->sourceConfig,
-			'sourceLastChanged' => $this->sourceLastChanged,
-			'sourceLastChecked' => $this->sourceLastChecked,
-			'sourceLastSynced' => $this->sourceLastSynced,
+			'sourceLastChanged' => isset($this->sourceLastChanged) === true ? $this->sourceLastChanged->format('c') : null,
+			'sourceLastChecked' => isset($this->sourceLastChecked) === true ? $this->sourceLastChecked->format('c') : null,
+			'sourceLastSynced' => isset($this->sourceLastSynced) === true ? $this->sourceLastSynced->format('c') : null,
 			'targetId' => $this->targetId,
 			'targetType' => $this->targetType,
 			'targetHash' => $this->targetHash,
 			'targetSourceMapping' => $this->targetSourceMapping,
 			'targetConfig' => $this->targetConfig,
-			'targetLastChanged' => $this->targetLastChanged,
-			'targetLastChecked' => $this->targetLastChecked,
-			'targetLastSynced' => $this->targetLastSynced,
-			'created' => isset($this->created) ? $this->created->format('c') : null,
-			'updated' => isset($this->updated) ? $this->updated->format('c') : null
+			'targetLastChanged' => isset($this->targetLastChanged) === true ? $this->targetLastChanged->format('c') : null,
+			'targetLastChecked' => isset($this->targetLastChecked) === true ? $this->targetLastChecked->format('c') : null,
+			'targetLastSynced' => isset($this->targetLastSynced) === true ? $this->targetLastSynced->format('c') : null,
+			'created' => isset($this->created) === true ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) === true ? $this->updated->format('c') : null
 		];
 	}
 }

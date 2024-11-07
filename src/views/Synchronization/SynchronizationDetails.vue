@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, logStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -20,6 +20,12 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 								<Pencil :size="20" />
 							</template>
 							Edit
+						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('testSynchronization')">
+							<template #icon>
+								<Sync :size="20" />
+							</template>
+							Test
 						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
@@ -124,10 +130,10 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Contracts">
-							<div v-if="contracts.length">
-								<NcListItem v-for="(value, key, i) in contracts"
-									:key="`${key}${i}`"
-									:name="key"
+							<div v-if="synchronizationStore.synchronizationContracts?.length">
+								<NcListItem v-for="(contract, i) in synchronizationStore.synchronizationContracts"
+									:key="`${contract.id}${i}`"
+									:name="contract.id.toString()"
 									:bold="false"
 									:force-display-actions="true"
 									:active="false">
@@ -137,20 +143,14 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ value }}
+										{{ new Date(contract.created).toLocaleString() }}
 									</template>
 									<template #actions>
-										<NcActionButton @click="editJobArgument(key)">
+										<NcActionButton @click="viewContract(contract)">
 											<template #icon>
-												<Pencil :size="20" />
+												<EyeOutline :size="20" />
 											</template>
-											Edit
-										</NcActionButton>
-										<NcActionButton @click="deleteJobArgument(key)">
-											<template #icon>
-												<Delete :size="20" />
-											</template>
-											Delete
+											View
 										</NcActionButton>
 									</template>
 								</NcListItem>
@@ -163,7 +163,7 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 							<div v-if="synchronizationStore.synchronizationLogs?.length">
 								<NcListItem v-for="(log, i) in synchronizationStore.synchronizationLogs"
 									:key="log.id + i"
-									:name="log.id"
+									:name="log.id.toString()"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
@@ -171,7 +171,15 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ log.created }}
+										{{ new Date(log.created).toLocaleString() }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="viewLog(log)">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
 									</template>
 								</NcListItem>
 							</div>
@@ -194,6 +202,8 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
+import Sync from 'vue-material-design-icons/Sync.vue'
+import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 
 export default {
 	name: 'SynchronizationDetails',
@@ -204,14 +214,24 @@ export default {
 		Pencil,
 		TrashCanOutline,
 	},
-	mounted() {
-		synchronizationStore.refreshSynchronizationLogs()
-		synchronizationStore.refreshSynchronizationContracts()
-	},
 	data() {
 		return {
 			contracts: [],
 		}
+	},
+	mounted() {
+		synchronizationStore.refreshSynchronizationLogs()
+		synchronizationStore.refreshSynchronizationContracts()
+	},
+	methods: {
+		viewLog(log) {
+			logStore.setViewLogItem(log)
+			navigationStore.setModal('viewSynchronizationLog')
+		},
+		viewContract(contract) {
+			logStore.setViewLogItem(contract)
+			navigationStore.setModal('viewSynchronizationContract')
+		},
 	},
 }
 </script>

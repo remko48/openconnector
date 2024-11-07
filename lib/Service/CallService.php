@@ -181,6 +181,11 @@ class CallService
 			$config['headers'] = [];
 		}
 
+		if (isset($config['pagination']) === true) {
+			$config['query'][$config['pagination']['paginationQuery']] = $config['pagination']['page'];
+			unset($config['pagination']);
+		}
+
 		// We want to surpress guzzle exceptions and return the response instead
 		$config['http_errors'] = false;
 
