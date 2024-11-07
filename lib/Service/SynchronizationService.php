@@ -378,11 +378,10 @@ class SynchronizationService
 
 
 		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-		while($endpoint !== null) {
+		while($endpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
 			$response = $this->callService->call(source: $source, endpoint: $endpoint)->getResponse();
 			$body = json_decode($response['body'], true);
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
-			$endpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage);
 		}
 
 		if (empty($sourceConfig['paginationQuery']) === false) {
