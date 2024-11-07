@@ -72,7 +72,6 @@ class SynchronizationService
     public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
 
-
         $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
         foreach ($objectList as $key => $object) {
@@ -189,7 +188,7 @@ class SynchronizationService
         $synchronizationContract->setSourceLastChanged(new DateTime());
 
         // If no source target mapping is defined, use original object
-        if (empty($synchronization->getSourceTargetMapping())) {
+        if (empty($synchronization->getSourceTargetMapping()) === true) {
             $targetObject = $object;
         } else {
             try {
@@ -375,16 +374,18 @@ class SynchronizationService
 
         // Current page is 2 because the first call made above is page 1.
         $currentPage = 2;
+        $usedNextEndpoint = false;
 
 
 		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-		while($endpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
-			$response = $this->callService->call(source: $source, endpoint: $endpoint)->getResponse();
+		while($nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
+            $usedNextEndpoint = true;
+			$response = $this->callService->call(source: $source, endpoint: $nextEndpoint, method: 'GET', config: $config)->getResponse();
 			$body = json_decode($response['body'], true);
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
 		}
 
-		if (empty($sourceConfig['paginationQuery']) === false) {
+		if ($usedNextEndpoint === false) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
@@ -467,7 +468,6 @@ class SynchronizationService
                 return $dot->get($position);
             } else {
                 // Throw an exception if the specified position doesn't exist
-                // var_dump($array);
 
                 return [];
                 // @todo log error
@@ -490,7 +490,6 @@ class SynchronizationService
             return $array['results'];
         }
 
-        // var_dump($array);
         // If no objects can be found, throw an exception
         throw new Exception("Cannot determine the position of objects in the return body.");
     }
