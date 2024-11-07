@@ -73,6 +73,8 @@ class SynchronizationService
 	{
         $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
+		var_dump(count($objectList), $objectList);
+
         foreach ($objectList as $key => $object) {
             // If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
             $originId = $this->getOriginId($synchronization, $object);
@@ -373,31 +375,51 @@ class SynchronizationService
 
         // Current page is 2 because the first call made above is page 1.
         $currentPage = 2;
-        $url = $source->getLocation().$endpoint;
 
-        // Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-        while (true) {
-            $nextEndpoint = $this->getNextEndpoint(body: $body, url: $url, sourceConfig: $sourceConfig, currentPage: $currentPage);
-            if ($nextEndpoint !== null) {
-                $endpoint = $nextEndpoint;
-            } else {
-                $config = $this->getNextPage($config, $sourceConfig, $currentPage);
-            }
+		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
+		while($endpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
+			$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+			$body = json_decode($response['body'], true);
+			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+		}
 
-            $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
-            $body = json_decode($response['body'], true);
-            if (empty($body) === true) {
-                break;
-            }
+		if(isset($sourceConfig['paginationQuery'])) {
+			do {
+				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
+				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+				$body     = json_decode($response['body'], true);
 
-            $newObjects = $this->getAllObjectsFromArray($body, $synchronization);
-            if (empty($newObjects) === true) {
-                break;
-            }
+				if (empty($body) === true) {
+					break;
+				}
 
-            $objects = array_merge($objects, $newObjects);
-            $currentPage++;
-        }
+				$newObjects = $this->getAllObjectsFromArray($body, $synchronization);
+				$objects = array_merge($objects, $newObjects);
+				$currentPage++;
+			} while (empty($newObjects) === false);
+		}
+//        while (true) {
+//            $nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage);
+//            if ($nextEndpoint !== null) {
+//                $endpoint = $nextEndpoint;
+//            } else {
+//                $config = $this->getNextPage($config, $sourceConfig, $currentPage);
+//            }
+//
+//            $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+//            $body = json_decode($response['body'], true);
+//            if (empty($body) === true) {
+//                break;
+//            }
+//
+//            $newObjects = $this->getAllObjectsFromArray($body, $synchronization);
+//            if (empty($newObjects) === true) {
+//                break;
+//            }
+//
+//            $objects = array_merge($objects, $newObjects);
+//            $currentPage++;
+//        }
 
         return $objects;
     }
