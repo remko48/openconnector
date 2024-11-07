@@ -36,11 +36,11 @@ class MappingService
 	 */
     public function __construct(
 		ArrayLoader $loader,
-		MappingMapper $mappingMapper
+		private readonly MappingMapper $mappingMapper
     ) {
         $this->twig = new Environment($loader);
 		$this->twig->addExtension(new MappingExtension());
-		$this->twig->addRuntimeLoader(new MappingRuntimeLoader(mappingService: $this, mappingMapper: $mappingMapper));
+		$this->twig->addRuntimeLoader(new MappingRuntimeLoader(mappingService: $this, mappingMapper: $this->mappingMapper));
 
     }//end __construct()
 
