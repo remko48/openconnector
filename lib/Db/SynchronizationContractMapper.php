@@ -4,13 +4,15 @@ namespace OCA\OpenConnector\Db;
 
 use OCA\OpenConnector\Db\SynchronizationContract;
 use OCP\AppFramework\Db\Entity;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Symfony\Component\Uid\Uuid;
 /**
  * Mapper class for SynchronizationContract entities
- * 
+ *
  * This class handles database operations for synchronization contracts including
  * CRUD operations and specialized queries.
  *
@@ -54,14 +56,17 @@ class SynchronizationContractMapper extends QBMapper
         return $this->findEntity(query: $qb);
     }
 
-    /**
-     * Find a synchronization contract by synchronization ID and origin ID
-     *
-     * @param string $synchronizationId The synchronization ID
-     * @param string $originId The origin ID
-     * @return SynchronizationContract|null The found contract or null if not found
-     */
-    public function findSynchronizationContractWithOriginId(string $synchronizationId, string $originId): ?SynchronizationContract
+	/**
+	 * Find a synchronization contract by synchronization ID and origin ID
+	 *
+	 * @param string $synchronizationId The synchronization ID
+	 * @param string $originId The origin ID
+	 *
+	 * @return SynchronizationContract|null The found contract or null if not found
+	 * @throws MultipleObjectsReturnedException
+	 * @throws Exception
+	 */
+    public function findSyncContractByOriginId(string $synchronizationId, string $originId): ?SynchronizationContract
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
@@ -166,7 +171,7 @@ class SynchronizationContractMapper extends QBMapper
         // Create and hydrate new contract object
         $obj = new SynchronizationContract();
         $obj->hydrate(object: $object);
-        
+
         // Generate UUID if not provided
         if ($obj->getUuid() === null) {
             $obj->setUuid(Uuid::v4());
@@ -187,7 +192,7 @@ class SynchronizationContractMapper extends QBMapper
         // Find and hydrate existing contract
         $obj = $this->find($id);
         $obj->hydrate($object);
-        
+
         // Increment version number
         $version = explode('.', $obj->getVersion());
         $version[2] = (int)$version[2] + 1;

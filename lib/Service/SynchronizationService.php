@@ -79,7 +79,7 @@ class SynchronizationService
             $originId = $this->getOriginId($synchronization, $object);
 
             // Get the synchronization contract for this object
-            $synchronizationContract = $this->synchronizationContractMapper->findSynchronizationContractWithOriginId(synchronizationId: $synchronization->id, originId: $originId);
+            $synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
 
             if ($synchronizationContract instanceof SynchronizationContract === false) {
                 // Only persist if not test
