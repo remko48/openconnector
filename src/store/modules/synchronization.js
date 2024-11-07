@@ -70,7 +70,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 					(response) => {
 						response.json().then(
 							(data) => {
-								this.setSynchronizationContracts(data.results)
+								this.setSynchronizationContracts(data)
 							},
 						)
 					},
@@ -95,7 +95,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 					(response) => {
 						response.json().then(
 							(data) => {
-								this.setSynchronizationLogs(data.results)
+								this.setSynchronizationLogs(data)
 							},
 						)
 					},
