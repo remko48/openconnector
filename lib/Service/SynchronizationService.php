@@ -70,9 +70,9 @@ class SynchronizationService
 	 * Synchronizes a given synchronization (or a complete source).
 	 *
 	 * @param Synchronization $synchronization
-	 * @param bool|null $isTest False by default, currently added for synchronziation-test endpoint
+	 * @param array|null      $originIds       For deleting target objects that dont exist in the source.
+	 * @param bool|null       $isTest          False by default, currently added for synchronziation-test endpoint.
 	 *
-	 * @return array
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
 	 * @throws GuzzleException
@@ -80,15 +80,17 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws MultipleObjectsReturnedException
 	 * @throws \OCP\DB\Exception
+     * 
+	 * @return array
 	 */
-    public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
+    public function synchronize(Synchronization $synchronization, ?array &$originIds = [], ?bool $isTest = false): array
 	{
 
         $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
         foreach ($objectList as $key => $object) {
             // If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
-            $originId = $this->getOriginId($synchronization, $object);
+            $originIds[] = $originId = $this->getOriginId($synchronization, $object);
 
             // Get the synchronization contract for this object
             $synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
@@ -525,5 +527,76 @@ class SynchronizationService
     {
         // Check if the 'next' key exists in the response body
 		return $body['next'] ?? null;
+    }
+
+    /**
+     * Deletes target object from nextcloud internal database, api or database
+     * 
+     * @param Synchronization         $synchronization
+     * @param SynchronizationContract $contract
+     * 
+     * @return void
+     */
+    public function deleteTarget(Synchronization $synchronization, SynchronizationContract $contract): void
+    {
+        $type = $synchronization->getTargetType();
+        switch ($type) {
+            case 'register/schema':
+                // Setup the object service
+                $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+
+                // if we already have an id, we need to get the object and update it
+                if ($contract->getTargetId() === null) {
+                    // @todo log failure of deleting
+                }
+
+                // Extract register and schema from the targetId
+                // The targetId needs to be filled in as: {registerId} + / + {schemaId} for example: 1/1
+                $targetId = $synchronization->getTargetId();
+                list($register, $schema) = explode('/', $targetId);
+
+                // Delete the object in the target
+                try {
+                    $objectService->deleteObject(register: $register, schema: $schema, uuid: $contract->getTargetId());
+                } catch (Exception $exception) {
+                    // @todo log failure of deleting
+                }
+
+                break;
+            case 'api':
+                //@todo: implement
+                //$this->callService->delete($targetObject);
+                break;
+            case 'database':
+                //@todo: implement
+                break;
+            default:
+                throw new Exception("Unsupported target type: $type");
+        }
+    }
+
+
+	/**
+	 * Deletes objects in the synchronization target that dont exist in the source anymore
+	 *
+	 * @param Synchronization $synchronization The synchronization to delete .
+	 * @param array           $originIds       The origin ids of objects we fetched earlier.
+	 *
+	 * @return int $deleteCount Amount of deleted target objects.
+	 */
+    public function deleteOldTargets(Synchronization $synchronization, array $originIds): int
+    {
+        $contracts = $this->synchronizationContractMapper->findAll(null, null, ['synchronization_id' => $synchronization->getId()]);
+        $deleteCount = 0;
+
+        foreach ($contracts as $contract) {
+            // Only if the origin id is not one of the origin ids fetched from a source we delete the target object.
+            if (in_array($contract->getOriginId(), $originIds) === false) {
+                $this->deleteTarget($synchronization, $contract);
+                $deleteCount++;
+            }
+        }
+
+        return $deleteCount;
     }
 }

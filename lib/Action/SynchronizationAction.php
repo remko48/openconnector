@@ -69,10 +69,25 @@ class SynchronizationAction
         // Doing the synchronization
         $response['stackTrace'][] = 'Doing the synchronization';
         try {
-            $objects = $this->synchronizationService->synchronize($synchronization);
+            $originIds = [];
+            $objects = $this->synchronizationService->synchronize(synchronization: $synchronization, originIds: $originIds);
         } catch (Exception $e) {
             $response['level'] = 'ERROR';
 			$response['stackTrace'][] = $response['message'] = 'Failed to synchronize: ' . $e->getMessage();
+            return $response;
+        }
+
+
+        $targetConfig = $synchronization->getTargetConfig();
+        try {
+            if (isset($targetConfig['deleteOldTargets']) === true && $targetConfig['deleteOldTargets'] === true) {
+                $response['stackTrace'][] = 'Checking for targets to delete that dont exist in the source anymore';
+                $deleteCount = $this->synchronizationService->deleteOldTargets(synchronization: $synchronization, originIds: $originIds);
+                $response['stackTrace'][] = "Deleted $deleteCount targets that dont exist in their source anymore";
+            }
+        } catch (Exception $e) {
+            $response['level'] = 'ERROR';
+			$response['stackTrace'][] = $response['message'] = 'Failed to delete targets: ' . $e->getMessage();
             return $response;
         }
 

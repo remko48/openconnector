@@ -250,7 +250,7 @@ class SynchronizationsController extends Controller
 
         // Try to synchronize
         try {
-            $logAndContractArray = $this->synchronizationService->synchronize(synchronization: $synchronization, isTest: true);
+            $logAndContractArray = $this->synchronizationService->synchronize(synchronization: $synchronization, originIds: [],  isTest: false);
             // Return the result as a JSON response
             return new JSONResponse(data: $logAndContractArray, statusCode: 200);
         } catch (Exception $e) {
