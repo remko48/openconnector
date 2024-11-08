@@ -141,9 +141,17 @@ export default {
 				description: '',
 				sourceId: '',
 				sourceType: 'api',
+				sourceConfig: {
+					idPosition: '',
+					resultsPosition: '',
+					endpoint: '',
+					headers: {},
+					query: {},
+				},
 				sourceTargetMapping: '',
 				targetId: '',
 				targetType: 'register/schema',
+				targetConfig: {},
 				targetSourceMapping: '',
 			}
 		},
