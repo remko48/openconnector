@@ -27,6 +27,29 @@
 					<NcIconSvgWrapper inline :path="mdiCloseCircle" /> input object is invalid
 				</p>
 			</div>
+
+			<div v-if="mappingTest.result?.validationErrors" class="validation-errors">
+				<table>
+					<thead>
+						<tr>
+							<th>Field</th>
+							<th>Errors</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(errors, field) in mappingTest.result.validationErrors" :key="field">
+							<td>{{ field }}</td>
+							<td>
+								<ul>
+									<li v-for="error in errors" :key="error">
+										{{ error }}
+									</li>
+								</ul>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 </template>
@@ -88,5 +111,18 @@ export default {
 }
 .invalid {
 	color: var(--color-error);
+}
+.validation-errors {
+    margin-block-start: 0.5rem;
+    overflow-x: auto;
+    width: 100%;
+}
+.validation-errors table {
+    border: 1px solid grey;
+    border-collapse: collapse;
+}
+.validation-errors th, .validation-errors td {
+    border: 1px solid grey;
+    padding: 8px;
 }
 </style>
