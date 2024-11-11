@@ -1,21 +1,19 @@
-name: Run PHPCBF to fix code style issues
-on: [push]
+name: php-cs
+
+on: [push, pull_request]
+
 jobs:
-  phpcbf:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
-      - name: Install Composer dependencies
-        run: composer install --no-progress --prefer-dist --optimize-autoloader
-      - name: Run PHPCBF
-        run: ./vendor/bin/phpcbf --standard=psr12 ./bad.php
+          php-version: '8.2'
+          tools: cs2pr, phpcbf
+
+      - name: Run phpcbf
+        run: phpcbf -q --report=checkstyle lib | cs2pr
         continue-on-error: true
-      #- name: Commit Changes
-      #  uses: stefanzweifel/git-auto-commit-action@v4
