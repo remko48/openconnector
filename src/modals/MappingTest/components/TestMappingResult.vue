@@ -28,7 +28,7 @@
 				</p>
 			</div>
 
-			<div v-if="Object.keys(mappingTest.result?.validationErrors).length" class="validation-errors">
+			<div v-if="Object.keys(mappingTest.result?.validationErrors || {}).length" class="validation-errors">
 				<table>
 					<thead>
 						<tr>
