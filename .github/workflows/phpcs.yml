@@ -1,4 +1,4 @@
-name: php-cs
+name: Run PHP Code Sniffer to enforce code style
 
 on: [push, pull_request]
 

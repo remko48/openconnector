@@ -1,4 +1,4 @@
-name: php-cs
+name: Run PHPCBF to fix code style issues
 
 on: [push, pull_request]
 
