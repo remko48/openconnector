@@ -46,12 +46,12 @@ use OCP\Migration\SimpleMigrationStep;
 		// Check if the column exists
 		if ($table->hasColumn('source_id') === true) {
 			// Rename the column 'old_column_name' to 'new_column_name'
-			$table->renameColumn('source_id', 'origin_id');
+			$table->changeColumn('source_id', ['name' => 'origin_id']);
 		}
 		// Check if the column exists
 		if ($table->hasColumn('source_hash') === true) {
 			// Rename the column 'old_column_name' to 'new_column_name'
-			$table->renameColumn('source_hash', 'origin_hash');
+			$table->changeColumn('source_hash', ['name' => 'origin_hash']);
 		}
 
 		// Check if the index exists
