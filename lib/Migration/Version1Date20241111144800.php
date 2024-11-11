@@ -57,7 +57,7 @@ use OCP\Migration\SimpleMigrationStep;
 		// Check if the index exists
 		if ($table->hasIndex('openconnector_sync_contracts_source_id_index') === true) {
 			// Remove the old index
-			$table->dropIndex('openconnector_sync_contracts_origin_id_index');
+			$table->dropIndex('openconnector_sync_contracts_source_id_index');
 		}
 		// Check if the index exists
 		if ($table->hasIndex('openconnector_sync_contracts_origin_id_index') === false) {
