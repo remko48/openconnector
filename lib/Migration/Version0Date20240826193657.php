@@ -194,8 +194,8 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addColumn('version', Types::STRING, ['notnull' => true, 'length' => 255, 'default' => '0.0.1']);
             $table->addColumn('synchronization_id', Types::STRING, ['notnull' => true, 'length' => 255]);
             // Source
-            $table->addColumn('origin_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('origin_hash', Types::STRING, ['notnull' => false, 'length' => 255]);
+            $table->addColumn('source_id', Types::STRING, ['notnull' => false, 'length' => 255]);
+            $table->addColumn('source_hash', Types::STRING, ['notnull' => false, 'length' => 255]);
             $table->addColumn('source_last_changed', Types::DATETIME, ['notnull' => false]);
             $table->addColumn('source_last_checked', Types::DATETIME, ['notnull' => false]);
             $table->addColumn('source_last_synced', Types::DATETIME, ['notnull' => false]);
@@ -212,9 +212,9 @@ use OCP\Migration\SimpleMigrationStep;
             $table->setPrimaryKey(['id']);
             $table->addIndex(['uuid'], 'openconnector_sync_contracts_uuid_index');
             $table->addIndex(['synchronization_id'], 'openconnector_sync_contracts_sync_index');
-            $table->addIndex(['origin_id'], 'openconnector_sync_contracts_origin_id_index');
+            $table->addIndex(['source_id'], 'openconnector_sync_contracts_source_id_index');
             $table->addIndex(['target_id'], 'openconnector_sync_contracts_target_id_index');
-            $table->addIndex(['synchronization_id', 'origin_id'], 'openconnector_sync_contracts_sync_origin_index');
+            $table->addIndex(['synchronization_id', 'source_id'], 'openconnector_sync_contracts_sync_origin_index');
             $table->addIndex(['synchronization_id', 'target_id'], 'openconnector_sync_contracts_sync_target_index');
         }
 
