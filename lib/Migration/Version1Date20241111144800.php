@@ -55,19 +55,23 @@ use OCP\Migration\SimpleMigrationStep;
 		}
 
 		// Check if the index exists
-		if ($table->hasIndex('openconnector_sync_contracts_source_id_index')) {
+		if ($table->hasIndex('openconnector_sync_contracts_source_id_index') === true) {
 			// Remove the old index
 			$table->dropIndex('openconnector_sync_contracts_origin_id_index');
-
+		}
+		// Check if the index exists
+		if ($table->hasIndex('openconnector_sync_contracts_origin_id_index') === false) {
 			// Add a new index with the desired name
 			$table->addIndex(['origin_id'], 'openconnector_sync_contracts_origin_id_index');
 		}
 
 		// Check if the index exists
-		if ($table->hasIndex('openconnector_sync_contracts_sync_source_index')) {
+		if ($table->hasIndex('openconnector_sync_contracts_sync_source_index') === true) {
 			// Remove the old index
 			$table->dropIndex('openconnector_sync_contracts_sync_source_index');
-
+		}
+		// Check if the index exists
+		if ($table->hasIndex('openconnector_sync_contracts_sync_origin_index') === false) {
 			// Add a new index with the desired name
 			$table->addIndex(['synchronization_id', 'origin_id'], 'openconnector_sync_contracts_sync_origin_index');
 		}
