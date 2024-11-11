@@ -14,12 +14,21 @@ use OCP\DB\ISchemaWrapper;
 use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
-
+use OCP\IDBConnection;
 
 /**
- * FIXME Auto-generated migration step: Please modify to your needs!
- *
- */class Version1Date20241111144800 extends SimpleMigrationStep {
+ * This migration changes the following:
+ * - Renaming of SynchronizationContract sourceId & sourceHash to originId and originHash
+ * - Removal of old indexes related to sourceId and sourceHash
+ * - Addition of new indexes for originId and synchronization_id fields
+ */
+class Version1Date20241111144800 extends SimpleMigrationStep {
+
+	private IDBConnection $connection;
+
+	public function __construct(IDBConnection $connection) {
+		$this->connection = $connection;
+	}
 
 	/**
 	 * @param IOutput $output
@@ -40,39 +49,34 @@ use OCP\Migration\SimpleMigrationStep;
 		 * @var ISchemaWrapper $schema
 		 */
 		$schema = $schemaClosure();
-
-		// Update the openconnector_synchronization_contracts table
 		$table = $schema->getTable('openconnector_synchronization_contracts');
-		// Check if the column exists
-		if ($table->hasColumn('source_id') === true) {
-			// Rename the column 'old_column_name' to 'new_column_name'
-			$table->changeColumn('source_id', ['name' => 'origin_id']);
+
+		// Step 1: Add new columns for 'origin_id' and 'origin_hash'
+		if ($table->hasColumn('origin_id') === false) {
+			$table->addColumn('origin_id', Types::STRING, [
+				'length' => 255,
+				'notnull' => true,
+			]);
 		}
-		// Check if the column exists
-		if ($table->hasColumn('source_hash') === true) {
-			// Rename the column 'old_column_name' to 'new_column_name'
-			$table->changeColumn('source_hash', ['name' => 'origin_hash']);
+		if ($table->hasColumn('origin_hash') === false) {
+			$table->addColumn('origin_hash', Types::STRING, [
+				'length' => 255,
+				'notnull' => false,
+			]);
 		}
 
-		// Check if the index exists
+		// Step 4: Adjust indexes in preparation for data migration
 		if ($table->hasIndex('openconnector_sync_contracts_source_id_index') === true) {
-			// Remove the old index
 			$table->dropIndex('openconnector_sync_contracts_source_id_index');
 		}
-		// Check if the index exists
 		if ($table->hasIndex('openconnector_sync_contracts_origin_id_index') === false) {
-			// Add a new index with the desired name
 			$table->addIndex(['origin_id'], 'openconnector_sync_contracts_origin_id_index');
 		}
 
-		// Check if the index exists
 		if ($table->hasIndex('openconnector_sync_contracts_sync_source_index') === true) {
-			// Remove the old index
 			$table->dropIndex('openconnector_sync_contracts_sync_source_index');
 		}
-		// Check if the index exists
 		if ($table->hasIndex('openconnector_sync_contracts_sync_origin_index') === false) {
-			// Add a new index with the desired name
 			$table->addIndex(['synchronization_id', 'origin_id'], 'openconnector_sync_contracts_sync_origin_index');
 		}
 
@@ -85,5 +89,22 @@ use OCP\Migration\SimpleMigrationStep;
 	 * @param array $options
 	 */
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+		// Step 2: Copy data from old columns to new columns
+		$this->connection->executeQuery("
+			UPDATE openconnector_synchronization_contracts
+			SET origin_id = source_id, origin_hash = source_hash
+			WHERE source_id IS NOT NULL
+		");
+
+		// Step 3: Drop the old columns after data migration
+		$schema = $schemaClosure();
+		$table = $schema->getTable('openconnector_synchronization_contracts');
+
+		if ($table->hasColumn('source_id') === true) {
+			$table->dropColumn('source_id');
+		}
+		if ($table->hasColumn('source_hash') === true) {
+			$table->dropColumn('source_hash');
+		}
 	}
 }
