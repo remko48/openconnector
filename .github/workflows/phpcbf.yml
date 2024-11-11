@@ -1,0 +1,21 @@
+name: Automatically Run PHPCBF to fix code style issues
+on: [push]
+jobs:
+  phpcbf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+      - name: Run PHPCBF
+        run: ./vendor/bin/phpcbf --standard=psr12 ./bad.php
+        continue-on-error: true
+      #- name: Commit Changes
+      #  uses: stefanzweifel/git-auto-commit-action@v4
