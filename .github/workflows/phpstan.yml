@@ -1,4 +1,4 @@
-name: CI
+name: Run PHPStan to check for code quality issues
 
 on: [push]
 

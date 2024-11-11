@@ -1,4 +1,4 @@
-name: Automatically Run PHPCBF to fix code style issues
+name: Run PHPCBF to fix code style issues
 on: [push]
 jobs:
   phpcbf:

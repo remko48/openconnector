@@ -1,4 +1,4 @@
-name: PHPCS
+name: Run PHP Code Sniffer to enforce code style
 on: [push]
 jobs:
   phpcs:
