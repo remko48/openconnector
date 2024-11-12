@@ -30,7 +30,11 @@ import { navigationStore } from '../store/store.js'
 					<SitemapOutline :size="20" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem :active="navigationStore.selected === 'jobs'" name="Jobs" @click="navigationStore.setSelected('jobs')" :allowCollapse="true" :open="true">
+			<NcAppNavigationItem :active="navigationStore.selected === 'jobs'"
+				name="Jobs"
+				:allow-collapse="true"
+				:open="true"
+				@click="navigationStore.setSelected('jobs')">
 				<template #icon>
 					<Update :size="20" />
 				</template>
@@ -39,6 +43,8 @@ import { navigationStore } from '../store/store.js'
 				<template #icon>
 					<CloudUploadOutline :size="20" />
 				</template>
+				<!-- This is correct according to the documentation, thats why there is a disable comment -->
+				<!-- eslint-disable-next-line vue/no-lone-template -->
 				<template>
 					<NcAppNavigationItem name="Subscriber List" />
 					<NcAppNavigationItem name="Events" />
