@@ -140,8 +140,8 @@ import { mappingStore } from '../../../store/store.js'
 
 				<NcTextArea :value.sync="mappingItem.cast"
 					label="cast"
-					:error="!validJson(mappingItem.cast)"
-					:helper-text="!validJson(mappingItem.cast) ? 'Invalid JSON' : ''" />
+					:error="!validJson(mappingItem.cast, true)"
+					:helper-text="!validJson(mappingItem.cast, true) ? 'Invalid JSON' : ''" />
 
 				<div class="buttons">
 					<NcButton class="reset-button"
@@ -162,7 +162,7 @@ import { mappingStore } from '../../../store/store.js'
 						Save
 					</NcButton>
 
-					<NcButton :disabled="mappingTest.loading || !mappings.value || !inputObject.isValid"
+					<NcButton :disabled="mappingTest.loading || !mappings.value || !inputObject.isValid || !validJson(mappingItem.mapping) || !validJson(mappingItem.cast, true)"
 						class="test-button"
 						type="success"
 						@click="testMapping()">
@@ -418,7 +418,7 @@ export default {
 					name: this.mappingItem.name,
 					description: this.mappingItem.description,
 					mapping: JSON.parse(this.mappingItem.mapping),
-					cast: JSON.parse(this.mappingItem.cast),
+					cast: this.mappingItem.cast ? JSON.parse(this.mappingItem.cast) : null,
 				},
 				inputObject: JSON.parse(this.inputObject.value),
 				schema: this.schemas.value?.id,
@@ -491,7 +491,11 @@ export default {
 				this.fetchSchemas()
 			}
 		},
-		validJson(object) {
+		validJson(object, optional = false) {
+			if (optional && !object) {
+				return true
+			}
+
 			try {
 				JSON.parse(object)
 				return true

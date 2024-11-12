@@ -147,6 +147,7 @@ export const useMappingStore = defineStore('mapping', {
 				inputObject: mappingTestObject.inputObject,
 				mapping: mappingTestObject.mapping,
 				schema: mappingTestObject?.schema || null,
+				validation: !!mappingTestObject?.schema,
 			}
 
 			// assert that the data is an object

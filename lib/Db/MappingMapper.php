@@ -75,9 +75,13 @@ class MappingMapper extends QBMapper
 		$obj->hydrate($object);
 		
 		// Set or update the version
-		$version = explode('.', $obj->getVersion());
-		$version[2] = (int)$version[2] + 1;
-		$obj->setVersion(implode('.', $version));
+        if ($obj->getVersion() !== null) {
+            $version = explode('.', $obj->getVersion());
+            if (isset($version[2]) === true) {
+                $version[2] = (int) $version[2] + 1;
+                $obj->setVersion(implode('.', $version));
+            }
+        }
 
 
 		return $this->update($obj);

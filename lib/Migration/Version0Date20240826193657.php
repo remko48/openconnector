@@ -214,7 +214,7 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addIndex(['synchronization_id'], 'openconnector_sync_contracts_sync_index');
             $table->addIndex(['source_id'], 'openconnector_sync_contracts_source_id_index');
             $table->addIndex(['target_id'], 'openconnector_sync_contracts_target_id_index');
-            $table->addIndex(['synchronization_id', 'source_id'], 'openconnector_sync_contracts_sync_source_index');
+            $table->addIndex(['synchronization_id', 'source_id'], 'openconnector_sync_contracts_sync_origin_index');
             $table->addIndex(['synchronization_id', 'target_id'], 'openconnector_sync_contracts_sync_target_index');
         }
 
