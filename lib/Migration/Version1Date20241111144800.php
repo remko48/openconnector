@@ -18,7 +18,8 @@ use OCP\IDBConnection;
 
 /**
  * This migration changes the following:
- * - Renaming of SynchronizationContract sourceId & sourceHash to originId and originHash
+ * - Renaming of SynchronizationContract sourceId & sourceHash to originId and originHash,
+ * creating the new columns and transferring old data to the new fields.
  * - Removal of old indexes related to sourceId and sourceHash
  * - Addition of new indexes for originId and synchronization_id fields
  */
@@ -95,16 +96,5 @@ class Version1Date20241111144800 extends SimpleMigrationStep {
 			SET origin_id = source_id, origin_hash = source_hash
 			WHERE source_id IS NOT NULL
 		");
-
-		// Step 3: Drop the old columns after data migration
-		$schema = $schemaClosure();
-		$table = $schema->getTable('openconnector_synchronization_contracts');
-
-		if ($table->hasColumn('source_id') === true) {
-			$table->dropColumn('source_id');
-		}
-		if ($table->hasColumn('source_hash') === true) {
-			$table->dropColumn('source_hash');
-		}
 	}
 }
