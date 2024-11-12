@@ -31,7 +31,8 @@ class MappingsController extends Controller
         IRequest $request,
         private readonly IAppConfig $config,
         private readonly MappingMapper $mappingMapper,
-        private readonly MappingService $mappingService
+        private readonly MappingService $mappingService,
+        private readonly ObjectService $objectService
     )
     {
         parent::__construct($appName, $request);
@@ -310,6 +311,9 @@ class MappingsController extends Controller
      * Retrieves a list of objects to map to
      *
      * This method retrieves a list of objects to map to based on GET data.
+     * 
+     * @NoAdminRequired
+     * @NoCSRFRequired
      */
     public function objectsGet(): JSONResponse
     {
