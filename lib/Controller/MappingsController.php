@@ -301,7 +301,7 @@ class MappingsController extends Controller
      * @NoAdminRequired
      * @NoCSRFRequired
      */
-    public function saveObjects(): JSONResponse
+    public function saveObject(): JSONResponse
     {
         // Check if the OpenRegister service is available
 		$openRegisters = $this->objectService->getOpenRegisters();
