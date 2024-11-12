@@ -297,13 +297,17 @@ class MappingsController extends Controller
      * Saves a mapping object
      *
      * This method saves a mapping object based on POST data.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
      */
     public function objectsSave(): JSONResponse
     {
         // Check if the OpenRegister service is available
 		$openRegisters = $this->objectService->getOpenRegisters();
 		if ($openRegisters !== null) {
-            return new JSONResponse($openRegisters->saveObject($this->request->getParams()));
+            $data = $this->request->getParams();
+            return new JSONResponse($openRegisters->saveObject($data['register'], $data['schema'], $data['object']));
 		}
     }
 
@@ -311,7 +315,7 @@ class MappingsController extends Controller
      * Retrieves a list of objects to map to
      *
      * This method retrieves a list of objects to map to based on GET data.
-     * 
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      */
