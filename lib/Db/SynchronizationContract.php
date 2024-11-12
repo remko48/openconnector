@@ -13,6 +13,10 @@ use OCP\AppFramework\Db\Entity;
  */
 class SynchronizationContract extends Entity implements JsonSerializable
 {
+	// @todo can be removed when migrations are merged
+	protected ?string $sourceId = null; // OLD The id of the object in the source
+	protected ?string $sourceHash = null; // OLD The hash of the object in the source
+
     protected ?string $uuid = null;
     protected ?string $version = null;
 	protected ?string $synchronizationId = null; // The synchronization that this contract belongs to
@@ -49,6 +53,10 @@ class SynchronizationContract extends Entity implements JsonSerializable
 		$this->addType('targetLastSynced', 'datetime');
 		$this->addType('created', 'datetime');
 		$this->addType('updated', 'datetime');
+
+		// @todo can be removed when migrations are merged
+		$this->addType('sourceId', 'string');
+		$this->addType('sourceHash', 'string');
 	}
 
 	public function getJsonFields(): array
@@ -99,7 +107,10 @@ class SynchronizationContract extends Entity implements JsonSerializable
 			'targetLastChecked' => isset($this->targetLastChecked) ? $this->targetLastChecked->format('c') : null,
 			'targetLastSynced' => isset($this->targetLastSynced) ? $this->targetLastSynced->format('c') : null,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
-			'updated' => isset($this->updated) ? $this->updated->format('c') : null
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
+			// @todo these 2 can be removed when migrations are merged
+			'sourceId' => $this->sourceId,
+			'sourceHash' => $this->sourceHash
 		];
 	}
 }
