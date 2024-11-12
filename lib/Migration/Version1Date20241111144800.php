@@ -90,11 +90,21 @@ class Version1Date20241111144800 extends SimpleMigrationStep {
 	 * @param array $options
 	 */
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+		/**
+		 * @var ISchemaWrapper $schema
+		 */
+		$schema = $schemaClosure();
+		$table = $schema->getTable('openconnector_synchronization_contracts');
+
 		// Step 2: Copy data from old columns to new columns
-		$this->connection->executeQuery("
+		if ($table->hasColumn('origin_id') === true && $table->hasColumn('origin_hash') === true
+			&& $table->hasColumn('source_id') === true && $table->hasColumn('source_hash') === true
+		) {
+			$this->connection->executeQuery("
 			UPDATE openconnector_synchronization_contracts
 			SET origin_id = source_id, origin_hash = source_hash
 			WHERE source_id IS NOT NULL
 		");
+		}
 	}
 }
