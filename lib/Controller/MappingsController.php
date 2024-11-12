@@ -291,4 +291,40 @@ class MappingsController extends Controller
             'validationErrors' => $validationErrors
         ]);
     }
+
+    /**
+     * Saves a mapping object
+     *
+     * This method saves a mapping object based on POST data.
+     */
+    public function objectsSave(): JSONResponse
+    {
+        // Check if the OpenRegister service is available
+		$openRegisters = $this->objectService->getOpenRegisters();
+		if ($openRegisters !== null) {
+            return new JSONResponse($openRegisters->saveObject($this->request->getParams()));
+		}
+    }
+
+    /**
+     * Retrieves a list of objects to map to
+     *
+     * This method retrieves a list of objects to map to based on GET data.
+     */
+    public function objectsGet(): JSONResponse
+    {
+        // Check if the OpenRegister service is available
+		$openRegisters = $this->objectService->getOpenRegisters();
+        $data = [];
+		if ($openRegisters !== null) {
+			$data['openRegisters'] = true;
+			$data['availableRegisters'] = $openRegisters->getRegisters();
+		}
+        else {
+            $data['openRegisters'] = false;
+        }
+
+        return new JSONResponse($data);
+        
+    }
 }
