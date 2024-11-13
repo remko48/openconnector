@@ -33,6 +33,12 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							</template>
 							Add Cast
 						</NcActionButton>
+						<NcActionButton @click="mappingStore.setMappingUnsetKey(null); navigationStore.setModal('editMappingUnset')">
+							<template #icon>
+								<Eraser :size="20" />
+							</template>
+							Add Unset
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setModal('testMapping')">
 							<template #icon>
 								<TestTube :size="20" />
@@ -141,6 +147,42 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 								No cast found
 							</div>
 						</BTab>
+						<BTab title="Unset">
+							<div v-if="mappingStore.mappingItem?.unset?.length">
+								<NcListItem v-for="(value, i) in mappingStore.mappingItem?.unset"
+									:key="`${value}${i}`"
+									:name="value"
+									:bold="false"
+									:force-display-actions="true">
+									<template #icon>
+										<Eraser
+											:class="mappingStore.mappingUnsetKey === value && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="mappingStore.setMappingUnsetKey(value); navigationStore.setModal('editMappingUnset')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="mappingStore.setMappingUnsetKey(value); navigationStore.setModal('deleteMappingUnset')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!mappingStore.mappingItem?.unset?.length" class="tabPanel">
+								No unset found
+							</div>
+						</BTab>
 					</BTabs>
 				</div>
 			</div>
@@ -159,6 +201,7 @@ import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import TestTube from 'vue-material-design-icons/TestTube.vue'
+import Eraser from 'vue-material-design-icons/Eraser.vue'
 
 export default {
 	name: 'MappingDetails',

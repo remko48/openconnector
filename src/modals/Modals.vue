@@ -23,6 +23,8 @@ import { navigationStore } from '../store/store.js'
 		<DeleteMappingMapping />
 		<EditMappingCast />
 		<DeleteMappingCast />
+		<EditMappingUnset v-if="navigationStore.modal === 'editMappingUnset'" />
+		<DeleteMappingUnset v-if="navigationStore.modal === 'deleteMappingUnset'" />
 		<DeleteSynchronization />
 		<EditSynchronization />
 		<TestSynchronization />
@@ -68,6 +70,8 @@ import DeleteMappingCast from './mappingCast/DeleteMappingCast.vue'
 import ViewJobLog from './Log/ViewJobLog.vue'
 import ViewSynchronizationLog from './Log/ViewSynchronizationLog.vue'
 import ViewSynchronizationContract from './Log/ViewSynchronizationContract.vue'
+import EditMappingUnset from './mappingUnset/EditMappingUnset.vue'
+import DeleteMappingUnset from './mappingUnset/DeleteMappingUnset.vue'
 
 export default {
 	name: 'Modals',
@@ -102,6 +106,8 @@ export default {
 		ViewJobLog,
 		ViewSynchronizationLog,
 		ViewSynchronizationContract,
+		EditMappingUnset,
+		DeleteMappingUnset,
 	},
 	setup() {
 		return {
