@@ -35,15 +35,16 @@ class ConsumerMapper extends QBMapper
 	 * @param int $id The ID of the Consumer
 	 * @return Consumer The found Consumer entity
 	 */
-	public function find(int $id): Consumer
+	public function find($id): Consumer
 	{
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
 			->from('openconnector_consumers')
-			->where(
-				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
-			);
+			->where($qb->expr()->orX(
+				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)),
+				$qb->expr()->eq('uuid', $qb->createNamedParameter($id, IQueryBuilder::PARAM_STR))
+			));
 
 		return $this->findEntity(query: $qb);
 	}

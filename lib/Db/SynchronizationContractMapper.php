@@ -49,9 +49,10 @@ class SynchronizationContractMapper extends QBMapper
         // Build select query with ID filter
         $qb->select('*')
             ->from('openconnector_synchronization_contracts')
-            ->where(
-                $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
-            );
+			->where($qb->expr()->orX(
+				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)),
+				$qb->expr()->eq('uuid', $qb->createNamedParameter($id, IQueryBuilder::PARAM_STR))
+			));
 
         return $this->findEntity(query: $qb);
     }
