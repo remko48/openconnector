@@ -426,6 +426,7 @@ export default {
 					description: this.mappingItem.description,
 					mapping: JSON.parse(this.mappingItem.mapping),
 					cast: this.mappingItem.cast ? JSON.parse(this.mappingItem.cast) : null,
+					unset: this.mappingItem.unset.split(/ *, */g),
 				},
 				inputObject: JSON.parse(this.inputObject.value),
 				schema: this.schemas.value?.id,
