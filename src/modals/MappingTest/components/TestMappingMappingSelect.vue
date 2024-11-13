@@ -145,7 +145,7 @@ import { mappingStore } from '../../../store/store.js'
 
 				<NcTextArea :value.sync="mappingItem.unset"
 					label="unset"
-					helper-text="Enter a comma-separated list of keys. To include a comma in a key, use '\,'." />
+					helper-text="Enter a comma-separated list of keys." />
 
 				<div class="buttons">
 					<NcButton class="reset-button"
