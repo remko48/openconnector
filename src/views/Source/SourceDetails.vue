@@ -44,11 +44,11 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 				<span>{{ sourceStore.sourceItem.description }}</span>
 
 				<div class="detailGrid">
-					<div class="gridContent gridFullWidth">
+					<div class="gridContent">
 						<b>id:</b>
-						<p>{{ sourceStore.sourceItem.uuid }}</p>
+						<p>{{ sourceStore.sourceItem.id || sourceStore.sourceItem.uuid }}</p>
 					</div>
-					<div class="gridContent gridFullWidth">
+					<div class="gridContent">
 						<b>location:</b>
 						<p>{{ sourceStore.sourceItem.location }}</p>
 					</div>
@@ -214,7 +214,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .h1 {
 	display: block !important;
 	font-size: 2em !important;
@@ -224,15 +224,20 @@ export default {
 	margin-inline-end: 0px !important;
 	font-weight: bold !important;
 	unicode-bidi: isolate !important;
-  }
+}
 
-  .okStatus * .counter-bubble__counter {
+.okStatus * .counter-bubble__counter {
 	background-color: #69b090;
 	color: white
-  }
+}
 
-  .errorStatus * .counter-bubble__counter {
+.errorStatus * .counter-bubble__counter {
 	background-color: #dd3c49;
 	color: white
-  }
+}
+
+.gridContent {
+	display: flex;
+	gap: 10px;
+}
 </style>
