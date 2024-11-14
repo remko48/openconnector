@@ -21,6 +21,18 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.setSynchronizationSourceConfigKey(null); navigationStore.setModal('editSynchronizationSourceConfig')">
+							<template #icon>
+								<DatabaseSettingsOutline :size="20" />
+							</template>
+							Add Source Config
+						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.setSynchronizationTargetConfigKey(null); navigationStore.setModal('editSynchronizationTargetConfig')">
+							<template #icon>
+								<CardBulletedSettingsOutline :size="20" />
+							</template>
+							Add Target Config
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setModal('testSynchronization')">
 							<template #icon>
 								<Sync :size="20" />
@@ -71,10 +83,6 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 					<div class="gridContent gridFullWidth">
 						<b>Source Type:</b>
 						<p>{{ synchronizationStore.synchronizationItem.sourceType || 'N/A' }}</p>
-					</div>
-					<div class="gridContent gridFullWidth">
-						<b>Source Config:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceConfig || 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Source Hash:</b>
@@ -159,6 +167,78 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 								No contracts found
 							</div>
 						</BTab>
+						<BTab title="Source config">
+							<div v-if="Object.keys(synchronizationStore.synchronizationItem.sourceConfig).length">
+								<NcListItem v-for="(value, key, i) in synchronizationStore.synchronizationItem.sourceConfig"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="false">
+									<template #icon>
+										<DatabaseSettingsOutline
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="synchronizationStore.setSynchronizationSourceConfigKey(key); navigationStore.setModal('editSynchronizationSourceConfig')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationSourceConfigKey(key); navigationStore.setModal('deleteSynchronizationSourceConfig')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!Object.keys(synchronizationStore.synchronizationItem.sourceConfig).length" class="tabPanel">
+								No source configs found
+							</div>
+						</BTab>
+						<BTab title="Target config">
+							<div v-if="Object.keys(synchronizationStore.synchronizationItem.targetConfig).length">
+								<NcListItem v-for="(value, key, i) in synchronizationStore.synchronizationItem.targetConfig"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="false">
+									<template #icon>
+										<CardBulletedSettingsOutline
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="synchronizationStore.setSynchronizationTargetConfigKey(key); navigationStore.setModal('editSynchronizationTargetConfig')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationTargetConfigKey(key); navigationStore.setModal('deleteSynchronizationTargetConfig')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!Object.keys(synchronizationStore.synchronizationItem.targetConfig).length" class="tabPanel">
+								No target configs found
+							</div>
+						</BTab>
 						<BTab title="Logs">
 							<div v-if="synchronizationStore.synchronizationLogs?.length">
 								<NcListItem v-for="(log, i) in synchronizationStore.synchronizationLogs"
@@ -199,11 +279,14 @@ import { NcActions, NcActionButton, NcListItem } from '@nextcloud/vue'
 import { BTabs, BTab } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import DatabaseSettingsOutline from 'vue-material-design-icons/DatabaseSettingsOutline.vue'
+import CardBulletedSettingsOutline from 'vue-material-design-icons/CardBulletedSettingsOutline.vue'
 
 export default {
 	name: 'SynchronizationDetails',
