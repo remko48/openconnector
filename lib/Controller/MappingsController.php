@@ -16,6 +16,8 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class MappingsController extends Controller
 {
@@ -126,17 +128,17 @@ class MappingsController extends Controller
         return new JSONResponse($this->mappingMapper->createFromArray(object: $data));
     }
 
-    /**
-     * Updates an existing mapping
-     *
-     * This method updates an existing mapping based on its ID.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * @param string $id The ID of the mapping to update
-     * @return JSONResponse A JSON response containing the updated mapping details
-     */
+	/**
+	 * Updates an existing mapping
+	 *
+	 * This method updates an existing mapping based on its ID.
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param int $id The ID of the mapping to update
+	 * @return JSONResponse A JSON response containing the updated mapping details
+	 */
     public function update(int $id): JSONResponse
     {
         $data = $this->request->getParams();
@@ -152,17 +154,18 @@ class MappingsController extends Controller
         return new JSONResponse($this->mappingMapper->updateFromArray(id: (int) $id, object: $data));
     }
 
-    /**
-     * Deletes a mapping
-     *
-     * This method deletes a mapping based on its ID.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * @param string $id The ID of the mapping to delete
-     * @return JSONResponse An empty JSON response
-     */
+	/**
+	 * Deletes a mapping
+	 *
+	 * This method deletes a mapping based on its ID.
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param int $id The ID of the mapping to delete
+	 * @return JSONResponse An empty JSON response
+	 * @throws \OCP\DB\Exception
+	 */
     public function destroy(int $id): JSONResponse
     {
         $this->mappingMapper->delete($this->mappingMapper->find((int) $id));
@@ -170,42 +173,47 @@ class MappingsController extends Controller
         return new JSONResponse([]);
     }
 
-    /**
-     * Tests a mapping
-     *
-     * This method tests a mapping with provided input data and optional schema validation.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * @return JSONResponse A JSON response containing the test results
-     *
-     * @example
-     * Request:
-     * {
-     *     "inputObject": "{\"name\":\"John Doe\",\"age\":30,\"email\":\"john@example.com\"}",
-     *     "mapping": {
-	 * 			"mapping": {
-	 * 				"fullName":"{{name}}",
-	 * 				"userAge":"{{age}}",
-	 * 				"contactEmail":"{{email}}"
-	 * 			}
-	 * 	   },
-     *     "schema": "user_schema_id",
-     *     "validation": true
-     * }
-     *
-     * Response:
-     * {
-     *     "resultObject": {
-     *         "fullName": "John Doe",
-     *         "userAge": 30,
-     *         "contactEmail": "john@example.com"
-     *     },
-     *     "isValid": true,
-     *     "validationErrors": []
-     * }
-     */
+	/**
+	 * Tests a mapping
+	 *
+	 * This method tests a mapping with provided input data and optional schema validation.
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param ObjectService $objectService
+	 * @param IURLGenerator $urlGenerator
+	 *
+	 * @return JSONResponse A JSON response containing the test results
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 *
+	 * @example
+	 * Request:
+	 * {
+	 *     "inputObject": "{\"name\":\"John Doe\",\"age\":30,\"email\":\"john@example.com\"}",
+	 *     "mapping": {
+	 *            "mapping": {
+	 *                "fullName":"{{name}}",
+	 *                "userAge":"{{age}}",
+	 *                "contactEmail":"{{email}}"
+	 *            }
+	 *       },
+	 *     "schema": "user_schema_id",
+	 *     "validation": true
+	 * }
+	 *
+	 * Response:
+	 * {
+	 *     "resultObject": {
+	 *         "fullName": "John Doe",
+	 *         "userAge": 30,
+	 *         "contactEmail": "john@example.com"
+	 *     },
+	 *     "isValid": true,
+	 *     "validationErrors": []
+	 * }
+	 */
     public function test(ObjectService $objectService, IURLGenerator $urlGenerator): JSONResponse
     {
 		$openRegisters = $objectService->getOpenRegisters();
@@ -293,15 +301,19 @@ class MappingsController extends Controller
         ]);
     }
 
-    /**
-     * Saves a mapping object
-     *
-     * This method saves a mapping object based on POST data.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     */
-    public function saveObject(): JSONResponse
+	/**
+	 * Saves a mapping object
+	 *
+	 * This method saves a mapping object based on POST data.
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @return JSONResponse|null
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
+    public function saveObject(): ?JSONResponse
     {
         // Check if the OpenRegister service is available
 		$openRegisters = $this->objectService->getOpenRegisters();
@@ -309,16 +321,22 @@ class MappingsController extends Controller
             $data = $this->request->getParams();
             return new JSONResponse($openRegisters->saveObject($data['register'], $data['schema'], $data['object']));
 		}
+
+		return null;
     }
 
-    /**
-     * Retrieves a list of objects to map to
-     *
-     * This method retrieves a list of objects to map to based on GET data.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     */
+	/**
+	 * Retrieves a list of objects to map to
+	 *
+	 * This method retrieves a list of objects to map to based on GET data.
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @return JSONResponse
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
     public function getObjects(): JSONResponse
     {
         // Check if the OpenRegister service is available
@@ -333,6 +351,6 @@ class MappingsController extends Controller
         }
 
         return new JSONResponse($data);
-        
+
     }
 }
