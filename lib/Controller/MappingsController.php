@@ -31,7 +31,8 @@ class MappingsController extends Controller
         IRequest $request,
         private readonly IAppConfig $config,
         private readonly MappingMapper $mappingMapper,
-        private readonly MappingService $mappingService
+        private readonly MappingService $mappingService,
+        private readonly ObjectService $objectService
     )
     {
         parent::__construct($appName, $request);
@@ -290,5 +291,48 @@ class MappingsController extends Controller
             'isValid' => $isValid,
             'validationErrors' => $validationErrors
         ]);
+    }
+
+    /**
+     * Saves a mapping object
+     *
+     * This method saves a mapping object based on POST data.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function saveObject(): JSONResponse
+    {
+        // Check if the OpenRegister service is available
+		$openRegisters = $this->objectService->getOpenRegisters();
+		if ($openRegisters !== null) {
+            $data = $this->request->getParams();
+            return new JSONResponse($openRegisters->saveObject($data['register'], $data['schema'], $data['object']));
+		}
+    }
+
+    /**
+     * Retrieves a list of objects to map to
+     *
+     * This method retrieves a list of objects to map to based on GET data.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function getObjects(): JSONResponse
+    {
+        // Check if the OpenRegister service is available
+		$openRegisters = $this->objectService->getOpenRegisters();
+        $data = [];
+		if ($openRegisters !== null) {
+			$data['openRegisters'] = true;
+			$data['availableRegisters'] = $openRegisters->getRegisters();
+		}
+        else {
+            $data['openRegisters'] = false;
+        }
+
+        return new JSONResponse($data);
+        
     }
 }

@@ -23,6 +23,8 @@ import { navigationStore } from '../store/store.js'
 		<DeleteMappingMapping />
 		<EditMappingCast />
 		<DeleteMappingCast />
+		<EditMappingUnset v-if="navigationStore.modal === 'editMappingUnset'" />
+		<DeleteMappingUnset v-if="navigationStore.modal === 'deleteMappingUnset'" />
 		<DeleteSynchronization />
 		<EditSynchronization />
 		<TestSynchronization />
@@ -72,6 +74,8 @@ import DeleteMappingCast from './mappingCast/DeleteMappingCast.vue'
 import ViewJobLog from './Log/ViewJobLog.vue'
 import ViewSynchronizationLog from './Log/ViewSynchronizationLog.vue'
 import ViewSynchronizationContract from './Log/ViewSynchronizationContract.vue'
+import EditMappingUnset from './mappingUnset/EditMappingUnset.vue'
+import DeleteMappingUnset from './mappingUnset/DeleteMappingUnset.vue'
 import EditSynchronizationSourceConfig from './SynchronizationSourceConfig/EditSynchronizationSourceConfig.vue'
 import DeleteSynchronizationSourceConfig from './SynchronizationSourceConfig/DeleteSynchronizationSourceConfig.vue'
 import EditSynchronizationTargetConfig from './SynchronizationTargetConfig/EditSynchronizationTargetConfig.vue'
@@ -110,6 +114,8 @@ export default {
 		ViewJobLog,
 		ViewSynchronizationLog,
 		ViewSynchronizationContract,
+		EditMappingUnset,
+		DeleteMappingUnset,
 		EditSynchronizationSourceConfig,
 		DeleteSynchronizationSourceConfig,
 		EditSynchronizationTargetConfig,

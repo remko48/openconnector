@@ -7,6 +7,7 @@ import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
 export class Source extends ReadonlyBaseClass implements TSource {
 
 	public readonly id: string
+	public readonly uuid: string
 	public readonly name: string
 	public readonly description: string
 	public readonly reference: string
@@ -47,6 +48,7 @@ export class Source extends ReadonlyBaseClass implements TSource {
 	constructor(source: TSource) {
 		const processedSource: TSource = {
 			id: source.id || null,
+			uuid: source.uuid || '',
 			name: source.name || '',
 			description: source.description || '',
 			reference: source.reference || '',
@@ -91,6 +93,7 @@ export class Source extends ReadonlyBaseClass implements TSource {
 	public validate(): SafeParseReturnType<TSource, unknown> {
 		const schema = z.object({
 			id: z.string().nullable(),
+			uuid: z.string(),
 			name: z.string().max(255),
 			description: z.string(),
 			reference: z.string(),

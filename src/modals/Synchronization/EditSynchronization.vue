@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore, sourceStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -25,8 +25,8 @@ import { synchronizationStore, navigationStore, sourceStore } from '../../store/
 				<NcTextArea :value.sync="synchronizationItem.description"
 					label="Description" />
 
-                <NcTextField :value.sync="synchronizationItem.sourceId"
-                    label="sourceId" />
+				<NcTextField :value.sync="synchronizationItem.sourceId"
+					label="sourceId" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceType"
 					label="sourceType" />
