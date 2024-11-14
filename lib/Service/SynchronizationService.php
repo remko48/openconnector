@@ -83,6 +83,9 @@ class SynchronizationService
 	 */
     public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
+        if (empty($synchronization->getSourceId()) === true) {
+            throw new Exception('sourceId of synchronziation cannot be empty. Canceling synchronization..');
+        }
 
         $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
@@ -151,7 +154,7 @@ class SynchronizationService
         $sourceConfig = $synchronization->getSourceConfig();
 
         // Check if a custom ID position is defined in the source configuration
-        if (isset($sourceConfig['idPosition']) === true) {
+        if (isset($sourceConfig['idPosition']) === true && empty($sourceConfig['idPosition']) === false) {
             // Override default with custom ID position from config
             $originIdPosition = $sourceConfig['idPosition'];
         }
@@ -391,19 +394,21 @@ class SynchronizationService
 
         // Current page is 2 because the first call made above is page 1.
         $currentPage = 2;
-        $usedNextEndpoint = false;
+        $useNextEndpoint = false;
+        if (array_key_exists('next', $body)) {
+            $useNextEndpoint = true;
+        }
 
 
 		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-		while($nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
-            $usedNextEndpoint = true;
+		while($useNextEndpoint && $nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
             // Do not pass $config here becuase it overwrites the query attached to nextEndpoint
 			$response = $this->callService->call(source: $source, endpoint: $nextEndpoint)->getResponse();
 			$body = json_decode($response['body'], true);
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
 		}
 
-		if ($usedNextEndpoint === false) {
+		if ($useNextEndpoint === false) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
@@ -523,7 +528,6 @@ class SynchronizationService
 	 */
     public function getNextlinkFromCall(array $body): ?string
     {
-        // Check if the 'next' key exists in the response body
 		return $body['next'] ?? null;
     }
 }
