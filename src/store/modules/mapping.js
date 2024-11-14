@@ -178,5 +178,63 @@ export const useMappingStore = defineStore('mapping', {
 
 			return { response, data }
 		},
+		/**
+		 * Get objects on a mapping from the endpoint.
+		 *
+		 * This method fetches objects related to a mapping from the specified API endpoint.
+		 *
+		 * @throws Will throw an error if the fetch operation fails.
+		 * @return { Promise<{ response: Response, data: object }> } The response and data from the API.
+		 */
+		async getMappingObjects() {
+			console.log('Fetching mapping objects...')
+
+			// Fetch objects related to a mapping from the API endpoint
+			const response = await fetch(
+				'/index.php/apps/openconnector/api/mappings/objects',
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				},
+			)
+
+			// Parse the response data as JSON
+			const data = await response.json()
+
+			// Return the response and parsed data
+			return { response, data }
+		},
+		/**
+		 * Save a mapping object to the endpoint.
+		 *
+		 * This method sends a mapping object to the specified API endpoint to be saved.
+		 *
+		 * @param { object } mappingObject - The mapping object to be saved.
+		 * @return { Promise<{ response: Response, data: object }> } The response and data from the API.
+		 * @throws Will throw an error if the save operation fails.
+		 */
+		async saveMappingObject(mappingObject) {
+			console.log('Saving mapping object...')
+
+			// Send the mapping object to the API endpoint to be saved
+			const response = await fetch(
+				'/index.php/apps/openconnector/api/mappings/objects',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(mappingObject),
+				},
+			)
+
+			// Parse the response data as JSON
+			const data = await response.json()
+
+			// Return the response and parsed data
+			return { response, data }
+		},
 	},
 })
