@@ -80,6 +80,7 @@ export default {
 			hasUpdated: false,
 			oldKey: '',
 			isEdit: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	mounted() {
@@ -115,6 +116,7 @@ export default {
 		},
 		closeModal() {
 			navigationStore.setModal(false)
+			clearTimeout(this.closeTimeoutFunc)
 			this.success = false
 			this.loading = false
 			this.error = false
@@ -146,9 +148,7 @@ export default {
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(() => {
-					this.closeModal()
-				}, 2000)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false
