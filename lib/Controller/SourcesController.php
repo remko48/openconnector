@@ -211,7 +211,7 @@ class SourcesController extends Controller
     {
         // get the source
         try {
-            $source = $this->sourceMapper->find(id: (int) $id);
+            $source = $this->sourceMapper->find(id: $id);
         } catch (DoesNotExistException $exception) {
             return new JSONResponse(data: ['error' => 'Not Found'], statusCode: 404);
         }
