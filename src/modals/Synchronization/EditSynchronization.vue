@@ -1,22 +1,78 @@
 <script setup>
-import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, sourceStore, mappingStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editSynchronization'"
-		ref="modalRef"
+	<NcModal ref="modalRef"
 		label-id="editSynchronization"
 		@close="closeModal">
 		<div class="modalContent">
 			<h2>{{ synchronizationItem.id ? 'Edit' : 'Add' }} Synchronization</h2>
 
-			<NcNoteCard v-if="success" type="success">
-				<p>Synchronization successfully added</p>
-			</NcNoteCard>
-			<NcNoteCard v-if="error" type="error">
-				<p>{{ error }}</p>
-			</NcNoteCard>
+			<!-- ====================== -->
+			<!-- Open Register notecard -->
+			<!-- ====================== -->
+			<div v-if="!openRegisterInstalled && !openRegisterCloseAlert" class="openregister-notecard">
+				<NcNoteCard
+					:type="openRegisterIsAvailable ? 'info' : 'error'"
+					:heading="openRegisterIsAvailable ? 'Open Register is not installed' : 'Failed to install Open Register'">
+					<p>
+						{{ openRegisterIsAvailable
+							? 'Some features require Open Register to be installed'
+							: 'This either means that Open Register is not available on this server or you need to confirm your password' }}
+					</p>
 
+					<div class="install-buttons">
+						<NcButton v-if="openRegisterIsAvailable"
+							aria-label="Install OpenRegister"
+							size="small"
+							type="primary"
+							:loading="openRegisterLoading"
+							@click="installOpenRegister">
+							<template #icon>
+								<CloudDownload :size="20" />
+							</template>
+							Install OpenRegister
+						</NcButton>
+						<NcButton
+							aria-label="Install OpenRegister Manually"
+							size="small"
+							type="secondary"
+							@click="openLink('/index.php/settings/apps/organization/openregister', '_blank')">
+							<template #icon>
+								<OpenInNew :size="20" />
+							</template>
+							Install OpenRegister Manually
+						</NcButton>
+					</div>
+					<div class="close-button">
+						<NcActions>
+							<NcActionButton @click="openRegisterCloseAlert = true">
+								<template #icon>
+									<Close :size="20" />
+								</template>
+								Close
+							</NcActionButton>
+						</NcActions>
+					</div>
+				</NcNoteCard>
+			</div>
+
+			<!-- ====================== -->
+			<!-- Success/Error notecard -->
+			<!-- ====================== -->
+			<div v-if="success || error">
+				<NcNoteCard v-if="success" type="success">
+					<p>Synchronization successfully added</p>
+				</NcNoteCard>
+				<NcNoteCard v-if="error" type="error">
+					<p>{{ error || 'An error occurred' }}</p>
+				</NcNoteCard>
+			</div>
+
+			<!-- ====================== -->
+			<!--          Form          -->
+			<!-- ====================== -->
 			<form v-if="!success" @submit.prevent="handleSubmit">
 				<NcTextField :value.sync="synchronizationItem.name"
 					label="Name"
@@ -25,11 +81,19 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 				<NcTextArea :value.sync="synchronizationItem.description"
 					label="Description" />
 
-				<NcTextField :value.sync="synchronizationItem.sourceId"
-					label="sourceId" />
+				<NcSelect v-bind="typeOptions"
+					v-model="typeOptions.value"
+					input-label="Source Type" />
 
-				<NcTextField :value.sync="synchronizationItem.sourceType"
-					label="sourceType" />
+				<NcSelect v-bind="sourceOptions"
+					v-model="sourceOptions.sourceValue"
+					:loading="sourcesLoading"
+					input-label="Source ID" />
+
+				<NcSelect v-bind="sourceTargetMappingOptions"
+					v-model="sourceTargetMappingOptions.sourceValue"
+					:loading="sourceTargetMappingLoading"
+					input-label="sourceTargetMapping" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceConfig.idPosition"
 					label="(optional) Position of id in source object" />
@@ -40,22 +104,45 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 				<NcTextField :value.sync="synchronizationItem.sourceConfig.endpoint"
 					label="(optional) Endpoint on which to fetch data" />
 
-				<NcTextField :value.sync="synchronizationItem.sourceTargetMapping"
-					label="sourceTargetMapping" />
+				<NcSelect v-bind="targetTypeOptions"
+					v-model="targetTypeOptions.value"
+					:selectable="(option) => {
+						return option.id === 'register/schema' ? openRegisterInstalled : true
+					}"
+					input-label="Target Type" />
 
-				<NcTextField :value.sync="synchronizationItem.targetId"
-					label="targetId" />
+				<div>
+					<NcSelect v-if="targetTypeOptions.value?.id === 'api'"
+						v-bind="sourceOptions"
+						v-model="sourceOptions.targetValue"
+						:loading="sourcesLoading"
+						input-label="Target ID" />
 
-				<NcTextField :value.sync="synchronizationItem.targetType"
-					label="targetType" />
+					<div v-if="targetTypeOptions.value?.id === 'register/schema'">
+						<p>Target ID</p>
+						<NcSelect v-bind="registerOptions"
+							v-model="registerOptions.value"
+							:disabled="!openRegisterInstalled"
+							input-label="Register" />
+						/
+						<NcSelect v-bind="schemaOptions"
+							v-model="schemaOptions.value"
+							:disabled="!openRegisterInstalled"
+							input-label="Schema" />
+					</div>
+				</div>
 
-				<NcTextField :value.sync="synchronizationItem.targetSourceMapping"
-					label="targetSourceMapping" />
+				<NcSelect v-bind="sourceTargetMappingOptions"
+					v-model="sourceTargetMappingOptions.targetValue"
+					:loading="sourceTargetMappingLoading"
+					input-label="targetSourceMapping" />
 			</form>
 
-			<NcButton
-				v-if="!success"
-				:disabled="loading || !synchronizationItem.name"
+			<NcButton v-if="!success"
+				:disabled="loading
+					|| !synchronizationItem.name
+					// both register and schema need to be selected for register/schema target type
+					|| (targetTypeOptions.value?.id === 'register/schema' && (!registerOptions.value?.id || !schemaOptions.value?.id))"
 				type="primary"
 				@click="editSynchronization()">
 				<template #icon>
@@ -74,10 +161,17 @@ import {
 	NcModal,
 	NcTextField,
 	NcTextArea,
+	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
+	NcActions,
+	NcActionButton,
 } from '@nextcloud/vue'
+
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
+import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
+import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import Close from 'vue-material-design-icons/Close.vue'
 
 export default {
 	name: 'EditSynchronization',
@@ -86,24 +180,23 @@ export default {
 		NcButton,
 		NcTextField,
 		NcTextArea,
+		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
-		// Icons
-		ContentSaveOutline,
+		NcActions,
+		NcActionButton,
 	},
 	data() {
 		return {
-			success: false,
-			loading: false,
+			success: null, // Indicates if saving the synchronization was successful
+			loading: false, // Indicates if saving the synchronization is in progress
 			error: false,
-			sourceOptions: [], // This should be populated with available sources
-			source: {},
-			targetOptions: [], // This should be populated with available targets
-			synchronizationItem: {
+			// synchronization item
+			synchronizationItem: { // Initialize with empty fields
 				name: '',
 				description: '',
 				sourceId: '',
-				sourceType: 'api',
+				sourceType: '',
 				sourceConfig: {
 					idPosition: '',
 					resultsPosition: '',
@@ -116,60 +209,314 @@ export default {
 				targetType: 'register/schema',
 				targetConfig: {},
 				targetSourceMapping: '',
-			}, // Initialize with empty fields
-			hasUpdated: false, // Flag to prevent constant looping
-			sourceLoading: false,
-			closeTimeoutFunc: null,
+			},
+			// ============================= //
+			// source options
+			// ============================= //
+			typeOptions: {
+				options: [
+					{ label: 'Database', id: 'database' },
+					{ label: 'API', id: 'api' },
+					{ label: 'File', id: 'file' },
+				],
+				value: { label: 'API', id: 'api' }, // Default source type
+			},
+			sourcesLoading: false, // Indicates if the sources are loading
+			sourceOptions: { // This should be populated with available sources
+				options: [],
+				sourceValue: null,
+				targetValue: null,
+			},
+			sourceTargetMappingLoading: false, // Indicates if the mappings are loading
+			sourceTargetMappingOptions: { // A list of mappings
+				options: [],
+				sourceValue: null,
+				targetValue: null,
+			},
+			// ============================= //
+			// target options
+			// ============================= //
+			targetTypeOptions: {
+				options: [
+					{ label: 'Register/Schema', id: 'register/schema' },
+					{ label: 'API', id: 'api' },
+					// { label: 'Database', id: 'database' },
+				],
+				value: { label: 'API', id: 'api' }, // Default target type
+			},
+			// registerOptions
+			registerLoading: false, // Indicates if the registers are loading
+			registerOptions: {
+				options: [],
+				value: null,
+			},
+			// schemaOptions
+			schemaLoading: false, // Indicates if the schemas are loading
+			schemaOptions: {
+				options: [],
+				value: null,
+			},
+			// ============================= //
+			// OpenRegister
+			// ============================= //
+			openRegisterInstalled: true, // Indicates if OpenRegister is installed
+			openRegisterLoading: true, // Indicates if installing OpenRegister is in progress
+			openRegisterIsAvailable: true, // Indicates if OpenRegister is available
+			openRegisterCloseAlert: false, // Indicates if the OpenRegister alert should be closed
+			// ============================= //
+			closeTimeoutFunc: null, // Function to close the modal after a timeout
 		}
 	},
-	updated() {
-		if (navigationStore.modal === 'editSynchronization' && !this.hasUpdated) {
-			synchronizationStore.synchronizationItem && (this.synchronizationItem = { ...synchronizationStore.synchronizationItem })
-			this.hasUpdated = true
-		}
+	mounted() {
+		// If there is a synchronization item in the store, use it
+		synchronizationStore.synchronizationItem && (this.synchronizationItem = { ...synchronizationStore.synchronizationItem })
+
+		// Fetch sources, mappings, register, and schema
+		this.getSources()
+		this.getSourceTargetMappings()
+		this.getRegister()
+		this.getSchema()
 	},
 	methods: {
-		closeModal() {
-			this.success = false
-			this.loading = false
-			this.error = false
-			this.hasUpdated = false
-			clearTimeout(this.closeTimeoutFunc)
-			navigationStore.setModal(false)
-			this.synchronizationItem = {
-				name: '',
-				description: '',
-				sourceId: '',
-				sourceType: 'api',
-				sourceConfig: {
-					idPosition: '',
-					resultsPosition: '',
-					endpoint: '',
-					headers: {},
-					query: {},
-				},
-				sourceTargetMapping: '',
-				targetId: '',
-				targetType: 'register/schema',
-				targetConfig: {},
-				targetSourceMapping: '',
-			}
-		},
-		async editSynchronization() {
-			this.loading = true
-			try {
-				await synchronizationStore.saveSynchronization({
-					...this.synchronizationItem,
+		/**
+		 * Fetches the list of available sources from the source store and updates the source options.
+		 * Sets the loading state to true while fetching and updates the source options with the fetched data.
+		 * If a source is already selected, it sets it as the active source.
+		 */
+		getSources() {
+			this.sourcesLoading = true
+
+			sourceStore.refreshSourceList()
+				.then(({ entities }) => {
+					const activeSource = entities.find(source => source.id === this.synchronizationItem.sourceId)
+
+					this.sourceOptions = {
+						options: entities.map(source => ({
+							label: source.name,
+							id: source.id,
+						})),
+						value: activeSource
+							? {
+								label: activeSource.name,
+								id: activeSource.id,
+							}
+							: null,
+					}
 				})
-				this.success = true
-				this.loading = false
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			} catch (error) {
-				this.loading = false
-				this.success = false
-				this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de synchronisatie'
+				.finally(() => {
+					this.sourcesLoading = false
+				})
+		},
+		/**
+		 * Fetches the list of source-target mappings from the mapping store and updates the mapping options.
+		 * Sets the loading state to true while fetching and updates the mapping options with the fetched data.
+		 * If a mapping is already selected, it sets it as the active mapping.
+		 */
+		getSourceTargetMappings() {
+			this.sourceTargetMappingLoading = true
+
+			mappingStore.refreshMappingList()
+				.then(({ entities }) => {
+					const activeMapping = entities.find(mapping => mapping.id === this.synchronizationItem.sourceTargetMapping)
+
+					this.sourceTargetMappingOptions = {
+						options: entities.map(mapping => ({
+							label: mapping.name,
+							id: mapping.id,
+						})),
+						value: activeMapping
+							? {
+								label: activeMapping.name,
+								id: activeMapping.id,
+							}
+							: null,
+					}
+				})
+				.finally(() => {
+					this.sourceTargetMappingLoading = false
+				})
+		},
+		/**
+		 * Fetches the list of registers from the mapping store and updates the register options.
+		 * Checks if OpenRegister is installed and updates the state accordingly.
+		 * Sets the loading state to true while fetching and updates the register options with the fetched data.
+		 * If a register is already selected, it sets it as the active register.
+		 */
+		getRegister() {
+			this.registerLoading = true
+
+			mappingStore.getMappingObjects()
+				.then(({ data }) => {
+					if (!data.openRegisters) {
+						this.registerLoading = false
+						this.openRegisterInstalled = false
+						return
+					}
+
+					const registers = data.availableRegisters
+
+					let registerId = null
+					if (this.synchronizationItem.targetType === 'register/schema') {
+						registerId = parseInt(this.synchronizationItem.targetId.split('/')[0])
+					}
+					const activeRegister = registers.find(object => object.id === registerId)
+
+					this.registerOptions = {
+						options: registers.map(object => ({
+							label: object.title || object.name,
+							id: object.id,
+						})),
+						value: activeRegister
+							? {
+								label: activeRegister.title || activeRegister.name,
+								id: activeRegister.id,
+							}
+							: null,
+					}
+				})
+				.finally(() => {
+					this.registerLoading = false
+				})
+		},
+		/**
+		 * Fetches the list of schemas from OpenRegister and updates the schema options.
+		 * Sets the loading state to true while fetching and updates the schema options with the fetched data.
+		 * If OpenRegister is not installed, it updates the state accordingly.
+		 */
+		async getSchema() {
+			this.schemaLoading = true
+
+			console.info('Fetching schemas from Open Register')
+			const response = await fetch('/index.php/apps/openregister/api/schemas', {
+				headers: {
+					accept: '*/*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					pragma: 'no-cache',
+					'x-requested-with': 'XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: null,
+				method: 'GET',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!response.ok) {
+				console.info('Open Register is not installed')
+				this.schemaLoading = false
+				this.openRegisterInstalled = false
+				return
 			}
+
+			const responseData = (await response.json()).results
+
+			this.schemaOptions = {
+				options: responseData.map((schema) => ({
+					id: schema.id,
+					label: schema.title || schema.name,
+				})),
+				value: null,
+			}
+
+			this.schemaLoading = false
+		},
+		/**
+		 * Installs OpenRegister by sending a request to the server.
+		 * Sets the loading state to true while the installation is in progress.
+		 * Updates the state based on the success or failure of the installation.
+		 */
+		async installOpenRegister() {
+			this.openRegisterLoading = true
+
+			console.info('Installing Open Register')
+			const token = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+
+			const response = await fetch('/index.php/settings/apps/enable', {
+				headers: {
+					accept: '*/*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					'content-type': 'application/json',
+					pragma: 'no-cache',
+					requesttoken: token,
+					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: '{"appIds":["openregister"],"groups":[]}',
+				method: 'POST',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!response.ok) {
+				console.info('Failed to install Open Register')
+				this.openRegisterIsAvailable = false
+			} else {
+				console.info('Open Register installed')
+				this.openRegisterInstalled = true
+				this.getRegister()
+				this.getSchema()
+			}
+
+			this.openRegisterLoading = false
+		},
+		/**
+		 * Closes the modal and clears the timeout function.
+		 */
+		closeModal() {
+			navigationStore.setModal(false)
+			clearTimeout(this.closeTimeoutFunc)
+		},
+		/**
+		 * Edits the synchronization by saving the synchronization item to the store.
+		 */
+		editSynchronization() {
+			this.loading = true
+
+			let targetId = null
+			if (this.targetTypeOptions.value?.id === 'register/schema') {
+				targetId = `${this.registerOptions.value?.id}/${this.schemaOptions.value?.id}`
+			} else if (this.targetTypeOptions.value?.id === 'api') {
+				targetId = this.sourceOptions.targetValue?.id
+			}
+
+			synchronizationStore.saveSynchronization({
+				...this.synchronizationItem,
+				sourceId: this.sourceOptions.sourceValue?.id || null,
+				sourceType: this.typeOptions.value?.id || null,
+				sourceTargetMapping: this.sourceTargetMappingOptions.sourceValue?.id || null,
+				targetType: this.targetTypeOptions.value?.id || null,
+				targetId: targetId || null,
+				targetSourceMapping: this.sourceTargetMappingOptions.targetValue?.id || null,
+			})
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				})
+				.catch(error => {
+					this.success = false
+					this.error = error.message || 'Er is een fout opgetreden bij het opslaan van de synchronisatie'
+				})
+				.finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }
 </script>
+
+<style scoped>
+/* Open Register notecard */
+.openregister-notecard .notecard {
+    position: relative;
+}
+.close-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+.close-button .button-vue--vue-tertiary:hover:not(:disabled) {
+    background-color: rgba(var(--color-info-rgb), 0.1);
+}
+</style>

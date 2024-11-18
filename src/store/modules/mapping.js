@@ -40,23 +40,17 @@ export const useMappingStore = defineStore('mapping', {
 			if (search !== null && search !== '') {
 				endpoint = endpoint + '?_search=' + search
 			}
-			return fetch(endpoint, {
+
+			const response = await fetch(endpoint, {
 				method: 'GET',
 			})
-				.then(
-					(response) => {
-						response.json().then(
-							(data) => {
-								this.setMappingList(data.results)
-							},
-						)
-					},
-				)
-				.catch(
-					(err) => {
-						console.error(err)
-					},
-				)
+
+			const data = (await response.json()).results
+			const entities = data.map(mapping => new Mapping(mapping))
+
+			this.setMappingList(entities)
+
+			return { response, entities }
 		},
 		// New function to get a single mapping
 		async getMapping(id) {
