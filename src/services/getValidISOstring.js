@@ -1,6 +1,8 @@
 /**
  * Converts a given date string or Date object to a valid ISO string.
  *
+ * this function can double as a validator for ISO / date strings
+ *
  * If the dateString is valid it will return the ISO string,
  * if it is not a valid dateString it will return null.
  *
