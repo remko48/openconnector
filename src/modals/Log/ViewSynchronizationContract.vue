@@ -14,13 +14,12 @@ import { logStore, navigationStore } from '../../store/store.js'
 
 			<strong>Standard</strong>
 			<table>
-				<tr v-for="(value, key) in standardItems"
-
-					:key="key">
+				<tr v-for="(value, key) in standardItems" :key="key">
 					<td class="keyColumn">
-						{{ key }}
+						<b>{{ key }}</b>
 					</td>
-					<td v-if="typeof value === 'string' && (key === 'created' || key === 'updated' || key === 'expires' || key === 'lastRun' || key === 'nextRun')">
+
+					<td v-if="typeof value === 'string' && getValidISOstring(value)">
 						{{ new Date(value).toLocaleString() }}
 					</td>
 					<td v-else>
@@ -36,6 +35,8 @@ import { logStore, navigationStore } from '../../store/store.js'
 import {
 	NcModal,
 } from '@nextcloud/vue'
+
+import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {
 	name: 'ViewSynchronizationContract',
