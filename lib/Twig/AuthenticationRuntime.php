@@ -5,6 +5,8 @@ namespace OCA\OpenConnector\Twig;
 use GuzzleHttp\Exception\GuzzleException;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Service\AuthenticationService;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
+use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Twig\Extension\RuntimeExtensionInterface;
 
 class AuthenticationRuntime implements RuntimeExtensionInterface
@@ -58,7 +60,7 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 		$configuration = $source->getConfiguration();
 
 		if ($this->checkRequiredKeys(arrayCheck: $configuration) === false) {
-			// We should do something here
+			throw new ServiceUnavailableHttpException(message: 'The Source configuration is missing one or more required keys');
 		}
 
 		$configuration['algorithm'] = $configuration['authentication.algorithm'];
@@ -82,7 +84,7 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 		$configuration = $source->getConfiguration();
 
 		if ($this->checkRequiredKeys(arrayCheck: $configuration) === false) {
-			// We should do something here
+			throw new ServiceUnavailableHttpException(message: 'The Source configuration is missing one or more required keys');
 		}
 
 		$configuration['algorithm'] = $configuration['authentication.algorithm'];
