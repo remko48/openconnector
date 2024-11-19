@@ -9,7 +9,7 @@
     * [Synchronysation Contract](administrators/synchronysation/contract.md)
     * [Synchronysation](administrators/synchronysation/synchronysation.md)
   * [sources](administrators/sources/README.md)
-    * [source](administrators/sources/source.md)
+    * [Source Configuration](administrators/sources/source.md)
     * [Xxllnc To Publication](administrators/sources/xxllnctopublication.md)
   * [mapping](administrators/mapping/README.md)
     * [Mapping](administrators/mapping/mapping.md)

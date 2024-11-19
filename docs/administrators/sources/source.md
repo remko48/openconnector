@@ -1,39 +1,53 @@
-# source
+# Source Configuration
 
 ## Source
 
-A source is a representation of an external service that the connector can connect to. That may be a database, a file or any other kind of service but its typically an api.
+A **Source** represents an external service or system that OpenConnector can interact with. This is typically an API but can also be databases, file servers, or other services. Sources allow the Connector to retrieve, process, and synchronize data.
 
 ### Basic setup
 
+To configure a source, you need to define its basic properties:
+
+1. **Name**: A descriptive identifier for the source (e.g., "Noordwijk"). This name will appear in the UI to help you quickly locate the source.
+2. **Description**: A brief explanation of the source's purpose or content (optional).
+3. **Type**: Defines the type of connection (e.g., API, database, file server).
+4. **Location**: The endpoint or base URL of the source (e.g., `https://zaaksysteem.noordwijk.nl/api/v1`).
+
 ![alt text](../../sources/image-6.png)
 
-* Name: The name of the source. This is used in the ui to identify the source.
-* Description: The description of the source. This is used in the ui to describe the source.
-* Type: The type of the source. This is used to determine how to call the source.
-* Location: The location of the source. This is typically the url of the api.
+**Note**: Ensure the location does not end with a `/`. If included, it will be removed during saving.
 
 ### Authentication
 
-Most sources require some form of authentication. The exact form depends on the source. For security reasons the authentication method is part of the vault and not the source. If you want to authenicate against an external service you need to add an authentication to the vault and then ad it to the source. Each source can have multiple authentications methods (e.g. both a certiciate and a password).
+If the source requires authentication (e.g., an API key, certificate, or OAuth token), these credentials are managed securely in the **Vault**. To authenticate:
 
-### Synchronysations
+1. Add the required authentication details in the Vault.
+2. Link the authentication method to the source.
 
-Synchronysations are managed trough the synchronysations, you can however view all the synchronysations for a source in the source synchronysations tab.
+Multiple authentication methods can be associated with a single source, offering flexibility for different connection scenarios.
+
+### Synchronisations
+
+Synchronizations between sources and the system can be managed in the **Synchronizations** tab for each source. This provides an overview of all configured synchronization tasks related to a source.
 
 @todo add screenshots
 
 ### Configuration
 
-Sources are called trough the call service. The call service is responsible for making the call to the source and for handling the response. The call service is based on the pubpular [guzzle library](https://docs.guzzlephp.org/en/stable/). That means all guzzle options are supported trough the source configuration. This is done bij adding a configuration to the source. Configurations are defined in a dot.note format.
+Sources are called using the **Call Service**, based on the popular [Guzzle library](https://docs.guzzlephp.org/en/stable/). This enables flexible configuration of connection parameters. You can add custom configurations using a **dot.notation** format.
 
-E.g. headers can be added to the call by adding the following configuration to the source
+**Example Configuration:**
 
-headers.Accept = application/json
+To set the `Accept` header for API calls:
 
-![alt text](../../sources/image-3.png)
+* **Key**: `headers.Accept`
+* **Value**: `application/json`
 
-Will lead to the following configuration on the call service:
+This creates the following request header:
+
+![the add Configuration modal](../../sources/image-3.png)
+
+This configuration will lead to the following configuration on the call service:
 
 ```
 headers:
@@ -41,21 +55,21 @@ headers:
     value: application/json 
 ```
 
-the most common options are:
+Other commonly used options include:
 
-* headers
-* query
+* **Headers**: Define custom request headers.
+* **Query**: Add query parameters to requests.
 
-But all [guzzle options](https://docs.guzzlephp.org/en/stable/request-options.html) are supported. So for example you can change the timeout of the call by adding the following configuration to the source:
+But all [guzzle options](https://docs.guzzlephp.org/en/stable/request-options.html) are supported. So for example, you can change the timeout of the call by adding the following configuration to the source:
 
-timeout = 10
+`timeout = 10`
 
-## Loggin
+## Logging
 
-The call service logs both the request and the response. These logs are vieuwable in the UI under the apropriate source.
+The Call Service logs all requests and responses for each source. Logs can be viewed directly in the **Logs** tab of the source's detail page.
 
 ![alt text](../../sources/image-4.png)
 
 ![alt text](../../sources/image-5.png)
 
-@todo configuring the log retention period
+**Note**: Future updates will allow configuring the log retention period.
