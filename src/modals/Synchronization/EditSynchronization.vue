@@ -268,8 +268,13 @@ export default {
 		}
 	},
 	mounted() {
-		// If there is a synchronization item in the store, use it
-		synchronizationStore.synchronizationItem && (this.synchronizationItem = { ...synchronizationStore.synchronizationItem })
+		if (synchronizationStore.synchronizationItem) {
+			// If there is a synchronization item in the store, use it
+			this.synchronizationItem = { ...synchronizationStore.synchronizationItem }
+
+			// update targetTypeOptions with the synchronization item target type
+			this.targetTypeOptions.value = this.targetTypeOptions.options.find(option => option.id === this.synchronizationItem.targetType)
+		}
 
 		// Fetch sources, mappings, register, and schema
 		this.getSources()
@@ -282,23 +287,35 @@ export default {
 		 * Fetches the list of available sources from the source store and updates the source options.
 		 * Sets the loading state to true while fetching and updates the source options with the fetched data.
 		 * If a source is already selected, it sets it as the active source.
+		 * If the target type is 'api', it sets the active target source.
 		 */
 		getSources() {
 			this.sourcesLoading = true
 
 			sourceStore.refreshSourceList()
 				.then(({ entities }) => {
-					const activeSource = entities.find(source => source.id === this.synchronizationItem.sourceId)
+					const activeSourceSource = entities.find(source => source.id.toString() === this.synchronizationItem.sourceId.toString())
+
+					let activeSourceTarget = null
+					if (this.synchronizationItem.targetType === 'api') {
+						activeSourceTarget = entities.find(source => source.id.toString() === this.synchronizationItem.targetId.toString())
+					}
 
 					this.sourceOptions = {
 						options: entities.map(source => ({
 							label: source.name,
 							id: source.id,
 						})),
-						value: activeSource
+						sourceValue: activeSourceSource
 							? {
-								label: activeSource.name,
-								id: activeSource.id,
+								label: activeSourceSource.name,
+								id: activeSourceSource.id,
+							}
+							: null,
+						targetValue: activeSourceTarget
+							? {
+								label: activeSourceTarget.name,
+								id: activeSourceTarget.id,
 							}
 							: null,
 					}
@@ -310,24 +327,31 @@ export default {
 		/**
 		 * Fetches the list of source-target mappings from the mapping store and updates the mapping options.
 		 * Sets the loading state to true while fetching and updates the mapping options with the fetched data.
-		 * If a mapping is already selected, it sets it as the active mapping.
+		 * If a mapping is already selected, it sets it as the active source and target mapping.
 		 */
 		getSourceTargetMappings() {
 			this.sourceTargetMappingLoading = true
 
 			mappingStore.refreshMappingList()
 				.then(({ entities }) => {
-					const activeMapping = entities.find(mapping => mapping.id === this.synchronizationItem.sourceTargetMapping)
+					const activeSourceMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.sourceTargetMapping.toString())
+					const activeTargetMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.targetSourceMapping.toString())
 
 					this.sourceTargetMappingOptions = {
 						options: entities.map(mapping => ({
 							label: mapping.name,
 							id: mapping.id,
 						})),
-						value: activeMapping
+						sourceValue: activeSourceMapping
 							? {
-								label: activeMapping.name,
-								id: activeMapping.id,
+								label: activeSourceMapping.name,
+								id: activeSourceMapping.id,
+							}
+							: null,
+						targetValue: activeTargetMapping
+							? {
+								label: activeTargetMapping.name,
+								id: activeTargetMapping.id,
 							}
 							: null,
 					}
@@ -338,9 +362,9 @@ export default {
 		},
 		/**
 		 * Fetches the list of registers from the mapping store and updates the register options.
-		 * Checks if OpenRegister is installed and updates the state accordingly.
 		 * Sets the loading state to true while fetching and updates the register options with the fetched data.
 		 * If a register is already selected, it sets it as the active register.
+		 * If OpenRegister is not installed, it updates the state accordingly.
 		 */
 		getRegister() {
 			this.registerLoading = true
@@ -355,11 +379,11 @@ export default {
 
 					const registers = data.availableRegisters
 
-					let registerId = null
+					let activeRegister = null
 					if (this.synchronizationItem.targetType === 'register/schema') {
-						registerId = parseInt(this.synchronizationItem.targetId.split('/')[0])
+						const registerId = this.synchronizationItem.targetId.split('/')[0]
+						activeRegister = registers.find(object => object.id.toString() === registerId.toString())
 					}
-					const activeRegister = registers.find(object => object.id === registerId)
 
 					this.registerOptions = {
 						options: registers.map(object => ({
@@ -382,6 +406,7 @@ export default {
 		 * Fetches the list of schemas from OpenRegister and updates the schema options.
 		 * Sets the loading state to true while fetching and updates the schema options with the fetched data.
 		 * If OpenRegister is not installed, it updates the state accordingly.
+		 * If a schema is already selected, it sets it as the active schema.
 		 */
 		async getSchema() {
 			this.schemaLoading = true
@@ -411,12 +436,23 @@ export default {
 
 			const responseData = (await response.json()).results
 
+			let activeSchema = null
+			if (this.synchronizationItem.targetType === 'register/schema') {
+				const schemaId = this.synchronizationItem.targetId.split('/')[1]
+				activeSchema = responseData.find(schema => schema.id.toString() === schemaId.toString())
+			}
+
 			this.schemaOptions = {
 				options: responseData.map((schema) => ({
 					id: schema.id,
 					label: schema.title || schema.name,
 				})),
-				value: null,
+				value: activeSchema
+					? {
+						id: activeSchema.id,
+						label: activeSchema.title || activeSchema.name,
+					}
+					: null,
 			}
 
 			this.schemaLoading = false
@@ -425,6 +461,7 @@ export default {
 		 * Installs OpenRegister by sending a request to the server.
 		 * Sets the loading state to true while the installation is in progress.
 		 * Updates the state based on the success or failure of the installation.
+		 * If the installation is successful, it fetches the register and schema options.
 		 */
 		async installOpenRegister() {
 			this.openRegisterLoading = true
@@ -470,6 +507,8 @@ export default {
 		},
 		/**
 		 * Edits the synchronization by saving the synchronization item to the store.
+		 * Sets the loading state to true while saving and updates the state based on the success or failure of the save operation.
+		 * If the save operation is successful, it closes the modal after a timeout.
 		 */
 		editSynchronization() {
 			this.loading = true
