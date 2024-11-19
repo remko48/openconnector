@@ -10,7 +10,7 @@
     * [Synchronysation](administrators/synchronysation/synchronysation.md)
   * [sources](administrators/sources/README.md)
     * [Source Configuration](administrators/sources/source.md)
-    * [Xxllnc To Publication](administrators/sources/xxllnctopublication.md)
+    * [xxllnc To Publication](administrators/sources/xxllnctopublication.md)
   * [mapping](administrators/mapping/README.md)
     * [Mapping](administrators/mapping/mapping.md)
   * [Consumer](administrators/consumer.md)

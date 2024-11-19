@@ -1,12 +1,12 @@
-# Xxllnc To Publication
+# xxllnc To Publication
 
-This document describes the connection between the Xxllnce (zaaksysteem) seqarch api and the Publication Register (and publication object).
+This document outlines the connection between the [**xxllnc**](https://xxllnc.nl/teams/zaakgericht) **(Zaaksysteem) Search API** and the **Publication Register** (and its core object, the Publication object).
 
 ## Overview
 
-The Xxllnc (zaaksysteem) is a system used by the Dutch government to manage and publish administrative decisions. The seqarch api is a RESTful api that provides access to the data in the Xxllnc system.
+The x**xllnc (Zaaksysteem)** is a system used by the Dutch government to manage and publish administrative decisions. Its Search API is a RESTful service that provides access to data within the xxllnc case system.
 
-The Publication Register is a system used to manage and publish administrative decisions. The publication object is the core object in the Publication Register.
+The **Publication Register** is a platform designed to manage and publish administrative decisions, with the **Publication object** as its central data element.
 
 ## Preperation
 
