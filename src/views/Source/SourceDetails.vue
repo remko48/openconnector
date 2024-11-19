@@ -103,7 +103,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 							<div v-if="Object.keys(configurationAuthentication)?.length">
 								<NcListItem v-for="(value, key, i) in configurationAuthentication"
 									:key="`${key}${i}`"
-									:name="key.replace(/^authentication\./g, '') /* use regex as its a much safer method of getting rid of the authentication prefix */"
+									:name="key"
 									:bold="false"
 									:force-display-actions="true"
 									:active="sourceStore.sourceConfigurationKey === key">
