@@ -1,6 +1,6 @@
 # Mapping
 
-The mapping service supports the process of changing the structure of an object. It's used to transform data when the source doesn't match the desired data model. Mapping is done by a series of mapping rules in a To <- From style. In simple mapping, the position of a value within an object is changed.
+The mapping service transforms the structure of objects, ensuring data from a source aligns with the desired data model. Mapping operates through a series of rules in a `To <- From`-format. These rules can rearrange, transform, or remove values to meet the requirements of a target system.
 
 **Index**
 
@@ -18,7 +18,7 @@ The mapping service supports the process of changing the structure of an object.
 
 ## Defining a mapping
 
-Open Connector stores, imports and exports mappings as JSON mapping objects. Bellow you can find an example mapping object
+Mappings are stored, imported, and exported as JSON objects. Below is an example of a mapping object:
 
 ```json
 {
@@ -39,37 +39,44 @@ Open Connector stores, imports and exports mappings as JSON mapping objects. Bel
 
 ```
 
-![alt text](../../mapping/image.png) Mapping objects MUST follow the bellow specifications
+![alt text](../../mapping/image.png) 
 
-| Property    | Required | Usage                                                                                                       | Allowed Value                                                                                                                                                                                                                                                              |
-| ----------- | -------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| title       | Yes      | User friendly single sentence describing of the mappings used for identification                            | string, max 255 characters                                                                                                                                                                                                                                                 |
-| description | No       | User friendly multi line description of the mapping used for explaining purpose and workings of the mapping | string, max 2555 characters                                                                                                                                                                                                                                                |
-| $id         | No       | Used during the import of mappings to see if a mapping is already present                                   | string, max 255 characters                                                                                                                                                                                                                                                 |
-| $schema     | Yes      | Tells the common gateway that this object is a mapping                                                      | Always: 'https://docs.commongateway.nl/schemas/Mapping.schema.json'                                                                                                                                                                                                        |
-| version     | no       | Used during the import of mappings to see if mapping should be overwritten (updated)                        | A valid [semantic version number](https://semver.org/lang/nl/)                                                                                                                                                                                                             |
-| passTrough  | no       | Determines whether to copy the old object to the new object                                                 | A boolean, default to false                                                                                                                                                                                                                                                |
-| mapping     | no       | Moves property positions in an object                                                                       | An array where the key is the new property location(in [dot notation](https://grasshopper.app/glossary/data-types/object-dot-notation/)) and the value the current property location (in [dot notation](https://grasshopper.app/glossary/data-types/object-dot-notation/)) |
-| unset       | no       | Unset unused properties                                                                                     | A valid json object, read [more](mapping.md) about using unset                                                                                                                                                                                                             |
-| cast        | no       | Casts properties to a specific type                                                                         | A valid json object, read [more](mapping.md) about using cast                                                                                                                                                                                                              |
+
+## Mapping Object Specifications
+
+Mapping objects MUST follow the specifications below 
+
+| Property    | Required | Usage                                                                                                       | Allowed Value                                                                                                                          |
+| ----------- | -------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| title       | Yes      | Short description of the mapping for identification.                                                        | string, max 255 characters                                                                                                             |
+| description | No       | Detailed description of the mapping’s purpose.                                                              | string, max 2555 characters                                                                                                            |
+| $id         | No       | Unique identifier for the mapping, used for import/export.                                                  | string, max 255 characters                                                                                                             |
+| $schema     | Yes      | Declares the object as a mapping.                                                                           | Always: 'https://docs.commongateway.nl/schemas/Mapping.schema.json'                                                                    |
+| version     | no       | Versioning to track mapping updates.                                                                         | A valid [semantic version number](https://semver.org/lang/nl/)                                                                        |
+| passTrough  | no       | If `true`, all original properties are copied into the new object unless explicitly mapped.                 | A boolean, default to false                                                                                                            |
+| mapping     | no       | Defines how properties should be rearranged, using dot notation.                                            | An array where the key is the new property location(in [dot notation](https://grasshopper.app/glossary/data-types/object-dot-notation/)) and the value the current property location (in [dot notation](https://grasshopper.app/glossary/data-types/object-dot-notation/)) |
+| unset       | no       | Unset unused properties                                                                                     | A valid json object, read [more](mapping.md) about using unset                                                                         |
+| cast        | no       | Forces properties to specific types.                                                                         | Object where the key is the property and the value is the type (e.g., { "age": "integer" }). Supported types: string, boolean, integer, float, etc.                              |
 
 ## Usage
 
-Okay, let's take a look at the most commonly used example api ([petstore](https://petstore.swagger.io/#/pet/findPetsByStatus)) and a basic original object.
+Mappings are commonly used to transform objects from a source system into a new structure. Let’s look at an example from the ([petstore](https://petstore.swagger.io/#/pet/findPetsByStatus)) :
+
+Original Object:
 
 ```json
 {
-  "id":"0d671e30-04af-479a-926a-5e7044484171",
+  "id":123",
   "name":"doggie",
   "status": "available"
 }
 ```
 
-Now let's say we want to move the status into a new object that has a sub object called metadata, like this:
+Target Object:
 
 ```json
 {
-  "id":"0d671e30-04af-479a-926a-5e7044484171",
+  "id":"123",
   "name":"doggie",
   "metadata":{
     "status": "available"
@@ -77,11 +84,11 @@ Now let's say we want to move the status into a new object that has a sub object
 }
 ```
 
-Then we need to create a mapping that copies the property to a new location trough mapping, like this:
+Mapping Definition:
 
 ```json
 {
-  "title": "A simple mapping for animals",
+  "title": "Basic Mapping",
   "$schema": "https://docs.commongateway.nl/schemas/Mapping.schema.json",
   "mapping": {
     "id": "id",
@@ -91,17 +98,9 @@ Then we need to create a mapping that copies the property to a new location trou
 }
 ```
 
-So what happened under the hood? How is de status moved? Let's take a look at the first mapping set
+Under the hood, the mapping moves values from the From position (status) to the To position (metadata.status). This transformation ensures the object aligns with the target system's structure.
 
-```json
-{
-  "mapping": {
-    "id": "id",
-    "name": "name",
-    "metadata.status": "status"
-  }
-}
-```
+## Furthermore
 
 Rules are carried out as a `To <- From` pair. In this case, the `metadata.status` key has a `status` value. When interpreting what the description is, the mapping service has two options:
 
