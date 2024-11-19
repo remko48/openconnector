@@ -8,27 +8,45 @@ The x**xllnc (Zaaksysteem)** is a system used by the Dutch government to manage 
 
 The **Publication Register** is a platform designed to manage and publish administrative decisions, with the **Publication object** as its central data element.
 
-## Preperation
+## Preparation
 
-Make sure you have the following information:
+Before starting, ensure you have the following:
 
-* The base url of the seqarch api
-* An installtion of Open Register
-* An configuration of the Publication Register on Open Register
-* An insatllation of Open Connector
+1.  Base URL of the Xxllnc Search API.
+2. An installation of Open Register.
+3. A configured instance of the Publication Register on Open Register.
+4. An installation of Open Connector.
 
 ## Setting up the connection
 
-Create a new source (connection), set the type to API and location to the base url of the xxlnc search api. Since the search api is public to start with no addiotnal configuration is nessesarry.
+Create a New Source:
+
+1. Navigate to the "Sources" page in Open Connector.
+ - Click Add Source and:
+    - Set the Type to API.
+    - Set the Location to the base URL of the Xxllnc Search API.
+- No additional configuration is necessary, as the Search API is public by default.
 
 ![alt text](../../sources/image.png)
 
-Open the source and click on 'Test' in the action menu. This wil open the test dialog. Presss test and you will see the data that is available.
+2. Test the Source:
+
+- Open the source you just created.
+- Click on Test in the action menu to open the test dialog.
+- Press Test, and you should see the data available from the API.
+If everything works correctly, note down the Source ID. You are now ready to set up a mapping.
 
 ![alt text](../../sources/image-1.png) ![alt text](../../sources/image-2.png)
 
-I everything checks out we can write down the source id and are now ready to setup a mapping.
 
 ## Setting up the mapping
 
-Mappings are used to map the data from object A tot object B or visa versa. In the case of the xxlnc search api we need to create a mapping between the search api and the publication register publication object. And the attachement object.
+Mappings are used to map data between two objects (e.g., from Object A to Object B, or vice versa).
+
+For the Xxllnc Search API:
+
+1. Map Data:
+- Create a mapping between the Xxllnc Search API and the Publication Register's Publication object.
+- Ensure you also map the Attachment object, as it is required for complete publication data.
+
+Mappings ensure data consistency and enable smooth integration between the Xxllnc system and the Publication Register.
