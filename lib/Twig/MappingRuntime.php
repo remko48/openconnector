@@ -23,10 +23,9 @@ class MappingRuntime implements RuntimeExtensionInterface
 	 *
 	 * @param Mapping|array|string|int $mapping The mapping to execute
 	 * @param array $input The input to run the mapping on
-	 * @param bool $list Whether the mapping runs on multiple instnaces of the object.
+	 * @param bool $list Whether the mapping runs on multiple instances of the object.
+	 *
 	 * @return array
-	 * @throws \Twig\Error\LoaderError
-	 * @throws \Twig\Error\SyntaxError
 	 */
 	public function executeMapping(Mapping|array|string|int $mapping, array $input, bool $list = false): array
 	{
@@ -38,7 +37,6 @@ class MappingRuntime implements RuntimeExtensionInterface
 		} else if (is_string($mapping) === true || is_int($mapping) === true) {
 			$mapping = $this->mappingMapper->find($mapping);
 		}
-
 
 		return $this->mappingService->executeMapping(
 			mapping: $mapping, input: $input, list: $list

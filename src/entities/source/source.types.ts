@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type TSource = {
     id: string
+    uuid: string
     name: string
     description: string
     reference: string

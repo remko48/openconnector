@@ -13,7 +13,7 @@ export class Mapping extends ReadonlyBaseClass implements TMapping {
 	public readonly name: string
 	public readonly description: string
 	public readonly mapping: Record<string, unknown>
-	public readonly unset: any[]
+	public readonly unset: string[]
 	public readonly cast: Record<string, unknown>
 	public readonly passThrough: boolean
 	public readonly dateCreated: string
@@ -47,7 +47,7 @@ export class Mapping extends ReadonlyBaseClass implements TMapping {
 			name: z.string().max(255),
 			description: z.string(),
 			mapping: z.record(z.any()),
-			unset: z.array(z.any()),
+			unset: z.array(z.string()),
 			cast: z.record(z.any()),
 			passThrough: z.boolean(),
 			dateCreated: z.string().or(z.literal('')),

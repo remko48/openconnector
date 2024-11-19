@@ -48,7 +48,7 @@ class MappingMapper extends QBMapper
 			}
         }
 
-        if (!empty($searchConditions)) {
+		if (empty($searchConditions) === false) {
             $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);
@@ -63,7 +63,7 @@ class MappingMapper extends QBMapper
 		$obj = new Mapping();
 		$obj->hydrate($object);
 		// Set uuid
-		if($obj->getUuid() === null){
+		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
 		return $this->insert(entity: $obj);
@@ -75,9 +75,13 @@ class MappingMapper extends QBMapper
 		$obj->hydrate($object);
 		
 		// Set or update the version
-		$version = explode('.', $obj->getVersion());
-		$version[2] = (int)$version[2] + 1;
-		$obj->setVersion(implode('.', $version));
+        if ($obj->getVersion() !== null) {
+            $version = explode('.', $obj->getVersion());
+            if (isset($version[2]) === true) {
+                $version[2] = (int) $version[2] + 1;
+                $obj->setVersion(implode('.', $version));
+            }
+        }
 
 
 		return $this->update($obj);

@@ -23,14 +23,19 @@ import { navigationStore } from '../store/store.js'
 		<DeleteMappingMapping />
 		<EditMappingCast />
 		<DeleteMappingCast />
+		<EditMappingUnset v-if="navigationStore.modal === 'editMappingUnset'" />
+		<DeleteMappingUnset v-if="navigationStore.modal === 'deleteMappingUnset'" />
 		<DeleteSynchronization />
 		<EditSynchronization />
+		<TestSynchronization />
 		<EditJobArgument />
 		<DeleteJobArgument />
 		<EditSourceConfiguration />
 		<DeleteSourceConfiguration />
 		<ViewSourceLog />
 		<ViewJobLog />
+		<ViewSynchronizationLog />
+		<ViewSynchronizationContract />
 	</div>
 </template>
 
@@ -52,6 +57,7 @@ import DeleteMapping from './Mapping/DeleteMapping.vue'
 import TestMapping from './MappingTest/TestMapping.vue'
 import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
+import TestSynchronization from './Synchronization/TestSynchronization.vue'
 import EditJobArgument from './JobArgument/EditJobArgument.vue'
 import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
 import EditSourceConfiguration from './SourceConfiguration/EditSourceConfiguration.vue'
@@ -62,6 +68,10 @@ import DeleteMappingMapping from './mappingMapping/DeleteMappingMapping.vue'
 import EditMappingCast from './mappingCast/EditMappingCast.vue'
 import DeleteMappingCast from './mappingCast/DeleteMappingCast.vue'
 import ViewJobLog from './Log/ViewJobLog.vue'
+import ViewSynchronizationLog from './Log/ViewSynchronizationLog.vue'
+import ViewSynchronizationContract from './Log/ViewSynchronizationContract.vue'
+import EditMappingUnset from './mappingUnset/EditMappingUnset.vue'
+import DeleteMappingUnset from './mappingUnset/DeleteMappingUnset.vue'
 
 export default {
 	name: 'Modals',
@@ -83,6 +93,7 @@ export default {
 		TestMapping,
 		DeleteSynchronization,
 		EditSynchronization,
+		TestSynchronization,
 		EditJobArgument,
 		DeleteJobArgument,
 		EditSourceConfiguration,
@@ -93,6 +104,10 @@ export default {
 		EditMappingCast,
 		DeleteMappingCast,
 		ViewJobLog,
+		ViewSynchronizationLog,
+		ViewSynchronizationContract,
+		EditMappingUnset,
+		DeleteMappingUnset,
 	},
 	setup() {
 		return {

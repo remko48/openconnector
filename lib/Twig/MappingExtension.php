@@ -7,7 +7,7 @@ use Twig\TwigFunction;
 
 class MappingExtension extends AbstractExtension
 {
-	public function getFunctions()
+	public function getFunctions(): array
 	{
 		return [
 			new TwigFunction(name: 'executeMapping', callable: [MappingRuntime::class, 'executeMapping']),

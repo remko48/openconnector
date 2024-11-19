@@ -22,7 +22,7 @@ import { navigationStore, jobStore } from '../../store/store.js'
 			Do you want to delete <b>{{ jobStore.jobArgumentKey }}</b>? This action cannot be undone.
 		</p>
 		<template #actions>
-			<NcButton :disabled="loading" icon="" @click="navigationStore.setModal(false)">
+			<NcButton :disabled="loading" icon="" @click="closeModal">
 				<template #icon>
 					<Cancel :size="20" />
 				</template>
@@ -94,11 +94,7 @@ export default {
 					this.success = true
 
 					// Wait for the user to read the feedback then close the model
-					const self = this
-					this.closeTimeoutFunc = setTimeout(function() {
-						self.success = null
-						navigationStore.setModal(false)
-					}, 2000)
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 				})
 				.catch((err) => {
 					this.error = err
