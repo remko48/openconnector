@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  build:
+  Lint-Check:
     runs-on: ubuntu-latest
 
     steps:
