@@ -484,8 +484,8 @@ class SynchronizationService
         $sourceConfig = $synchronization->getSourceConfig();
 
         // Check if a specific objects position is defined in the source configuration
-        if (empty($sourceConfig['objectsPosition']) === false) {
-            $position = $sourceConfig['objectsPosition'];
+        if (empty($sourceConfig['resultsPosition']) === false) {
+            $position = $sourceConfig['resultsPosition'];
             // Use Dot notation to access nested array elements
             $dot = new Dot($array);
             if ($dot->has($position) === true) {
