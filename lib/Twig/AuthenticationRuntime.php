@@ -2,6 +2,7 @@
 
 namespace OCA\OpenConnector\Twig;
 
+use Adbar\Dot;
 use GuzzleHttp\Exception\GuzzleException;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Service\AuthenticationService;
@@ -17,36 +18,6 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 
 	}
 
-
-	/**
-	 * Checks if the given array has at least the required keys to continue checkin oauth or a jwt token.
-	 *
-	 * The Required keys:
-	 * 'authentication.algorithm',
-	 * 'authentication.secret',
-	 * 'authentication.payload'
-	 *
-	 * @param array $arrayCheck The PHP array to check if all required keys are present.
-	 * @return bool True if all required keys are present, false if not.
-	 */
-	private function checkRequiredKeys(array $arrayCheck): bool
-	{
-		$requiredKeys = [
-			'authentication.algorithm',
-			'authentication.secret',
-			'authentication.payload'
-		];
-
-		foreach ($requiredKeys as $key) {
-			if (array_key_exists($key, $arrayCheck) === false) {
-				echo "Key '$key' is missing.\n";
-				return false; // Stop further execution if any key is missing
-			}
-		}
-
-		return true;
-	}
-
 	/**
 	 * Add an oauth token to the configuration.
 	 *
@@ -57,18 +28,12 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 	 */
 	public function oauthToken(Source $source): string
 	{
-		$configuration = $source->getConfiguration();
+		$configuration = new Dot($source->getConfiguration(), true);
 
-		if ($this->checkRequiredKeys(arrayCheck: $configuration) === false) {
-			throw new ServiceUnavailableHttpException(message: 'The Source configuration is missing one or more required keys');
-		}
-
-		$configuration['algorithm'] = $configuration['authentication.algorithm'];
-		$configuration['secret'] = $configuration['authentication.secret'];
-		$configuration['payload'] = json_decode($configuration['authentication.payload'], true);
+		$authConfig = $configuration->get('authentication');
 
 		return $this->authService->fetchOAuthTokens(
-			configuration: $configuration
+			configuration: $authConfig
 		);
 	}
 
@@ -81,18 +46,12 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 	 */
 	public function jwtToken(Source $source): string
 	{
-		$configuration = $source->getConfiguration();
+		$configuration = new Dot($source->getConfiguration(), true);
 
-		if ($this->checkRequiredKeys(arrayCheck: $configuration) === false) {
-			throw new ServiceUnavailableHttpException(message: 'The Source configuration is missing one or more required keys');
-		}
-
-		$configuration['algorithm'] = $configuration['authentication.algorithm'];
-		$configuration['secret'] = $configuration['authentication.secret'];
-		$configuration['payload'] = json_decode($configuration['authentication.payload'], true);
+		$authConfig = $configuration->get('authentication');
 
 		return $this->authService->fetchJWTToken(
-			configuration: $configuration
+			configuration: $authConfig
 		);
 	}
 }
