@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  Lint-Check:
+  lint-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,5 +20,5 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Lint
+      - name: Linting
         run: npm run lint

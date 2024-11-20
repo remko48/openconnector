@@ -33,7 +33,7 @@ import WebhookDetails from './WebhookDetails.vue'
 import Webhook from 'vue-material-design-icons/Webhook.vue'
 
 export default {
-	name: 'WebhooksIndex',
+	name: 'WebhooksIndexx',
 	components: {
 		NcAppContent,
 		NcEmptyContent,
