@@ -1,0 +1,24 @@
+name: Lint Check
+
+on:
+  push:
+    branches:
+      - lint-workflow-check
+  pull_request:
+    branches:
+      - development
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Lint
+        run: npm run lint
