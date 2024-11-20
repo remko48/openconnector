@@ -1,9 +1,6 @@
 name: Lint Check
 
 on:
-  push:
-    branches:
-      - lint-workflow-check
   pull_request:
     branches:
       - development
