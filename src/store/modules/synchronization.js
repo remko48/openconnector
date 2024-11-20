@@ -143,7 +143,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				})
 		},
 		// Create or save a synchronization from store
-		saveSynchronization(synchronizationItem) {
+		async saveSynchronization(synchronizationItem) {
 			if (!synchronizationItem) {
 				throw new Error('No synchronization item to save')
 			}
@@ -156,7 +156,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				: `/index.php/apps/openconnector/api/synchronizations/${synchronizationItem.id}`
 			const method = isNewSynchronization ? 'POST' : 'PUT'
 
-			return fetch(
+			const response = await fetch(
 				endpoint,
 				{
 					method,
@@ -166,17 +166,16 @@ export const useSynchronizationStore = defineStore('synchronization', {
 					body: JSON.stringify(synchronizationItem),
 				},
 			)
-				.then((response) => response.json())
-				.then((data) => {
-					this.setSynchronizationItem(data)
-					console.log('Synchronization saved')
 
-					this.refreshSynchronizationList()
-				})
-				.catch((err) => {
-					console.error('Error saving synchronization:', err)
-					throw err
-				})
+			console.log('Synchronization saved')
+
+			const data = await response.json()
+			const entity = new Synchronization(data)
+
+			this.setSynchronizationItem(entity)
+			this.refreshSynchronizationList()
+
+			return { response, data, entity }
 		},
 		// Test a synchronization
 		async testSynchronization() {
