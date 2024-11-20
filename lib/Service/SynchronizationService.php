@@ -384,6 +384,7 @@ class SynchronizationService
 
         // Make the initial API call
         $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+		$lastHash = md5($response['body']);
         $body = json_decode($response['body'], true);
         $objects = array_merge($objects, $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization));
 
@@ -412,6 +413,13 @@ class SynchronizationService
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+				$hash     = md5($response['body']);
+
+				if($hash === $lastHash) {
+					break;
+				}
+
+				$lastHash = $hash;
 				$body     = json_decode($response['body'], true);
 
 				if (empty($body) === true) {
