@@ -13,7 +13,7 @@ import { logStore, navigationStore } from '../../store/store.js'
 			</div>
 
 			<strong>Standard</strong>
-			<table>
+			<table class="table">
 				<tr v-for="(value, key) in standardItems" :key="key">
 					<td class="keyColumn">
 						<b>{{ key }}</b>
@@ -107,4 +107,17 @@ export default {
     margin-block-end: 1rem;
 }
 
+</style>
+
+<style scoped>
+.table {
+    border: 1px solid grey; /* Add a grey border around the table */
+    border-collapse: collapse; /* Ensure borders are collapsed for a cleaner look */
+    width: 100%; /* Optional: make the table take full width */
+}
+
+.table td, .table th {
+    border: 1px solid grey; /* Add a grey border around each cell */
+    padding: 8px; /* Add padding to table cells */
+}
 </style>
