@@ -188,6 +188,10 @@ export default {
 	},
 	data() {
 		return {
+			/**
+			 * Indicates if this is an edit modal or a create modal.
+			 */
+			IS_EDIT: !!synchronizationStore.synchronizationItem?.id,
 			success: null, // Indicates if saving the synchronization was successful
 			loading: false, // Indicates if saving the synchronization is in progress
 			error: false,
@@ -268,7 +272,7 @@ export default {
 		}
 	},
 	mounted() {
-		if (synchronizationStore.synchronizationItem) {
+		if (this.IS_EDIT) {
 			// If there is a synchronization item in the store, use it
 			this.synchronizationItem = { ...synchronizationStore.synchronizationItem }
 
@@ -297,7 +301,7 @@ export default {
 					const activeSourceSource = entities.find(source => source.id.toString() === this.synchronizationItem.sourceId.toString())
 
 					let activeSourceTarget = null
-					if (this.synchronizationItem.targetType === 'api') {
+					if (this.IS_EDIT && this.synchronizationItem.targetType === 'api') {
 						activeSourceTarget = entities.find(source => source.id.toString() === this.synchronizationItem.targetId.toString())
 					}
 
@@ -380,7 +384,7 @@ export default {
 					const registers = data.availableRegisters
 
 					let activeRegister = null
-					if (this.synchronizationItem.targetType === 'register/schema') {
+					if (this.IS_EDIT && this.synchronizationItem.targetType === 'register/schema') {
 						const registerId = this.synchronizationItem.targetId.split('/')[0]
 						activeRegister = registers.find(object => object.id.toString() === registerId.toString())
 					}
@@ -437,7 +441,7 @@ export default {
 			const responseData = (await response.json()).results
 
 			let activeSchema = null
-			if (this.synchronizationItem.targetType === 'register/schema') {
+			if (this.IS_EDIT && this.synchronizationItem.targetType === 'register/schema') {
 				const schemaId = this.synchronizationItem.targetId.split('/')[1]
 				activeSchema = responseData.find(schema => schema.id.toString() === schemaId.toString())
 			}
