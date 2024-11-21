@@ -12,7 +12,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 	public sourceType: string
 	public sourceHash: string
 	public sourceTargetMapping: string
-	public sourceConfig: object
+	public sourceConfig: Record<string, string>
 	public sourceLastChanged: string
 	public sourceLastChecked: string
 	public sourceLastSynced: string
@@ -20,7 +20,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 	public targetType: string
 	public targetHash: string
 	public targetSourceMapping: string
-	public targetConfig: object
+	public targetConfig: Record<string, string>
 	public targetLastChanged: string
 	public targetLastChecked: string
 	public targetLastSynced: string
@@ -64,7 +64,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			sourceType: z.string(),
 			sourceHash: z.string(),
 			sourceTargetMapping: z.string(),
-			sourceConfig: z.object({}),
+			sourceConfig: z.record(z.string(), z.string()),
 			sourceLastChanged: z.string(),
 			sourceLastChecked: z.string(),
 			sourceLastSynced: z.string(),
@@ -72,7 +72,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			targetType: z.string(),
 			targetHash: z.string(),
 			targetSourceMapping: z.string(),
-			targetConfig: z.object({}),
+			targetConfig: z.record(z.string(), z.string()),
 			targetLastChanged: z.string(),
 			targetLastChecked: z.string(),
 			targetLastSynced: z.string(),

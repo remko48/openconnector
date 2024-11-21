@@ -13,18 +13,17 @@ import { logStore, navigationStore } from '../../store/store.js'
 			</div>
 
 			<strong>Standard</strong>
-			<table>
-				<tr v-for="(value, key) in standardItems"
-
-					:key="key">
+			<table class="table">
+				<tr v-for="(value, key) in standardItems" :key="key">
 					<td class="keyColumn">
-						{{ key }}
+						<b>{{ key }}</b>
 					</td>
-					<td v-if="typeof value === 'string' && (key === 'created' || key === 'updated' || key === 'expires' || key === 'lastRun' || key === 'nextRun')">
+
+					<td v-if="typeof value === 'string' && getValidISOstring(value)">
 						{{ new Date(value).toLocaleString() }}
 					</td>
 					<td v-else>
-						{{ value }}
+						{{ value || '-' }}
 					</td>
 				</tr>
 			</table>
@@ -36,6 +35,8 @@ import { logStore, navigationStore } from '../../store/store.js'
 import {
 	NcModal,
 } from '@nextcloud/vue'
+
+import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {
 	name: 'ViewSynchronizationContract',
@@ -106,4 +107,17 @@ export default {
     margin-block-end: 1rem;
 }
 
+</style>
+
+<style scoped>
+.table {
+    border: 1px solid grey; /* Add a grey border around the table */
+    border-collapse: collapse; /* Ensure borders are collapsed for a cleaner look */
+    width: 100%; /* Optional: make the table take full width */
+}
+
+.table td, .table th {
+    border: 1px solid grey; /* Add a grey border around each cell */
+    padding: 8px; /* Add padding to table cells */
+}
 </style>
