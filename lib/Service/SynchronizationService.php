@@ -385,6 +385,10 @@ class SynchronizationService
         // Make the initial API call
         $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
         $body = json_decode($response['body'], true);
+        if (empty($body) === true) {
+            // @todo log that we got a empty response
+            return [];
+        }
         $objects = array_merge($objects, $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization));
 
         // Return a single object or empty array if in test mode

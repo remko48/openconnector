@@ -27,7 +27,7 @@ import { navigationStore } from '../store/store.js'
 		<DeleteMappingUnset v-if="navigationStore.modal === 'deleteMappingUnset'" />
 		<DeleteSynchronization />
 		<EditSynchronization v-if="navigationStore.modal === 'editSynchronization'" />
-		<TestSynchronization />
+		<TestSynchronization v-if="navigationStore.modal === 'testSynchronization'" />
 		<EditJobArgument />
 		<DeleteJobArgument />
 		<EditSourceConfiguration />
