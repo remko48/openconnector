@@ -197,6 +197,11 @@ class CallService
 		// Set authentication if needed. @todo: create  the authentication service
 		//$createCertificates && $this->getCertificate($config);
 
+		// Make sure to filter out all the authentication variables / secrets.
+		$config = array_filter($config, function ($key) {
+			return str_contains(strtolower($key), 'authentication') === false;
+		}, ARRAY_FILTER_USE_KEY);
+
 		// Let's log the call.
 		$this->source->setLastCall(new \DateTime());
 		// @todo: save the source
