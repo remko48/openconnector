@@ -23,7 +23,7 @@ import { logStore, navigationStore } from '../../store/store.js'
 						{{ new Date(value).toLocaleString() }}
 					</td>
 					<td v-else>
-						{{ value }}
+						{{ value || '-' }}
 					</td>
 				</tr>
 			</table>
