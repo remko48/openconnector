@@ -26,12 +26,14 @@ import { navigationStore } from '../store/store.js'
 		<EditMappingUnset v-if="navigationStore.modal === 'editMappingUnset'" />
 		<DeleteMappingUnset v-if="navigationStore.modal === 'deleteMappingUnset'" />
 		<DeleteSynchronization />
-		<EditSynchronization />
+		<EditSynchronization v-if="navigationStore.modal === 'editSynchronization'" />
 		<TestSynchronization />
 		<EditJobArgument />
 		<DeleteJobArgument />
 		<EditSourceConfiguration />
 		<DeleteSourceConfiguration />
+		<EditSourceConfigurationAuthentication v-if="navigationStore.modal === 'editSourceConfigurationAuthentication'" />
+		<DeleteSourceConfigurationAuthentication v-if="navigationStore.modal === 'deleteSourceConfigurationAuthentication'" />
 		<ViewSourceLog />
 		<ViewJobLog />
 		<ViewSynchronizationLog />
@@ -66,6 +68,8 @@ import EditJobArgument from './JobArgument/EditJobArgument.vue'
 import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
 import EditSourceConfiguration from './SourceConfiguration/EditSourceConfiguration.vue'
 import DeleteSourceConfiguration from './SourceConfiguration/DeleteSourceConfiguration.vue'
+import EditSourceConfigurationAuthentication from './SourceConfigurationAuthentication/EditSourceConfigurationAuthentication.vue'
+import DeleteSourceConfigurationAuthentication from './SourceConfigurationAuthentication/DeleteSourceConfigurationAuthentication.vue'
 import ViewSourceLog from './Log/ViewSourceLog.vue'
 import EditMappingMapping from './mappingMapping/EditMappingMapping.vue'
 import DeleteMappingMapping from './mappingMapping/DeleteMappingMapping.vue'
@@ -106,6 +110,8 @@ export default {
 		DeleteJobArgument,
 		EditSourceConfiguration,
 		DeleteSourceConfiguration,
+		EditSourceConfigurationAuthentication,
+		DeleteSourceConfigurationAuthentication,
 		ViewSourceLog,
 		EditMappingMapping,
 		DeleteMappingMapping,

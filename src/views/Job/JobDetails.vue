@@ -90,13 +90,13 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 					<div class="gridContent">
 						<b>Next Run:</b>
 						<p>
-							{{ new Date(jobStore.jobItem.nextRun).toLocaleString() || 'N/A' }}
+							{{ getValidISOstring(jobStore.jobItem.nextRun) ? new Date(jobStore.jobItem.nextRun).toLocaleString() : 'N/A' }}
 						</p>
 					</div>
 					<div class="gridContent">
 						<b>Last Run:</b>
 						<p>
-							{{ new Date(jobStore.jobItem.lastRun).toLocaleString() || 'N/A' }}
+							{{ getValidISOstring(jobStore.jobItem.lastRun) ? new Date(jobStore.jobItem.lastRun).toLocaleString() : 'N/A' }}
 						</p>
 					</div>
 				</div>
@@ -194,6 +194,8 @@ import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+
+import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {
 	name: 'JobDetails',
