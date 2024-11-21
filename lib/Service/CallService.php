@@ -155,6 +155,21 @@ class CallService
 			return $callLog;
 		}
 
+		if (empty($this->source->getRateLimitRemaining()) === false && $this->source->getRateLimitRemaining() <= 0) {
+			// Create and save the CallLog
+			$callLog = new CallLog();
+			$callLog->setUuid(Uuid::v4());
+			$callLog->setSourceId($this->source->getId());
+			$callLog->setStatusCode(409); // @todo is this the correct status code?
+			$callLog->setStatusMessage("This source has reached it's rate limit");
+			$callLog->setCreated(new \DateTime());
+			$callLog->setUpdated(new \DateTime());
+
+			$this->callLogMapper->insert($callLog);
+
+			return $callLog;
+		}
+
 		// Check if the source has a configuration and merge it with the given config
 		if (empty($this->source->getConfiguration()) === false) {
 			$config = array_merge_recursive($config, $this->applyConfigDot($this->source->getConfiguration()));
@@ -211,6 +226,7 @@ class CallService
 			if ($asynchronous === false) {
 			   $response = $this->client->request($method, $url, $config);
 			} else {
+				// @todo: we want to get rate limit headers from async calls as well
 				return $this->client->requestAsync($method, $url, $config);
 			}
 		} catch (GuzzleHttp\Exception\BadResponseException $e) {
@@ -237,6 +253,9 @@ class CallService
 			]
 		];
 
+		// Update Rate Limit info for the source with the rate limit headers if present or if configured in the source.
+		$this->sourceRateLimit($source, $data['response']['headers']);
+
 		// Create and save the CallLog
 		$callLog = new CallLog();
 		$callLog->setUuid(Uuid::v4());
@@ -250,6 +269,38 @@ class CallService
 		$this->callLogMapper->insert($callLog);
 
 		return $callLog;
+	}
+
+	/**
+	 * Update the source with rate limit info if any of the rate limit headers are found
+	 *
+	 * @param Source $source The source to update
+	 * @param array $headers The headers to check
+	 *
+	 * @return void
+	 */
+	private function sourceRateLimit(Source $source, array $headers)
+	{
+		if (empty($headers['X-RateLimit-Limit']) === false) {
+			$source->setRateLimitLimit($headers['X-RateLimit-Limit']);
+		} elseif (empty($source->getRateLimitLimit()) === false
+			&& empty($source->getRateLimitRemaining()) === false
+			&& empty($headers['X-RateLimit-Remaining']) === true
+		) {
+			$rateLimitRemaining = $source->getRateLimitRemaining() - 1;
+
+			$source->setRateLimitRemaining($rateLimitRemaining);
+
+			return;
+		}
+
+		if (empty($headers['X-RateLimit-Remaining']) === false) {
+			$source->setRateLimitRemaining($headers['X-RateLimit-Remaining']);
+		}
+
+		if (empty($headers['X-RateLimit-Reset']) === false) {
+			$source->setRateLimitReset($headers['X-RateLimit-Reset']);
+		}
 	}
 
 	/**

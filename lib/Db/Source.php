@@ -45,6 +45,9 @@ class Source extends Entity implements JsonSerializable
 	protected ?DateTime $dateCreated = null;
 	protected ?DateTime $dateModified = null;
 	protected ?bool $test = null;
+	protected ?int $rateLimitLimit = null;
+	protected ?int $rateLimitRemaining = null;
+	protected ?int $rateLimitReset = null;
 
 	public function __construct() {
 		$this->addType('uuid', 'string');
@@ -84,6 +87,9 @@ class Source extends Entity implements JsonSerializable
 		$this->addType('dateCreated', 'datetime');
 		$this->addType('dateModified', 'datetime');
 		$this->addType('test', 'boolean');
+		$this->addType('rateLimitLimit', 'integer');
+		$this->addType('rateLimitRemaining', 'integer');
+		$this->addType('rateLimitReset', 'integer');
 	}
 
 	public function getJsonFields(): array
@@ -156,7 +162,10 @@ class Source extends Entity implements JsonSerializable
 			'objectCount' => $this->objectCount,
 			'dateCreated' => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
 			'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
-			'test' => $this->test
+			'test' => $this->test,
+			'rateLimitLimit' => $this->rateLimitLimit,
+			'rateLimitRemaining' => $this->rateLimitRemaining,
+			'rateLimitReset' => $this->rateLimitReset,
 		];
 	}
 }
