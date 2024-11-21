@@ -384,6 +384,7 @@ class SynchronizationService
 
         // Make the initial API call
         $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+		$lastHash = md5($response['body']);
         $body = json_decode($response['body'], true);
         if (empty($body) === true) {
             // @todo log that we got a empty response
@@ -416,6 +417,13 @@ class SynchronizationService
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+				$hash     = md5($response['body']);
+
+				if($hash === $lastHash) {
+					break;
+				}
+
+				$lastHash = $hash;
 				$body     = json_decode($response['body'], true);
 
 				if (empty($body) === true) {
@@ -488,8 +496,8 @@ class SynchronizationService
         $sourceConfig = $synchronization->getSourceConfig();
 
         // Check if a specific objects position is defined in the source configuration
-        if (empty($sourceConfig['objectsPosition']) === false) {
-            $position = $sourceConfig['objectsPosition'];
+        if (empty($sourceConfig['resultsPosition']) === false) {
+            $position = $sourceConfig['resultsPosition'];
             // Use Dot notation to access nested array elements
             $dot = new Dot($array);
             if ($dot->has($position) === true) {
