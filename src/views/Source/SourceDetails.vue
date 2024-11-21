@@ -33,6 +33,12 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 							</template>
 							Add Configuration
 						</NcActionButton>
+						<NcActionButton @click="sourceStore.setSourceConfigurationKey(null); navigationStore.setModal('editSourceConfigurationAuthentication')">
+							<template #icon>
+								<Plus :size="20" />
+							</template>
+							Add Authentication
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSource')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -56,8 +62,8 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Configurations">
-							<div v-if="sourceStore.sourceItem?.configuration !== null && Object.keys(sourceStore.sourceItem?.configuration).length > 0">
-								<NcListItem v-for="(value, key, i) in sourceStore.sourceItem?.configuration"
+							<div v-if="Object.keys(configuration)?.length">
+								<NcListItem v-for="(value, key, i) in configuration"
 									:key="`${key}${i}`"
 									:name="key"
 									:bold="false"
@@ -89,7 +95,44 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="sourceStore.sourceItem?.configuration === null || Object.keys(sourceStore.sourceItem?.configuration).length === 0" class="tabPanel">
+							<div v-if="!Object.keys(configuration)?.length" class="tabPanel">
+								No configurations found
+							</div>
+						</BTab>
+						<BTab title="Authentication">
+							<div v-if="Object.keys(configurationAuthentication)?.length">
+								<NcListItem v-for="(value, key, i) in configurationAuthentication"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="sourceStore.sourceConfigurationKey === key">
+									<template #icon>
+										<FileCogOutline
+											:class="sourceStore.sourceConfigurationKey === key && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="sourceStore.setSourceConfigurationKey(key); navigationStore.setModal('editSourceConfigurationAuthentication')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="sourceStore.setSourceConfigurationKey(key); navigationStore.setModal('deleteSourceConfigurationAuthentication')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!Object.keys(configurationAuthentication)?.length" class="tabPanel">
 								No configurations found
 							</div>
 						</BTab>
@@ -168,6 +211,28 @@ export default {
 		TrashCanOutline,
 		Sync,
 	},
+	computed: {
+		/**
+		 * Returns the configuration without the authentication configuration
+		 */
+		configuration() {
+			const filteredObj = Object.fromEntries(
+				Object.entries(sourceStore.sourceItem?.configuration)
+					.filter(([key]) => !key.startsWith('authentication.')),
+			)
+			return filteredObj
+		},
+		/**
+		 * Returns the authentication configuration
+		 */
+		configurationAuthentication() {
+			const filteredObj = Object.fromEntries(
+				Object.entries(sourceStore.sourceItem?.configuration)
+					.filter(([key]) => key.startsWith('authentication.')),
+			)
+			return filteredObj
+		},
+	},
 	mounted() {
 		this.refreshSourceLogs()
 	},
@@ -202,7 +267,6 @@ export default {
 		},
 		refreshSourceLogs() {
 			sourceStore.refreshSourceLogs()
-
 		},
 		checkIfStatusIsOk(statusCode) {
 			if (statusCode > 199 && statusCode < 300) {
@@ -220,8 +284,8 @@ export default {
 	font-size: 2em !important;
 	margin-block-start: 0.67em !important;
 	margin-block-end: 0.67em !important;
-	margin-inline-start: 0px !important;
-	margin-inline-end: 0px !important;
+	margin-inline-start: 0 !important;
+	margin-inline-end: 0 !important;
 	font-weight: bold !important;
 	unicode-bidi: isolate !important;
 }
