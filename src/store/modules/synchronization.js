@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Synchronization } from '../../entities/index.js'
 
@@ -9,26 +8,36 @@ export const useSynchronizationStore = defineStore('synchronization', {
 		synchronizationContracts: [],
 		synchronizationTest: null,
 		synchronizationLogs: [],
+		synchronizationSourceConfigKey: null,
+		synchronizationTargetConfigKey: null,
 	}),
 	actions: {
 		setSynchronizationItem(synchronizationItem) {
 			this.synchronizationItem = synchronizationItem && new Synchronization(synchronizationItem)
-			console.log('Active synchronization item set to ' + synchronizationItem)
+			console.info('Active synchronization item set to ' + synchronizationItem)
 		},
 		setSynchronizationList(synchronizationList) {
 			this.synchronizationList = synchronizationList.map(
 				(synchronizationItem) => new Synchronization(synchronizationItem),
 			)
-			console.log('Synchronization list set to ' + synchronizationList.length + ' items')
+			console.info('Synchronization list set to ' + synchronizationList.length + ' items')
 		},
 		setSynchronizationContracts(synchronizationContracts) {
 			this.synchronizationContracts = synchronizationContracts
-			console.log('Synchronization contracts set to ' + synchronizationContracts?.length + ' items')
+			console.info('Synchronization contracts set to ' + synchronizationContracts?.length + ' items')
 		},
 		setSynchronizationLogs(synchronizationLogs) {
 			this.synchronizationLogs = synchronizationLogs
 
-			console.log('Synchronization logs set to ' + synchronizationLogs?.length + ' items')
+			console.info('Synchronization logs set to ' + synchronizationLogs?.length + ' items')
+		},
+		setSynchronizationSourceConfigKey(key) {
+			this.synchronizationSourceConfigKey = key
+			console.info('Synchronization source config key set to ' + key)
+		},
+		setSynchronizationTargetConfigKey(key) {
+			this.synchronizationTargetConfigKey = key
+			console.info('Synchronization target config key set to ' + key)
 		},
 
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
@@ -127,7 +136,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				throw new Error('No synchronization item to delete')
 			}
 
-			console.log('Deleting synchronization...')
+			console.info('Deleting synchronization...')
 
 			const endpoint = `/index.php/apps/openconnector/api/synchronizations/${this.synchronizationItem.id}`
 
@@ -148,7 +157,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				throw new Error('No synchronization item to save')
 			}
 
-			console.log('Saving synchronization...')
+			console.info('Saving synchronization...')
 
 			const isNewSynchronization = !synchronizationItem?.id
 			const endpoint = isNewSynchronization
@@ -167,7 +176,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				},
 			)
 
-			console.log('Synchronization saved')
+			console.info('Synchronization saved')
 
 			const data = await response.json()
 			const entity = new Synchronization(data)
@@ -183,7 +192,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				throw new Error('No synchronization item to test')
 			}
 
-			console.log('Testing synchronization...')
+			console.info('Testing synchronization...')
 
 			const endpoint = `/index.php/apps/openconnector/api/synchronizations-test/${this.synchronizationItem.id}`
 
@@ -197,7 +206,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			const data = await response.json()
 			this.synchronizationTest = data
 
-			console.log('Synchronization tested')
+			console.info('Synchronization tested')
 			this.refreshSynchronizationLogs()
 
 			return { response, data }

@@ -38,6 +38,10 @@ import { navigationStore } from '../store/store.js'
 		<ViewJobLog />
 		<ViewSynchronizationLog />
 		<ViewSynchronizationContract />
+		<EditSynchronizationSourceConfig v-if="navigationStore.modal === 'editSynchronizationSourceConfig'" />
+		<DeleteSynchronizationSourceConfig v-if="navigationStore.modal === 'deleteSynchronizationSourceConfig'" />
+		<EditSynchronizationTargetConfig v-if="navigationStore.modal === 'editSynchronizationTargetConfig'" />
+		<DeleteSynchronizationTargetConfig v-if="navigationStore.modal === 'deleteSynchronizationTargetConfig'" />
 	</div>
 </template>
 
@@ -76,6 +80,10 @@ import ViewSynchronizationLog from './Log/ViewSynchronizationLog.vue'
 import ViewSynchronizationContract from './Log/ViewSynchronizationContract.vue'
 import EditMappingUnset from './mappingUnset/EditMappingUnset.vue'
 import DeleteMappingUnset from './mappingUnset/DeleteMappingUnset.vue'
+import EditSynchronizationSourceConfig from './SynchronizationSourceConfig/EditSynchronizationSourceConfig.vue'
+import DeleteSynchronizationSourceConfig from './SynchronizationSourceConfig/DeleteSynchronizationSourceConfig.vue'
+import EditSynchronizationTargetConfig from './SynchronizationTargetConfig/EditSynchronizationTargetConfig.vue'
+import DeleteSynchronizationTargetConfig from './SynchronizationTargetConfig/DeleteSynchronizationTargetConfig.vue'
 
 export default {
 	name: 'Modals',
@@ -114,6 +122,10 @@ export default {
 		ViewSynchronizationContract,
 		EditMappingUnset,
 		DeleteMappingUnset,
+		EditSynchronizationSourceConfig,
+		DeleteSynchronizationSourceConfig,
+		EditSynchronizationTargetConfig,
+		DeleteSynchronizationTargetConfig,
 	},
 	setup() {
 		return {
