@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Synchronization } from '../../entities/index.js'
 
@@ -9,26 +8,36 @@ export const useSynchronizationStore = defineStore('synchronization', {
 		synchronizationContracts: [],
 		synchronizationTest: null,
 		synchronizationLogs: [],
+		synchronizationSourceConfigKey: null,
+		synchronizationTargetConfigKey: null,
 	}),
 	actions: {
 		setSynchronizationItem(synchronizationItem) {
 			this.synchronizationItem = synchronizationItem && new Synchronization(synchronizationItem)
-			console.log('Active synchronization item set to ' + synchronizationItem)
+			console.info('Active synchronization item set to ' + synchronizationItem)
 		},
 		setSynchronizationList(synchronizationList) {
 			this.synchronizationList = synchronizationList.map(
 				(synchronizationItem) => new Synchronization(synchronizationItem),
 			)
-			console.log('Synchronization list set to ' + synchronizationList.length + ' items')
+			console.info('Synchronization list set to ' + synchronizationList.length + ' items')
 		},
 		setSynchronizationContracts(synchronizationContracts) {
 			this.synchronizationContracts = synchronizationContracts
-			console.log('Synchronization contracts set to ' + synchronizationContracts?.length + ' items')
+			console.info('Synchronization contracts set to ' + synchronizationContracts?.length + ' items')
 		},
 		setSynchronizationLogs(synchronizationLogs) {
 			this.synchronizationLogs = synchronizationLogs
 
-			console.log('Synchronization logs set to ' + synchronizationLogs?.length + ' items')
+			console.info('Synchronization logs set to ' + synchronizationLogs?.length + ' items')
+		},
+		setSynchronizationSourceConfigKey(key) {
+			this.synchronizationSourceConfigKey = key
+			console.info('Synchronization source config key set to ' + key)
+		},
+		setSynchronizationTargetConfigKey(key) {
+			this.synchronizationTargetConfigKey = key
+			console.info('Synchronization target config key set to ' + key)
 		},
 
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
@@ -127,7 +136,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				throw new Error('No synchronization item to delete')
 			}
 
-			console.log('Deleting synchronization...')
+			console.info('Deleting synchronization...')
 
 			const endpoint = `/index.php/apps/openconnector/api/synchronizations/${this.synchronizationItem.id}`
 
@@ -143,12 +152,12 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				})
 		},
 		// Create or save a synchronization from store
-		saveSynchronization(synchronizationItem) {
+		async saveSynchronization(synchronizationItem) {
 			if (!synchronizationItem) {
 				throw new Error('No synchronization item to save')
 			}
 
-			console.log('Saving synchronization...')
+			console.info('Saving synchronization...')
 
 			const isNewSynchronization = !synchronizationItem?.id
 			const endpoint = isNewSynchronization
@@ -156,7 +165,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				: `/index.php/apps/openconnector/api/synchronizations/${synchronizationItem.id}`
 			const method = isNewSynchronization ? 'POST' : 'PUT'
 
-			return fetch(
+			const response = await fetch(
 				endpoint,
 				{
 					method,
@@ -166,17 +175,16 @@ export const useSynchronizationStore = defineStore('synchronization', {
 					body: JSON.stringify(synchronizationItem),
 				},
 			)
-				.then((response) => response.json())
-				.then((data) => {
-					this.setSynchronizationItem(data)
-					console.log('Synchronization saved')
 
-					this.refreshSynchronizationList()
-				})
-				.catch((err) => {
-					console.error('Error saving synchronization:', err)
-					throw err
-				})
+			console.info('Synchronization saved')
+
+			const data = await response.json()
+			const entity = new Synchronization(data)
+
+			this.setSynchronizationItem(entity)
+			this.refreshSynchronizationList()
+
+			return { response, data, entity }
 		},
 		// Test a synchronization
 		async testSynchronization() {
@@ -184,7 +192,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				throw new Error('No synchronization item to test')
 			}
 
-			console.log('Testing synchronization...')
+			console.info('Testing synchronization...')
 
 			const endpoint = `/index.php/apps/openconnector/api/synchronizations-test/${this.synchronizationItem.id}`
 
@@ -198,7 +206,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			const data = await response.json()
 			this.synchronizationTest = data
 
-			console.log('Synchronization tested')
+			console.info('Synchronization tested')
 			this.refreshSynchronizationLogs()
 
 			return { response, data }

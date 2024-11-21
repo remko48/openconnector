@@ -1,25 +1,23 @@
 <script setup>
-import { navigationStore, mappingStore } from '../../store/store.js'
+import { navigationStore, sourceStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcDialog
-		v-if="navigationStore.modal === 'deleteMappingCast'"
-		name="Delete Cast"
+	<NcDialog name="Delete Source Authentication"
 		:can-close="false">
 		<div v-if="success !== null || error">
 			<NcNoteCard v-if="success" type="success">
-				<p>Successfully deleted cast</p>
+				<p>Successfully deleted source authentication</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="!success" type="error">
-				<p>Something went wrong deleting the cast</p>
+				<p>Something went wrong deleting the source authentication</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
 			</NcNoteCard>
 		</div>
 		<p v-if="success === null">
-			Do you want to delete <b>{{ mappingStore.mappingCastKey }}</b>? This action cannot be undone.
+			Do you want to delete <b>{{ sourceStore.sourceConfigurationKey.replace(/^authentication\./g, '') }}</b> from Source Authentication?
 		</p>
 		<template #actions>
 			<NcButton :disabled="loading" icon="" @click="closeModal">
@@ -33,7 +31,7 @@ import { navigationStore, mappingStore } from '../../store/store.js'
 				:disabled="loading"
 				icon="Delete"
 				type="error"
-				@click="deleteMappingCast()">
+				@click="deleteSourceConfiguration()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<Delete v-if="!loading" :size="20" />
@@ -51,7 +49,7 @@ import Cancel from 'vue-material-design-icons/Cancel.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 export default {
-	name: 'DeleteMappingCast',
+	name: 'DeleteSourceConfigurationAuthentication',
 	components: {
 		NcDialog,
 		NcButton,
@@ -73,19 +71,19 @@ export default {
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = null
+			sourceStore.setSourceConfigurationKey(null)
 		},
-		deleteMappingCast() {
+		deleteSourceConfiguration() {
 			this.loading = true
 
-			const mappingClone = { ...mappingStore.mappingItem }
-			delete mappingClone?.cast[mappingStore.mappingCastKey]
+			const sourceItemClone = { ...sourceStore.sourceItem }
+			delete sourceItemClone?.configuration[sourceStore.sourceConfigurationKey]
 
-			const mappingItem = {
-				...mappingStore.mappingItem,
+			const sourceItem = {
+				...sourceStore.sourceItem,
 			}
 
-			mappingStore.saveMapping(mappingItem)
+			sourceStore.saveSource(sourceItem)
 				.then(() => {
 					this.loading = false
 					this.success = true

@@ -143,6 +143,10 @@ import { mappingStore } from '../../../store/store.js'
 					:error="!validJson(mappingItem.cast, true)"
 					:helper-text="!validJson(mappingItem.cast, true) ? 'Invalid JSON' : ''" />
 
+				<NcTextArea :value.sync="mappingItem.unset"
+					label="unset"
+					helper-text="Enter a comma-separated list of keys." />
+
 				<div class="buttons">
 					<NcButton class="reset-button"
 						type="secondary"
@@ -229,6 +233,7 @@ export default {
 				description: '',
 				mapping: '{}',
 				cast: '{}',
+				unset: '', // array as string
 			},
 			// use uniqueMappingId as the "No mapping" option's ID to avoid any possible truthy comparisons
 			uniqueMappingId: Symbol('No Mapping'), // Symbol creates a truly unique value, so unique making 2 of the same symbol will never be the same.
@@ -296,12 +301,14 @@ export default {
 					description: '',
 					mapping: '{}',
 					cast: '{}',
+					unset: '',
 				}
 			} else {
 				this.mappingItem.name = this.mappings.value.fullMapping.name
 				this.mappingItem.description = this.mappings.value.fullMapping.description
 				this.mappingItem.mapping = JSON.stringify(this.mappings.value.fullMapping.mapping, null, 2)
 				this.mappingItem.cast = JSON.stringify(this.mappings.value.fullMapping.cast, null, 2)
+				this.mappingItem.unset = this.mappings.value.fullMapping.unset.join(', ') // turn the array into a string
 			}
 		},
 		async fetchMappings(currentMappingItem = null) {
@@ -419,6 +426,7 @@ export default {
 					description: this.mappingItem.description,
 					mapping: JSON.parse(this.mappingItem.mapping),
 					cast: this.mappingItem.cast ? JSON.parse(this.mappingItem.cast) : null,
+					unset: this.mappingItem.unset.split(/ *, */g),
 				},
 				inputObject: JSON.parse(this.inputObject.value),
 				schema: this.schemas.value?.id,
@@ -443,6 +451,7 @@ export default {
 				description: this.mappingItem.description,
 				mapping: JSON.parse(this.mappingItem.mapping),
 				cast: JSON.parse(this.mappingItem.cast),
+				unset: this.mappingItem.unset.split(/ *, */g),
 			})
 
 			mappingStore.saveMapping(newMappingItem)

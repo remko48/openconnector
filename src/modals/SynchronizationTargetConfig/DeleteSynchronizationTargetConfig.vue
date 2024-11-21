@@ -1,28 +1,26 @@
 <script setup>
-import { navigationStore, mappingStore } from '../../store/store.js'
+import { navigationStore, synchronizationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcDialog
-		v-if="navigationStore.modal === 'deleteMappingCast'"
-		name="Delete Cast"
+	<NcDialog name="Delete Target Config"
 		:can-close="false">
 		<div v-if="success !== null || error">
 			<NcNoteCard v-if="success" type="success">
-				<p>Successfully deleted cast</p>
+				<p>Successfully deleted target config</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="!success" type="error">
-				<p>Something went wrong deleting the cast</p>
+				<p>Something went wrong deleting the target config</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
 			</NcNoteCard>
 		</div>
 		<p v-if="success === null">
-			Do you want to delete <b>{{ mappingStore.mappingCastKey }}</b>? This action cannot be undone.
+			Do you want to delete <b>{{ synchronizationStore.synchronizationTargetConfigKey }}</b>?
 		</p>
 		<template #actions>
-			<NcButton :disabled="loading" icon="" @click="closeModal">
+			<NcButton :disabled="loading" @click="closeModal">
 				<template #icon>
 					<Cancel :size="20" />
 				</template>
@@ -33,7 +31,7 @@ import { navigationStore, mappingStore } from '../../store/store.js'
 				:disabled="loading"
 				icon="Delete"
 				type="error"
-				@click="deleteMappingCast()">
+				@click="deleteTargetConfig()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<Delete v-if="!loading" :size="20" />
@@ -51,7 +49,7 @@ import Cancel from 'vue-material-design-icons/Cancel.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 export default {
-	name: 'DeleteMappingCast',
+	name: 'DeleteSynchronizationTargetConfig',
 	components: {
 		NcDialog,
 		NcButton,
@@ -73,28 +71,37 @@ export default {
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = null
+			synchronizationStore.setSynchronizationTargetConfigKey(null)
 		},
-		deleteMappingCast() {
+		deleteTargetConfig() {
 			this.loading = true
 
-			const mappingClone = { ...mappingStore.mappingItem }
-			delete mappingClone?.cast[mappingStore.mappingCastKey]
+			const targetConfigClone = { ...synchronizationStore.synchronizationItem.targetConfig }
 
-			const mappingItem = {
-				...mappingStore.mappingItem,
+			if (synchronizationStore.synchronizationTargetConfigKey in targetConfigClone) {
+				delete targetConfigClone[synchronizationStore.synchronizationTargetConfigKey]
+			} else {
+				this.error = 'Target config not found'
+				this.loading = false
+				return
 			}
 
-			mappingStore.saveMapping(mappingItem)
-				.then(() => {
-					this.loading = false
-					this.success = true
+			const synchronizationItem = {
+				...synchronizationStore.synchronizationItem,
+				targetConfig: targetConfigClone,
+			}
+
+			synchronizationStore.saveSynchronization(synchronizationItem)
+				.then(({ response }) => {
+					this.success = response.ok
 
 					// Wait for the user to read the feedback then close the model
 					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 				})
 				.catch((err) => {
 					this.error = err
+				})
+				.finally(() => {
 					this.loading = false
 				})
 		},

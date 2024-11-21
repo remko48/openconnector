@@ -327,6 +327,7 @@ class AuthenticationService
 		}
 
 		$payload = $this->getJWTPayload($configuration);
+
 		$jwk 	 = $this->getJWK($configuration);
 
 		if ($jwk === null) {

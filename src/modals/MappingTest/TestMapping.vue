@@ -19,7 +19,8 @@ import { navigationStore } from '../../store/store.js'
 					@mapping-selected="receiveMappingSelected"
 					@mapping-test="receiveMappingTest" />
 				<TestMappingResult ref="mappingResultRef"
-					:mapping-test="mappingTest" />
+					:mapping-test="mappingTest"
+					:schema="schema" />
 			</div>
 		</div>
 	</NcModal>
@@ -82,7 +83,7 @@ export default {
 			value.error !== undefined && (this.mappingTest.error = value.error) // boolean / string
 		},
 		receiveSchemaSelected(value) {
-			value.selected && (this.schema.selected = value.selected)
+			value?.selected !== undefined && (this.schema.selected = value.selected)
 			value.schemas && (this.schema.schemas = value.schemas)
 			value.success !== undefined && (this.schema.success = value.success) // boolean
 			value.loading !== undefined && (this.schema.loading = value.loading) // boolean

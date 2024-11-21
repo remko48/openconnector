@@ -80,8 +80,9 @@ class CallLog extends Entity implements JsonSerializable
             'synchronizationId' => $this->synchronizationId,            
             'userId' => $this->userId,
             'sessionId' => $this->sessionId,
-            'expires' => $this->expires,
-            'created' => $this->created,
+            'expires' => isset($this->expires) ? $this->expires->format('c') : null,
+            'created' => isset($this->created) ? $this->created->format('c') : null,
+            
         ];
     }
 }

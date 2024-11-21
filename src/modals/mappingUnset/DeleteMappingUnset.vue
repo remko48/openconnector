@@ -3,23 +3,21 @@ import { navigationStore, mappingStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcDialog
-		v-if="navigationStore.modal === 'deleteMappingCast'"
-		name="Delete Cast"
+	<NcDialog name="Delete Mapping Unset"
 		:can-close="false">
 		<div v-if="success !== null || error">
 			<NcNoteCard v-if="success" type="success">
-				<p>Successfully deleted cast</p>
+				<p>Successfully deleted mapping unset</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="!success" type="error">
-				<p>Something went wrong deleting the cast</p>
+				<p>Something went wrong deleting the mapping unset</p>
 			</NcNoteCard>
 			<NcNoteCard v-if="error" type="error">
 				<p>{{ error }}</p>
 			</NcNoteCard>
 		</div>
 		<p v-if="success === null">
-			Do you want to delete <b>{{ mappingStore.mappingCastKey }}</b>? This action cannot be undone.
+			Do you want to delete <b>{{ mappingStore.mappingUnsetKey }}</b>? This action cannot be undone.
 		</p>
 		<template #actions>
 			<NcButton :disabled="loading" icon="" @click="closeModal">
@@ -33,7 +31,7 @@ import { navigationStore, mappingStore } from '../../store/store.js'
 				:disabled="loading"
 				icon="Delete"
 				type="error"
-				@click="deleteMappingCast()">
+				@click="deleteMappingUnset()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<Delete v-if="!loading" :size="20" />
@@ -51,7 +49,7 @@ import Cancel from 'vue-material-design-icons/Cancel.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 export default {
-	name: 'DeleteMappingCast',
+	name: 'DeleteMappingUnset',
 	components: {
 		NcDialog,
 		NcButton,
@@ -73,28 +71,38 @@ export default {
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = null
+			mappingStore.setMappingUnsetKey(null)
 		},
-		deleteMappingCast() {
+		deleteMappingUnset() {
 			this.loading = true
 
 			const mappingClone = { ...mappingStore.mappingItem }
-			delete mappingClone?.cast[mappingStore.mappingCastKey]
+
+			const unsetIndex = mappingClone.unset.indexOf(mappingStore.mappingUnsetKey)
+			if (unsetIndex > -1) {
+				mappingClone.unset.splice(unsetIndex, 1)
+			} else {
+				this.error = 'Mapping unset not found'
+				this.loading = false
+				return
+			}
 
 			const mappingItem = {
 				...mappingStore.mappingItem,
+				unset: mappingClone.unset,
 			}
 
 			mappingStore.saveMapping(mappingItem)
-				.then(() => {
-					this.loading = false
-					this.success = true
+				.then(({ response }) => {
+					this.success = response.ok
 
 					// Wait for the user to read the feedback then close the model
 					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 				})
 				.catch((err) => {
 					this.error = err
+				})
+				.finally(() => {
 					this.loading = false
 				})
 		},
