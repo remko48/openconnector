@@ -12,9 +12,6 @@ on:
         required: false
         default: ''
 
-permissions:
-  contents: write
-
 jobs:
   release-management:
     runs-on: ubuntu-latest
