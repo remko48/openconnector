@@ -57,6 +57,8 @@ import {
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
+import renameKey from '../../services/renameKeyInObject.js'
+
 export default {
 	name: 'EditSourceConfiguration',
 	components: {
@@ -131,16 +133,17 @@ export default {
 		async editSourceConfiguration() {
 			this.loading = true
 
+			// create a new source item, which is a clone of the current source item
 			const newSourceItem = {
 				...sourceStore.sourceItem,
-				configuration: {
-					...sourceStore.sourceItem.configuration,
-					[this.configurationItem.key]: this.configurationItem.value,
-				},
 			}
+			// add the new value to the new source item at the original key, or the new key if its not an edit modal.
+			newSourceItem.configuration[sourceStore.sourceConfigurationKey || this.configurationItem.key] = this.configurationItem.value
 
-			if (this.oldKey !== '' && this.oldKey !== this.configurationItem.key) {
-				delete newSourceItem.configuration[this.oldKey]
+			// if the key is being changed, rename the key in the configuration
+			// only runs when editing an existing key
+			if (sourceStore.sourceConfigurationKey && this.configurationItem.key !== sourceStore.sourceConfigurationKey) {
+				newSourceItem.configuration = renameKey(newSourceItem.configuration, this.oldKey, this.configurationItem.key)
 			}
 
 			try {
