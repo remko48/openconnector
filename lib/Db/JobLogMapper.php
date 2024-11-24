@@ -98,4 +98,82 @@ class JobLogMapper extends QBMapper
             return null;
         }
     }
+
+    /**
+     * Get job statistics grouped by date for a specific date range
+     * 
+     * @param \DateTime $from Start date
+     * @param \DateTime $to End date
+     * @return array Array of daily statistics with counts per log level
+     */
+    public function getJobStatsByDateRange(\DateTime $from, \DateTime $to): array 
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        $qb->select(
+                $qb->createFunction('DATE(created) as date'),
+                $qb->createFunction('SUM(CASE WHEN level = \'INFO\' THEN 1 ELSE 0 END) as info'),
+                $qb->createFunction('SUM(CASE WHEN level = \'WARNING\' THEN 1 ELSE 0 END) as warning'),
+                $qb->createFunction('SUM(CASE WHEN level = \'ERROR\' THEN 1 ELSE 0 END) as error'),
+                $qb->createFunction('SUM(CASE WHEN level = \'DEBUG\' THEN 1 ELSE 0 END) as debug')
+            )
+            ->from('openconnector_job_logs')
+            ->where($qb->expr()->gte('created', $qb->createNamedParameter($from->format('Y-m-d H:i:s'))))
+            ->andWhere($qb->expr()->lte('created', $qb->createNamedParameter($to->format('Y-m-d H:i:s'))))
+            ->groupBy('date')
+            ->orderBy('date', 'ASC');
+
+        $result = $qb->execute();
+        $stats = [];
+
+        while ($row = $result->fetch()) {
+            $stats[$row['date']] = [
+                'info' => (int)$row['info'],
+                'warning' => (int)$row['warning'],
+                'error' => (int)$row['error'],
+                'debug' => (int)$row['debug']
+            ];
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Get job statistics grouped by hour for a specific date range
+     * 
+     * @param \DateTime $from Start date
+     * @param \DateTime $to End date
+     * @return array Array of hourly statistics with counts per log level
+     */
+    public function getJobStatsByHourRange(\DateTime $from, \DateTime $to): array 
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        $qb->select(
+                $qb->createFunction('HOUR(created) as hour'),
+                $qb->createFunction('SUM(CASE WHEN level = \'INFO\' THEN 1 ELSE 0 END) as info'),
+                $qb->createFunction('SUM(CASE WHEN level = \'WARNING\' THEN 1 ELSE 0 END) as warning'),
+                $qb->createFunction('SUM(CASE WHEN level = \'ERROR\' THEN 1 ELSE 0 END) as error'),
+                $qb->createFunction('SUM(CASE WHEN level = \'DEBUG\' THEN 1 ELSE 0 END) as debug')
+            )
+            ->from('openconnector_job_logs')
+            ->where($qb->expr()->gte('created', $qb->createNamedParameter($from->format('Y-m-d H:i:s'))))
+            ->andWhere($qb->expr()->lte('created', $qb->createNamedParameter($to->format('Y-m-d H:i:s'))))
+            ->groupBy('hour')
+            ->orderBy('hour', 'ASC');
+
+        $result = $qb->execute();
+        $stats = [];
+
+        while ($row = $result->fetch()) {
+            $stats[$row['hour']] = [
+                'info' => (int)$row['info'],
+                'warning' => (int)$row['warning'],
+                'error' => (int)$row['error'],
+                'debug' => (int)$row['debug']
+            ];
+        }
+
+        return $stats;
+    }
 }
