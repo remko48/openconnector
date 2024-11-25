@@ -39,16 +39,16 @@ class Source extends Entity implements JsonSerializable
 	protected ?string $status = null;
 	protected ?int $logRetention = 3600; // seconds to save all logs
 	protected ?int $errorRetention = 86400; // seconds to save error logs
+	protected ?int $objectCount = null;
+	protected ?bool $test = null;
+	protected ?int $rateLimitLimit = null; // Indicates the total number of allowed requests within a specific time period.
+	protected ?int $rateLimitRemaining = null; // Specifies how many requests are still allowed within the current limit.
+	protected ?int $rateLimitReset = null; // A Unix Time Stamp that indicates when the rate limit will be reset.
+	protected ?int $rateLimitWindow = null; // Indicates how many seconds the client must wait before making new requests.
 	protected ?DateTime $lastCall = null;
 	protected ?DateTime $lastSync = null;
-	protected ?int $objectCount = null;
 	protected ?DateTime $dateCreated = null;
 	protected ?DateTime $dateModified = null;
-	protected ?bool $test = null;
-	protected ?int $rateLimitLimit = null;
-	protected ?int $rateLimitRemaining = null;
-	protected ?int $rateLimitReset = null;
-	protected ?int $rateLimitWindow = null;
 
 	public function __construct() {
 		$this->addType('uuid', 'string');
@@ -82,16 +82,16 @@ class Source extends Entity implements JsonSerializable
 		$this->addType('status', 'string');
 		$this->addType('logRetention', 'integer');
 		$this->addType('errorRetention', 'integer');
-		$this->addType('lastCall', 'datetime');
-		$this->addType('lastSync', 'datetime');
 		$this->addType('objectCount', 'integer');
-		$this->addType('dateCreated', 'datetime');
-		$this->addType('dateModified', 'datetime');
 		$this->addType('test', 'boolean');
 		$this->addType('rateLimitLimit', 'integer');
 		$this->addType('rateLimitRemaining', 'integer');
 		$this->addType('rateLimitReset', 'integer');
 		$this->addType('rateLimitWindow', 'integer');
+		$this->addType('lastCall', 'datetime');
+		$this->addType('lastSync', 'datetime');
+		$this->addType('dateCreated', 'datetime');
+		$this->addType('dateModified', 'datetime');
 	}
 
 	public function getJsonFields(): array
@@ -159,16 +159,16 @@ class Source extends Entity implements JsonSerializable
 			'status' => $this->status,
 			'logRetention' => $this->logRetention,
 			'errorRetention' => $this->errorRetention,
-			'lastCall' => $this->lastCall,
-			'lastSync' => $this->lastSync,
 			'objectCount' => $this->objectCount,
-			'dateCreated' => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
-			'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
 			'test' => $this->test,
 			'rateLimitLimit' => $this->rateLimitLimit,
 			'rateLimitRemaining' => $this->rateLimitRemaining,
 			'rateLimitReset' => $this->rateLimitReset,
 			'rateLimitWindow' => $this->rateLimitWindow,
+			'lastCall' => $this->lastCall,
+			'lastSync' => $this->lastSync,
+			'dateCreated' => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
+			'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
 		];
 	}
 }
