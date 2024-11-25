@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Service;
 
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use JWadhams\JsonLogic;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\Mapping;
 use OCA\OpenConnector\Db\Source;
@@ -244,15 +245,19 @@ class SynchronizationService
         $synchronizationContract->setSourceLastChecked(new DateTime());
 
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
-        if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
+        if ($originHash === $synchronizationContract->getOriginHash() || $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
             // The object has not changed and the config has not been updated since last check
-            // return $synchronizationContract;
-            // @todo: somehow this always returns true, so we never do the updateTarget
+             return $synchronizationContract;
         }
 
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
+
+		// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
+		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
+			return $synchronizationContract;
+		}
 
         // If no source target mapping is defined, use original object
         if (empty($synchronization->getSourceTargetMapping()) === true) {

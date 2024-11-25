@@ -46,6 +46,8 @@ class Source extends Entity implements JsonSerializable
 	protected ?DateTime $dateModified = null;
 	protected ?bool $test = null;
 
+	protected array $conditions = [];
+
 	public function __construct() {
 		$this->addType('uuid', 'string');
 		$this->addType('name', 'string');
@@ -84,6 +86,7 @@ class Source extends Entity implements JsonSerializable
 		$this->addType('dateCreated', 'datetime');
 		$this->addType('dateModified', 'datetime');
 		$this->addType('test', 'boolean');
+		$this->addType('conditions', 'json');
 	}
 
 	public function getJsonFields(): array
