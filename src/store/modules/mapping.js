@@ -88,7 +88,13 @@ export const useMappingStore = defineStore('mapping', {
 					throw err
 				})
 		},
-		// Create or save a mapping from store
+		/**
+		 * Create or save a mapping from the store.
+		 *
+		 * @param {object} mappingItem - The mapping item to be saved.
+		 * @throws Will throw an error if no mapping item is provided.
+		 * @return {Promise<{ response: Response, data: object, entity: object }>} The response, data, and entity of the saved mapping.
+		 */
 		async saveMapping(mappingItem) {
 			if (!mappingItem) {
 				throw new Error('No mapping item to save')

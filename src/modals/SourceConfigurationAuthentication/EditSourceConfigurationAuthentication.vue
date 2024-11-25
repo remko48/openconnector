@@ -8,14 +8,17 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 		@close="closeModal">
 		<div class="modalContent">
 			<h2>{{ isEdit ? 'Edit' : 'Add' }} Authentication</h2>
-			<NcNoteCard v-if="success" type="success">
-				<p>Authentication successfully added</p>
-			</NcNoteCard>
-			<NcNoteCard v-if="error" type="error">
-				<p>{{ error }}</p>
-			</NcNoteCard>
 
-			<form v-if="!success" @submit.prevent="handleSubmit">
+			<div v-if="success !== null">
+				<NcNoteCard v-if="success" type="success">
+					<p>Authentication successfully added</p>
+				</NcNoteCard>
+				<NcNoteCard v-if="error" type="error">
+					<p>{{ error }}</p>
+				</NcNoteCard>
+			</div>
+
+			<form v-if="success === null" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<NcTextField
 						id="key"
@@ -31,8 +34,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				</div>
 			</form>
 
-			<NcButton
-				v-if="!success"
+			<NcButton v-if="success === null"
 				:disabled="loading || !configurationItem.key || checkIfKeyIsUnique(configurationItem.key)"
 				type="primary"
 				@click="editSourceConfiguration()">
@@ -54,7 +56,11 @@ import {
 	NcNoteCard,
 	NcTextField,
 } from '@nextcloud/vue'
+import _ from 'lodash'
+
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
+
+import renameKey from '../../services/renameKeyInObject.js'
 
 export default {
 	name: 'EditSourceConfigurationAuthentication',
@@ -73,13 +79,11 @@ export default {
 				key: '',
 				value: '',
 			},
-			success: false,
+			success: null,
 			loading: false,
 			error: false,
-			hasUpdated: false,
 			closeTimeoutFunc: null,
-			oldKey: '',
-			isEdit: false,
+			isEdit: !!sourceStore.sourceConfigurationKey,
 		}
 	},
 	mounted() {
@@ -96,49 +100,46 @@ export default {
 					key: configurationItem[0].replace(/^authentication\./g, '') || '',
 					value: configurationItem[1] || '',
 				}
-				this.oldKey = configurationItem[0]
-				this.isEdit = true
 			}
 		},
 		checkIfKeyIsUnique(key) {
 			if (!sourceStore.sourceItem.configuration) return false
 			const fullKey = `authentication.${key}`
 			const keys = Object.keys(sourceStore.sourceItem.configuration)
-			if (this.oldKey === fullKey) return false
+			if (sourceStore.sourceConfigurationKey === fullKey) return false
 			if (keys.includes(fullKey)) return true
 			return false
 		},
 		closeModal() {
 			navigationStore.setModal(false)
-			clearTimeout(this.closeTimeoutFunc)
 			sourceStore.setSourceConfigurationKey(null)
+			clearTimeout(this.closeTimeoutFunc)
 		},
 		async editSourceConfiguration() {
 			this.loading = true
 
-			const newSourceItem = {
-				...sourceStore.sourceItem,
-				configuration: {
-					...sourceStore.sourceItem.configuration,
-					[`authentication.${this.configurationItem.key}`]: this.configurationItem.value,
-				},
+			const oldKey = sourceStore.sourceConfigurationKey
+			const newKey = `authentication.${this.configurationItem.key}`
+
+			const newSourceItem = _.cloneDeep(sourceStore.sourceItem)
+			newSourceItem.configuration[newKey] = this.configurationItem.value
+
+			if (this.isEdit && oldKey !== newKey) {
+				newSourceItem.configuration = renameKey(newSourceItem.configuration, oldKey, newKey)
 			}
 
-			if (this.oldKey !== '' && this.oldKey !== `authentication.${this.configurationItem.key}`) {
-				delete newSourceItem.configuration[this.oldKey]
-			}
-
-			try {
-				await sourceStore.saveSource(newSourceItem)
-				// Close modal or show success message
-				this.success = true
-				this.loading = false
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			} catch (error) {
-				this.loading = false
-				this.success = false
-				this.error = error.message || 'An error occurred while saving the authentication configuration'
-			}
+			sourceStore.saveSource(newSourceItem)
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				})
+				.catch((error) => {
+					this.success = false
+					this.error = error.message || 'An error occurred while saving the source configuration'
+				})
+				.finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

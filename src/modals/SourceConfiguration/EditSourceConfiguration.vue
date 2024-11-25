@@ -3,20 +3,22 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editSourceConfiguration'"
-		ref="modalRef"
+	<NcModal ref="modalRef"
 		label-id="editSourceConfiguration"
 		@close="closeModal">
 		<div class="modalContent">
 			<h2>{{ isEdit ? 'Edit' : 'Add' }} Configuration</h2>
-			<NcNoteCard v-if="success" type="success">
-				<p>Configuration successfully added</p>
-			</NcNoteCard>
-			<NcNoteCard v-if="error" type="error">
-				<p>{{ error }}</p>
-			</NcNoteCard>
 
-			<form v-if="!success" @submit.prevent="handleSubmit">
+			<div v-if="success !== null">
+				<NcNoteCard v-if="success" type="success">
+					<p>Configuration successfully added</p>
+				</NcNoteCard>
+				<NcNoteCard v-if="error" type="error">
+					<p>{{ error }}</p>
+				</NcNoteCard>
+			</div>
+
+			<form v-if="success === null" @submit.prevent="handleSubmit">
 				<div class="form-group">
 					<NcTextField
 						id="key"
@@ -32,8 +34,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				</div>
 			</form>
 
-			<NcButton
-				v-if="!success"
+			<NcButton v-if="success === null"
 				:disabled="loading || !configurationItem.key || checkIfKeyIsUnique(configurationItem.key)"
 				type="primary"
 				@click="editSourceConfiguration()">
@@ -55,6 +56,8 @@ import {
 	NcNoteCard,
 	NcTextField,
 } from '@nextcloud/vue'
+import _ from 'lodash'
+
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 import renameKey from '../../services/renameKeyInObject.js'
@@ -76,23 +79,15 @@ export default {
 				key: '',
 				value: '',
 			},
-			success: false,
+			success: null,
 			loading: false,
 			error: false,
-			hasUpdated: false,
 			closeTimeoutFunc: null,
-			oldKey: '',
-			isEdit: false,
+			isEdit: !!sourceStore.sourceConfigurationKey,
 		}
 	},
 	mounted() {
 		this.initializeSourceConfiguration()
-	},
-	updated() {
-		if (navigationStore.modal === 'editSourceConfiguration' && !this.hasUpdated) {
-			this.initializeSourceConfiguration()
-			this.hasUpdated = true
-		}
 	},
 	methods: {
 		initializeSourceConfiguration() {
@@ -105,8 +100,6 @@ export default {
 					key: configurationItem[0] || '',
 					value: configurationItem[1] || '',
 				}
-				this.oldKey = configurationItem[0]
-				this.isEdit = true
 			}
 		},
 		checkIfKeyIsUnique(key) {
@@ -118,25 +111,14 @@ export default {
 		},
 		closeModal() {
 			navigationStore.setModal(false)
+			sourceStore.setSourceConfigurationKey(null)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = false
-			this.loading = false
-			this.error = false
-			this.hasUpdated = false
-			this.isEdit = false
-			this.oldKey = ''
-			this.configurationItem = {
-				key: '',
-				value: '',
-			}
 		},
 		async editSourceConfiguration() {
 			this.loading = true
 
 			// create a new source item, which is a clone of the current source item
-			const newSourceItem = {
-				...sourceStore.sourceItem,
-			}
+			const newSourceItem = _.cloneDeep(sourceStore.sourceItem)
 			// add the new value to the new source item at the original key, or the new key if its not an edit modal.
 			newSourceItem.configuration[sourceStore.sourceConfigurationKey || this.configurationItem.key] = this.configurationItem.value
 
@@ -146,17 +128,18 @@ export default {
 				newSourceItem.configuration = renameKey(newSourceItem.configuration, this.oldKey, this.configurationItem.key)
 			}
 
-			try {
-				await sourceStore.saveSource(newSourceItem)
-				// Close modal or show success message
-				this.success = true
-				this.loading = false
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			} catch (error) {
-				this.loading = false
-				this.success = false
-				this.error = error.message || 'An error occurred while saving the source configuration'
-			}
+			sourceStore.saveSource(newSourceItem)
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				})
+				.catch((error) => {
+					this.success = false
+					this.error = error.message || 'An error occurred while saving the source configuration'
+				})
+				.finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

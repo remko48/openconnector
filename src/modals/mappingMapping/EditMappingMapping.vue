@@ -3,8 +3,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'editMappingMapping'"
-		ref="modalRef"
+	<NcModal ref="modalRef"
 		label-id="editMappingMapping"
 		@close="closeModal">
 		<div class="modalContent">
@@ -55,7 +54,11 @@ import {
 	NcNoteCard,
 	NcTextField,
 } from '@nextcloud/vue'
+import _ from 'lodash'
+
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
+
+import renameKey from '../../services/renameKeyInObject.js'
 
 export default {
 	name: 'EditMappingMapping',
@@ -79,8 +82,7 @@ export default {
 			error: false,
 			hasUpdated: false,
 			closeTimeoutFunc: null,
-			oldKey: '',
-			isEdit: false,
+			isEdit: !!mappingStore.mappingMappingKey,
 		}
 	},
 	mounted() {
@@ -103,57 +105,42 @@ export default {
 					key: mappingItem[0] || '',
 					value: mappingItem[1] || '',
 				}
-				this.oldKey = mappingItem[0]
-				this.isEdit = true
 			}
 		},
 		checkIfKeyIsUnique(key) {
 			if (!mappingStore.mappingItem.mapping) return false
 			const keys = Object.keys(mappingStore.mappingItem.mapping)
-			if (this.oldKey === key) return false
+			if (mappingStore.mappingMappingKey === key) return false
 			if (keys.includes(key)) return true
 			return false
 		},
 		closeModal() {
 			navigationStore.setModal(false)
+			mappingStore.setMappingMappingKey(null)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = false
-			this.loading = false
-			this.error = false
-			this.hasUpdated = false
-			this.isEdit = false
-			this.oldKey = ''
-			this.mappingItem = {
-				key: '',
-				value: '',
-			}
 		},
 		async editMapping() {
 			this.loading = true
 
-			const newMappingItem = {
-				...mappingStore.mappingItem,
-				mapping: {
-					...mappingStore.mappingItem.mapping,
-					[this.mappingItem.key]: this.mappingItem.value,
-				},
+			const newMappingItem = _.cloneDeep(mappingStore.mappingItem)
+			newMappingItem.mapping[mappingStore.mappingMappingKey || this.mappingItem.key] = this.mappingItem.value
+
+			if (mappingStore.mappingMappingKey && mappingStore.mappingMappingKey !== this.mappingItem.key) {
+				newMappingItem.mapping = renameKey(newMappingItem.mapping, mappingStore.mappingMappingKey, this.mappingItem.key)
 			}
 
-			if (this.oldKey !== '' && this.oldKey !== this.mappingItem.key) {
-				delete newMappingItem.mapping[this.oldKey]
-			}
-
-			try {
-				await mappingStore.saveMapping(newMappingItem)
-				// Close modal or show success message
-				this.success = true
-				this.loading = false
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			} catch (error) {
-				this.loading = false
-				this.success = false
-				this.error = error.message || 'An error occurred while saving the mapping'
-			}
+			mappingStore.saveMapping(newMappingItem)
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				})
+				.catch((error) => {
+					this.success = false
+					this.error = error.message || 'An error occurred while saving the mapping'
+				})
+				.finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

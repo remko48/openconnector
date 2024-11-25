@@ -19,7 +19,7 @@ import { navigationStore } from '../store/store.js'
 		<DeleteMapping />
 		<EditMapping />
 		<TestMapping v-if="navigationStore.modal === 'testMapping'" />
-		<EditMappingMapping />
+		<EditMappingMapping v-if="navigationStore.modal === 'editMappingMapping'" />
 		<DeleteMappingMapping />
 		<EditMappingCast />
 		<DeleteMappingCast />
@@ -30,7 +30,7 @@ import { navigationStore } from '../store/store.js'
 		<TestSynchronization v-if="navigationStore.modal === 'testSynchronization'" />
 		<EditJobArgument />
 		<DeleteJobArgument />
-		<EditSourceConfiguration />
+		<EditSourceConfiguration v-if="navigationStore.modal === 'editSourceConfiguration'" />
 		<DeleteSourceConfiguration />
 		<EditSourceConfigurationAuthentication v-if="navigationStore.modal === 'editSourceConfigurationAuthentication'" />
 		<DeleteSourceConfigurationAuthentication v-if="navigationStore.modal === 'deleteSourceConfigurationAuthentication'" />

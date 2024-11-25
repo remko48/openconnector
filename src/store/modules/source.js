@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { defineStore } from 'pinia'
-import { Source } from '../../entities/index.js'
+import { Source, TSource } from '../../entities/index.js'
 
 export const useSourceStore = defineStore(
 	'source', {
@@ -152,14 +152,28 @@ export const useSourceStore = defineStore(
 						throw err
 					})
 			},
-			// Create or save a source from store
-			saveSource(sourceItem) {
+			/**
+			 * Saves a source item to the server. This function handles both the creation of new sources
+			 * and the updating of existing ones. It sends a POST request for new sources and a PUT request
+			 * for existing sources. The function also removes any empty properties and specific fields
+			 * like `dateCreated` and `dateModified` before sending the data to the server.
+			 *
+			 * @async
+			 * @param {TSource} sourceItem - The source item to be saved. This object should contain all the necessary
+			 *                              properties of a source, including an `id` if it is an existing source.
+			 * @return {Promise<{ response: Response, data: TSource, entity: Source }>}
+			 *                            A promise that resolves to an object containing the server response, the data
+			 *                            returned by the server, and the entity created from the data.
+			 * @throws Throws an error if the `sourceItem` is not provided.
+			 */
+			async saveSource(sourceItem) {
 				if (!sourceItem) {
 					throw new Error('No source item to save')
 				}
 
 				console.log('Saving source...')
 
+				// Determine if the source is new or existing based on the presence of an id
 				const isNewSource = !sourceItem.id
 				const endpoint = isNewSource
 					? '/index.php/apps/openconnector/api/sources'
@@ -174,11 +188,12 @@ export const useSourceStore = defineStore(
 					}
 				})
 
-				// remove the dateCreated and dateModified fields
+				// Remove the dateCreated and dateModified fields
 				delete sourceToSave.dateCreated
 				delete sourceToSave.dateModified
 
-				return fetch(
+				// Send the request to the server
+				const response = await fetch(
 					endpoint,
 					{
 						method,
@@ -188,17 +203,17 @@ export const useSourceStore = defineStore(
 						body: JSON.stringify(sourceToSave),
 					},
 				)
-					.then((response) => response.json())
-					.then((data) => {
-						this.setSourceItem(data)
-						console.log('Source saved')
-						// Refresh the source list
-						return this.refreshSourceList()
-					})
-					.catch((err) => {
-						console.error('Error saving source:', err)
-						throw err
-					})
+
+				// Parse the response data
+				const data = await response.json()
+				const entity = new Source(data)
+
+				// Update the local state with the new or updated source
+				this.setSourceItem(entity)
+				this.refreshSourceList()
+
+				// Return the response, data, and entity
+				return { response, data, entity }
 			},
 		},
 	},
