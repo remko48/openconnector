@@ -155,13 +155,23 @@ class CallService
 			return $callLog;
 		}
 
-		if (empty($this->source->getRateLimitRemaining()) === false && $this->source->getRateLimitRemaining() <= 0) {
+		// Check if Source has a RateLimit and if we need to reset RateLimit-Reset and RateLimit-Remaining.
+		if ($this->source->getRateLimitReset() !== null
+			&& $this->source->getRateLimitRemaining() !== null
+			&& $this->source->getRateLimitReset() <= time()
+		) {
+			$this->source->setRateLimitReset(null);
+			$this->source->getRateLimitRemaining(null);
+		}
+
+		// Check if RateLimit-Remaining is set on this source and if limit has been reached.
+		if ($this->source->getRateLimitRemaining() !== null && $this->source->getRateLimitRemaining() <= 0) {
 			// Create and save the CallLog
 			$callLog = new CallLog();
 			$callLog->setUuid(Uuid::v4());
 			$callLog->setSourceId($this->source->getId());
-			$callLog->setStatusCode(409); // @todo is this the correct status code?
-			$callLog->setStatusMessage("This source has reached it's rate limit");
+			$callLog->setStatusCode(429); //
+			$callLog->setStatusMessage("The rate limit for this source has been exceeded");
 			$callLog->setCreated(new \DateTime());
 			$callLog->setUpdated(new \DateTime());
 
@@ -281,25 +291,39 @@ class CallService
 	 */
 	private function sourceRateLimit(Source $source, array $headers)
 	{
-		if (empty($headers['X-RateLimit-Limit']) === false) {
-			$source->setRateLimitLimit($headers['X-RateLimit-Limit']);
-		} elseif (empty($source->getRateLimitLimit()) === false
-			&& empty($source->getRateLimitRemaining()) === false
-			&& empty($headers['X-RateLimit-Remaining']) === true
-		) {
-			$rateLimitRemaining = $source->getRateLimitRemaining() - 1;
-
-			$source->setRateLimitRemaining($rateLimitRemaining);
-
-			return;
+		// Check if RateLimit-Reset is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Reset']) === true) {
+			$source->setRateLimitReset($headers['X-RateLimit-Reset']);
 		}
 
-		if (empty($headers['X-RateLimit-Remaining']) === false) {
+		// If RateLimit-Reset not in headers and source->RateLimit-Reset === null. But source->RateLimit-Window is set.
+		if (isset($headers['X-RateLimit-Reset']) === false
+			&& $source->getRateLimitReset() === null
+			&& $source->getRateLimitWindow() !== null
+		) {
+			// Set new RateLimit-Reset time on the source.
+			$rateLimitReset = time() + $source->getRateLimitWindow();
+			$source->setRateLimitReset($rateLimitReset);
+		}
+
+		// Check if RateLimit-Limit is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Limit']) === true) {
+			$source->setRateLimitLimit($headers['X-RateLimit-Limit']);
+		}
+
+		// Check if RateLimit-Remaining is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Remaining']) === true) {
 			$source->setRateLimitRemaining($headers['X-RateLimit-Remaining']);
 		}
 
-		if (empty($headers['X-RateLimit-Reset']) === false) {
-			$source->setRateLimitReset($headers['X-RateLimit-Reset']);
+		// If RateLimit-Remaining not in headers and source->RateLimit-Limit is set, update source->RateLimit-Remaining.
+		if (isset($headers['X-RateLimit-Remaining']) === false && $source->getRateLimitLimit() !== null) {
+			$rateLimitRemaining = $source->getRateLimitRemaining();
+			if ($rateLimitRemaining === null) {
+				// Re-set the RateLimit-Remaining on the source.
+				$rateLimitRemaining = $source->getRateLimitLimit();
+			}
+			$source->setRateLimitRemaining($rateLimitRemaining - 1);
 		}
 	}
 

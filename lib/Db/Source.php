@@ -48,6 +48,7 @@ class Source extends Entity implements JsonSerializable
 	protected ?int $rateLimitLimit = null;
 	protected ?int $rateLimitRemaining = null;
 	protected ?int $rateLimitReset = null;
+	protected ?int $rateLimitWindow = null;
 
 	public function __construct() {
 		$this->addType('uuid', 'string');
@@ -90,6 +91,7 @@ class Source extends Entity implements JsonSerializable
 		$this->addType('rateLimitLimit', 'integer');
 		$this->addType('rateLimitRemaining', 'integer');
 		$this->addType('rateLimitReset', 'integer');
+		$this->addType('rateLimitWindow', 'integer');
 	}
 
 	public function getJsonFields(): array
@@ -166,6 +168,7 @@ class Source extends Entity implements JsonSerializable
 			'rateLimitLimit' => $this->rateLimitLimit,
 			'rateLimitRemaining' => $this->rateLimitRemaining,
 			'rateLimitReset' => $this->rateLimitReset,
+			'rateLimitWindow' => $this->rateLimitWindow,
 		];
 	}
 }

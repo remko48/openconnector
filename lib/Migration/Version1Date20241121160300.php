@@ -64,6 +64,13 @@ class Version1Date20241121160300 extends SimpleMigrationStep {
 			]);
 		}
 
+		if ($table->hasColumn('rateLimitWindow') === false) {
+			$table->addColumn('rateLimitWindow', Types::INTEGER, [
+				'notnull' => false,
+				'default' => null
+			]);
+		}
+
 		return $schema;
 	}
 
