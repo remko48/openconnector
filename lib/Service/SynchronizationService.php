@@ -175,6 +175,17 @@ class SynchronizationService
         return $originId;
     }
 
+	/**
+	 * Fetch an object from a specific endpoint.
+	 *
+	 * @param Synchronization $synchronization The synchronization containing the source.
+	 * @param string $endpoint The endpoint to request to fetch the desired object.
+	 *
+	 * @return array The resulting object.
+	 *
+	 * @throws GuzzleException
+	 * @throws \OCP\DB\Exception
+	 */
 	public function getObjectFromSource(Synchronization $synchronization, string $endpoint): array
 	{
 		$source = $this->sourceMapper->find(id: $synchronization->getSourceId());
