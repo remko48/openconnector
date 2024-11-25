@@ -41,31 +41,31 @@ class Version1Date20241121160300 extends SimpleMigrationStep {
 		 * @var ISchemaWrapper $schema
 		 */
 		$schema = $schemaClosure();
-		$table = $schema->getTable('openconnector_source');
+		$table = $schema->getTable('openconnector_sources');
 
-		if ($table->hasColumn('rateLimitLimit') === false) {
-			$table->addColumn('rateLimitLimit', Types::INTEGER, [
+		if ($table->hasColumn('rate_limit_limit') === false) {
+			$table->addColumn('rate_limit_limit', Types::INTEGER, [
 				'notnull' => false,
 				'default' => null
 			]);
 		}
 
-		if ($table->hasColumn('rateLimitRemaining') === false) {
-			$table->addColumn('rateLimitRemaining', Types::INTEGER, [
+		if ($table->hasColumn('rate_limit_remaining') === false) {
+			$table->addColumn('rate_limit_remaining', Types::INTEGER, [
 				'notnull' => false,
 				'default' => null
 			]);
 		}
 
-		if ($table->hasColumn('rateLimitReset') === false) {
-			$table->addColumn('rateLimitReset', Types::INTEGER, [
+		if ($table->hasColumn('rate_limit_reset') === false) {
+			$table->addColumn('rate_limit_reset', Types::INTEGER, [
 				'notnull' => false,
 				'default' => null
 			]);
 		}
 
-		if ($table->hasColumn('rateLimitWindow') === false) {
-			$table->addColumn('rateLimitWindow', Types::INTEGER, [
+		if ($table->hasColumn('rate_limit_window') === false) {
+			$table->addColumn('rate_limit_window', Types::INTEGER, [
 				'notnull' => false,
 				'default' => null
 			]);

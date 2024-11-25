@@ -42,11 +42,13 @@ class CallService
 	 * The constructor sets al needed variables.
 	 *
 	 * @param CallLogMapper $callLogMapper
+	 * @param SourceMapper $sourceMapper
 	 * @param ArrayLoader $loader
 	 * @param AuthenticationService $authenticationService
 	 */
 	public function __construct(
 		private readonly CallLogMapper $callLogMapper,
+		private readonly SourceMapper $sourceMapper,
 		ArrayLoader $loader,
 		AuthenticationService $authenticationService
 	)
@@ -133,7 +135,6 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -148,7 +149,6 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source has no location");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -161,7 +161,9 @@ class CallService
 			&& $this->source->getRateLimitReset() <= time()
 		) {
 			$this->source->setRateLimitReset(null);
-			$this->source->getRateLimitRemaining(null);
+			$this->source->setRateLimitRemaining(null);
+
+			$this->sourceMapper->update($source);
 		}
 
 		// Check if RateLimit-Remaining is set on this source and if limit has been reached.
@@ -173,7 +175,6 @@ class CallService
 			$callLog->setStatusCode(429); //
 			$callLog->setStatusMessage("The rate limit for this source has been exceeded");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -288,6 +289,7 @@ class CallService
 	 * @param array $headers The headers to check
 	 *
 	 * @return void
+	 * @throws \OCP\DB\Exception
 	 */
 	private function sourceRateLimit(Source $source, array $headers)
 	{
@@ -325,6 +327,8 @@ class CallService
 			}
 			$source->setRateLimitRemaining($rateLimitRemaining - 1);
 		}
+
+		$this->sourceMapper->update($source);
 	}
 
 	/**
