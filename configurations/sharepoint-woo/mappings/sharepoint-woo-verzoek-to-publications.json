@@ -1,0 +1,12 @@
+{
+	"name": "Sharepoint Woo verzoek to Publication",
+	"description": "",
+	"version": "",
+	"reference": "",
+	"mapping": {
+		"title": "Name"
+	},
+	"unset": [],
+	"cast": [],
+	"passThrough": false
+}
