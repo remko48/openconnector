@@ -35,13 +35,40 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 					</p>
 				</NcNoteCard>
 
-				<div v-if="response">
-					<p><b>Status:</b> {{ response?.statusText }} ({{ response?.status }})</p>
-					<p><b>Response time:</b> {{ response?.responseTime ?? 'Onbekend' }} (Milliseconds)</p>
-					<p><b>Size:</b> {{ response?.size ?? 'Onbekend' }} (Bytes)</p>
-					<p><b>Remote IP:</b> {{ response?.remoteIp ?? 'Onbekend' }}</p>
-					<p><b>Headers:</b> {{ response?.headers }}</p>
-					<p><b>Body:</b> {{ response?.body }}</p>
+				<div v-if="response" class="detailTable">
+					<table>
+						<tr>
+							<td><b>Status:</b></td>
+							<td>{{ response?.statusText }} ({{ response?.status }})</td>
+						</tr>
+						<tr>
+							<td><b>Response time:</b></td>
+							<td>{{ response?.responseTime ?? 'Onbekend' }} (Milliseconds)</td>
+						</tr>
+						<tr>
+							<td><b>Size:</b></td>
+							<td>{{ response?.size ?? 'Onbekend' }} (Bytes)</td>
+						</tr>
+						<tr>
+							<td><b>Remote IP:</b></td>
+							<td>{{ response?.remoteIp ?? 'Onbekend' }}</td>
+						</tr>
+						<tr>
+							<td><b>Headers:</b></td>
+							<td>
+								<table>
+									<tr v-for="(header, index) in response?.headers" :key="index">
+										<td><b>{{ header[0] }}:</b></td>
+										<td>{{ header[1] }}</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+						<tr>
+							<td><b>Body:</b></td>
+							<td>{{ response?.body }}</td>
+						</tr>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -84,12 +111,13 @@ export default {
 			this.error = false
 
 			synchronizationStore.testSynchronization()
-				.then(({ response }) => {
+				.then(async ({ response }) => {
 					this.response = response
 					this.success = response.ok
 				}).catch((error) => {
 					this.success = false
 					this.error = error.message || 'An error occurred while testing the synchronization'
+					console.error(error)
 				}).finally(() => {
 					this.loading = false
 				})
@@ -102,5 +130,21 @@ export default {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 5px;
+}
+
+.detailTable {
+	overflow-x: auto;
+}
+
+.detailTable > table {
+	width: 100%;
+	border: 1px solid grey;
+	border-collapse: collapse;
+}
+
+.detailTable > table > tr > td,
+.detailTable > table > tr > th {
+	border: 1px solid grey;
+	padding: 5px;
 }
 </style>
