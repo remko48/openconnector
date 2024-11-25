@@ -181,7 +181,6 @@ class SynchronizationService
 
 		// Lets get the source config
 		$sourceConfig = $synchronization->getSourceConfig();
-		$endpoint = $sourceConfig['endpoint'] ?? '';
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
 		$config = [
@@ -221,6 +220,7 @@ class SynchronizationService
 
 			// Update endpoint
 			$endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $synchronization->getSourceConfig()['singleEndpoint']);
+			$endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
 
 			// Get object from source
 			$object = $this->getObjectFromSource(synchronization: $synchronization, endpoint: $endpoint);
