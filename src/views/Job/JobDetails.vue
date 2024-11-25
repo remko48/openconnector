@@ -53,7 +53,7 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
 						<b>id:</b>
-						<p>{{ jobStore.jobItem.uuid }}</p>
+						<p>{{ jobStore.jobItem.id }}</p>
 					</div>
 					<div class="gridContent">
 						<b>Status:</b>
