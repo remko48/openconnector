@@ -118,6 +118,20 @@ class SynchronizationContractLogMapper extends QBMapper
 		$result = $qb->execute();
 		$stats = [];
 
+		// Create DatePeriod to iterate through all dates
+		$period = new \DatePeriod(
+			$from,
+			new \DateInterval('P1D'),
+			$to->modify('+1 day')
+		);
+
+		// Initialize all dates with zero values
+		foreach ($period as $date) {
+			$dateStr = $date->format('Y-m-d');
+			$stats[$dateStr] = 0;
+		}
+
+		// Fill in actual values where they exist
 		while ($row = $result->fetch()) {
 			$stats[$row['date']] = (int)$row['executions'];
 		}

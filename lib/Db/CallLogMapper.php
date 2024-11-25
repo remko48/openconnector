@@ -206,6 +206,7 @@ class CallLogMapper extends QBMapper
     {
         $qb = $this->db->getQueryBuilder();
 
+        // Get the actual data from database
         $qb->select(
                 $qb->createFunction('DATE(created) as date'),
                 $qb->createFunction('SUM(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 ELSE 0 END) as success'),
@@ -219,7 +220,24 @@ class CallLogMapper extends QBMapper
 
         $result = $qb->execute();
         $stats = [];
+        
+        // Create DatePeriod to iterate through all dates
+        $period = new \DatePeriod(
+            $from,
+            new \DateInterval('P1D'),
+            $to->modify('+1 day')
+        );
 
+        // Initialize all dates with zero values
+        foreach ($period as $date) {
+            $dateStr = $date->format('Y-m-d');
+            $stats[$dateStr] = [
+                'success' => 0,
+                'error' => 0
+            ];
+        }
+
+        // Fill in actual values where they exist
         while ($row = $result->fetch()) {
             $stats[$row['date']] = [
                 'success' => (int)$row['success'],

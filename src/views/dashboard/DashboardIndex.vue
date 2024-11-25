@@ -193,12 +193,23 @@ export default {
 					xaxis: {
 						type: 'datetime',
 						labels: {
+							datetimeFormatter: {
+								year: 'yyyy',
+								month: 'MMM \'yy',
+								day: 'dd MMM',
+							},
+							format: 'dd MMM',
 							style: {
 								colors: '#000000'
 							}
 						}
 					},
-					colors: ['#28a745', '#dc3545'], // Green for success, red for errors
+					tooltip: {
+						x: {
+							format: 'dd MMM yyyy'
+						}
+					},
+					colors: [getTheme() === 'dark' ? '#28a745' : 'rgb(0, 103, 158)', '#dc3545'], // Nextcloud blue for light mode, green for dark mode
 					title: {
 						text: 'Daily Outgoing Calls',
 						align: 'left'
@@ -572,22 +583,22 @@ export default {
 				)
 				const { daily, hourly } = response.data
 
-				// Update daily stats
+				// Ensure dates are properly formatted for the chart
 				this.sourcesCalls.series = [
 					{
 						name: 'Successful Calls',
 						data: Object.entries(daily).map(([date, stats]) => ({
-							x: new Date(date).getTime(),
-							y: stats.success,
-						})),
+							x: new Date(date).getTime(),  // Convert to timestamp
+							y: stats.success
+						})).sort((a, b) => a.x - b.x)
 					},
 					{
 						name: 'Failed Calls',
 						data: Object.entries(daily).map(([date, stats]) => ({
-							x: new Date(date).getTime(),
-							y: stats.error,
-						})),
-					},
+							x: new Date(date).getTime(),  // Convert to timestamp
+							y: stats.error
+						})).sort((a, b) => a.x - b.x)
+					}
 				]
 
 				// Update hourly stats
