@@ -104,7 +104,6 @@ class SynchronizationService
                     $synchronizationContract = $this->synchronizationContractMapper->createFromArray([
                         'synchronizationId' => $synchronization->getId(),
                         'originId' => $originId,
-                        'originHash' => md5(serialize($object))
                     ]);
                 } else {
                     $synchronizationContract = new SynchronizationContract();
@@ -135,6 +134,11 @@ class SynchronizationService
 
             $this->synchronizationContractMapper->update($synchronizationContract);
         }
+
+		foreach ($synchronization->getFollowUps() as $followUp) {
+			$followUpSynchronization = $this->synchronizationMapper->find($followUp);
+			$this->synchronize($followUpSynchronization, $isTest);
+		}
 
         return $objectList;
     }
@@ -246,7 +250,7 @@ class SynchronizationService
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
         if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
             // The object has not changed and the config has not been updated since last check
-             return $synchronizationContract;
+			return $synchronizationContract;
         }
 
         // The object has changed, oke let do mappig and bla die bla

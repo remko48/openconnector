@@ -17,7 +17,9 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 /**
- * FIXME Auto-generated migration step: Please modify to your needs!
+ * Adds two columns to the Synchronizations table:
+ * - conditions for json logic
+ * - follow_ups for follow up synchronizations
  */
 class Version1Date20241126074122 extends SimpleMigrationStep {
 
@@ -44,6 +46,12 @@ class Version1Date20241126074122 extends SimpleMigrationStep {
 			$table = $schema->getTable(tableName: 'openconnector_synchronizations');
 			if ($table->hasColumn(name: 'conditions') === false) {
 				$table->addColumn(name: 'conditions', typeName: Types::JSON)
+					->setDefault(default: '{}')
+					->setNotnull(notnull:false);
+			}
+			if ($table->hasColumn(name: 'follow_ups') === false) {
+
+				$table->addColumn(name: 'follow_ups', typeName: Types::JSON)
 					->setDefault(default: '{}')
 					->setNotnull(notnull:false);
 			}
