@@ -10,11 +10,11 @@ import { navigationStore } from '../../store/store.js'
 
 		<div class="dashboard-content">
 			<div class="stats">
-				<div 
-					v-for="(stat, key) in statsConfig" 
+				<div
+					v-for="(stat, key) in statsConfig"
 					:key="key"
-					@click="navigateTo(key)"
-					:class="{ clickable: true }">
+					:class="{ clickable: true }"
+					@click="navigateTo(key)">
 					<h5>{{ stat.label }}</h5>
 					<div class="content">
 						<NcLoadingIcon v-if="isLoading" :size="44" />
@@ -33,8 +33,7 @@ import { navigationStore } from '../../store/store.js'
 						:max-date="dateRange.to"
 						:show-time="true"
 						:placeholder="'Select start date'"
-						@change="handleDateChange"
-					/>
+						@change="handleDateChange" />
 				</div>
 				<div class="date-picker">
 					<label for="toDate">To:</label>
@@ -44,8 +43,7 @@ import { navigationStore } from '../../store/store.js'
 						:max-date="new Date()"
 						:show-time="true"
 						:placeholder="'Select end date'"
-						@change="handleDateChange"
-					/>
+						@change="handleDateChange" />
 				</div>
 			</div>
 
@@ -134,8 +132,7 @@ import { generateUrl } from '@nextcloud/router'
 import { getTheme } from '../../services/getTheme.js'
 
 /**
- * @component DashboardIndex
- * @description Dashboard component showing statistics and graphs for the OpenConnector app
+ * Dashboard component showing statistics and graphs for the OpenConnector app
  */
 export default {
 	name: 'DashboardIndex',
@@ -154,7 +151,7 @@ export default {
 			isLoading: true,
 			stats: {
 				sources: 0,
-				mappings: 0, 
+				mappings: 0,
 				synchronizations: 0,
 				synchronizationContracts: 0,
 				jobs: 0,
@@ -200,33 +197,33 @@ export default {
 							},
 							format: 'dd MMM',
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					tooltip: {
 						x: {
-							format: 'dd MMM yyyy'
-						}
+							format: 'dd MMM yyyy',
+						},
 					},
-					colors: [getTheme() === 'dark' ? '#28a745' : 'rgb(0, 103, 158)', '#dc3545'], // Nextcloud blue for light mode, green for dark mode
+					colors: ['#28a745', '#dc3545'], // Green for success, red for errors
 					title: {
 						text: 'Daily Outgoing Calls',
-						align: 'left'
+						align: 'left',
 					},
 					yaxis: {
 						title: {
 							text: 'Number of Calls',
 							style: {
-								color: '#000000'
-							}
+								color: '#000000',
+							},
 						},
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
-					}
+								colors: '#000000',
+							},
+						},
+					},
 				},
 				series: [
 					{
@@ -257,36 +254,36 @@ export default {
 						curve: 'smooth',
 					},
 					xaxis: {
-						categories: Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0') + ':00'),
+						categories: Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'),
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					colors: ['#28a745', '#dc3545'],
 					title: {
 						text: 'Hourly Outgoing Calls',
-						align: 'left'
+						align: 'left',
 					},
 					yaxis: {
 						title: {
 							text: 'Average Number of Calls',
 							style: {
-								color: '#000000'
-							}
+								color: '#000000',
+							},
 						},
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					legend: {
 						labels: {
-							colors: '#000000'
-						}
-					}
+							colors: '#000000',
+						},
+					},
 				},
 				series: [
 					{
@@ -320,28 +317,28 @@ export default {
 						type: 'datetime',
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					colors: ['#28a745', '#ffc107', '#dc3545', '#17a2b8'], // green, yellow, red, blue for info, warning, error, debug
 					title: {
 						text: 'Daily Job Executions by Level',
-						align: 'left'
+						align: 'left',
 					},
 					yaxis: {
 						title: {
 							text: 'Number of Logs',
 							style: {
-								color: '#000000'
-							}
+								color: '#000000',
+							},
 						},
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
-					}
+								colors: '#000000',
+							},
+						},
+					},
 				},
 				series: [
 					{
@@ -380,36 +377,36 @@ export default {
 						curve: 'smooth',
 					},
 					xaxis: {
-						categories: Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0') + ':00'),
+						categories: Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'),
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					colors: ['#28a745', '#ffc107', '#dc3545', '#17a2b8'],
 					title: {
 						text: 'Hourly Job Executions by Level',
-						align: 'left'
+						align: 'left',
 					},
 					yaxis: {
 						title: {
 							text: 'Average Number of Logs',
 							style: {
-								color: '#000000'
-							}
+								color: '#000000',
+							},
 						},
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					legend: {
 						labels: {
-							colors: '#000000'
-						}
-					}
+							colors: '#000000',
+						},
+					},
 				},
 				series: [
 					{
@@ -451,34 +448,34 @@ export default {
 						type: 'datetime',
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					colors: ['#28a745'], // Only green since we're only showing executions
 					title: {
 						text: 'Daily Synchronization Executions',
-						align: 'left'
+						align: 'left',
 					},
 					yaxis: {
 						title: {
 							text: 'Number of Executions',
 							style: {
-								color: '#000000'
-							}
+								color: '#000000',
+							},
 						},
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
-					}
+								colors: '#000000',
+							},
+						},
+					},
 				},
 				series: [
 					{
 						name: 'Executions',
 						data: [],
-					}
+					},
 				],
 			},
 			syncCallsByHour: {
@@ -499,49 +496,49 @@ export default {
 						curve: 'smooth',
 					},
 					xaxis: {
-						categories: Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0') + ':00'),
+						categories: Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'),
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					colors: ['#28a745'],
 					title: {
 						text: 'Hourly Synchronization Executions',
-						align: 'left'
+						align: 'left',
 					},
 					yaxis: {
 						title: {
 							text: 'Average Number of Executions',
 							style: {
-								color: '#000000'
-							}
+								color: '#000000',
+							},
 						},
 						labels: {
 							style: {
-								colors: '#000000'
-							}
-						}
+								colors: '#000000',
+							},
+						},
 					},
 					legend: {
 						labels: {
-							colors: '#000000'
-						}
-					}
+							colors: '#000000',
+						},
+					},
 				},
 				series: [
 					{
 						name: 'Executions',
 						data: Array(24).fill(0),
-					}
+					},
 				],
 			},
 		}
 	},
 	/**
 	 * Fetch stats when component is mounted
-	 * @returns {Promise<void>}
+	 * @return {Promise<void>}
 	 */
 	async mounted() {
 		await Promise.all([
@@ -554,7 +551,7 @@ export default {
 	methods: {
 		/**
 		 * Fetches statistics from the backend
-		 * @returns {Promise<void>}
+		 * @return {Promise<void>}
 		 * @throws {Error} When the API call fails
 		 */
 		async fetchStats() {
@@ -572,14 +569,14 @@ export default {
 
 		/**
 		 * Fetches call statistics from the backend
-		 * @returns {Promise<void>}
+		 * @return {Promise<void>}
 		 */
 		async fetchCallStats() {
 			try {
 				const params = this.getDateRangeParams()
 				const response = await axios.get(
-					generateUrl('/apps/openconnector/api/dashboard/callstats'), 
-					{ params }
+					generateUrl('/apps/openconnector/api/dashboard/callstats'),
+					{ params },
 				)
 				const { daily, hourly } = response.data
 
@@ -588,17 +585,17 @@ export default {
 					{
 						name: 'Successful Calls',
 						data: Object.entries(daily).map(([date, stats]) => ({
-							x: new Date(date).getTime(),  // Convert to timestamp
-							y: stats.success
-						})).sort((a, b) => a.x - b.x)
+							x: new Date(date).getTime(), // Convert to timestamp
+							y: stats.success,
+						})).sort((a, b) => a.x - b.x),
 					},
 					{
 						name: 'Failed Calls',
 						data: Object.entries(daily).map(([date, stats]) => ({
-							x: new Date(date).getTime(),  // Convert to timestamp
-							y: stats.error
-						})).sort((a, b) => a.x - b.x)
-					}
+							x: new Date(date).getTime(), // Convert to timestamp
+							y: stats.error,
+						})).sort((a, b) => a.x - b.x),
+					},
 				]
 
 				// Update hourly stats
@@ -626,14 +623,14 @@ export default {
 
 		/**
 		 * Fetches job statistics from the backend
-		 * @returns {Promise<void>}
+		 * @return {Promise<void>}
 		 */
 		async fetchJobStats() {
 			try {
 				const params = this.getDateRangeParams()
 				const response = await axios.get(
 					generateUrl('/apps/openconnector/api/dashboard/jobstats'),
-					{ params }
+					{ params },
 				)
 				const { daily, hourly } = response.data
 
@@ -707,14 +704,14 @@ export default {
 
 		/**
 		 * Fetches synchronization statistics from the backend
-		 * @returns {Promise<void>}
+		 * @return {Promise<void>}
 		 */
 		async fetchSyncStats() {
 			try {
 				const params = this.getDateRangeParams()
 				const response = await axios.get(
 					generateUrl('/apps/openconnector/api/dashboard/syncstats'),
-					{ params }
+					{ params },
 				)
 				const { daily, hourly } = response.data
 
@@ -726,7 +723,7 @@ export default {
 							x: new Date(date).getTime(),
 							y: count,
 						})),
-					}
+					},
 				]
 
 				// Update hourly stats
@@ -739,7 +736,7 @@ export default {
 					{
 						name: 'Executions',
 						data: executionData,
-					}
+					},
 				]
 			} catch (error) {
 				console.error('Error fetching sync stats:', error)
@@ -794,7 +791,7 @@ export default {
 
 		/**
 		 * Get date range parameters for API calls
-		 * @returns {Object} Object containing from and to dates in ISO format
+		 * @return {object} Object containing from and to dates in ISO format
 		 */
 		getDateRangeParams() {
 			return {
@@ -944,7 +941,7 @@ body[data-theme-dark] .dashboard-content > .stats > div {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .dashboard-content > .graph-section > .graphs > div {
         width: 100%;
         max-width: 100%;
