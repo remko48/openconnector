@@ -38,6 +38,25 @@ class AuthenticationRuntime implements RuntimeExtensionInterface
 	}
 
 	/**
+	 * Add a decos non-oauth token to the configuration.
+	 *
+	 * @param Source $source
+	 * @return string
+	 *
+	 * @throws GuzzleException
+	 */
+	public function decosToken(Source $source): string
+	{
+		$configuration = new Dot($source->getConfiguration(), true);
+
+		$authConfig = $configuration->get('authentication');
+
+		return $this->authService->fetchDecosToken(
+			configuration: $authConfig
+		);
+	}
+
+	/**
 	 * Add a jwt token to the configuration.
 	 *
 	 * @param Source $source The source to run.
