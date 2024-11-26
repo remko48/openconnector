@@ -30,6 +30,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 
 					<NcSelect v-bind="classOptions"
 						v-model="classOptions.value"
+						class="jobClassSelect"
 						input-label="Job Class"
 						:multiple="false"
 						:clearable="false" />
@@ -261,5 +262,9 @@ export default {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 10px;
+}
+
+.jobClassSelect {
+	width: 100%;
 }
 </style>
