@@ -1,0 +1,19 @@
+{
+	"name": "Xxllnc suite to Publications",
+	"description": "",
+	"version": "0.0.1",
+	"sourceId": "1",
+	"sourceType": "api",
+	"sourceHash": "",
+	"sourceTargetMapping": "1",
+	"sourceConfig": {
+		"idPosition": "id",
+		"resultsPosition": "results",
+		"endpoint": "/tlb/zaaksysteem/api/v1/zaken",
+		"headers": [],
+		"query.startdatum__gte": "2024-07-06",
+		"query.einddatum__lt": "2024-08-01"
+	},
+	"targetId": "1/1",
+	"targetType": "register/schema"
+}
