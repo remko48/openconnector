@@ -41,6 +41,7 @@ class Version1Date20241121160300 extends SimpleMigrationStep {
 		 * @var ISchemaWrapper $schema
 		 */
 		$schema = $schemaClosure();
+		// Sources table
 		$table = $schema->getTable('openconnector_sources');
 
 		if ($table->hasColumn('rate_limit_limit') === false) {
@@ -68,6 +69,16 @@ class Version1Date20241121160300 extends SimpleMigrationStep {
 			$table->addColumn('rate_limit_window', Types::INTEGER, [
 				'notnull' => false,
 				'default' => null
+			]);
+		}
+
+		// Synchronizations table
+		$table = $schema->getTable('openconnector_synchronizations');
+
+		if ($table->hasColumn('current_page') === false) {
+			$table->addColumn('current_page', Types::INTEGER, [
+				'notnull' => false,
+				'default' => 1
 			]);
 		}
 

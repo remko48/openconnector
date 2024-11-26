@@ -359,6 +359,7 @@ class SynchronizationService
 
 	/**
 	 * Retrieves all objects from an API source for a given synchronization.
+	 * @todo re-write this entire function so that it is recursive.
 	 *
 	 * @param Synchronization $synchronization The synchronization object containing source information.
 	 * @param bool $isTest If we only want to return a single object (for example a test)
@@ -372,7 +373,11 @@ class SynchronizationService
         $objects = [];
         $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
-        // Lets get the source config
+		if ($source->getRateLimitRemaining() !== null && $source->getRateLimitRemaining() <= 0) {
+			// @todo
+		}
+
+        // Let's get the source config
         $sourceConfig = $synchronization->getSourceConfig();
         $endpoint = $sourceConfig['endpoint'] ?? '';
         $headers = $sourceConfig['headers'] ?? [];
@@ -382,12 +387,27 @@ class SynchronizationService
             'query' => $query,
         ];
 
+		// Get CurrentPage from Synchronization.
+		$currentPage = $synchronization->getCurrentPage() ?? 1;
+		// Current Page could be higher than 1 if we continue after rate limit had been reached previously.
+		if ($currentPage > 1) {
+			$config = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
+		}
+
         // Make the initial API call
-        $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+		$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);
+        $response = $callLog->getResponse();
+		if ($response === null) {
+			// @todo
+			if ($callLog->getStatusCode() === 429) {
+				// @todo
+			}
+		}
+
 		$lastHash = md5($response['body']);
         $body = json_decode($response['body'], true);
         if (empty($body) === true) {
-            // @todo log that we got a empty response
+            // @todo log that we got an empty response
             return [];
         }
         $objects = array_merge($objects, $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization));
@@ -397,29 +417,53 @@ class SynchronizationService
             return [$objects[0]] ?? [];
         }
 
-        // Current page is 2 because the first call made above is page 1.
-        $currentPage = 2;
+        // Increase Current page because of the first call made above.
+        $currentPage++;
+		// Update CurrentPage on Synchronization
+		$synchronization->setCurrentPage($currentPage);
+		$this->synchronizationMapper->update($synchronization);
+
         $useNextEndpoint = false;
         if (array_key_exists('next', $body)) {
             $useNextEndpoint = true;
         }
 
-
 		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-		while($useNextEndpoint === true && $nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation(), sourceConfig: $sourceConfig, currentPage: $currentPage)) {
-            // Do not pass $config here becuase it overwrites the query attached to nextEndpoint
-			$response = $this->callService->call(source: $source, endpoint: $nextEndpoint)->getResponse();
+		while ($useNextEndpoint === true && $nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation())) {
+			// Do not pass $config here because it overwrites the query attached to nextEndpoint
+			$callLog = $this->callService->call(source: $source, endpoint: $nextEndpoint);
+			$response = $callLog->getResponse();
+			if ($response === null) {
+				// @todo
+				if ($callLog->getStatusCode() === 429) {
+					// @todo
+				}
+			}
+
 			$body = json_decode($response['body'], true);
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
+
+			// Increase Current page. And update CurrentPage on Synchronization.
+			$currentPage++;
+			$synchronization->setCurrentPage($currentPage);
+			$this->synchronizationMapper->update($synchronization);
 		}
 
 		if ($useNextEndpoint === false) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
-				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
+				$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);
+				$response = $callLog->getResponse();
+				if ($response === null) {
+					// @todo
+					if ($callLog->getStatusCode() === 429) {
+						// @todo
+					}
+				}
+
 				$hash     = md5($response['body']);
 
-				if($hash === $lastHash) {
+				if ($hash === $lastHash) {
 					break;
 				}
 
@@ -432,9 +476,17 @@ class SynchronizationService
 
 				$newObjects = $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization);
 				$objects = array_merge($objects, $newObjects);
+
+				// Increase Current page. And update CurrentPage on Synchronization.
 				$currentPage++;
+				$synchronization->setCurrentPage($currentPage);
+				$this->synchronizationMapper->update($synchronization);
 			} while (empty($newObjects) === false);
 		}
+
+		// Reset Current Page to 1 when we are done with all pages.
+		$synchronization->setCurrentPage(1);
+		$this->synchronizationMapper->update($synchronization);
 
         return $objects;
     }
@@ -444,12 +496,10 @@ class SynchronizationService
 	 *
 	 * @param array $body
 	 * @param string $url
-	 * @param array $sourceConfig
-	 * @param int $currentPage
 	 *
 	 * @return string|null The next endpoint URL if a next link or pagination query is available, or null if neither exists.
 	 */
-    private function getNextEndpoint(array $body, string $url, array $sourceConfig, int $currentPage): ?string
+    private function getNextEndpoint(array $body, string $url): ?string
     {
         $nextLink = $this->getNextlinkFromCall($body);
 
