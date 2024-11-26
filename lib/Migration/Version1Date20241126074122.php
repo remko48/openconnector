@@ -17,7 +17,9 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 /**
- * FIXME Auto-generated migration step: Please modify to your needs!
+ * Adds two columns to the Synchronizations table:
+ * - conditions for json logic
+ * - follow_ups for follow up synchronizations
  */
 class Version1Date20241126074122 extends SimpleMigrationStep {
 
