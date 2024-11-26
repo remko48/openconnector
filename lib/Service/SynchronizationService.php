@@ -29,6 +29,7 @@ use DateInterval;
 use DateTime;
 use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Http\NotFoundResponse;
+use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
 
@@ -54,7 +55,7 @@ class SynchronizationService
         MappingMapper $mappingMapper,
 		SynchronizationMapper $synchronizationMapper,
 		SynchronizationContractMapper $synchronizationContractMapper,
-        SynchronizationContractLogMapper $synchronizationContractLogMapper
+        SynchronizationContractLogMapper $synchronizationContractLogMapper,
 	) {
 		$this->callService = $callService;
 		$this->mappingService = $mappingService;
@@ -175,6 +176,41 @@ class SynchronizationService
     }
 
 	/**
+	 * Fetch an object from a specific endpoint.
+	 *
+	 * @param Synchronization $synchronization The synchronization containing the source.
+	 * @param string $endpoint The endpoint to request to fetch the desired object.
+	 *
+	 * @return array The resulting object.
+	 *
+	 * @throws GuzzleException
+	 * @throws \OCP\DB\Exception
+	 */
+	public function getObjectFromSource(Synchronization $synchronization, string $endpoint): array
+	{
+		$source = $this->sourceMapper->find(id: $synchronization->getSourceId());
+
+		// Lets get the source config
+		$sourceConfig = $synchronization->getSourceConfig();
+		$headers = $sourceConfig['headers'] ?? [];
+		$query = $sourceConfig['query'] ?? [];
+		$config = [
+			'headers' => $headers,
+			'query' => $query,
+		];
+
+		if (str_starts_with($endpoint, $source->getLocation()) === true) {
+			$endpoint = str_replace(search: $source->getLocation(), replace: '', subject: $endpoint);
+		}
+
+		// Make the initial API call
+		// @TODO: method is now fixed to GET, but could end up in configuration.
+		$response = $this->callService->call(source: $source, endpoint: $endpoint, config: $config)->getResponse();
+
+		return json_decode($response['body'], true);
+	}
+
+	/**
 	 * Synchronize a contract
 	 *
 	 * @param SynchronizationContract $synchronizationContract
@@ -190,6 +226,19 @@ class SynchronizationService
 	 */
     public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
 	{
+
+		if ($synchronization !== null && isset($synchronization->getSourceConfig()['singleEndpoint']) === true) {
+
+			// Update endpoint
+			$endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $synchronization->getSourceConfig()['singleEndpoint']);
+			$endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
+
+			// Get object from source
+			$object = $this->getObjectFromSource(synchronization: $synchronization, endpoint: $endpoint);
+
+		}
+
+
         // Let create a source hash for the object
         $originHash = md5(serialize($object));
         $synchronizationContract->setSourceLastChecked(new DateTime());
@@ -383,6 +432,7 @@ class SynchronizationService
         ];
 
         // Make the initial API call
+		// @TODO: method is now fixed to GET, but could end up in configuration.
         $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
 		$lastHash = md5($response['body']);
         $body = json_decode($response['body'], true);
