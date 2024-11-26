@@ -1,5 +1,5 @@
 {
-	"name": "Sharepoint Woo-verzoeken en -besluiten to Publications",
+	"name": "Sharepoint Convenanten to Publications",
 	"description": "",
 	"version": "0.0.1",
 	"sourceId": "1",
@@ -9,7 +9,7 @@
 	"sourceConfig": {
 		"idPosition": "UniqueId",
 		"resultsPosition": "d.results",
-		"endpoint": "/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Woo-verzoeken en -besluiten')/folders",
+		"endpoint": "/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Convenanten')/folders",
 		"headers": [],
 		"query": []
 	},

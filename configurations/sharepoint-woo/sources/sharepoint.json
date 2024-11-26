@@ -2,7 +2,7 @@
     "name": "Sharepoint Woo API",
     "description": "Sharepoint Woo API",
     "reference": null,
-    "version": "0.0.0",
+    "version": "0.0.1",
     "location": "",
     "isEnabled": true,
     "type": "api",
