@@ -47,6 +47,12 @@ class Version1Date20241126074122 extends SimpleMigrationStep {
 					->setDefault(default: '{}')
 					->setNotnull(notnull:false);
 			}
+			if ($table->hasColumn(name: 'follow_ups') === false) {
+
+				$table->addColumn(name: 'follow_ups', typeName: Types::JSON)
+					->setDefault(default: '{}')
+					->setNotnull(notnull:false);
+			}
 		}
 
 		return $schema;
