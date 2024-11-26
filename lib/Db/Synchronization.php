@@ -34,6 +34,8 @@ class Synchronization extends Entity implements JsonSerializable
 	protected ?DateTime $created = null;	// The date and time the synchronization was created
 	protected ?DateTime $updated = null;	// The date and time the synchronization was updated
 
+	protected array $conditions = [];
+
 
 	public function __construct() {
         $this->addType('uuid', 'string');
@@ -58,6 +60,7 @@ class Synchronization extends Entity implements JsonSerializable
 		$this->addType('targetLastSynced', 'datetime');
 		$this->addType('created', 'datetime');
 		$this->addType('updated', 'datetime');
+		$this->addType(fieldName:'conditions', type: 'json');
 	}
 
 	public function getJsonFields(): array
@@ -115,7 +118,8 @@ class Synchronization extends Entity implements JsonSerializable
 			'targetLastChecked' => isset($this->targetLastChecked) === true ? $this->targetLastChecked->format('c') : null,
 			'targetLastSynced' => isset($this->targetLastSynced) === true ? $this->targetLastSynced->format('c') : null,
 			'created' => isset($this->created) === true ? $this->created->format('c') : null,
-			'updated' => isset($this->updated) === true ? $this->updated->format('c') : null
+			'updated' => isset($this->updated) === true ? $this->updated->format('c') : null,
+			'conditions' => $this->conditions,
 		];
 	}
 }
