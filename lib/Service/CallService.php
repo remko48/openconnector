@@ -356,7 +356,7 @@ class CallService
 	 *
 	 * @return array The updated config array.
 	 */
-	private function applyConfigDot(array $config): array
+	public function applyConfigDot(array $config): array
 	{
 		$dotConfig = new Dot($config);
 		$unsetKeys = [];
