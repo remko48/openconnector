@@ -1,0 +1,14 @@
+{
+	"name": "Xxllnc suite to Publication",
+	"description": "",
+	"version": "",
+	"reference": "",
+	"mapping": {
+		"title": "omschrijving",
+		"summary": "statustoelichting",
+		"description": "statusomschrijving"
+	},
+	"unset": [],
+	"cast": [],
+	"passThrough": false
+}

@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Service;
 
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use JWadhams\JsonLogic;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\Mapping;
 use OCA\OpenConnector\Db\Source;
@@ -29,6 +30,7 @@ use DateInterval;
 use DateTime;
 use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Http\NotFoundResponse;
+use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
 
@@ -54,7 +56,7 @@ class SynchronizationService
         MappingMapper $mappingMapper,
 		SynchronizationMapper $synchronizationMapper,
 		SynchronizationContractMapper $synchronizationContractMapper,
-        SynchronizationContractLogMapper $synchronizationContractLogMapper
+        SynchronizationContractLogMapper $synchronizationContractLogMapper,
 	) {
 		$this->callService = $callService;
 		$this->mappingService = $mappingService;
@@ -102,13 +104,11 @@ class SynchronizationService
                     $synchronizationContract = $this->synchronizationContractMapper->createFromArray([
                         'synchronizationId' => $synchronization->getId(),
                         'originId' => $originId,
-                        'originHash' => md5(serialize($object))
                     ]);
                 } else {
                     $synchronizationContract = new SynchronizationContract();
                     $synchronizationContract->setSynchronizationId($synchronization->getId());
                     $synchronizationContract->setOriginId($originId);
-                    $synchronizationContract->setOriginHash(md5(serialize($object)));
                 }
 
                 $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
@@ -134,6 +134,11 @@ class SynchronizationService
 
             $this->synchronizationContractMapper->update($synchronizationContract);
         }
+
+		foreach ($synchronization->getFollowUps() as $followUp) {
+			$followUpSynchronization = $this->synchronizationMapper->find($followUp);
+			$this->synchronize($followUpSynchronization, $isTest);
+		}
 
         return $objectList;
     }
@@ -175,6 +180,41 @@ class SynchronizationService
     }
 
 	/**
+	 * Fetch an object from a specific endpoint.
+	 *
+	 * @param Synchronization $synchronization The synchronization containing the source.
+	 * @param string $endpoint The endpoint to request to fetch the desired object.
+	 *
+	 * @return array The resulting object.
+	 *
+	 * @throws GuzzleException
+	 * @throws \OCP\DB\Exception
+	 */
+	public function getObjectFromSource(Synchronization $synchronization, string $endpoint): array
+	{
+		$source = $this->sourceMapper->find(id: $synchronization->getSourceId());
+
+		// Lets get the source config
+		$sourceConfig = $synchronization->getSourceConfig();
+		$headers = $sourceConfig['headers'] ?? [];
+		$query = $sourceConfig['query'] ?? [];
+		$config = [
+			'headers' => $headers,
+			'query' => $query,
+		];
+
+		if (str_starts_with($endpoint, $source->getLocation()) === true) {
+			$endpoint = str_replace(search: $source->getLocation(), replace: '', subject: $endpoint);
+		}
+
+		// Make the initial API call
+		// @TODO: method is now fixed to GET, but could end up in configuration.
+		$response = $this->callService->call(source: $source, endpoint: $endpoint, config: $config)->getResponse();
+
+		return json_decode($response['body'], true);
+	}
+
+	/**
 	 * Synchronize a contract
 	 *
 	 * @param SynchronizationContract $synchronizationContract
@@ -190,6 +230,19 @@ class SynchronizationService
 	 */
     public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
 	{
+
+		if ($synchronization !== null && isset($synchronization->getSourceConfig()['singleEndpoint']) === true) {
+
+			// Update endpoint
+			$endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $synchronization->getSourceConfig()['singleEndpoint']);
+			$endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
+
+			// Get object from source
+			$object = $this->getObjectFromSource(synchronization: $synchronization, endpoint: $endpoint);
+
+		}
+
+
         // Let create a source hash for the object
         $originHash = md5(serialize($object));
         $synchronizationContract->setSourceLastChecked(new DateTime());
@@ -197,13 +250,18 @@ class SynchronizationService
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
         if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
             // The object has not changed and the config has not been updated since last check
-            // return $synchronizationContract;
-            // @todo: somehow this always returns true, so we never do the updateTarget
+			return $synchronizationContract;
         }
 
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
+
+		// Check if object adheres to conditions.
+		// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
+		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
+			return $synchronizationContract;
+		}
 
         // If no source target mapping is defined, use original object
         if (empty($synchronization->getSourceTargetMapping()) === true) {
@@ -373,7 +431,7 @@ class SynchronizationService
         $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
         // Lets get the source config
-        $sourceConfig = $synchronization->getSourceConfig();
+        $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
         $endpoint = $sourceConfig['endpoint'] ?? '';
         $headers = $sourceConfig['headers'] ?? [];
         $query = $sourceConfig['query'] ?? [];
@@ -383,6 +441,7 @@ class SynchronizationService
         ];
 
         // Make the initial API call
+		// @TODO: method is now fixed to GET, but could end up in configuration.
         $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
 		$lastHash = md5($response['body']);
         $body = json_decode($response['body'], true);

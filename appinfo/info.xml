@@ -8,7 +8,7 @@
 
 The OpenConnector Nextcloud app provides a ESB-framework to work together in an (open) data ecosystem
 
-- 📲 Synchronize your data sources 
+- 📲 Synchronize your data sources
 - 📰 Send cloud events
 - 🆓 Map and translate API calls
 
@@ -27,7 +27,7 @@ The OpenConnector Nextcloud app provides a ESB-framework to work together in an 
         <database min-version="10">pgsql</database>
         <database>sqlite</database>
         <database min-version="8.0">mysql</database>
-		
+
         <lib>curl</lib>
 
         <owncloud max-version="0" min-version="0"/>

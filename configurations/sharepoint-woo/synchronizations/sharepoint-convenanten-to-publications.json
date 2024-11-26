@@ -1,0 +1,18 @@
+{
+	"name": "Sharepoint Convenanten to Publications",
+	"description": "",
+	"version": "0.0.1",
+	"sourceId": "1",
+	"sourceType": "api",
+	"sourceHash": "",
+	"sourceTargetMapping": "1",
+	"sourceConfig": {
+		"idPosition": "UniqueId",
+		"resultsPosition": "d.results",
+		"endpoint": "/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Convenanten')/folders",
+		"headers": [],
+		"query": []
+	},
+	"targetId": "1/1",
+	"targetType": "register/schema"
+}
