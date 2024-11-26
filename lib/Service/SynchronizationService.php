@@ -20,6 +20,7 @@ use OCA\OpenConnector\Service\MappingService;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Uid\Uuid;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Adbar\Dot;
@@ -88,7 +89,11 @@ class SynchronizationService
             throw new Exception('sourceId of synchronziation cannot be empty. Canceling synchronization..');
         }
 
-        $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
+		try {
+			$objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
+		} catch (TooManyRequestsHttpException $e) {
+			$rateLimitException = $e;
+		}
 
         foreach ($objectList as $key => $object) {
             // If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
@@ -135,6 +140,15 @@ class SynchronizationService
 
             $this->synchronizationContractMapper->update($synchronizationContract);
         }
+
+		if (isset($rateLimitException) === true) {
+			var_dump('test');
+			throw new TooManyRequestsHttpException(
+				message: $rateLimitException->getMessage(),
+				code: 429,
+				headers: $rateLimitException->getHeaders()
+			);
+		}
 
         return $objectList;
     }
@@ -423,7 +437,17 @@ class SynchronizationService
         $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
 		if ($source->getRateLimitRemaining() !== null && $source->getRateLimitRemaining() <= 0) {
-			// @todo
+			throw new TooManyRequestsHttpException(
+				message: "Rate Limit on Source has been exceeded. Canceling synchronization...",
+				code: 429,
+				headers: [
+					'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
+					'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
+					'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
+					'X-RateLimit-Used' => ["0"],
+					'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
+				]
+			);
 		}
 
         // Let's get the source config
@@ -450,7 +474,17 @@ class SynchronizationService
 		if ($response === null) {
 			// @todo
 			if ($callLog->getStatusCode() === 429) {
-				// @todo
+				throw new TooManyRequestsHttpException(
+					message: "Stopped sync because rate limit on Source has been exceeded.",
+					code: 429,
+					headers: [
+						'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
+						'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
+						'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
+						'X-RateLimit-Used' => ["1"],
+						'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
+					]
+				);
 			}
 		}
 
@@ -486,7 +520,17 @@ class SynchronizationService
 			if ($response === null) {
 				// @todo
 				if ($callLog->getStatusCode() === 429) {
-					// @todo
+					throw new TooManyRequestsHttpException(
+						message: "Stopped sync because rate limit on Source has been exceeded.",
+						code: 429,
+						headers: [
+							'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
+							'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
+							'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
+							'X-RateLimit-Used' => ["1"],
+							'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
+						]
+					);
 				}
 			}
 
@@ -507,7 +551,17 @@ class SynchronizationService
 				if ($response === null) {
 					// @todo
 					if ($callLog->getStatusCode() === 429) {
-						// @todo
+						throw new TooManyRequestsHttpException(
+							message: "Stopped sync because rate limit on Source has been exceeded.",
+							code: 429,
+							headers: [
+								'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
+								'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
+								'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
+								'X-RateLimit-Used' => ["1"],
+								'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
+							]
+						);
 					}
 				}
 

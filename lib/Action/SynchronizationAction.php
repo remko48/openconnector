@@ -6,6 +6,7 @@ use Exception;
 use OCA\OpenConnector\Service\SynchronizationService;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 /**
  * This action handles the synchronization of data from the source to the target.
@@ -70,7 +71,14 @@ class SynchronizationAction
         $response['stackTrace'][] = 'Doing the synchronization';
         try {
             $objects = $this->synchronizationService->synchronize($synchronization);
-        } catch (Exception $e) {
+        } catch (TooManyRequestsHttpException $e) {
+			if (isset($e->getHeaders()['X-RateLimit-Reset']) === true) {
+				$response['nextRun'] = $e->getHeaders()['X-RateLimit-Reset'];
+			}
+			$response['level'] = 'WARNING';
+			$response['stackTrace'][] = $response['message'] = 'Stopped synchronization: ' . $e->getMessage();
+			return $response;
+		} catch (Exception $e) {
             $response['level'] = 'ERROR';
 			$response['stackTrace'][] = $response['message'] = 'Failed to synchronize: ' . $e->getMessage();
             return $response;

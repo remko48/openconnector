@@ -99,8 +99,12 @@ class ActionTask extends TimedJob
 
 
         // Update the job
+		$nextRun = new DateTime();
+		if (isset($result['nextRun']) === true) {
+			$nextRun = $result['nextRun'];
+		}
         $job->setLastRun(new DateTime());
-        $job->setNextRun(new DateTime());
+        $job->setNextRun($nextRun);
         $this->jobMapper->update($job);
 
         // Log the job
