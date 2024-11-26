@@ -138,7 +138,6 @@ class SynchronizationService
         }
 
 		foreach($synchronization->getFollowUps() as $followUp) {
-			var_dump($followUp);
 			$followUpSynchronization = $this->synchronizationMapper->find($followUp);
 			$this->synchronize($followUpSynchronization, $isTest);
 		}
