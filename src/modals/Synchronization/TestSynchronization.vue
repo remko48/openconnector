@@ -113,6 +113,7 @@ export default {
 			synchronizationStore.testSynchronization()
 				.then(async ({ response }) => {
 					this.response = response
+					this.response.body = await response.json()
 					this.success = response.ok
 				}).catch((error) => {
 					this.success = false
