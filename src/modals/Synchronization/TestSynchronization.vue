@@ -1,5 +1,6 @@
 <script setup>
 import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { getTheme } from '../../services/getTheme.js'
 </script>
 
 <template>
@@ -66,7 +67,14 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 						</tr>
 						<tr>
 							<td><b>Body:</b></td>
-							<td>{{ response?.body }}</td>
+							<td :class="`codeMirrorContainer ${getTheme()}`">
+								<CodeMirror v-model="responseBody"
+									:basic="true"
+									:dark="getTheme() === 'dark'"
+									:linter="jsonParseLinter()"
+									:lang="json()"
+									:readonly="true" />
+							</td>
 						</tr>
 					</table>
 				</div>
@@ -81,6 +89,8 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
+import CodeMirror from 'vue-codemirror6'
+import { json, jsonParseLinter } from '@codemirror/lang-json'
 
 export default {
 	name: 'TestSynchronization',
@@ -88,10 +98,12 @@ export default {
 		NcModal,
 		NcLoadingIcon,
 		NcNoteCard,
+		CodeMirror,
 	},
 	data() {
 		return {
 			response: null,
+			responseBody: '',
 			success: null,
 			loading: false,
 			error: false,
@@ -111,9 +123,9 @@ export default {
 			this.error = false
 
 			synchronizationStore.testSynchronization()
-				.then(async ({ response }) => {
+				.then(async ({ response, data }) => {
 					this.response = response
-					this.response.body = await response.json()
+					this.responseBody = JSON.stringify({ ...data }, null, 2)
 					this.success = response.ok
 				}).catch((error) => {
 					this.success = false
@@ -147,5 +159,54 @@ export default {
 .detailTable > table > tr > th {
 	border: 1px solid grey;
 	padding: 5px;
+}
+</style>
+
+<style scoped>
+.codeMirrorContainer {
+	margin-block-start: 6px;
+}
+
+.codeMirrorContainer :deep(.cm-content) {
+	border-radius: 0 !important;
+	border: none !important;
+}
+.codeMirrorContainer :deep(.cm-editor) {
+	outline: none !important;
+}
+.codeMirrorContainer.light > .vue-codemirror {
+	border: 1px dotted silver;
+}
+.codeMirrorContainer.dark > .vue-codemirror {
+	border: 1px dotted grey;
+}
+
+/* value text color */
+.codeMirrorContainer.light :deep(.ͼe) {
+	color: #448c27;
+}
+.codeMirrorContainer.dark :deep(.ͼe) {
+	color: #88c379;
+}
+
+/* text cursor */
+.codeMirrorContainer :deep(.cm-content) * {
+	cursor: text !important;
+}
+
+/* value number color */
+.codeMirrorContainer.light :deep(.ͼd) {
+	color: #c68447;
+}
+.codeMirrorContainer.dark :deep(.ͼd) {
+	color: #d19a66;
+}
+
+/* value boolean color */
+.codeMirrorContainer.light :deep(.ͼc) {
+	color: #221199;
+}
+.codeMirrorContainer.dark :deep(.ͼc) {
+	color: #260dd4;
 }
 </style>
