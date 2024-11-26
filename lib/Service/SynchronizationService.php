@@ -91,8 +91,6 @@ class SynchronizationService
 
         $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
-//		var_dump(count($objectList));
-
         foreach ($objectList as $key => $object) {
             // If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
             $originId = $this->getOriginId($synchronization, $object);
@@ -137,7 +135,7 @@ class SynchronizationService
             $this->synchronizationContractMapper->update($synchronizationContract);
         }
 
-		foreach($synchronization->getFollowUps() as $followUp) {
+		foreach ($synchronization->getFollowUps() as $followUp) {
 			$followUpSynchronization = $this->synchronizationMapper->find($followUp);
 			$this->synchronize($followUpSynchronization, $isTest);
 		}
