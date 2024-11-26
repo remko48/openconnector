@@ -422,7 +422,7 @@ class SynchronizationService
         $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
         // Lets get the source config
-        $sourceConfig = $synchronization->getSourceConfig();
+        $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
         $endpoint = $sourceConfig['endpoint'] ?? '';
         $headers = $sourceConfig['headers'] ?? [];
         $query = $sourceConfig['query'] ?? [];
