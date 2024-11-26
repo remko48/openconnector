@@ -19,6 +19,7 @@ use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
 use OCA\OpenConnector\Twig\AuthenticationExtension;
 use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Uid\Uuid;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -113,6 +114,8 @@ class CallService
 	 *
 	 * @return CallLog
 	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
 	public function call(
@@ -173,7 +176,7 @@ class CallService
 			$callLog->setUuid(Uuid::v4());
 			$callLog->setSourceId($this->source->getId());
 			$callLog->setStatusCode(429); //
-			$callLog->setStatusMessage("The rate limit for this source has been exceeded");
+			$callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
 			$callLog->setCreated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
@@ -265,7 +268,7 @@ class CallService
 		];
 
 		// Update Rate Limit info for the source with the rate limit headers if present or if configured in the source.
-		$this->sourceRateLimit($source, $data['response']['headers']);
+		$data['response']['headers'] = $this->sourceRateLimit($source, $data['response']['headers']);
 
 		// Create and save the CallLog
 		$callLog = new CallLog();
@@ -283,15 +286,16 @@ class CallService
 	}
 
 	/**
-	 * Update the source with rate limit info if any of the rate limit headers are found
+	 * Update the source with rate limit info if any of the rate limit headers are found. Else checks if config on the
+	 * source has been set for Rate Limit. And update the response headers with this Rate Limit info.
 	 *
-	 * @param Source $source The source to update
-	 * @param array $headers The headers to check
+	 * @param Source $source The source to update.
+	 * @param array $headers The response headers to check for Rate Limit headers.
 	 *
-	 * @return void
+	 * @return array The updated response headers.
 	 * @throws \OCP\DB\Exception
 	 */
-	private function sourceRateLimit(Source $source, array $headers)
+	private function sourceRateLimit(Source $source, array $headers): array
 	{
 		// Check if RateLimit-Reset is present in response headers. If so, save it in the source.
 		if (isset($headers['X-RateLimit-Reset']) === true) {
@@ -329,6 +333,19 @@ class CallService
 		}
 
 		$this->sourceMapper->update($source);
+
+		if ($source->getRateLimitLimit() !== null || $source->getRateLimitWindow() !== null) {
+			$headers = array_merge($headers, [
+				'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
+				'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
+				'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
+				'X-RateLimit-Used' => ["1"],
+				'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
+			]);
+			ksort($headers);
+		}
+
+		return $headers;
 	}
 
 	/**
