@@ -123,7 +123,7 @@ export default {
 			this.error = false
 
 			synchronizationStore.testSynchronization()
-				.then(async ({ response, data }) => {
+				.then(({ response, data }) => {
 					this.response = response
 					this.responseBody = JSON.stringify({ ...data }, null, 2)
 					this.success = response.ok
