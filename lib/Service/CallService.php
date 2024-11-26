@@ -19,6 +19,7 @@ use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
 use OCA\OpenConnector\Twig\AuthenticationExtension;
 use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Uid\Uuid;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -42,11 +43,13 @@ class CallService
 	 * The constructor sets al needed variables.
 	 *
 	 * @param CallLogMapper $callLogMapper
+	 * @param SourceMapper $sourceMapper
 	 * @param ArrayLoader $loader
 	 * @param AuthenticationService $authenticationService
 	 */
 	public function __construct(
 		private readonly CallLogMapper $callLogMapper,
+		private readonly SourceMapper $sourceMapper,
 		ArrayLoader $loader,
 		AuthenticationService $authenticationService
 	)
@@ -111,6 +114,8 @@ class CallService
 	 *
 	 * @return CallLog
 	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
 	public function call(
@@ -133,7 +138,6 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -148,7 +152,32 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source has no location");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdated(new \DateTime());
+
+			$this->callLogMapper->insert($callLog);
+
+			return $callLog;
+		}
+
+		// Check if Source has a RateLimit and if we need to reset RateLimit-Reset and RateLimit-Remaining.
+		if ($this->source->getRateLimitReset() !== null
+			&& $this->source->getRateLimitRemaining() !== null
+			&& $this->source->getRateLimitReset() <= time()
+		) {
+			$this->source->setRateLimitReset(null);
+			$this->source->setRateLimitRemaining(null);
+
+			$this->sourceMapper->update($source);
+		}
+
+		// Check if RateLimit-Remaining is set on this source and if limit has been reached.
+		if ($this->source->getRateLimitRemaining() !== null && $this->source->getRateLimitRemaining() <= 0) {
+			// Create and save the CallLog
+			$callLog = new CallLog();
+			$callLog->setUuid(Uuid::v4());
+			$callLog->setSourceId($this->source->getId());
+			$callLog->setStatusCode(429); //
+			$callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
+			$callLog->setCreated(new \DateTime());
 
 			$this->callLogMapper->insert($callLog);
 
@@ -211,6 +240,7 @@ class CallService
 			if ($asynchronous === false) {
 			   $response = $this->client->request($method, $url, $config);
 			} else {
+				// @todo: we want to get rate limit headers from async calls as well
 				return $this->client->requestAsync($method, $url, $config);
 			}
 		} catch (GuzzleHttp\Exception\BadResponseException $e) {
@@ -237,6 +267,9 @@ class CallService
 			]
 		];
 
+		// Update Rate Limit info for the source with the rate limit headers if present or if configured in the source.
+		$data['response']['headers'] = $this->sourceRateLimit($source, $data['response']['headers']);
+
 		// Create and save the CallLog
 		$callLog = new CallLog();
 		$callLog->setUuid(Uuid::v4());
@@ -250,6 +283,69 @@ class CallService
 		$this->callLogMapper->insert($callLog);
 
 		return $callLog;
+	}
+
+	/**
+	 * Update the source with rate limit info if any of the rate limit headers are found. Else checks if config on the
+	 * source has been set for Rate Limit. And update the response headers with this Rate Limit info.
+	 *
+	 * @param Source $source The source to update.
+	 * @param array $headers The response headers to check for Rate Limit headers.
+	 *
+	 * @return array The updated response headers.
+	 * @throws \OCP\DB\Exception
+	 */
+	private function sourceRateLimit(Source $source, array $headers): array
+	{
+		// Check if RateLimit-Reset is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Reset']) === true) {
+			$source->setRateLimitReset($headers['X-RateLimit-Reset']);
+		}
+
+		// If RateLimit-Reset not in headers and source->RateLimit-Reset === null. But source->RateLimit-Window is set.
+		if (isset($headers['X-RateLimit-Reset']) === false
+			&& $source->getRateLimitReset() === null
+			&& $source->getRateLimitWindow() !== null
+		) {
+			// Set new RateLimit-Reset time on the source.
+			$rateLimitReset = time() + $source->getRateLimitWindow();
+			$source->setRateLimitReset($rateLimitReset);
+		}
+
+		// Check if RateLimit-Limit is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Limit']) === true) {
+			$source->setRateLimitLimit($headers['X-RateLimit-Limit']);
+		}
+
+		// Check if RateLimit-Remaining is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Remaining']) === true) {
+			$source->setRateLimitRemaining($headers['X-RateLimit-Remaining']);
+		}
+
+		// If RateLimit-Remaining not in headers and source->RateLimit-Limit is set, update source->RateLimit-Remaining.
+		if (isset($headers['X-RateLimit-Remaining']) === false && $source->getRateLimitLimit() !== null) {
+			$rateLimitRemaining = $source->getRateLimitRemaining();
+			if ($rateLimitRemaining === null) {
+				// Re-set the RateLimit-Remaining on the source.
+				$rateLimitRemaining = $source->getRateLimitLimit();
+			}
+			$source->setRateLimitRemaining($rateLimitRemaining - 1);
+		}
+
+		$this->sourceMapper->update($source);
+
+		if ($source->getRateLimitLimit() !== null || $source->getRateLimitWindow() !== null) {
+			$headers = array_merge($headers, [
+				'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
+				'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
+				'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
+				'X-RateLimit-Used' => ["1"],
+				'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
+			]);
+			ksort($headers);
+		}
+
+		return $headers;
 	}
 
 	/**
