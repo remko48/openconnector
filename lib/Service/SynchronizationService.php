@@ -47,6 +47,8 @@ class SynchronizationService
     private ObjectService $objectService;
     private Source $source;
 
+    const EXTRA_DATA_ENDPOINT_LOCATION = 'extraDataEndpointLocation';
+    const MERGE_EXTRA_DATA_OBJECT = 'mergeExtraDataObject';
 
 	public function __construct(
 		CallService $callService,
@@ -214,6 +216,47 @@ class SynchronizationService
 		return json_decode($response['body'], true);
 	}
 
+    /**
+     * Fetches extra data for a given object based on the provided synchronization configuration.
+     *
+     * @param Synchronization $synchronization The synchronization instance containing configuration details.
+     * @param array $object The object for which extra data needs to be fetched.
+     *
+     * @return array The original object merged with the extra data or the extra data itself, depending on configuration.
+     *
+     * @throws Exception If the endpoint cannot be retrieved from the source configuration and the provided object.
+     */
+    private function fetchExtraDataForObject(Synchronization $synchronization, array $object)
+    {
+        $sourceConfig = $synchronization->getSourceConfig();
+
+        if (isset($sourceConfig[$this::EXTRA_DATA_ENDPOINT_LOCATION]) === false) {
+            return $object;
+        }
+
+        $dotObject = new Dot($object);
+        $endpoint = $dotObject->get($sourceConfig[$this::EXTRA_DATA_ENDPOINT_LOCATION] ?? null);
+
+        if (!$endpoint) {
+            throw new Exception(
+                sprintf(
+                    'Could not get endpoint with extra data location: %s, object: %s',
+                    $sourceConfig[$this::EXTRA_DATA_ENDPOINT_LOCATION],
+                    json_encode($object)
+                )
+            );
+        }
+
+        $extraDataObject = $this->getObjectFromSource($synchronization, $endpoint);
+
+        if (isset($sourceConfig[$this::MERGE_EXTRA_DATA_OBJECT]) === true && $sourceConfig[$this::MERGE_EXTRA_DATA_OBJECT] === true) {
+            return array_merge($extraDataObject, $object);
+        }
+
+        return $extraDataObject;
+}
+
+
 	/**
 	 * Synchronize a contract
 	 *
@@ -230,17 +273,21 @@ class SynchronizationService
 	 */
     public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
 	{
+        $sourceConfig = $synchronization->getSourceConfig();
 
-		if ($synchronization !== null && isset($synchronization->getSourceConfig()['singleEndpoint']) === true) {
+		if ($synchronization !== null && isset($sourceConfig['singleEndpoint']) === true) {
 
 			// Update endpoint
-			$endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $synchronization->getSourceConfig()['singleEndpoint']);
+			$endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $sourceConfig['singleEndpoint']);
 			$endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
 
 			// Get object from source
 			$object = $this->getObjectFromSource(synchronization: $synchronization, endpoint: $endpoint);
 
 		}
+
+        // Check if extra data needs to be fetched
+        $object = $this->fetchExtraDataForObject($synchronization, $object);
 
 
         // Let create a source hash for the object
