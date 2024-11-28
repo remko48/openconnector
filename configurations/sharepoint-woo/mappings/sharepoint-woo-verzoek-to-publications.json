@@ -10,7 +10,8 @@
         "published": "d.woo_x005f_publicatiedatum",
         "modified": "d.vti_x005f_nexttolasttimemodified"
 	},
-	"unset": {
+	"unset": [],
+	"cast": {
         "title": "d.woo_x005f_titel",
         "description": "d.woo_x005f_beschrijving",
         "summary": "d.woo_x005f_samenvatting",
@@ -18,6 +19,5 @@
         "published": "d.woo_x005f_publicatiedatum",
         "modified": "d.vti_x005f_nexttolasttimemodified"
     },
-	"cast": [],
 	"passThrough": false
 }
