@@ -7,9 +7,11 @@
 	"sourceHash": "",
 	"sourceTargetMapping": "1",
 	"sourceConfig": {
-		"idPosition": "UniqueId",
+		"idPosition": "Properties.__deferred.uri",
 		"resultsPosition": "d.results",
 		"endpoint": "/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Convenanten')/folders",
+        "singleEndpoint": "{{ originId }}",
+        "mergeDataSingleEndpoint": true,
 		"headers": [],
 		"query": []
 	},

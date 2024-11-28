@@ -3,9 +3,21 @@
 	"description": "",
 	"version": "0.0.1",
 	"mapping": {
-		"title": "Name"
+        "title": "d.woo_x005f_titel",
+        "description": "d.woo_x005f_beschrijving",
+        "summary": "d.woo_x005f_samenvatting",
+        "category": "d.woo_x005f_categorie",
+        "published": "d.woo_x005f_publicatiedatum",
+        "modified": "d.vti_x005f_nexttolasttimemodified"
 	},
 	"unset": [],
-	"cast": [],
+	"cast": {
+        "title": "d.woo_x005f_titel",
+        "description": "d.woo_x005f_beschrijving",
+        "summary": "d.woo_x005f_samenvatting",
+        "category": "d.woo_x005f_categorie",
+        "published": "d.woo_x005f_publicatiedatum",
+        "modified": "d.vti_x005f_nexttolasttimemodified"
+    },
 	"passThrough": false
 }
