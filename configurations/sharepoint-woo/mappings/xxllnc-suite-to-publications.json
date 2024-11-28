@@ -8,7 +8,7 @@
 		"summary": "zaaktypeomschrijving",
 		"description": "zaaktypeomschrijving",
         "published" : "startdatum",
-        "modified" : "{{ 'now'|date }}"
+        "modified" : "{{ 'now'|date(H:i:sTm-d-Y') }}"
 	},
 	"unset": [],
 	"cast": [],
