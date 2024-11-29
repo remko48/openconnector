@@ -5,8 +5,10 @@
 	"reference": "",
 	"mapping": {
 		"title": "omschrijving",
-		"summary": "statustoelichting",
-		"description": "statusomschrijving"
+		"summary": "zaaktypeomschrijving",
+		"description": "zaaktypeomschrijving",
+        "published" : "startdatum",
+        "modified" : "{{ 'now'|date(H:i:sTm-d-Y') }}"
 	},
 	"unset": [],
 	"cast": [],

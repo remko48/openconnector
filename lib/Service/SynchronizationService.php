@@ -48,6 +48,9 @@ class SynchronizationService
     private ObjectService $objectService;
     private Source $source;
 
+    const SINGLE_ENDPOINT            = 'singleEndpoint';
+    const MERGE_DATA_SINGLE_ENDPOINT = 'mergeDataSingleEndpoint';
+
 
 	public function __construct(
 		CallService $callService,
@@ -243,16 +246,19 @@ class SynchronizationService
 	 */
     public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
 	{
-
-		if ($synchronization !== null && isset($synchronization->getSourceConfig()['singleEndpoint']) === true) {
+        $sourceConfig = $synchronization->getSourceConfig();
+		if ($synchronization !== null && isset($sourceConfig[$this::SINGLE_ENDPOINT]) === true) {
 
 			// Update endpoint
-			$endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $synchronization->getSourceConfig()['singleEndpoint']);
+			$endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $sourceConfig[$this::SINGLE_ENDPOINT]);
 			$endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
 
 			// Get object from source
-			$object = $this->getObjectFromSource(synchronization: $synchronization, endpoint: $endpoint);
-
+            if (isset($sourceConfig[$this::MERGE_DATA_SINGLE_ENDPOINT]) === true && $sourceConfig[$this::MERGE_DATA_SINGLE_ENDPOINT] === true) {
+                $object = array_merge($object, $this->getObjectFromSource(synchronization: $synchronization, endpoint: $endpoint));
+            } else {
+                $object = $this->getObjectFromSource(synchronization: $synchronization, endpoint: $endpoint);
+            }
 		}
 
 
