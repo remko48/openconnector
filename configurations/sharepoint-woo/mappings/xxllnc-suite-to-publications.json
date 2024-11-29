@@ -7,10 +7,15 @@
 		"title": "omschrijving",
 		"summary": "zaaktypeomschrijving",
 		"description": "zaaktypeomschrijving",
-        "published" : "startdatum",
+        "published" : "{% if startdatum|default %}{{ startdatum|date('Y-m-d') }}{% endif %}",
         "modified" : "{{ 'now'|date(H:i:sTm-d-Y') }}"
 	},
 	"unset": [],
-	"cast": [],
+	"cast": {
+		"title": "unsetIfValue===omschrijving",
+		"summary": "unsetIfValue===zaaktypeomschrijving",
+		"description": "unsetIfValue===zaaktypeomschrijving",
+        "published" : "unsetIfValue==="
+    },
 	"passThrough": false
 }
