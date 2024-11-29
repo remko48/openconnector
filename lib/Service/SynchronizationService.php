@@ -241,18 +241,18 @@ class SynchronizationService
      */
     private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object)
     {
-        if (isset($sourceConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($sourceConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
+        if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
             return $object;
         }
 
         // Get endpoint from earlier fetched object.
-        if (isset($sourceConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === true) {
+        if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === true) {
             $dotObject = new Dot($object);
             $endpoint = $dotObject->get($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION] ?? null);
         }
 
         // Get endpoint static defined in config.
-        if (isset($sourceConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === true) {
+        if (isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === true) {
             $endpoint = $extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION];
             $endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
             $endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
