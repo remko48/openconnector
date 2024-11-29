@@ -47,10 +47,11 @@ class SynchronizationService
     private ObjectService $objectService;
     private Source $source;
 
-    const EXTRA_DATA_CONFIGS_LOCATION      = 'extraDataConfigs';
-    const EXTRA_DATA_ENDPOINT_LOCATION     = 'endpoint';
-    const KEY_FOR_EXTRA_DATA_LOCATION      = 'keyToSetExtraData';
-    const MERGE_EXTRA_DATA_OBJECT_LOCATION = 'mergeExtraData';
+    const EXTRA_DATA_CONFIGS_LOCATION          = 'extraDataConfigs';
+    const EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION = 'dynamicEndpointLocation';
+    const EXTRA_DATA_STATIC_ENDPOINT_LOCATION  = 'staticEndpoint';
+    const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
+    const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
 
 
 	public function __construct(
@@ -220,33 +221,47 @@ class SynchronizationService
 	}
 
     /**
-     * Fetches extra data for a given object based on the provided synchronization configuration.
+     * Fetches additional data for a given object based on the synchronization configuration.
+     *
+     * This method retrieves extra data using either a dynamically determined endpoint from the object
+     * or a statically defined endpoint in the configuration. The extra data can be merged with the original
+     * object or returned as-is, based on the provided configuration.
      *
      * @param Synchronization $synchronization The synchronization instance containing configuration details.
-     * @param array $extraDataConfig The extra data configuration.
-     * @param array $object The object for which extra data needs to be fetched.
+     * @param array $extraDataConfig The configuration array specifying how to retrieve and handle the extra data:
+     *      - EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION: The key to retrieve the dynamic endpoint from the object.
+     *      - EXTRA_DATA_STATIC_ENDPOINT_LOCATION: The statically defined endpoint.
+     *      - KEY_FOR_EXTRA_DATA_LOCATION: The key under which the extra data should be returned.
+     *      - MERGE_EXTRA_DATA_OBJECT_LOCATION: Boolean flag indicating whether to merge the extra data with the object.
+     * @param array $object The original object for which extra data needs to be fetched.
      *
-     * @return array The original object merged with the extra data or the extra data itself, depending on configuration.
+     * @return array The original object merged with the extra data, or the extra data itself based on the configuration.
      *
-     * @throws Exception If the endpoint cannot be retrieved from the source configuration and the provided object.
+     * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
      */
     private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object)
     {
-        if (isset($sourceConfig[$this::EXTRA_DATA_ENDPOINT_LOCATION]) === false) {
+        if (isset($sourceConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($sourceConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
             return $object;
         }
 
-        $dotObject = new Dot($object);
-        $endpoint = $dotObject->get($extraDataConfig[$this::EXTRA_DATA_ENDPOINT_LOCATION] ?? null);
+        // Get endpoint from earlier fetched object.
+        if (isset($sourceConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === true) {
+            $dotObject = new Dot($object);
+            $endpoint = $dotObject->get($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION] ?? null);
+        }
 
-        $endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $extraDataConfig[$this::EXTRA_DATA_ENDPOINT_LOCATION]);
-        $endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
+        // Get endpoint static defined in config.
+        if (isset($sourceConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === true) {
+            $endpoint = $extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION];
+            $endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
+            $endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
+        }
 
         if (!$endpoint) {
             throw new Exception(
                 sprintf(
-                    'Could not get endpoint with extra data location: %s, object: %s',
-                    $extraDataConfig[$this::EXTRA_DATA_ENDPOINT_LOCATION],
+                    'Could not get static or dynamic endpoint, object: %s',
                     json_encode($object)
                 )
             );
@@ -254,10 +269,12 @@ class SynchronizationService
 
         $extraData = $this->getObjectFromSource($synchronization, $endpoint);
 
+        // Set new key if configured.
         if (isset($extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION]) === true) {
             $extraData = [$extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION] => $extraData];
         }
 
+        // Merge with earlier fetchde object if configured.
         if (isset($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION]) === true && $extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === true) {
             return array_merge($object, $extraData);
         }
