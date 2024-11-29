@@ -9,7 +9,8 @@
 		"description": "zaaktypeomschrijving",
         "published" : "{% if startdatum|default %}{{ startdatum|date('Y-m-d') }}{% endif %}",
         "modified" : "{{ 'now'|date(H:i:sTm-d-Y') }}",
-        "status": "{% if startdatum|default %}Published{% else %}Concept{% endif %}"
+        "status": "{% if startdatum|default %}Published{% else %}Concept{% endif %}",
+        "catalog": ""
 	},
 	"unset": [],
 	"cast": {
