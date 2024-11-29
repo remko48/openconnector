@@ -49,8 +49,8 @@ class SynchronizationService
 
     const EXTRA_DATA_CONFIGS_LOCATION      = 'extraDataConfigs';
     const EXTRA_DATA_ENDPOINT_LOCATION     = 'endpointLocation';
-    const KEY_FOR_EXTRA_DATA_LOCATION      = 'key';
-    const MERGE_EXTRA_DATA_OBJECT_LOCATION = 'mergeExtraDataKey';
+    const KEY_FOR_EXTRA_DATA_LOCATION      = 'keyToSetExtraData';
+    const MERGE_EXTRA_DATA_OBJECT_LOCATION = 'mergeExtraData';
 
 
 	public function __construct(
