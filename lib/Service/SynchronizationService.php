@@ -48,7 +48,7 @@ class SynchronizationService
     private Source $source;
 
     const EXTRA_DATA_CONFIGS_LOCATION      = 'extraDataConfigs';
-    const EXTRA_DATA_ENDPOINT_LOCATION     = 'endpointLocation';
+    const EXTRA_DATA_ENDPOINT_LOCATION     = 'endpoint';
     const KEY_FOR_EXTRA_DATA_LOCATION      = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION = 'mergeExtraData';
 
