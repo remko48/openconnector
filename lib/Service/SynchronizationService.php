@@ -52,6 +52,7 @@ class SynchronizationService
     const KEY_FOR_EXTRA_DATA_LOCATION      = 'key';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION = 'mergeExtraDataKey';
 
+
 	public function __construct(
 		CallService $callService,
 		MappingService $mappingService,
