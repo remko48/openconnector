@@ -146,7 +146,6 @@ class SynchronizationService
 		}
 
 		if (isset($rateLimitException) === true) {
-			var_dump('test');
 			throw new TooManyRequestsHttpException(
 				message: $rateLimitException->getMessage(),
 				code: 429,
@@ -445,17 +444,13 @@ class SynchronizationService
         $objects = [];
         $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
-		if ($source->getRateLimitRemaining() !== null && $source->getRateLimitRemaining() <= 0) {
+		if ($source->getRateLimitRemaining() !== null && $source->getRateLimitReset() !== null
+			&& $source->getRateLimitRemaining() <= 0 && $source->getRateLimitReset() > time()
+		) {
 			throw new TooManyRequestsHttpException(
 				message: "Rate Limit on Source has been exceeded. Canceling synchronization...",
 				code: 429,
-				headers: [
-					'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
-					'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
-					'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
-					'X-RateLimit-Used' => ["0"],
-					'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
-				]
+				headers: $this->getRateLimitHeaders($source)
 			);
 		}
 
@@ -486,13 +481,7 @@ class SynchronizationService
 				throw new TooManyRequestsHttpException(
 					message: "Stopped sync because rate limit on Source has been exceeded.",
 					code: 429,
-					headers: [
-						'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
-						'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
-						'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
-						'X-RateLimit-Used' => ["1"],
-						'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
-					]
+					headers: $this->getRateLimitHeaders($source)
 				);
 			}
 		}
@@ -532,13 +521,7 @@ class SynchronizationService
 					throw new TooManyRequestsHttpException(
 						message: "Stopped sync because rate limit on Source has been exceeded.",
 						code: 429,
-						headers: [
-							'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
-							'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
-							'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
-							'X-RateLimit-Used' => ["1"],
-							'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
-						]
+						headers: $this->getRateLimitHeaders($source)
 					);
 				}
 			}
@@ -563,13 +546,7 @@ class SynchronizationService
 						throw new TooManyRequestsHttpException(
 							message: "Stopped sync because rate limit on Source has been exceeded.",
 							code: 429,
-							headers: [
-								'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
-								'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
-								'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
-								'X-RateLimit-Used' => ["1"],
-								'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
-							]
+							headers: $this->getRateLimitHeaders($source)
 						);
 					}
 				}
@@ -603,6 +580,17 @@ class SynchronizationService
 
         return $objects;
     }
+
+	private function getRateLimitHeaders($source): array
+	{
+		return [
+			'X-RateLimit-Limit' => $source->getRateLimitLimit(),
+			'X-RateLimit-Remaining' => $source->getRateLimitRemaining(),
+			'X-RateLimit-Reset' => $source->getRateLimitReset(),
+			'X-RateLimit-Used' => 0,
+			'X-RateLimit-Window' => $source->getRateLimitWindow(),
+		];
+	}
 
 	/**
 	 * Determines the next API endpoint based on a provided next.

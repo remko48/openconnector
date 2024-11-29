@@ -8,7 +8,10 @@ use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
+use OCP\DB\Exception;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\Uid\Uuid;
 use DateInterval;
 use DateTime;
@@ -55,6 +58,9 @@ class ActionTask extends TimedJob
 	 * @param $argument
 	 *
 	 * @return JobLog|void
+	 * @throws Exception
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
 	 */
     public function run($argument)
     {
@@ -101,7 +107,7 @@ class ActionTask extends TimedJob
         // Update the job
 		$nextRun = new DateTime();
 		if (isset($result['nextRun']) === true) {
-			$nextRun = $result['nextRun'];
+			$nextRun = DateTime::createFromFormat('U', $result['nextRun']);
 		}
         $job->setLastRun(new DateTime());
         $job->setNextRun($nextRun);
