@@ -101,7 +101,7 @@ class Version1Date20241111144800 extends SimpleMigrationStep {
 			&& $table->hasColumn('source_id') === true && $table->hasColumn('source_hash') === true
 		) {
 			$this->connection->executeQuery("
-				UPDATE openconnector_synchronization_contracts
+				UPDATE oc_openconnector_synchronization_contracts
 				SET origin_id = source_id, origin_hash = source_hash
 				WHERE source_id IS NOT NULL
 			");
