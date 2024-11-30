@@ -7,17 +7,21 @@
         "description": "d.woo_x005f_beschrijving",
         "summary": "d.woo_x005f_samenvatting",
         "category": "d.woo_x005f_categorie",
-        "published": "d.woo_x005f_publicatiedatum",
-        "modified": "d.vti_x005f_nexttolasttimemodified"
-	},
-	"unset": [],
-	"cast": {
-        "title": "d.woo_x005f_titel",
-        "description": "d.woo_x005f_beschrijving",
-        "summary": "d.woo_x005f_samenvatting",
-        "category": "d.woo_x005f_categorie",
-        "published": "d.woo_x005f_publicatiedatum",
-        "modified": "d.vti_x005f_nexttolasttimemodified"
+        "published": "{% if d['woo_x005f_publicatiedatum']|default %}{{ d['woo_x005f_publicatiedatum']|date('Y-m-d') }}{% endif %}",
+        "modified": "d.vti_x005f_nexttolasttimemodified",
+        "attachments": "{{ '[' }}{% if fileUrls['d']['results']|default %}{% set index = 0 %}{% for file in fileUrls['d']['results'] %}{% if index > 0 %}{{ ', ' }}{% endif %}{{ '{' }}{% if file['Name']|default %} \"title\": \"{{ file['Name'] }}\",{% endif %} \"downloadUrl\": {{ '{' }}{% set uri = file['__metadata']['uri']~'/$value' %}{{ '\"downloadUrl\": \"'~uri~'\",\"source\": \"1\"' }}{{ '}' }}{{ '}' }}{% endfor %}{% endif %}{{ ']' }}",
+        "status": "{% if d['woo_x005f_publicatiedatum']|default %}Published{% else %}Concept{% endif %}",
+        "catalog": ""
+    },
+    "unset": [],
+    "cast": {
+        "title": "unsetIfValue==d.woo_x005f_titel",
+        "description": "unsetIfValue==d.woo_x005f_beschrijving",
+        "summary": "unsetIfValue==d.woo_x005f_samenvatting",
+        "category": "unsetIfValue==d.woo_x005f_categorie",
+        "published": "unsetIfValue==d.woo_x005f_publicatiedatum",
+        "modified": "unsetIfValue==d.vti_x005f_nexttolasttimemodified",
+        "attachments": "jsonToArray"
     },
 	"passThrough": false
 }
