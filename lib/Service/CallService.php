@@ -266,6 +266,7 @@ class CallService
 				'remoteIp' => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
 				'headers' => $response->getHeaders(),
 				'body' => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? $body : base64_encode($body),
+				'encoding' => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? 'UTF-8' : 'base64',
 			]
 		];
 
