@@ -311,7 +311,6 @@ class SynchronizationService
 
         // Let create a source hash for the object
         $originHash = md5(serialize($object));
-        $synchronizationContract->setSourceLastChecked(new DateTime());
 
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
         if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
@@ -322,6 +321,7 @@ class SynchronizationService
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
+		$synchronizationContract->setSourceLastChecked(new DateTime());
 
 		// Check if object adheres to conditions.
 		// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.

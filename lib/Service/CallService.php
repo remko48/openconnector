@@ -249,6 +249,8 @@ class CallService
 
 		$time_end = microtime(true);
 
+		$body = $response->getBody()->getContents();
+
 		// Let create the data array
 		$data = [
 			'request' => [
@@ -263,7 +265,8 @@ class CallService
 				'size' => $response->getBody()->getSize(),
 				'remoteIp' => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
 				'headers' => $response->getHeaders(),
-				'body' => $response->getBody()->getContents(),
+				'body' => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? $body : base64_encode($body),
+				'encoding' => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? 'UTF-8' : 'base64',
 			]
 		];
 
