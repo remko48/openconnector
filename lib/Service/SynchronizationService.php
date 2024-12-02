@@ -287,7 +287,7 @@ class SynchronizationService
         }
 
         // Merge with earlier fetchde object if configured.
-        if (isset($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION]) === true && $extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === true) {
+        if (isset($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION]) === true && ($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === true || $extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === 'true')) {
             return array_merge($object, $extraData);
         }
 
@@ -358,7 +358,6 @@ class SynchronizationService
                 $targetObject = $object;
             }
         }
-
 
         // set the target hash
         $targetHash = md5(serialize($targetObject));
