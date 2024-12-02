@@ -269,7 +269,7 @@ class SynchronizationService
 
         $extraData = $this->getObjectFromSource($synchronization, $endpoint);
 
-        // Temporary fix, this goes too deep
+        // Temporary fix,
         if ($extraDataConfig['extraDataConfigPerResult']) {
             $dotObject = new Dot($extraData);
             $results = $dotObject->get($extraDataConfig['resultsLocation']);
