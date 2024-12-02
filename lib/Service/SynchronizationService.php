@@ -269,13 +269,25 @@ class SynchronizationService
 
         $extraData = $this->getObjectFromSource($synchronization, $endpoint);
 
+        // Temporary fix,
+        if ($extraDataConfig['extraDataConfigPerResult']) {
+            $dotObject = new Dot($extraData);
+            $results = $dotObject->get($extraDataConfig['resultsLocation']);
+
+            foreach ($results as $key => $result) {
+                $results[$key] = $this->fetchExtraDataForObject($synchronization, $extraDataConfig['extraDataConfigPerResult'], $result);
+            }
+
+            $extraData = $results;
+        }
+
         // Set new key if configured.
         if (isset($extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION]) === true) {
             $extraData = [$extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION] => $extraData];
         }
 
         // Merge with earlier fetchde object if configured.
-        if (isset($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION]) === true && $extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === true) {
+        if (isset($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION]) === true && ($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === true || $extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === 'true')) {
             return array_merge($object, $extraData);
         }
 
@@ -346,7 +358,6 @@ class SynchronizationService
                 $targetObject = $object;
             }
         }
-
 
         // set the target hash
         $targetHash = md5(serialize($targetObject));
