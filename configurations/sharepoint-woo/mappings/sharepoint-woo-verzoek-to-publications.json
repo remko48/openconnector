@@ -9,7 +9,7 @@
         "category": "d.woo_x005f_categorie",
         "published": "{% if d['woo_x005f_publicatiedatum']|default %}{{ d['woo_x005f_publicatiedatum']|date('Y-m-d') }}{% endif %}",
         "modified": "d.vti_x005f_nexttolasttimemodified",
-        "attachments": "{{ '[' }}{% if fileUrls|default %}{% set index = 0 %}{% for file in fileUrls %}{% if index \u003E 0 %}{{ ', ' }}{% endif %}{{ '{' }}{% if file['Name']|default %} \"title\": \"{{ file['Name'] }}\",{% endif %}{% if file['d']['document_x005f_label']|default %}\"labels\": [\"{{ file['d']['document_x005f_label'] }}\"],{% endif %}  \"downloadUrl\": {{ '{' }}{% set uri = file['__metadata']['uri']~'\/$value' %}{{ '\"downloadUrl\": \"'~uri~'\",\"source\": \"2\"' }}{{ '}' }}{{ '}' }}{% endfor %}{% endif %}{{ ']' }}",
+        "attachments": "{{ '[' }}{% if fileUrls|default %}{% set index = 0 %}{% for file in fileUrls %}{% if index > 0 %}{{ ', ' }}{% endif %}{{ '{' }}{% if file['Name']|default %} \"title\": \"{{ file['Name'] }}\",{% endif %}{% if file['d']['document_x005f_label']|default %}\"labels\": [\"{{ file['d']['document_x005f_label'] }}\"],{% endif %}  \"downloadUrl\": {{ '{' }}{% set uri = file['__metadata']['uri']~'\/$value' %}{{ '\"downloadUrl\": \"'~uri~'\",\"source\": \"1\"' }}{{ '}' }}{{ '}' }}{% endfor %}{% endif %}{{ ']' }}",
         "status": "{% if d['woo_x005f_publicatiedatum']|default %}Published{% else %}Concept{% endif %}",
         "catalog": ""
     },
