@@ -269,6 +269,18 @@ class SynchronizationService
 
         $extraData = $this->getObjectFromSource($synchronization, $endpoint);
 
+        // Temporary fix, this goes too deep
+        if ($extraDataConfig['extraDataConfigPerResult']) {
+            $dotObject = new Dot($extraData);
+            $results = $dotObject->get($extraDataConfig['resultsLocation']);
+
+            foreach ($results as $key => $result) {
+                $results[$key] = $this->fetchExtraDataForObject($synchronization, $extraDataConfig['extraDataConfigPerResult'], $result);
+            }
+
+            $extraData = $results;
+        }
+
         // Set new key if configured.
         if (isset($extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION]) === true) {
             $extraData = [$extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION] => $extraData];
