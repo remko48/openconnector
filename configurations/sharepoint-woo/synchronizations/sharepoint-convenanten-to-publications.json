@@ -15,6 +15,9 @@
         "extraDataConfigs.1.dynamicEndpointLocation": "Files.__deferred.uri",
         "extraDataConfigs.1.mergeExtraData": "true",
         "extraDataConfigs.1.keyToSetExtraData": "fileUrls",
+        "extraDataConfigs.1.resultsLocation": "d.results",
+        "extraDataConfigs.1.extraDataConfigPerResult.dynamicEndpointLocation": "Properties.__deferred.uri",
+        "extraDataConfigs.1.extraDataConfigPerResult.mergeExtraData": "true",
         "headers": [],
         "query": []
     },
