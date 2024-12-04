@@ -230,7 +230,7 @@ class AuthenticationService
 	private function getRSJWK(array $configuration): ?JWK
 	{
 		$stamp = microtime().getmypid();
-		$filename = "privatekey-$stamp";
+		$filename = "/var/tmp/privatekey-$stamp";
 		file_put_contents($filename, base64_decode($configuration['secret']));
 		$jwk = null;
 		try {
