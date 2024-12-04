@@ -320,6 +320,11 @@ class SynchronizationService
             }
         }
 
+		// @TODO: This should be unset through pre-mapping
+		if(isset($object['d']['vti_x005f_dirlateststamp']) === true) {
+			unset($object['d']['vti_x005f_dirlateststamp']);
+		}
+
 
         // Let create a source hash for the object
         $originHash = md5(serialize($object));
@@ -329,6 +334,7 @@ class SynchronizationService
             // The object has not changed and the config has not been updated since last check
 			return $synchronizationContract;
         }
+		var_dump($originHash === $synchronizationContract->getOriginHash(), $originHash, $synchronizationContract->getOriginHash());
 
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
