@@ -334,8 +334,7 @@ class SynchronizationService
             // The object has not changed and the config has not been updated since last check
 			return $synchronizationContract;
         }
-		var_dump($originHash === $synchronizationContract->getOriginHash(), $originHash, $synchronizationContract->getOriginHash());
-
+		
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
