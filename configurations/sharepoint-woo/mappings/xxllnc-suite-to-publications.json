@@ -1,8 +1,6 @@
 {
 	"name": "Xxllnc suite to Publication",
-	"description": "",
-	"version": "",
-	"reference": "",
+	"version": "0.0.1",
 	"mapping": {
         "title": "omschrijving",
         "summary": "zaaktypeomschrijving",
