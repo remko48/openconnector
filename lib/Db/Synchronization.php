@@ -65,6 +65,11 @@ class Synchronization extends Entity implements JsonSerializable
 		$this->addType(fieldName:'followUps', type: 'json');
 	}
 
+    /**
+     * Checks through sourceConfig if the source of this sync uses pagination
+     * 
+     * @return bool true if its uses pagination
+     */
     public function usesPagination(): bool
     {
         if (isset($this->sourceConfig['usesPagination']) === true && ($this->sourceConfig['usesPagination'] === false || $this->sourceConfig['usesPagination'] === 'false')) {
