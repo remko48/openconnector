@@ -7,17 +7,20 @@
 		"title": "omschrijving",
 		"summary": "zaaktypeomschrijving",
 		"description": "zaaktypeomschrijving",
-        "published" : "{% if startdatum|default %}{{ startdatum|date('Y-m-d') }}{% endif %}",
+        "published" : "",
         "modified" : "{{ 'now'|date(H:i:sTm-d-Y') }}",
-        "status": "{% if startdatum|default %}Published{% else %}Concept{% endif %}",
-        "catalog": ""
+        "status": "Concept",
+        "catalog": "",
+        "publicationType": ""
 	},
 	"unset": [],
 	"cast": {
 		"title": "unsetIfValue==omschrijving",
 		"summary": "unsetIfValue==zaaktypeomschrijving",
 		"description": "unsetIfValue==zaaktypeomschrijving",
-        "published" : "unsetIfValue=="
+        "published" : "unsetIfValue==",
+        "catalog": "unsetIfValue==",
+        "publicationType": "unsetIfValue=="
     },
 	"passThrough": false
 }
