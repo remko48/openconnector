@@ -554,7 +554,7 @@ class SynchronizationService
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
 		}
 
-		if ($useNextEndpoint === false) {
+		if ($useNextEndpoint === false && $synchronization->usesPagination() === true) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
