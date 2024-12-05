@@ -8,7 +8,8 @@ use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
-use OCP\DB\Exception;
+use OCP\IUserManager;
+use OCP\IUserSession;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -33,7 +34,9 @@ class ActionTask extends TimedJob
         JobMapper $jobMapper,
         JobLogMapper $jobLogMapper,
         IJobList $jobList,
-        ContainerInterface $containerInterface
+        ContainerInterface $containerInterface,
+		private IUserSession $userSession,
+		private IUserManager $userManager,
     ) {
         parent::__construct($time);
         $this->jobMapper = $jobMapper;
@@ -58,7 +61,7 @@ class ActionTask extends TimedJob
 	 * @param $argument
 	 *
 	 * @return JobLog|void
-	 * @throws Exception
+	 * @throws \OCP\DB\Exception
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
 	 */
@@ -85,6 +88,11 @@ class ActionTask extends TimedJob
         if ($job->getNextRun() !== null && $job->getNextRun() > new DateTime()) {
             return;
         }
+
+		if(empty($job->getUserId()) === false && $this->userSession->getUser() === null) {
+			$user = $this->userManager->get($job->getUserId());
+			$this->userSession->setUser($user);
+		}
 
 		$time_start = microtime(true);
 

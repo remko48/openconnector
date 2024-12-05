@@ -7,14 +7,20 @@
 	"sourceHash": "",
 	"sourceTargetMapping": "1",
 	"sourceConfig": {
-		"idPosition": "Properties.__deferred.uri",
-		"resultsPosition": "d.results",
-		"endpoint": "/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Convenanten')/folders",
-        "singleEndpoint": "{{ originId }}",
-        "mergeDataSingleEndpoint": true,
-		"headers": [],
-		"query": []
-	},
+        "idPosition": "UniqueId",
+        "resultsPosition": "d.results",
+        "endpoint": "\/Web\/GetFolderByServerRelativePath(decodedurl='\/WOO\/Convenanten')\/folders",
+        "extraDataConfigs.0.dynamicEndpointLocation": "Properties.__deferred.uri",
+        "extraDataConfigs.0.mergeExtraData": "true",
+        "extraDataConfigs.1.dynamicEndpointLocation": "Files.__deferred.uri",
+        "extraDataConfigs.1.mergeExtraData": "true",
+        "extraDataConfigs.1.keyToSetExtraData": "fileUrls",
+        "extraDataConfigs.1.resultsLocation": "d.results",
+        "extraDataConfigs.1.extraDataConfigPerResult.dynamicEndpointLocation": "Properties.__deferred.uri",
+        "extraDataConfigs.1.extraDataConfigPerResult.mergeExtraData": "true",
+        "headers": [],
+        "query": []
+    },
 	"targetId": "1/1",
 	"targetType": "register/schema"
 }
