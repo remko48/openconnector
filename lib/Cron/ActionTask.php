@@ -136,6 +136,8 @@ class ActionTask extends TimedJob
             }
         }
 
+		$this->jobLogMapper->update(entity: $jobLog);
+
         // Let's report back about what we have just done
         return $jobLog;
     }
