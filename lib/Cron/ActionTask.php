@@ -8,6 +8,8 @@ use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
+use OCP\IUserManager;
+use OCP\IUserSession;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Uid\Uuid;
 use DateInterval;
@@ -30,7 +32,9 @@ class ActionTask extends TimedJob
         JobMapper $jobMapper,
         JobLogMapper $jobLogMapper,
         IJobList $jobList,
-        ContainerInterface $containerInterface
+        ContainerInterface $containerInterface,
+		private IUserSession $userSession,
+		private IUserManager $userManager,
     ) {
         parent::__construct($time);
         $this->jobMapper = $jobMapper;
@@ -80,6 +84,11 @@ class ActionTask extends TimedJob
             return;
         }
 
+		if(empty($job->getUserId()) === false && $this->userSession->getUser() === null) {
+			$user = $this->userManager->get($job->getUserId());
+			$this->userSession->setUser($user);
+		}
+
 		$time_start = microtime(true);
 
         $action =  $this->containerInterface->get($job->getJobClass());
@@ -126,6 +135,8 @@ class ActionTask extends TimedJob
                 $jobLog->setStackTrace($result['stackTrace']);
             }
         }
+
+		$this->jobLogMapper->update(entity: $jobLog);
 
         // Let's report back about what we have just done
         return $jobLog;
