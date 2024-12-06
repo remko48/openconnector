@@ -138,6 +138,7 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
 			$callLog->setCreated(new \DateTime());
+			$callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
 			$this->callLogMapper->insert($callLog);
 
@@ -152,6 +153,7 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source has no location");
 			$callLog->setCreated(new \DateTime());
+			$callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
 			$this->callLogMapper->insert($callLog);
 
@@ -178,6 +180,7 @@ class CallService
 			$callLog->setStatusCode(429); //
 			$callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
 			$callLog->setCreated(new \DateTime());
+			$callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
 			$this->callLogMapper->insert($callLog);
 
@@ -282,6 +285,7 @@ class CallService
 		$callLog->setRequest($data['request']);
 		$callLog->setResponse($data['response']);
 		$callLog->setCreated(new \DateTime());
+		$callLog->setExpires(new \DateTime('now + '.($data['response']['statusCode'] < 400 ? $source->getLogRetention() : $source->getErrorRetention()).' seconds'));
 
 		$this->callLogMapper->insert($callLog);
 
