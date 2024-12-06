@@ -33,6 +33,10 @@ The OpenConnector Nextcloud app provides a ESB-framework to work together in an 
         <owncloud max-version="0" min-version="0"/>
 	</dependencies>
 
+	<background-jobs>
+		<job>OCA\OpenConnector\Cron\LogCleanUpTask</job>
+	</background-jobs>
+
 	<navigations>
 		<navigation>
 			<id>openconnector</id>
