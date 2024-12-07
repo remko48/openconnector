@@ -33,6 +33,12 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 							</template>
 							Add Configuration
 						</NcActionButton>
+						<NcActionButton @click="sourceStore.setSourceConfigurationKey(null); navigationStore.setModal('editSourceConfigurationAuthentication')">
+							<template #icon>
+								<Plus :size="20" />
+							</template>
+							Add Authentication
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSource')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -44,7 +50,11 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 				<span>{{ sourceStore.sourceItem.description }}</span>
 
 				<div class="detailGrid">
-					<div class="gridContent gridFullWidth">
+					<div class="gridContent">
+						<b>id:</b>
+						<p>{{ sourceStore.sourceItem.id || sourceStore.sourceItem.uuid }}</p>
+					</div>
+					<div class="gridContent">
 						<b>location:</b>
 						<p>{{ sourceStore.sourceItem.location }}</p>
 					</div>
@@ -52,8 +62,8 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Configurations">
-							<div v-if="sourceStore.sourceItem?.configuration !== null && Object.keys(sourceStore.sourceItem?.configuration).length > 0">
-								<NcListItem v-for="(value, key, i) in sourceStore.sourceItem?.configuration"
+							<div v-if="Object.keys(configuration)?.length">
+								<NcListItem v-for="(value, key, i) in configuration"
 									:key="`${key}${i}`"
 									:name="key"
 									:bold="false"
@@ -85,71 +95,70 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="sourceStore.sourceItem?.configuration === null || Object.keys(sourceStore.sourceItem?.configuration).length === 0" class="tabPanel">
+							<div v-if="!Object.keys(configuration)?.length" class="tabPanel">
 								No configurations found
 							</div>
 						</BTab>
-						<BTab title="Mappings">
-							<div v-if="sourceStore?.sourceItem?.mappings?.length">
-								<NcListItem v-for="(character, i) in filterCharacters"
-									:key="character.id + i"
-									:name="character.name"
+						<BTab title="Authentication">
+							<div v-if="Object.keys(configurationAuthentication)?.length">
+								<NcListItem v-for="(value, key, i) in configurationAuthentication"
+									:key="`${key}${i}`"
+									:name="key"
 									:bold="false"
-									:force-display-actions="true">
+									:force-display-actions="true"
+									:active="sourceStore.sourceConfigurationKey === key">
 									<template #icon>
-										<BriefcaseAccountOutline disable-menu
+										<FileCogOutline
+											:class="sourceStore.sourceConfigurationKey === key && 'selectedZaakIcon'"
+											disable-menu
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ character.description }}
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="sourceStore.setSourceConfigurationKey(key); navigationStore.setModal('editSourceConfigurationAuthentication')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="sourceStore.setSourceConfigurationKey(key); navigationStore.setModal('deleteSourceConfigurationAuthentication')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!sourceStore?.sourceItem?.mappings?.length" class="tabPanel">
-								No mappings found
+							<div v-if="!Object.keys(configurationAuthentication)?.length" class="tabPanel">
+								No configurations found
 							</div>
 						</BTab>
-						<BTab title="Jobs">
-							<div v-if="sourceStore?.sourceItem?.jobs?.length">
-								<NcListItem v-for="(character, i) in filterCharacters"
-									:key="character.id + i"
-									:name="character.name"
-									:bold="false"
-									:force-display-actions="true">
-									<template #icon>
-										<BriefcaseAccountOutline disable-menu
-											:size="44" />
-									</template>
-									<template #subname>
-										{{ character.description }}
-									</template>
-								</NcListItem>
-							</div>
-							<div v-if="!sourceStore?.sourceItem?.jobs?.length"  class="tabPanel">
-								No jobs found
-							</div>
+						<BTab title="Endpoints" class="tabPanel">
+							No endpoints found
+						</BTab>
+						<BTab title="Synchronizations" class="tabPanel">
+							No synchronizations found
 						</BTab>
 						<BTab title="Logs">
 							<div v-if="sourceStore.sourceLogs?.length">
 								<NcListItem v-for="(log, i) in sourceStore.sourceLogs"
 									:key="log.id + i"
 									:class="checkIfStatusIsOk(log.statusCode) ? 'okStatus' : 'errorStatus'"
-									:name="`${log.statusMessage} (response time: ${(log.response.responseTime / 1000).toFixed(3)} seconds)`"
+									:name="`${log.statusMessage} ${log.response?.responseTime ? `(response time: ${(log.response.responseTime / 1000).toFixed(3)} seconds)` : ''}`"
 									:bold="false"
 									:counter-number="log.statusCode"
 									:force-display-actions="true"
-									:active="logStore.activeLogKey === log?.id"
-									@click="logStore.setActiveLogKey(log.id)">
-									<template #counter-number>
-										<MathLog disable-menu
-											:size="44" />
-									</template>
+									:active="logStore.activeLogKey === `sourceLog-${log.id}`"
+									@click="setActiveSourceLog(log.id)">
 									<template #icon>
-										<MathLog disable-menu
+										<TimelineQuestionOutline disable-menu
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ log.createdAt.date }} - {{ log.createdAt.timezone }}
+										{{ new Date(log.created).toLocaleString() }}
 									</template>
 									<template #actions>
 										<NcActionButton @click="viewLog(log)">
@@ -161,7 +170,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!sourceStore.sourceLogs?.length"  class="tabPanel">
+							<div v-if="!sourceStore.sourceLogs?.length" class="tabPanel">
 								No logs found
 							</div>
 						</BTab>
@@ -182,12 +191,12 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
-import BriefcaseAccountOutline from 'vue-material-design-icons/BriefcaseAccountOutline.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
+import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
-import MathLog from 'vue-material-design-icons/MathLog.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
+
 export default {
 	name: 'SourceDetails',
 	components: {
@@ -201,6 +210,28 @@ export default {
 		Pencil,
 		TrashCanOutline,
 		Sync,
+	},
+	computed: {
+		/**
+		 * Returns the configuration without the authentication configuration
+		 */
+		configuration() {
+			const filteredObj = Object.fromEntries(
+				Object.entries(sourceStore.sourceItem?.configuration)
+					.filter(([key]) => !key.startsWith('authentication.')),
+			)
+			return filteredObj
+		},
+		/**
+		 * Returns the authentication configuration
+		 */
+		configurationAuthentication() {
+			const filteredObj = Object.fromEntries(
+				Object.entries(sourceStore.sourceItem?.configuration)
+					.filter(([key]) => key.startsWith('authentication.')),
+			)
+			return filteredObj
+		},
 	},
 	mounted() {
 		this.refreshSourceLogs()
@@ -220,16 +251,22 @@ export default {
 		},
 		viewLog(log) {
 			logStore.setViewLogItem(log)
-			navigationStore.setModal('viewLog')
+			navigationStore.setModal('viewSourceLog')
 		},
 		setActiveSourceConfigurationKey(sourceConfigurationKey) {
 			if (sourceStore.sourceConfigurationKey === sourceConfigurationKey) {
 				sourceStore.setSourceConfigurationKey(false)
 			} else { sourceStore.setSourceConfigurationKey(sourceConfigurationKey) }
 		},
+		setActiveSourceLog(sourceLogId) {
+			if (logStore.activeLogKey === `sourceLog-${sourceLogId}`) {
+				logStore.setActiveLogKey(null)
+			} else {
+				logStore.setActiveLogKey(`sourceLog-${sourceLogId}`)
+			}
+		},
 		refreshSourceLogs() {
 			sourceStore.refreshSourceLogs()
-
 		},
 		checkIfStatusIsOk(statusCode) {
 			if (statusCode > 199 && statusCode < 300) {
@@ -241,25 +278,30 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .h1 {
 	display: block !important;
 	font-size: 2em !important;
 	margin-block-start: 0.67em !important;
 	margin-block-end: 0.67em !important;
-	margin-inline-start: 0px !important;
-	margin-inline-end: 0px !important;
+	margin-inline-start: 0 !important;
+	margin-inline-end: 0 !important;
 	font-weight: bold !important;
 	unicode-bidi: isolate !important;
-  }
+}
 
-  .okStatus * .counter-bubble__counter {
+.okStatus * .counter-bubble__counter {
 	background-color: #69b090;
 	color: white
-  }
+}
 
-  .errorStatus * .counter-bubble__counter {
+.errorStatus * .counter-bubble__counter {
 	background-color: #dd3c49;
 	color: white
-  }
+}
+
+.gridContent {
+	display: flex;
+	gap: 10px;
+}
 </style>

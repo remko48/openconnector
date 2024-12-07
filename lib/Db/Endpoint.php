@@ -8,24 +8,34 @@ use OCP\AppFramework\Db\Entity;
 
 class Endpoint extends Entity implements JsonSerializable
 {
-	protected ?string $reference = null;
-	protected ?string $version = null;
-	protected ?string $name = null;
-	protected ?string $description = null;
-	protected ?array $schemas = null;
-	protected ?array $methods = null;
-	protected ?DateTime $dateCreated = null;
-	protected ?DateTime $dateModified = null;
+    protected ?string $uuid = null;
+	protected ?string $name = null; // The name of the endpoint
+	protected ?string $description = null; // The description of the endpoint
+	protected ?string $reference = null; // The reference of the endpoint
+	protected ?string $version = '0.0.0'; // The version of the endpoint
+	protected ?string $endpoint = null; // The actual endpoint e.g /api/buildings/{{id}}. An endpoint may contain parameters e.g {{id}}
+	protected ?array  $endpointArray = null; // An array representation of the endpoint. Automatically generated
+	protected ?string $endpointRegex = null; // A regex representation of the endpoint. Automatically generated
+	protected ?string $method = null; // One of GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD. method and endpoint combination should be unique
+	protected ?string $targetType = null; // The target to attach this endpoint to, should be one of source (to create a proxy endpoint) or register/schema (to create an object endpoint) or job (to fire an event) or synchronization (to create a synchronization endpoint)
+	protected ?string $targetId = null; // The target id to attach this endpoint to
+	protected ?DateTime $created = null;
+	protected ?DateTime $updated = null;
 
 	public function __construct() {
-		$this->addType('reference', 'string');
-		$this->addType('version', 'string');
+        $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
-		$this->addType('schemas', 'json');
-		$this->addType('methods', 'json');
-		$this->addType('dateCreated', 'datetime');
-		$this->addType('dateModified', 'datetime');
+		$this->addType('reference', 'string');
+		$this->addType('version', 'string');
+		$this->addType('endpoint', 'string');
+		$this->addType('endpointArray', 'json');
+		$this->addType('endpointRegex', 'string');
+		$this->addType('method', 'string');
+		$this->addType('targetType', 'string');
+		$this->addType('targetId', 'string');
+		$this->addType('created', 'datetime');
+		$this->addType('updated', 'datetime');
 	}
 
 	public function getJsonFields(): array
@@ -51,7 +61,7 @@ class Endpoint extends Entity implements JsonSerializable
 			try {
 				$this->$method($value);
 			} catch (\Exception $exception) {
-//				("Error writing $key");
+				// ("Error writing $key");
 			}
 		}
 
@@ -62,14 +72,20 @@ class Endpoint extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
-			'reference' => $this->reference,
-			'version' => $this->version,
+            'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
-			'schemas' => $this->schemas,
-			'methods' => $this->methods,
-			'dateCreated' => $this->dateCreated,
-			'dateModified' => $this->dateModified,
+			'reference' => $this->reference,
+			'version' => $this->version,
+			'endpoint' => $this->endpoint,
+			'endpointArray' => $this->endpointArray,
+			'endpointRegex' => $this->endpointRegex,
+			'method' => $this->method,
+			'targetType' => $this->targetType,
+			'targetId' => $this->targetId,
+			'created' => isset($this->created) ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
+			
 		];
 	}
 }

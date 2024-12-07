@@ -22,7 +22,7 @@ import { navigationStore, sourceStore } from '../../store/store.js'
 			Do you want to delete <b>{{ sourceStore.sourceConfigurationKey }}</b>? This action cannot be undone.
 		</p>
 		<template #actions>
-			<NcButton :disabled="loading" icon="" @click="navigationStore.setModal(false)">
+			<NcButton :disabled="loading" icon="" @click="closeModal">
 				<template #icon>
 					<Cancel :size="20" />
 				</template>
@@ -66,9 +66,15 @@ export default {
 			loading: false,
 			success: null,
 			error: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	methods: {
+		closeModal() {
+			navigationStore.setModal(false)
+			clearTimeout(this.closeTimeoutFunc)
+			this.success = null
+		},
 		deleteSourceConfiguration() {
 			this.loading = true
 
@@ -85,11 +91,7 @@ export default {
 					this.success = true
 
 					// Wait for the user to read the feedback then close the model
-					const self = this
-					setTimeout(function() {
-						self.success = null
-						navigationStore.setModal(false)
-					}, 2000)
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 				})
 				.catch((err) => {
 					this.error = err

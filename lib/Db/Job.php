@@ -8,8 +8,10 @@ use OCP\AppFramework\Db\Entity;
 
 class Job extends Entity implements JsonSerializable
 {
+    protected ?string $uuid = null;
 	protected ?string $name = null;
 	protected ?string $description = null;
+	protected ?string $version = '0.0.0'; // The version of the endpoint
 	protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
 	protected ?array $arguments = null;
 	protected ?int $interval = 3600; // seconds in an hour
@@ -29,8 +31,10 @@ class Job extends Entity implements JsonSerializable
 	protected ?DateTime $updated = null; // the date and time the job was updated
 
 	public function __construct() {
+        $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
+		$this->addType('version', 'string');
 		$this->addType('jobClass', 'string');
 		$this->addType('arguments', 'json');
 		$this->addType('interval', 'integer');
@@ -84,8 +88,10 @@ class Job extends Entity implements JsonSerializable
 	{
 		return [
 			'id' => $this->id,
+			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
+			'version' => $this->version,
 			'jobClass' => $this->jobClass,
 			'arguments' => $this->arguments,
 			'interval' => $this->interval,
@@ -99,10 +105,10 @@ class Job extends Entity implements JsonSerializable
 			'jobListId' => $this->jobListId,
 			'logRetention' => $this->logRetention,
 			'errorRetention' => $this->errorRetention,
-			'lastRun' => $this->lastRun,
-			'nextRun' => $this->nextRun,
-			'created' => $this->created,
-			'updated' => $this->updated,
+			'lastRun' => isset($this->lastRun) ? $this->lastRun->format('c') : null,
+            'nextRun' => isset($this->nextRun) ? $this->nextRun->format('c') : null,
+            'created' => isset($this->created) ? $this->created->format('c') : null,
+			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
 		];
 	}
 }

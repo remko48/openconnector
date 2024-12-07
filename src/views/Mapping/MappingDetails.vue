@@ -27,6 +27,24 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							</template>
 							Add Mapping
 						</NcActionButton>
+						<NcActionButton @click="addMappingCast()">
+							<template #icon>
+								<SwapHorizontal :size="20" />
+							</template>
+							Add Cast
+						</NcActionButton>
+						<NcActionButton @click="mappingStore.setMappingUnsetKey(null); navigationStore.setModal('editMappingUnset')">
+							<template #icon>
+								<Eraser :size="20" />
+							</template>
+							Add Unset
+						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('testMapping')">
+							<template #icon>
+								<TestTube :size="20" />
+							</template>
+							Test
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteMapping')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -39,6 +57,10 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
+						<b>id:</b>
+						<p>{{ mappingStore.mappingItem.uuid }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
 						<b>Reference:</b>
 						<p>{{ mappingStore.mappingItem.reference }}</p>
 					</div>
@@ -50,7 +72,7 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 				<div class="tabContainer">
 					<BTabs content-class="mt-3" justified>
 						<BTab title="Mapping">
-							<div v-if="mappingStore.mappingItem?.mapping !== null && Object.keys(mappingStore.mappingItem?.mapping).length > 0">
+							<div v-if="mappingStore.mappingItem?.mapping !== null && Object.keys(mappingStore.mappingItem?.mapping || {}).length">
 								<NcListItem v-for="(value, key, i) in mappingStore.mappingItem?.mapping"
 									:key="`${key}${i}`"
 									:name="key"
@@ -83,13 +105,82 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="Object.keys(mappingStore.mappingItem?.mapping).length === 0" class="tabPanel">
+							<div v-if="!Object.keys(mappingStore.mappingItem?.mapping || {}).length" class="tabPanel">
 								No mapping found
 							</div>
 						</BTab>
 						<BTab title="Cast">
-							<div class="tabPanel">
+							<div v-if="mappingStore.mappingItem?.cast !== null && Object.keys(mappingStore.mappingItem?.cast || {}).length">
+								<NcListItem v-for="(value, key, i) in mappingStore.mappingItem?.cast"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="mappingStore.mappingCastKey === key"
+									@click="setActiveMappingCastKey(key)">
+									<template #icon>
+										<SwapHorizontal
+											:class="mappingStore.mappingCastKey === key && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="editMappingCast(key)">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="deleteMappingCast(key)">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!Object.keys(mappingStore.mappingItem?.cast || {}).length" class="tabPanel">
 								No cast found
+							</div>
+						</BTab>
+						<BTab title="Unset">
+							<div v-if="mappingStore.mappingItem?.unset?.length">
+								<NcListItem v-for="(value, i) in mappingStore.mappingItem?.unset"
+									:key="`${value}${i}`"
+									:name="value"
+									:bold="false"
+									:force-display-actions="true">
+									<template #icon>
+										<Eraser
+											:class="mappingStore.mappingUnsetKey === value && 'selectedZaakIcon'"
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="mappingStore.setMappingUnsetKey(value); navigationStore.setModal('editMappingUnset')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="mappingStore.setMappingUnsetKey(value); navigationStore.setModal('deleteMappingUnset')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!mappingStore.mappingItem?.unset?.length" class="tabPanel">
+								No unset found
 							</div>
 						</BTab>
 					</BTabs>
@@ -106,8 +197,11 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import MapPlus from 'vue-material-design-icons/MapPlus.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
+import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import TestTube from 'vue-material-design-icons/TestTube.vue'
+import Eraser from 'vue-material-design-icons/Eraser.vue'
 
 export default {
 	name: 'MappingDetails',
@@ -136,6 +230,23 @@ export default {
 			if (mappingStore.mappingMappingKey === mappingMappingKey) {
 				mappingStore.setMappingMappingKey(false)
 			} else { mappingStore.setMappingMappingKey(mappingMappingKey) }
+		},
+		deleteMappingCast(key) {
+			mappingStore.setMappingCastKey(key)
+			navigationStore.setModal('deleteMappingCast')
+		},
+		editMappingCast(key) {
+			mappingStore.setMappingCastKey(key)
+			navigationStore.setModal('editMappingCast')
+		},
+		addMappingCast() {
+			mappingStore.setMappingCastKey(null)
+			navigationStore.setModal('editMappingCast')
+		},
+		setActiveMappingCastKey(mappingCastKey) {
+			if (mappingStore.mappingCastKey === mappingCastKey) {
+				mappingStore.setMappingCastKey(false)
+			} else { mappingStore.setMappingCastKey(mappingCastKey) }
 		},
 	},
 }

@@ -2,11 +2,12 @@
 
 namespace OCA\OpenConnector\Db;
 
-use OCA\OpenConnector\Db\Mapping;
+use OCA\OpenConnector\Db\Endpoint;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Symfony\Component\Uid\Uuid;
 
 class EndpointMapper extends QBMapper
 {
@@ -15,7 +16,7 @@ class EndpointMapper extends QBMapper
 		parent::__construct($db, 'openconnector_endpoints');
 	}
 
-	public function find(int $id): Mapping
+	public function find(int $id): Endpoint
 	{
 		$qb = $this->db->getQueryBuilder();
 
@@ -47,7 +48,7 @@ class EndpointMapper extends QBMapper
 			}
         }
 
-        if (!empty($searchConditions)) {
+		if (empty($searchConditions) === false) {
             $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);
@@ -57,18 +58,47 @@ class EndpointMapper extends QBMapper
 		return $this->findEntities(query: $qb);
 	}
 
-	public function createFromArray(array $object): Mapping
+	public function createFromArray(array $object): Endpoint
 	{
-		$endpoint = new Mapping();
-		$endpoint->hydrate(object: $object);
-		return $this->insert(entity: $endpoint);
+		$obj = new Endpoint();
+		$obj->hydrate($object);
+		// Set uuid
+		if ($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
+		return $this->insert(entity: $obj);
 	}
 
-	public function updateFromArray(int $id, array $object): Mapping
+	public function updateFromArray(int $id, array $object): Endpoint
 	{
-		$endpoint = $this->find($id);
-		$endpoint->hydrate($object);
+		$obj = $this->find($id);
+		$obj->hydrate($object);
 
-		return $this->update($endpoint);
+		// Set or update the version
+		$version = explode('.', $obj->getVersion());
+		$version[2] = (int)$version[2] + 1;
+		$obj->setVersion(implode('.', $version));
+
+		return $this->update($obj);
 	}
+
+    /**
+     * Get the total count of all call logs.
+     *
+     * @return int The total number of call logs in the database.
+     */
+    public function getTotalCallCount(): int
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        // Select count of all logs
+        $qb->select($qb->createFunction('COUNT(*) as count'))
+           ->from('openconnector_endpoints');
+
+        $result = $qb->execute();
+        $row = $result->fetch();
+
+        // Return the total count
+        return (int)$row['count'];
+    }
 }

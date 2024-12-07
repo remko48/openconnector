@@ -8,7 +8,7 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 		label-id="editSource"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>{{ sourceItem.id ? 'Edit' : 'Add' }} Source</h2>
+			<h2>{{ sourceItem?.id ? 'Edit' : 'Add' }} Source</h2>
 			<NcNoteCard v-if="success" type="success">
 				<p>Source successfully added</p>
 			</NcNoteCard>
@@ -36,7 +36,8 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 					<NcTextField
 						id="location"
 						label="location*"
-						:value.sync="sourceItem.location" />
+						:value.sync="sourceItem.location"
+						:helper-text="`The location of the source will never end on a /. If a / is added it will be removed on saving.`" />
 				</div>
 			</form>
 
@@ -98,6 +99,7 @@ export default {
 
 			},
 			hasUpdated: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	mounted() {
@@ -138,6 +140,7 @@ export default {
 		},
 		closeModal() {
 			navigationStore.setModal(false)
+			clearTimeout(this.closeTimeoutFunc)
 			this.success = false
 			this.loading = false
 			this.error = false
@@ -164,7 +167,7 @@ export default {
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(this.closeModal, 2000)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 			} catch (error) {
 				this.loading = false
 				this.success = false

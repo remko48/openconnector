@@ -7,6 +7,7 @@ use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Symfony\Component\Uid\Uuid;
 
 class JobMapper extends QBMapper
 {
@@ -47,7 +48,7 @@ class JobMapper extends QBMapper
 			}
         }
 
-        if (!empty($searchConditions)) {
+		if (empty($searchConditions) === false) {
             $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);
@@ -59,16 +60,45 @@ class JobMapper extends QBMapper
 
 	public function createFromArray(array $object): Job
 	{
-		$job = new Job();
-		$job->hydrate(object: $object);
-		return $this->insert(entity: $job);
+		$obj = new Job();
+		$obj->hydrate($object);
+		// Set uuid
+		if ($obj->getUuid() === null){
+			$obj->setUuid(Uuid::v4());
+		}
+		return $this->insert(entity: $obj);
 	}
 
 	public function updateFromArray(int $id, array $object): Job
 	{
-		$job = $this->find($id);
-		$job->hydrate($object);
+		$obj = $this->find($id);
+		$obj->hydrate($object);
 
-		return $this->update($job);
+		// Set or update the version
+		$version = explode('.', $obj->getVersion());
+		$version[2] = (int)$version[2] + 1;
+		$obj->setVersion(implode('.', $version));
+
+		return $this->update($obj);
 	}
+
+    /**
+     * Get the total count of all call logs.
+     *
+     * @return int The total number of call logs in the database.
+     */
+    public function getTotalCallCount(): int
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        // Select count of all logs
+        $qb->select($qb->createFunction('COUNT(*) as count'))
+           ->from('openconnector_jobs');
+
+        $result = $qb->execute();
+        $row = $result->fetch();
+
+        // Return the total count
+        return (int)$row['count'];
+    }
 }

@@ -180,8 +180,7 @@ class SourcesController extends Controller
     public function logs(int $id): JSONResponse
     {
         try {
-            $source = $this->sourceMapper->find($id);
-            $callLogs = $this->callLogMapper->findAll(null, null, ['source_id' => $source->getId()]);
+            $callLogs = $this->callLogMapper->findAll(null, null, ['source_id' =>  $id]);
             return new JSONResponse($callLogs);
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Source not found'], 404);

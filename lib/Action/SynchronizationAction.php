@@ -42,45 +42,42 @@ class SynchronizationAction
 	 *
 	 * @throws Exception Throws an exception if the synchronization process fails or encounters an error.
 	 */
-    public function run(array $argument): array
+    public function run(array $argument = []): array
 	{
-        //@todo: for testing purposes
-        if (!isset($argument['synchronizationId'])) {
-            $argument['synchronizationId'] = 1;
-        }
 
         $response = [];
 
         // if we do not have a synchronization Id then everything is wrong
-        $response['stackTrace'][] = 'Check for a valid synchronization ID';
-        if (!isset($argument['synchronizationId'])) {
+        $response['message'] = $response['stackTrace'][] = 'Check for a valid synchronization ID';
+        if (isset($argument['synchronizationId']) === false) {
             // @todo: implement error handling
-            $response['level'] = 'WARNING';
-            $response['message'] = 'No synchronization ID provided';
-            return $response;
-        }
+            $response['level'] = 'ERROR';
+			$response['stackTrace'][] = $response['message'] = 'No synchronization ID provided';
 
-        // We are going to allow for a single synchronization contract to be processed at a time
-        if (isset($argument['synchronizationContractId']) && is_int((int) $argument['synchronizationContractId'])) {
-            $synchronizationContract = $this->synchronizationContractMapper->find((int) $argument['synchronizationContractId']);
-            $this->callService->synchronizeContract($synchronization);
             return $response;
         }
 
         // Let's find a synchronysation
-        $response['stackTrace'][] = 'Getting synchronization';
+        $response['stackTrace'][] = 'Getting synchronization: '.$argument['synchronizationId'];
         $synchronization = $this->synchronizationMapper->find((int) $argument['synchronizationId']);
-        if (!$synchronization){
+        if ($synchronization === null){
             $response['level'] = 'WARNING';
-            $response['message'] = 'No synchronization found';
+			$response['stackTrace'][] = $response['message'] = 'Synchronization not found: '.$argument['synchronizationId'];
             return $response;
         }
 
         // Doing the synchronization
         $response['stackTrace'][] = 'Doing the synchronization';
-        $objects = $this->synchronizationService->synchronize($synchronization);
+        try {
+            $objects = $this->synchronizationService->synchronize($synchronization);
+        } catch (Exception $e) {
+            $response['level'] = 'ERROR';
+			$response['stackTrace'][] = $response['message'] = 'Failed to synchronize: ' . $e->getMessage();
+            return $response;
+        }
 
-        $response['stackTrace'][] = 'Synchronized '.count($objects).' successfully';
+        $response['level'] = 'INFO';
+		$response['stackTrace'][] = $response['message'] = 'Synchronized '.count($objects).' successfully';
 
         // Let's report back about what we have just done
         return $response;

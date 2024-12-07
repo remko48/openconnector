@@ -41,30 +41,29 @@ export const useSourceStore = defineStore(
 				this.sourceConfigurationKey = sourceConfigurationKey
 				console.log('Source configuration key set to ' + sourceConfigurationKey)
 			},
-			/* istanbul ignore next */ // ignore this for Jest until moved into a service
+			/**
+			 * Refreshes the source list by fetching data from the API.
+			 *
+			 * @param { string | null } search - The search query to filter sources.
+			 * @return { Promise<{ response: Response, data: Array<JSON>, entities: Array<Source> }> } The response, data, and entities.
+			 */
 			async refreshSourceList(search = null) {
 				// @todo this might belong in a service?
 				let endpoint = '/index.php/apps/openconnector/api/sources'
 				if (search !== null && search !== '') {
 					endpoint = endpoint + '?_search=' + search
 				}
-				return fetch(endpoint, {
+
+				const response = await fetch(endpoint, {
 					method: 'GET',
 				})
-					.then(
-						(response) => {
-							response.json().then(
-								(data) => {
-									this.setSourceList(data.results)
-								},
-							)
-						},
-					)
-					.catch(
-						(err) => {
-							console.error(err)
-						},
-					)
+
+				const data = (await response.json()).results
+				const entities = data.map(item => new Source(item))
+
+				this.setSourceList(entities)
+
+				return { response, data, entities }
 			},
 			// New function to get a single source
 			async getSource(id) {
@@ -83,6 +82,9 @@ export const useSourceStore = defineStore(
 			},
 			// New function to get source logs
 			async refreshSourceLogs() {
+				if (!this.sourceItem?.id) {
+					return console.warn('No source item to refresh logs')
+				}
 				const endpoint = `/index.php/apps/openconnector/api/sources-logs/${this.sourceItem.id}`
 				try {
 					const response = await fetch(endpoint, {

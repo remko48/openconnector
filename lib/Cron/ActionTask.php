@@ -8,7 +8,12 @@ use OCA\OpenConnector\Db\JobLogMapper;
 use OCP\BackgroundJob\TimedJob;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
+use OCP\IUserManager;
+use OCP\IUserSession;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\Uid\Uuid;
+use DateInterval;
+use DateTime;
 
 /**
  * This class is used to run the action tasks for the OpenConnector app. It hooks into the cron job list and runs the classes that are set as the job class in the job.
@@ -27,7 +32,9 @@ class ActionTask extends TimedJob
         JobMapper $jobMapper,
         JobLogMapper $jobLogMapper,
         IJobList $jobList,
-        ContainerInterface $containerInterface
+        ContainerInterface $containerInterface,
+		private IUserSession $userSession,
+		private IUserManager $userManager,
     ) {
         parent::__construct($time);
         $this->jobMapper = $jobMapper;
@@ -56,7 +63,7 @@ class ActionTask extends TimedJob
     public function run($argument)
     {
         // if we do not have a job id then everything is wrong
-        if (isset($arguments['jobId']) && is_int($argument['jobId'])) {
+        if (isset($arguments['jobId']) === true && is_int($argument['jobId']) === true) {
             return;
         }
 
@@ -68,58 +75,70 @@ class ActionTask extends TimedJob
         }
 
         // If the job is not enabled, we don't need to do anything
-        if (!$job->getIsEnabled()) {
+        if ($job->getIsEnabled() === false) {
             return;
         }
 
         // if the next run is in the the future, we don't need to do anything
-        if ($job->getNextRun() && $job->getNextRun() > $this->time->getTime()) {
+        if ($job->getNextRun() !== null && $job->getNextRun() > new DateTime()) {
             return;
         }
+
+		if(empty($job->getUserId()) === false && $this->userSession->getUser() === null) {
+			$user = $this->userManager->get($job->getUserId());
+			$this->userSession->setUser($user);
+		}
 
 		$time_start = microtime(true);
 
         $action =  $this->containerInterface->get($job->getJobClass());
-        $result = $action->run($job->getArguments());
+        $arguments = $job->getArguments();
+        if (is_array($arguments) === false) {
+            $arguments = [];
+        }
+        $result = $action->run($arguments);
 
         $time_end = microtime(true);
         $executionTime = ( $time_end - $time_start ) * 1000;
 
         // deal with single run
-        if ($job->isSingleRun()) {
+        if ($job->isSingleRun() === true) {
             $job->setIsEnabled(false);
         }
 
 
         // Update the job
-        //$job->setLastRun($this->time->getTime());
-        //$job->setNextRun($this->time->getTime() + $job->getInterval());
-        //$this->jobMapper->update($job);
+        $job->setLastRun(new DateTime());
+		$nextRun = new DateTime('now + '.$job->getInterval().' seconds');
+		$nextRun->setTime(hour: $nextRun->format('H'), minute: $nextRun->format('i'));
+        $job->setNextRun($nextRun);
+        $this->jobMapper->update($job);
 
         // Log the job
-        $jobLog = new JobLog();
-        $jobLog->setJobId($job->getId());
-        $jobLog->setJobClass($job->getJobClass());
-        $jobLog->setJobListId($job->getJobListId());
-        $jobLog->setArguments($job->getArguments());
-        //$jobLog->setLastRun($job->getLastRun());
-        //$jobLog->setNextRun($job->getNextRun());
-        //$jobLog->setExecutionTime($executionTime);
+        $jobLog = $this->jobLogMapper->createFromArray([
+            'jobId'         => $job->getId(),
+            'jobClass'      => $job->getJobClass(),
+            'jobListId'     => $job->getJobListId(),
+            'arguments'     => $job->getArguments(),
+            'lastRun'       => $job->getLastRun(),
+            'nextRun'       => $job->getNextRun(),
+            'executionTime' => $executionTime
+        ]);
 
         // Get the result and set it to the job log
-        if (is_array($result)) {
-            if (isset($result['level'])) {
+        if (is_array($result) === true) {
+            if (isset($result['level']) === true) {
                 $jobLog->setLevel($result['level']);
             }
-            if (isset($result['message'])) {
+            if (isset($result['message']) === true) {
                 $jobLog->setMessage($result['message']);
             }
-            if (isset($result['stackTrace'])) {
+            if (isset($result['stackTrace']) === true) {
                 $jobLog->setStackTrace($result['stackTrace']);
             }
         }
 
-        $this->jobLogMapper->insert($jobLog);
+		$this->jobLogMapper->update(entity: $jobLog);
 
         // Let's report back about what we have just done
         return $jobLog;

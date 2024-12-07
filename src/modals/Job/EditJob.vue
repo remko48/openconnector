@@ -28,14 +28,16 @@ import { jobStore, navigationStore } from '../../store/store.js'
 						label="Description"
 						:value.sync="jobItem.description" />
 
-					<NcTextField
-						label="Job Class"
-						maxlength="255"
-						:value.sync="jobItem.jobClass" />
+					<NcSelect v-bind="classOptions"
+						v-model="classOptions.value"
+						class="jobClassSelect"
+						input-label="Job Class"
+						:multiple="false"
+						:clearable="false" />
 
 					<NcInputField
 						type="number"
-						label="Intraval"
+						label="Interval"
 						:value.sync="jobItem.interval" />
 
 					<NcInputField
@@ -112,6 +114,7 @@ import { jobStore, navigationStore } from '../../store/store.js'
 import {
 	NcButton,
 	NcModal,
+	NcSelect,
 	NcTextField,
 	NcTextArea,
 	NcLoadingIcon,
@@ -126,6 +129,7 @@ export default {
 	name: 'EditJob',
 	components: {
 		NcModal,
+		NcSelect,
 		NcTextField,
 		NcTextArea,
 		NcButton,
@@ -142,7 +146,7 @@ export default {
 			jobItem: {
 				name: '',
 				description: '',
-				jobClass: 'OCA\\OpenConnector\\Action\\PingAction',
+				jobClass: '',
 				interval: '3600',
 				executionTime: '3600',
 				timeSensitive: false,
@@ -157,12 +161,20 @@ export default {
 			success: false,
 			loading: false,
 			error: false,
+			classOptions: {
+				options: [
+					{ label: 'OCA\\OpenConnector\\Action\\SynchronizationAction' },
+					{ label: 'OCA\\OpenConnector\\Action\\PingAction' },
+				],
+				value: { label: 'OCA\\OpenConnector\\Action\\SynchronizationAction' },
+			},
 			statusOptions: [
 				{ label: 'Open', value: 'open' },
 				{ label: 'In Progress', value: 'in_progress' },
 				{ label: 'Completed', value: 'completed' },
 			],
 			hasUpdated: false,
+			closeTimeoutFunc: null,
 		}
 	},
 	mounted() {
@@ -176,9 +188,11 @@ export default {
 	},
 	methods: {
 		initializeJobItem() {
-
 			if (jobStore.jobItem?.id) {
 				const scheduleAfter = jobStore.jobItem.scheduleAfter ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
+
+				const activeJobClass = this.classOptions.options.find(option => option.label === jobStore.jobItem.jobClass)
+				activeJobClass && (this.classOptions.value = activeJobClass)
 
 				this.jobItem = {
 					...jobStore.jobItem,
@@ -200,7 +214,8 @@ export default {
 		},
 		closeModal() {
 			navigationStore.setModal(false)
-			this.success = false
+			clearTimeout(this.closeTimeoutFunc)
+			this.success = null
 			this.loading = false
 			this.error = false
 			this.hasUpdated = false
@@ -219,15 +234,19 @@ export default {
 				errorRetention: '86400',
 				userId: '',
 			}
+			this.classOptions.value = this.classOptions.options[0]
 		},
 		async editJob() {
 			this.loading = true
 			try {
-				await jobStore.saveJob({ ...this.jobItem })
+				await jobStore.saveJob({
+					...this.jobItem,
+					jobClass: this.classOptions.value.label,
+				})
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
-				setTimeout(this.closeModal, 2000)
+				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
 
 			} catch (error) {
 				this.loading = false
@@ -243,5 +262,9 @@ export default {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 10px;
+}
+
+.jobClassSelect {
+	width: 100%;
 }
 </style>
