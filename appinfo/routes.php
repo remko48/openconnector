@@ -2,6 +2,7 @@
 
 return [
 	'resources' => [
+		'Endpoints' => ['url' => 'api/endpoints'],
 		'Sources' => ['url' => 'api/sources'],
 		'Mappings' => ['url' => 'api/mappings'],
 		'Jobs' => ['url' => 'api/jobs'],
