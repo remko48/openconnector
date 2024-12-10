@@ -617,7 +617,7 @@ class SynchronizationService
 			$this->synchronizationMapper->update($synchronization);
 		}
 
-		if ($useNextEndpoint === false) {
+		if ($useNextEndpoint === false && $synchronization->usesPagination() === true) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);

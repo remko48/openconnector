@@ -113,10 +113,11 @@ class ActionTask extends TimedJob
 
 
         // Update the job
-		$nextRun = new DateTime();
+		$nextRun = new DateTime('now + '.$job->getInterval().' seconds');
 		if (isset($result['nextRun']) === true) {
 			$nextRun = DateTime::createFromFormat('U', $result['nextRun']);
 		}
+		$nextRun->setTime(hour: $nextRun->format('H'), minute: $nextRun->format('i'));
         $job->setLastRun(new DateTime());
         $job->setNextRun($nextRun);
         $this->jobMapper->update($job);
@@ -144,6 +145,8 @@ class ActionTask extends TimedJob
                 $jobLog->setStackTrace($result['stackTrace']);
             }
         }
+
+		$this->jobLogMapper->update(entity: $jobLog);
 
         // Let's report back about what we have just done
         return $jobLog;
