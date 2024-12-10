@@ -681,7 +681,23 @@ class SynchronizationService
         return $objects;
     }
 
-	private function getRateLimitHeaders($source): array
+	/**
+	 * Retrieves rate limit information from a given source and formats it as HTTP headers.
+	 *
+	 * This function extracts rate limit details from the provided source object and returns them
+	 * as an associative array of headers. The headers can be used for communicating rate limit status
+	 * in API responses or logging purposes.
+	 *
+	 * @param Source $source The source object containing rate limit details, such as limits, remaining requests, and reset times.
+	 *
+	 * @return array An associative array of rate limit headers:
+	 *               - 'X-RateLimit-Limit' (int|null): The maximum number of allowed requests.
+	 *               - 'X-RateLimit-Remaining' (int|null): The number of requests remaining in the current window.
+	 *               - 'X-RateLimit-Reset' (int|null): The Unix timestamp when the rate limit resets.
+	 *               - 'X-RateLimit-Used' (int|null): The number of requests used so far.
+	 *               - 'X-RateLimit-Window' (int|null): The duration of the rate limit window in seconds.
+	 */
+	private function getRateLimitHeaders(Source $source): array
 	{
 		return [
 			'X-RateLimit-Limit' => $source->getRateLimitLimit(),

@@ -17,7 +17,8 @@ use OCP\Migration\SimpleMigrationStep;
 
 /**
  * This migration changes the following:
- * - Add 1 new column for the table SynchronizationContractLogs: message
+ * - Adding 1 new column for the table Synchronization: currentPage
+ * - Adding 1 new column for the table SynchronizationContractLogs: message
  */
 class Version1Date20241210120155 extends SimpleMigrationStep {
 
@@ -41,6 +42,19 @@ class Version1Date20241210120155 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
+		// Synchronizations table
+		if ($schema->hasTable('openconnector_synchronizations') === true) {
+			$table = $schema->getTable('openconnector_synchronizations');
+
+			if ($table->hasColumn('current_page') === false) {
+				$table->addColumn('current_page', Types::INTEGER, [
+					'notnull' => false,
+					'default' => 1
+				]);
+			}
+		}
+
+		// SynchronizationContractLogs table
 		if ($schema->hasTable('openconnector_synchronization_contract_logs') === true) {
 			$table = $schema->getTable('openconnector_synchronization_contract_logs');
 

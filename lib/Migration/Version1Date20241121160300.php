@@ -19,7 +19,6 @@ use OCP\IDBConnection;
 /**
  * This migration changes the following:
  * - Adding 4 new columns for the table Source: rateLimitLimit, rateLimitRemaining, rateLimitReset & rateLimitWindow
- * - Adding 1 new column for the table Synchronization: CurrentPage
  */
 class Version1Date20241121160300 extends SimpleMigrationStep {
 
@@ -70,16 +69,6 @@ class Version1Date20241121160300 extends SimpleMigrationStep {
 			$table->addColumn('rate_limit_window', Types::INTEGER, [
 				'notnull' => false,
 				'default' => null
-			]);
-		}
-
-		// Synchronizations table
-		$table = $schema->getTable('openconnector_synchronizations');
-
-		if ($table->hasColumn('current_page') === false) {
-			$table->addColumn('current_page', Types::INTEGER, [
-				'notnull' => false,
-				'default' => 1
 			]);
 		}
 
