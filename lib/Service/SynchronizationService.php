@@ -529,23 +529,133 @@ class SynchronizationService
     }
 
 	/**
-	 * Retrieves all objects from an API source for a given synchronization.
-	 * @todo re-write this entire function so that it is recursive.
+	 * Fetches all objects from an API source for a given synchronization.
 	 *
 	 * @param Synchronization $synchronization The synchronization object containing source information.
-	 * @param bool $isTest If we only want to return a single object (for example a test)
+	 * @param bool|null $isTest If true, only a single object is returned for testing purposes.
 	 *
 	 * @return array An array of all objects retrieved from the API.
 	 * @throws GuzzleException
-	 * @throws \OCP\DB\Exception
+	 * @throws TooManyRequestsHttpException
 	 */
-    public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false): array
+	public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false): array
 	{
-        $objects = [];
-        $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
+		$objects = [];
+		$source = $this->sourceMapper->find($synchronization->getSourceId());
 
-		if ($source->getRateLimitRemaining() !== null && $source->getRateLimitReset() !== null
-			&& $source->getRateLimitRemaining() <= 0 && $source->getRateLimitReset() > time()
+		// Check rate limit before proceeding
+		$this->checkRateLimit($source);
+
+		// Extract source configuration
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
+		$endpoint = $sourceConfig['endpoint'] ?? '';
+		$headers = $sourceConfig['headers'] ?? [];
+		$query = $sourceConfig['query'] ?? [];
+		$config = ['headers' => $headers, 'query' => $query];
+
+		// Start with the current page
+		$currentPage = $synchronization->getCurrentPage() ?? 1;
+
+		// Fetch all pages recursively
+		$objects = $this->fetchAllPages(
+			source: $source,
+			endpoint: $endpoint,
+			config: $config,
+			synchronization: $synchronization,
+			currentPage: $currentPage,
+			isTest: $isTest
+		);
+
+		// Reset the current page after synchronization if not a test
+		if ($isTest === false) {
+			$synchronization->setCurrentPage(1);
+			$this->synchronizationMapper->update($synchronization);
+		}
+
+		return $objects;
+	}
+
+	/**
+	 * Recursively fetches all pages of data from the API.
+	 *
+	 * @param Source $source The source object containing rate limit and configuration details.
+	 * @param string $endpoint The API endpoint to fetch data from.
+	 * @param array $config Configuration for the API call (e.g., headers and query parameters).
+	 * @param Synchronization $synchronization The synchronization object containing state information.
+	 * @param int $currentPage The current page number for pagination.
+	 * @param bool $isTest If true, stops after fetching the first object from the first page.
+	 *
+	 * @return array An array of objects retrieved from the API.
+	 * @throws GuzzleException
+	 * @throws TooManyRequestsHttpException
+	 */
+	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false): array
+	{
+		// Update pagination configuration for the current page
+		$config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
+
+		$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);
+		$response = $callLog->getResponse();
+
+		// Check for rate limiting
+		if ($response === null && $callLog->getStatusCode() === 429) {
+			throw new TooManyRequestsHttpException(
+				message: "Rate Limit on Source exceeded.",
+				code: 429,
+				headers: $this->getRateLimitHeaders($source)
+			);
+		}
+
+		$body = json_decode($response['body'], true);
+		if (empty($body) === true) {
+			return []; // Stop if the response body is empty
+		}
+
+		// Process the current page
+		$objects = $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization);
+
+		// If test mode is enabled, return only the first object
+		if ($isTest === true) {
+			return [$objects[0]] ?? [];
+		}
+
+		// Increment the current page and update synchronization
+		$currentPage++;
+		$synchronization->setCurrentPage($currentPage);
+		$this->synchronizationMapper->update($synchronization);
+
+		// Check if there's a next page
+		$nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation());
+		if ($nextEndpoint !== null) {
+			// Recursively fetch the next pages
+			$objects = array_merge(
+				$objects,
+				$this->fetchAllPages(
+					source: $source,
+					endpoint: $nextEndpoint,
+					config: $config,
+					synchronization: $synchronization,
+					currentPage: $currentPage
+				)
+			);
+		}
+
+		return $objects;
+	}
+
+	/**
+	 * Checks if the source has exceeded its rate limit and throws an exception if true.
+	 *
+	 * @param Source $source The source object containing rate limit details.
+	 *
+	 * @throws TooManyRequestsHttpException
+	 */
+	private function checkRateLimit(Source $source): void
+	{
+		if ($source->getRateLimitRemaining() !== null &&
+			$source->getRateLimitReset() !== null &&
+			$source->getRateLimitRemaining() <= 0 &&
+			$source->getRateLimitReset() > time()
 		) {
 			throw new TooManyRequestsHttpException(
 				message: "Rate Limit on Source has been exceeded. Canceling synchronization...",
@@ -553,133 +663,7 @@ class SynchronizationService
 				headers: $this->getRateLimitHeaders($source)
 			);
 		}
-
-        // Let's get the source config
-        $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
-        $endpoint = $sourceConfig['endpoint'] ?? '';
-        $headers = $sourceConfig['headers'] ?? [];
-        $query = $sourceConfig['query'] ?? [];
-        $config = [
-            'headers' => $headers,
-            'query' => $query,
-        ];
-
-		// Get CurrentPage from Synchronization.
-		$currentPage = $synchronization->getCurrentPage() ?? 1;
-		// Current Page could be higher than 1 if we continue after rate limit had been reached previously.
-		if ($currentPage > 1) {
-			$config = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
-		}
-
-        // Make the initial API call
-		// @TODO: method is now fixed to GET, but could end up in configuration.
-		$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);
-        $response = $callLog->getResponse();
-		if ($response === null) {
-			// @todo
-			if ($callLog->getStatusCode() === 429) {
-				throw new TooManyRequestsHttpException(
-					message: "Stopped sync because rate limit on Source has been exceeded.",
-					code: 429,
-					headers: $this->getRateLimitHeaders($source)
-				);
-			}
-		}
-
-		$lastHash = md5($response['body']);
-        $body = json_decode($response['body'], true);
-        if (empty($body) === true) {
-            // @todo log that we got an empty response
-            return [];
-        }
-        $objects = array_merge($objects, $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization));
-
-        // Return a single object or empty array if in test mode
-        if ($isTest === true) {
-            return [$objects[0]] ?? [];
-        }
-
-        // Increase Current page because of the first call made above.
-        $currentPage++;
-		// Update CurrentPage on Synchronization
-		$synchronization->setCurrentPage($currentPage);
-		$this->synchronizationMapper->update($synchronization);
-
-        $useNextEndpoint = false;
-        if (array_key_exists('next', $body)) {
-            $useNextEndpoint = true;
-        }
-
-		// Continue making API calls if there are more pages from 'next' the response body or if paginationQuery is set
-		while ($useNextEndpoint === true && $nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation())) {
-			// Do not pass $config here because it overwrites the query attached to nextEndpoint
-			$callLog = $this->callService->call(source: $source, endpoint: $nextEndpoint);
-			$response = $callLog->getResponse();
-			if ($response === null) {
-				// @todo
-				if ($callLog->getStatusCode() === 429) {
-					throw new TooManyRequestsHttpException(
-						message: "Stopped sync because rate limit on Source has been exceeded.",
-						code: 429,
-						headers: $this->getRateLimitHeaders($source)
-					);
-				}
-			}
-
-			$body = json_decode($response['body'], true);
-			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
-
-			// Increase Current page. And update CurrentPage on Synchronization.
-			$currentPage++;
-			$synchronization->setCurrentPage($currentPage);
-			$this->synchronizationMapper->update($synchronization);
-		}
-
-		if ($useNextEndpoint === false && $synchronization->usesPagination() === true) {
-			do {
-				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
-				$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);
-				$response = $callLog->getResponse();
-				if ($response === null) {
-					// @todo
-					if ($callLog->getStatusCode() === 429) {
-						throw new TooManyRequestsHttpException(
-							message: "Stopped sync because rate limit on Source has been exceeded.",
-							code: 429,
-							headers: $this->getRateLimitHeaders($source)
-						);
-					}
-				}
-
-				$hash     = md5($response['body']);
-
-				if ($hash === $lastHash) {
-					break;
-				}
-
-				$lastHash = $hash;
-				$body     = json_decode($response['body'], true);
-
-				if (empty($body) === true) {
-					break;
-				}
-
-				$newObjects = $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization);
-				$objects = array_merge($objects, $newObjects);
-
-				// Increase Current page. And update CurrentPage on Synchronization.
-				$currentPage++;
-				$synchronization->setCurrentPage($currentPage);
-				$this->synchronizationMapper->update($synchronization);
-			} while (empty($newObjects) === false);
-		}
-
-		// Reset Current Page to 1 when we are done with all pages.
-		$synchronization->setCurrentPage(1);
-		$this->synchronizationMapper->update($synchronization);
-
-        return $objects;
-    }
+	}
 
 	/**
 	 * Retrieves rate limit information from a given source and formats it as HTTP headers.
@@ -709,43 +693,54 @@ class SynchronizationService
 	}
 
 	/**
-	 * Determines the next API endpoint based on a provided next.
+	 * Updates the API request configuration with pagination details for the next page.
 	 *
-	 * @param array $body
-	 * @param string $url
+	 * @param array $config The current request configuration.
+	 * @param array $sourceConfig The source configuration containing pagination settings.
+	 * @param int $currentPage The current page number for pagination.
 	 *
-	 * @return string|null The next endpoint URL if a next link or pagination query is available, or null if neither exists.
+	 * @return array Updated configuration with pagination settings.
 	 */
-    private function getNextEndpoint(array $body, string $url): ?string
-    {
-        $nextLink = $this->getNextlinkFromCall($body);
-
-        if ($nextLink !== null) {
-            return str_replace($url, '', $nextLink);
-        }
-
-        return null;
-    }
-
-    /**
-     * Updatesc config with pagination from pagination config.
-     *
-     * @param array  $config
-     * @param array  $sourceConfig
-     * @param int    $currentPage The current page number for pagination, used if no next link is available.
-     *
-     * @return array $config
-     */
-    private function getNextPage(array $config, array $sourceConfig, int $currentPage): array
+	private function getNextPage(array $config, array $sourceConfig, int $currentPage): array
 	{
-        // If paginationQuery exists, replace any placeholder with the current page number
-        $config['pagination'] = [
-            'paginationQuery' => $sourceConfig['paginationQuery'] ?? 'page',
-            'page' => $currentPage
-        ];
+		$config['pagination'] = [
+			'paginationQuery' => $sourceConfig['paginationQuery'] ?? 'page',
+			'page' => $currentPage
+		];
 
-        return $config;
-    }
+		return $config;
+	}
+
+	/**
+	 * Extracts the next API endpoint for pagination from the response body.
+	 *
+	 * @param array $body The decoded JSON response body from the API.
+	 * @param string $url The base URL of the API source.
+	 *
+	 * @return string|null The next endpoint URL if available, or null if there is no next page.
+	 */
+	private function getNextEndpoint(array $body, string $url): ?string
+	{
+		$nextLink = $this->getNextlinkFromCall($body);
+
+		if ($nextLink !== null) {
+			return str_replace($url, '', $nextLink);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Retrieves the next link for pagination from the API response body.
+	 *
+	 * @param array $body The decoded JSON body of the API response.
+	 *
+	 * @return string|null The URL for the next page of results, or null if there is no next page.
+	 */
+	public function getNextlinkFromCall(array $body): ?string
+	{
+		return $body['next'] ?? null;
+	}
 
     /**
      * Extracts all objects from the API response body.
@@ -796,17 +791,5 @@ class SynchronizationService
 
         // If no objects can be found, throw an exception
         throw new Exception("Cannot determine the position of objects in the return body.");
-    }
-
-	/**
-	 * Retrieves the next link for pagination from the API response body.
-	 *
-	 * @param array $body The decoded JSON body of the API response.
-	 *
-	 * @return string|null The URL for the next page of results, or null if there is no next page.
-	 */
-    public function getNextlinkFromCall(array $body): ?string
-    {
-		return $body['next'] ?? null;
     }
 }
