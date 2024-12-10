@@ -72,11 +72,12 @@ class SynchronizationAction
         try {
             $objects = $this->synchronizationService->synchronize($synchronization);
         } catch (TooManyRequestsHttpException $e) {
-			if (isset($e->getHeaders()['X-RateLimit-Reset']) === true) {
-				$response['nextRun'] = $e->getHeaders()['X-RateLimit-Reset'];
-			}
 			$response['level'] = 'WARNING';
 			$response['stackTrace'][] = $response['message'] = 'Stopped synchronization: ' . $e->getMessage();
+			if (isset($e->getHeaders()['X-RateLimit-Reset']) === true) {
+				$response['nextRun'] = $e->getHeaders()['X-RateLimit-Reset'];
+				$response['stackTrace'][] = $response['message'] = 'Returning X-RateLimit-Reset header to update Job nextRun: ' . $response['nextRun'];
+			}
 			return $response;
 		} catch (Exception $e) {
             $response['level'] = 'ERROR';
