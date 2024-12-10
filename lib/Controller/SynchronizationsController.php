@@ -265,7 +265,7 @@ class SynchronizationsController extends Controller
             return new JSONResponse(data: $logAndContractArray, statusCode: 200);
         } catch (Exception $e) {
 			// Check if getHeaders method exists and use it if available
-			$headers = method_exists($e, 'getHeaders') ? $e->getHeaders() : null;
+			$headers = method_exists($e, 'getHeaders') ? $e->getHeaders() : [];
 
             // If synchronization fails, return an error response
             return new JSONResponse(

@@ -93,7 +93,16 @@ class SynchronizationService
     public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
         if (empty($synchronization->getSourceId()) === true) {
-            throw new Exception('sourceId of synchronziation cannot be empty. Canceling synchronization..');
+			$log = [
+				'synchronizationId' => $synchronization->getId(),
+				'synchronizationContractId' => 0,
+				'message' => 'sourceId of synchronization cannot be empty. Canceling synchronization...',
+				'created' => new DateTime(),
+				'expires' => new DateTime('+1 day')
+			];
+
+			$this->synchronizationContractLogMapper->createFromArray($log);
+            throw new Exception('sourceId of synchronization cannot be empty. Canceling synchronization...');
         }
 
 		try {
@@ -152,6 +161,15 @@ class SynchronizationService
 		}
 
 		if (isset($rateLimitException) === true) {
+			$log = [
+				'synchronizationId' => $synchronization->getId(),
+				'synchronizationContractId' => isset($synchronizationContract) === true ? $synchronizationContract->getId() : 0,
+				'message' => $rateLimitException->getMessage(),
+				'created' => new DateTime(),
+				'expires' => new DateTime('+1 day')
+			];
+
+			$this->synchronizationContractLogMapper->createFromArray($log);
 			throw new TooManyRequestsHttpException(
 				message: $rateLimitException->getMessage(),
 				code: 429,
@@ -347,7 +365,7 @@ class SynchronizationService
             // The object has not changed and the config has not been updated since last check
 			return $synchronizationContract;
         }
-		
+
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
