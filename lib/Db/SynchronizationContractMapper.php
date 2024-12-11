@@ -202,6 +202,34 @@ class SynchronizationContractMapper extends QBMapper
     }
 
     /**
+     * Find a synchronization contract by origin ID.
+     *
+     * @param string $originId The origin ID to search for.
+     *
+     * @return SynchronizationContract|null The matching contract or null if not found.
+     */
+    public function findByOriginId(string $originId): ?SynchronizationContract
+    {
+        // Create query builder
+        $qb = $this->db->getQueryBuilder();
+
+        // Build query to find contract matching origin_id
+        $qb->select('*')
+            ->from('openconnector_synchronization_contracts')
+            ->where(
+                $qb->expr()->eq('origin_id', $qb->createNamedParameter($originId))
+            )
+            ->setMaxResults(1); // Ensure only one result is returned
+
+        try {
+            return $this->findEntity($qb); // Use findEntity to return a single result
+        } catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+            return null; // Return null if no match is found
+        }
+    }
+
+
+    /**
      * Find synchronization contracts by type and ID
      *
      * @param string $type The type to search for (e.g., 'user', 'group')
