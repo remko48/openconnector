@@ -118,6 +118,32 @@ class SynchronizationContractMapper extends QBMapper
     }
 
     /**
+     * Find all target IDs of synchronization contracts by synchronization ID
+     *
+     * @param string $synchronization The synchronization ID
+     *
+     * @return array An array of target IDs or an empty array if none found
+     */
+    public function findAllBySynchronization(string $synchronizationId): array
+    {
+        // Create query builder
+        $qb = $this->db->getQueryBuilder();
+
+        // Build select query with synchronization ID filter
+        $qb->select('*')
+            ->from('openconnector_synchronization_contracts')
+            ->where(
+                $qb->expr()->eq('synchronization_id', $qb->createNamedParameter($synchronizationId))
+            );
+
+        try {
+            return $this->findEntities($qb);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
      * Find all synchronization contracts with optional filtering and pagination
      *
      * @param int|null $limit Maximum number of results to return
