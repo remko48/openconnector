@@ -97,18 +97,12 @@ class SynchronizationService
 
         $objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 
-        $synchronizationContracts = [];
-        $invalidTargetIds         = [];
+        $synchronizedTargetIds = [];
         foreach ($objectList as $key => $object) {
 
             // Check if object adheres to conditions.
             // Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
             if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
-
-                try {
-                    $invalidTargetIds[] = $this->getOriginId($synchronization, $object);
-                } catch (Exception $exception) {
-                }
 
                 // @todo log that this object is not valid
                 unset($objectList[$key]);
@@ -157,10 +151,11 @@ class SynchronizationService
 
             $synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
 
-            $synchronizationContracts[] = $synchronizationContract;
+            $synchronizedTargetIds[] = $synchronizationContract->getTargetId();
         }
 
-        $this->deleteInvalidObjects(synchronization: $synchronization, synchronizationContracts: $synchronizationContracts, invalidTargetIds: $invalidTargetIds);
+        $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
+        // @todo log deleted objects count
 
 
 		foreach ($synchronization->getFollowUps() as $followUp) {
@@ -320,62 +315,38 @@ class SynchronizationService
     /**
      * @return int Count of deleted objects.
      */
-    public function deleteInvalidObjects(Synchronization $synchronization, array $synchronizationContracts, array $invalidTargetIds): int
+    public function deleteInvalidObjects(Synchronization $synchronization, array $synchronizedTargetIds): int
     {
         $deletedObjectsCount = 0;
-        if (empty($synchronizationContracts) === true && empty($invalidTargetIds) === true) {
-            return $deletedObjectsCount;
-        }
         $type = $synchronization->getTargetType();
 
         switch ($type) {
             case 'register/schema':
 
                 $targetIdsToDelete = [];
-
-                // Find all existing objects that became invalid
-                foreach ($invalidTargetIds as $invalidTargetId) {
-                    if ($foundContract = $this->synchronizationContractMapper->findByOriginId($invalidTargetId)) {
-                        $targetIdsToDelete[] = $foundContract->getTargetId();
+                $allContracts = $this->synchronizationContractMapper->findAllBySynchronization($synchronization->getId());
+                $allContractTargetIds = [];
+                foreach ($allContracts as $contract) {
+                    if ($contract->getTargetId() !== null) {
+                        $allContractTargetIds[] = $contract->getTargetId();
                     }
                 }
 
-                // Find all existing objects that dont exist in the source anymore.
-                $targetId = $synchronization->getTargetId();
-                list($register, $schema) = explode('/', $targetId);
+                // Check if we have contracts that became invalid or do not exist in the source anymore
+                $targetIdsToDelete = array_diff($allContractTargetIds, $synchronizedTargetIds);
 
-
-                $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
-
-                $allExistingObjectIds = $objectService->getAllIds(register: $register, schema: $schema);
-
-
-
-
-                // // Get all existing sourceIds.
-                // $source            = $this->entityManager->find('App:Gateway', $source->getId()->toString());
-                // $existingOriginIds = [];
-                // $existingObjects   = [];
-                // foreach ($synchronizationContracts as $contract) {
-                //     if ()
-                //     ) {
-                //         $existingSourceIds[] = $synchronization->getSourceId();
-                //         $existingObjects[]   = $synchronization->getObject();
-                //     }
-                // }
-
-        // Check if existing sourceIds are in the array of new synced sourceIds.
-        // $objectIdsToDelete = array_diff($existingSourceIds, $idsSynced);
-
-        // // If not it means the object does not exist in the source anymore and should be deleted here.
-        // foreach ($objectIdsToDelete as $key => $id) {
-        //     try {
-        //         $synchronizationContract = $this->updateTarget(synchronizationContract: $synchronizationContract, targetObject: [], action: 'delete');
-        //         $this->synchronizationContractMapper->update($synchronizationContract);
-        //         $deletedObjectsCount++;
-        //     } catch (Exception $exception) {
-        //     }
-        // }
+                foreach ($targetIdsToDelete as $targetIdToDelete) {
+                    try {
+                        $synchronizationContract = $this->synchronizationContractMapper->findOnTarget(synchronization: $synchronization->getId(), targetId: $targetIdToDelete);
+                        $synchronizationContract = $this->updateTarget(synchronizationContract: $synchronizationContract, targetObject: [], action: 'delete');
+                        $this->synchronizationContractMapper->update($synchronizationContract);
+                        $deletedObjectsCount++;
+                    } catch (DoesNotExistException $exception) {
+                        // @todo log
+                    }
+                }
+            break;
+        }
 
         return $deletedObjectsCount;
 
@@ -499,15 +470,14 @@ class SynchronizationService
         list($register, $schema) = explode('/', $targetId);
 
         // Save the object to the target
-
         switch ($action) {
             case 'save':
                 $target = $objectService->saveObject($register, $schema, $targetObject);
                 // Get the id form the target object
                 $synchronizationContract->setTargetId($target->getUuid());
+                break;
             case 'delete':
-                $objectService->deleteObject($register, $schema, $targetObject);
-                // Unset targetId
+                $objectService->deleteObject(register: $register, schema: $schema, uuid: $synchronizationContract->getTargetId());
                 $synchronizationContract->setTargetId(null);
                 break;
         }
