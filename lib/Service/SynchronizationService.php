@@ -311,9 +311,19 @@ class SynchronizationService
         return $extraData;
     }
 
-
     /**
-     * @return int Count of deleted objects.
+     * Deletes invalid objects associated with a synchronization.
+     *
+     * This function identifies and removes objects that are no longer valid or do not exist
+     * in the source data for a given synchronization. It compares the target IDs from the
+     * synchronization contract with the synchronized target IDs and deletes the unmatched ones.
+     *
+     * @param Synchronization $synchronization       The synchronization entity to process.
+     * @param array           $synchronizedTargetIds An array of target IDs that are still valid in the source.
+     *
+     * @return int The count of objects that were deleted.
+     *
+     * @throws Exception If any database or object deletion errors occur during execution.
      */
     public function deleteInvalidObjects(Synchronization $synchronization, array $synchronizedTargetIds): int
     {
@@ -350,16 +360,15 @@ class SynchronizationService
 
         return $deletedObjectsCount;
 
-    }//end deleteUnsyncedObjects()
-
+    }
 
 	/**
 	 * Synchronize a contract
 	 *
 	 * @param SynchronizationContract $synchronizationContract
-	 * @param Synchronization|null $synchronization
-	 * @param array $object
-	 * @param bool|null $isTest False by default, currently added for synchronization-test endpoint
+	 * @param Synchronization|null    $synchronization
+	 * @param array                   $object
+	 * @param bool|null               $isTest                  False by default, currently added for synchronization-test endpoint
 	 *
 	 * @return SynchronizationContract|Exception|array
 	 * @throws ContainerExceptionInterface
@@ -454,6 +463,22 @@ class SynchronizationService
 
     }
 
+    /**
+     * Updates or deletes a target object in the Open Register system.
+     *
+     * This method updates a target object associated with a synchronization contract
+     * or deletes it based on the specified action. It extracts the register and schema
+     * from the target ID and performs the corresponding operation using the object service.
+     *
+     * @param SynchronizationContract $synchronizationContract The synchronization contract being updated.
+     * @param Synchronization         $synchronization         The synchronization entity containing the target ID.
+     * @param array|null              $targetObject            An optional array containing the data for the target object. Defaults to an empty array.
+     * @param string|null             $action                  The action to perform: 'save' (default) to update or 'delete' to remove the target object.
+     *
+     * @return SynchronizationContract The updated synchronization contract with the modified target ID.
+     *
+     * @throws \Exception If an error occurs while interacting with the object service or processing the data.
+     */
     private function updateTargetOpenRegister(SynchronizationContract $synchronizationContract, Synchronization $synchronization, ?array $targetObject = [], ?string $action = 'save'): SynchronizationContract
     {
         // Setup the object service
