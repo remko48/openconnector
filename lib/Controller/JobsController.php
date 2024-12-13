@@ -236,13 +236,16 @@ class JobsController extends Controller
         }
 
         try {
-            $this->jobList->getById($job->getJobListId())
-				->setArgument(['forceRun' => true])
-				->start($this->jobList);
-            $lastLog = $this->jobLogMapper->getLastCallLog();
-            if ($lastLog !== null) {
-                return new JSONResponse(data: $lastLog, statusCode: 200);
-            }
+            $job = $this->jobList->getById($job->getJobListId());
+			if ($job !== null) {
+				$job->setArgument(['jobId' => $id, 'forceRun' => true]);
+				$job->start($this->jobList);
+
+				$lastLog = $this->jobLogMapper->getLastCallLog();
+				if ($lastLog !== null && ($lastLog->getJobId() === null || (int) $lastLog->getJobId() === $id)) {
+					return new JSONResponse(data: $lastLog, statusCode: 200);
+				}
+			}
 
             return new JSONResponse(data: ['error' => 'No job log could be found, job did not go successfully or failed to log anything'], statusCode: 500);
         } catch (Exception $exception) {

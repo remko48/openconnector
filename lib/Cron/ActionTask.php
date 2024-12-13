@@ -63,11 +63,11 @@ class ActionTask extends TimedJob
     public function run($argument)
     {
         // if we do not have a job id then everything is wrong
-        if (isset($arguments['jobId']) === true && is_int($argument['jobId']) === true) {
+        if (isset($argument['jobId']) === false || is_int($argument['jobId']) === false) {
 			return $this->jobLogMapper->createFromArray([
 				'jobId'         => 'null',
 				'level'			=> 'ERROR',
-				'message'		=> "Couldn't find a jobId in the action arguments"
+				'message'		=> "Couldn't find a jobId in the action argument"
 			]);
         }
 
@@ -84,13 +84,9 @@ class ActionTask extends TimedJob
 
 		$forceRun = false;
 		$stackTrace = [];
-		if (isset($arguments['forceRun']) === true && $arguments['forceRun'] === true) {
+		if (isset($argument['forceRun']) === true && $argument['forceRun'] === true) {
 			$forceRun = true;
-			$stackTrace[] = $message = 'Doing a force run for this job, ignoring "enabled" & "nextRun" check...';
-			$this->jobLogMapper->createForJob($job, [
-				'level'			=> 'INFO',
-				'message'		=> $message
-			]);
+			$stackTrace[] = 'Doing a force run for this job, ignoring "enabled" & "nextRun" check...';
 		}
 
         // If the job is not enabled, we don't need to do anything
