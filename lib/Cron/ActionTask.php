@@ -68,37 +68,46 @@ class ActionTask extends TimedJob
     public function run($argument)
     {
         // if we do not have a job id then everything is wrong
-        if (isset($arguments['jobId']) === true && is_int($argument['jobId']) === true) {
-            return;
+        if (isset($argument['jobId']) === false || is_int($argument['jobId']) === false) {
+			return $this->jobLogMapper->createFromArray([
+				'jobId'         => 'null',
+				'level'			=> 'ERROR',
+				'message'		=> "Couldn't find a jobId in the action argument"
+			]);
         }
 
-        // Let's get the job, the user might have deleted it in the mean time
+        // Let's get the job, the user might have deleted it in the meantime
         try {
             $job = $this->jobMapper->find($argument['jobId']);
         } catch (Exception $e) {
-            return;
+            return $this->jobLogMapper->createFromArray([
+				'jobId'         => $argument['jobId'],
+				'level'			=> 'ERROR',
+				'message'		=> "Couldn't find a Job with this jobId, message: ".$e->getMessage()
+			]);
         }
+
+		$forceRun = false;
+		$stackTrace = [];
+		if (isset($argument['forceRun']) === true && $argument['forceRun'] === true) {
+			$forceRun = true;
+			$stackTrace[] = 'Doing a force run for this job, ignoring "enabled" & "nextRun" check...';
+		}
 
         // If the job is not enabled, we don't need to do anything
-        if ($job->getIsEnabled() === false) {
-            return;
+        if ($forceRun === false && $job->getIsEnabled() === false) {
+			return $this->jobLogMapper->createForJob($job, [
+				'level'			=> 'WARNING',
+				'message'		=> 'This job is disabled'
+			]);
         }
 
-        // if the next run is in the the future, we don't need to do anything
-        if ($job->getNextRun() !== null && $job->getNextRun() > new DateTime()) {
-			$jobLog = $this->jobLogMapper->createFromArray([
+        // if the next run is in the future, we don't need to do anything
+        if ($forceRun === false && $job->getNextRun() !== null && $job->getNextRun() > new DateTime()) {
+			return $this->jobLogMapper->createForJob($job, [
 				'level'			=> 'WARNING',
-				'message'		=> 'Next Run is still in the future for this job',
-				'jobId'         => $job->getId(),
-				'jobClass'      => $job->getJobClass(),
-				'jobListId'     => $job->getJobListId(),
-				'arguments'     => $job->getArguments(),
-				'lastRun'       => $job->getLastRun(),
-				'nextRun'       => $job->getNextRun(),
-				'executionTime' => 0
+				'message'		=> 'Next Run is still in the future for this job'
 			]);
-
-            return $jobLog;
         }
 
 		if (empty($job->getUserId()) === false && $this->userSession->getUser() === null) {
@@ -119,32 +128,30 @@ class ActionTask extends TimedJob
         $executionTime = ( $time_end - $time_start ) * 1000;
 
         // deal with single run
-        if ($job->isSingleRun() === true) {
+        if ($forceRun === false && $job->isSingleRun() === true) {
             $job->setIsEnabled(false);
         }
 
         // Update the job
-		$nextRun = new DateTime('now + '.$job->getInterval().' seconds');
-		if (isset($result['nextRun']) === true) {
-			$nextRun = DateTime::createFromFormat('U', $result['nextRun'], $nextRun->getTimezone());
-			// Check if the current seconds part is not zero, and if so, round up to the next minute
-			if ($nextRun->format('s') !== '00') {
-				$nextRun->modify('next minute');
+		$job->setLastRun(new DateTime());
+		if ($forceRun === false) {
+			$nextRun = new DateTime('now + '.$job->getInterval().' seconds');
+			if (isset($result['nextRun']) === true) {
+				$nextRun = DateTime::createFromFormat('U', $result['nextRun'], $nextRun->getTimezone());
+				// Check if the current seconds part is not zero, and if so, round up to the next minute
+				if ($nextRun->format('s') !== '00') {
+					$nextRun->modify('next minute');
+				}
 			}
+			$nextRun->setTime(hour: $nextRun->format('H'), minute: $nextRun->format('i'));
+			$job->setNextRun($nextRun);
 		}
-		$nextRun->setTime(hour: $nextRun->format('H'), minute: $nextRun->format('i'));
-        $job->setLastRun(new DateTime());
-        $job->setNextRun($nextRun);
-        $this->jobMapper->update($job);
+		$this->jobMapper->update($job);
 
         // Log the job
-        $jobLog = $this->jobLogMapper->createFromArray([
-            'jobId'         => $job->getId(),
-            'jobClass'      => $job->getJobClass(),
-            'jobListId'     => $job->getJobListId(),
-            'arguments'     => $job->getArguments(),
-            'lastRun'       => $job->getLastRun(),
-            'nextRun'       => $job->getNextRun(),
+        $jobLog = $this->jobLogMapper->createForJob($job, [
+			'level'			=> 'INFO',
+			'message'		=> 'Succes',
             'executionTime' => $executionTime
         ]);
 
@@ -157,9 +164,11 @@ class ActionTask extends TimedJob
                 $jobLog->setMessage($result['message']);
             }
             if (isset($result['stackTrace']) === true) {
-                $jobLog->setStackTrace($result['stackTrace']);
+				$stackTrace = array_merge($stackTrace, $result['stackTrace']);
             }
         }
+
+		$jobLog->setStackTrace($stackTrace);
 
 		$this->jobLogMapper->update(entity: $jobLog);
 
