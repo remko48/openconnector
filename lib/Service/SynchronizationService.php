@@ -361,24 +361,6 @@ class SynchronizationService
                 $object = array_merge($object, $this->fetchExtraDataForObject($synchronization, $extraDataConfig, $object));
             }
         }
-    /**
-     * Deletes invalid objects associated with a synchronization.
-     *
-     * This function identifies and removes objects that are no longer valid or do not exist
-     * in the source data for a given synchronization. It compares the target IDs from the
-     * synchronization contract with the synchronized target IDs and deletes the unmatched ones.
-     *
-     * @param Synchronization $synchronization       The synchronization entity to process.
-     * @param array           $synchronizedTargetIds An array of target IDs that are still valid in the source.
-     *
-     * @return int The count of objects that were deleted.
-     *
-     * @throws Exception If any database or object deletion errors occur during execution.
-     */
-    public function deleteInvalidObjects(Synchronization $synchronization, array $synchronizedTargetIds): int
-    {
-        $deletedObjectsCount = 0;
-        $type = $synchronization->getTargetType();
 
         return $object;
     }
@@ -411,6 +393,25 @@ class SynchronizationService
 
         return $object;
     }
+    
+    /**
+     * Deletes invalid objects associated with a synchronization.
+     *
+     * This function identifies and removes objects that are no longer valid or do not exist
+     * in the source data for a given synchronization. It compares the target IDs from the
+     * synchronization contract with the synchronized target IDs and deletes the unmatched ones.
+     *
+     * @param Synchronization $synchronization       The synchronization entity to process.
+     * @param array           $synchronizedTargetIds An array of target IDs that are still valid in the source.
+     *
+     * @return int The count of objects that were deleted.
+     *
+     * @throws Exception If any database or object deletion errors occur during execution.
+     */
+    public function deleteInvalidObjects(Synchronization $synchronization, array $synchronizedTargetIds): int
+    {
+        $deletedObjectsCount = 0;
+        $type = $synchronization->getTargetType();
 
         switch ($type) {
             case 'register/schema':
