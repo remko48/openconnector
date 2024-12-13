@@ -142,18 +142,20 @@ class ActionTask extends TimedJob
         }
 
         // Update the job
-		$nextRun = new DateTime('now + '.$job->getInterval().' seconds');
-		if (isset($result['nextRun']) === true) {
-			$nextRun = DateTime::createFromFormat('U', $result['nextRun'], $nextRun->getTimezone());
-			// Check if the current seconds part is not zero, and if so, round up to the next minute
-			if ($nextRun->format('s') !== '00') {
-				$nextRun->modify('next minute');
+		$job->setLastRun(new DateTime());
+		if ($forceRun === false) {
+			$nextRun = new DateTime('now + '.$job->getInterval().' seconds');
+			if (isset($result['nextRun']) === true) {
+				$nextRun = DateTime::createFromFormat('U', $result['nextRun'], $nextRun->getTimezone());
+				// Check if the current seconds part is not zero, and if so, round up to the next minute
+				if ($nextRun->format('s') !== '00') {
+					$nextRun->modify('next minute');
+				}
 			}
+			$nextRun->setTime(hour: $nextRun->format('H'), minute: $nextRun->format('i'));
+			$job->setNextRun($nextRun);
 		}
-		$nextRun->setTime(hour: $nextRun->format('H'), minute: $nextRun->format('i'));
-        $job->setLastRun(new DateTime());
-        $job->setNextRun($nextRun);
-        $this->jobMapper->update($job);
+		$this->jobMapper->update($job);
 
         // Log the job
         $jobLog = $this->jobLogMapper->createForJob($job, [
