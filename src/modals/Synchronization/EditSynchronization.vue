@@ -551,7 +551,7 @@ export default {
 				sourceType: this.typeOptions.value?.id || null,
 				sourceHashMapping: this.sourceTargetMappingOptions.hashValue?.id || null,
 				sourceTargetMapping: this.sourceTargetMappingOptions.sourceValue?.id || null,
-				conditions: JSON.parse(this.synchronizationItem.conditions) || null,
+				conditions: this.synchronizationItem.conditions ? JSON.parse(this.synchronizationItem.conditions) : [],
 				targetType: this.targetTypeOptions.value?.id || null,
 				targetId: targetId || null,
 				targetSourceMapping: this.sourceTargetMappingOptions.targetValue?.id || null,
