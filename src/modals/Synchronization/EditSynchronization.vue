@@ -94,9 +94,14 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 					input-label="Source ID" />
 
 				<NcSelect v-bind="sourceTargetMappingOptions"
+					v-model="sourceTargetMappingOptions.hashValue"
+					:loading="sourceTargetMappingLoading"
+					input-label="Source hash mapping" />
+
+				<NcSelect v-bind="sourceTargetMappingOptions"
 					v-model="sourceTargetMappingOptions.sourceValue"
 					:loading="sourceTargetMappingLoading"
-					input-label="sourceTargetMapping" />
+					input-label="Source target mapping" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceConfig.idPosition"
 					label="(optional) Position of id in source object" />
@@ -138,7 +143,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 				<NcSelect v-bind="sourceTargetMappingOptions"
 					v-model="sourceTargetMappingOptions.targetValue"
 					:loading="sourceTargetMappingLoading"
-					input-label="targetSourceMapping" />
+					input-label="Target source mapping" />
 			</form>
 
 			<NcButton v-if="!success"
@@ -212,6 +217,7 @@ export default {
 					headers: {},
 					query: {},
 				},
+				sourceHashMapping: '',
 				sourceTargetMapping: '',
 				targetId: '',
 				targetType: 'register/schema',
@@ -238,6 +244,7 @@ export default {
 			sourceTargetMappingLoading: false, // Indicates if the mappings are loading
 			sourceTargetMappingOptions: { // A list of mappings
 				options: [],
+				hashValue: null,
 				sourceValue: null,
 				targetValue: null,
 			},
@@ -347,12 +354,19 @@ export default {
 				.then(({ entities }) => {
 					const activeSourceMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.sourceTargetMapping.toString())
 					const activeTargetMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.targetSourceMapping.toString())
+					const sourceHashMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.sourceHashMapping.toString())
 
 					this.sourceTargetMappingOptions = {
 						options: entities.map(mapping => ({
 							label: mapping.name,
 							id: mapping.id,
 						})),
+						hashValue: sourceHashMapping
+							? {
+								label: sourceHashMapping.name,
+								id: sourceHashMapping.id,
+							}
+							: null,
 						sourceValue: activeSourceMapping
 							? {
 								label: activeSourceMapping.name,
@@ -535,6 +549,7 @@ export default {
 				...this.synchronizationItem,
 				sourceId: this.sourceOptions.sourceValue?.id || null,
 				sourceType: this.typeOptions.value?.id || null,
+				sourceHashMapping: this.sourceTargetMappingOptions.hashValue?.id || null,
 				sourceTargetMapping: this.sourceTargetMappingOptions.sourceValue?.id || null,
 				conditions: JSON.parse(this.synchronizationItem.conditions) || null,
 				targetType: this.targetTypeOptions.value?.id || null,

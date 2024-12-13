@@ -6,6 +6,7 @@ export type TSynchronization = {
     sourceId: string
     sourceType: string
     sourceHash: string
+    sourceHashMapping: string
     sourceTargetMapping: string
     sourceConfig: Record<string, string>
     sourceLastChanged: string
