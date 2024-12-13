@@ -2,6 +2,7 @@
 
 namespace OCA\OpenConnector\Controller;
 
+use GuzzleHttp\Exception\GuzzleException;
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\SynchronizationService;
@@ -15,6 +16,8 @@ use OCP\IAppConfig;
 use OCP\IRequest;
 use Exception;
 use OCP\AppFramework\Db\DoesNotExistException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class SynchronizationsController extends Controller
 {
@@ -213,33 +216,36 @@ class SynchronizationsController extends Controller
         }
     }
 
-    /**
-     * Tests a synchronization
-     *
-     * This method tests a synchronization without persisting anything to the database.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * @param int $id The ID of the synchronization
-     *
-     * @return JSONResponse A JSON response containing the test results
-     *
-     * @example
-     * Request:
-     * empty POST
-     *
-     * Response:
-     * {
-     *     "resultObject": {
-     *         "fullName": "John Doe",
-     *         "userAge": 30,
-     *         "contactEmail": "john@example.com"
-     *     },
-     *     "isValid": true,
-     *     "validationErrors": []
-     * }
-     */
+	/**
+	 * Tests a synchronization
+	 *
+	 * This method tests a synchronization without persisting anything to the database.
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param int $id The ID of the synchronization
+	 *
+	 * @return JSONResponse A JSON response containing the test results
+	 * @throws GuzzleException
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 *
+	 * @example
+	 * Request:
+	 * empty POST
+	 *
+	 * Response:
+	 * {
+	 *     "resultObject": {
+	 *         "fullName": "John Doe",
+	 *         "userAge": 30,
+	 *         "contactEmail": "john@example.com"
+	 *     },
+	 *     "isValid": true,
+	 *     "validationErrors": []
+	 * }
+	 */
     public function test(int $id): JSONResponse
     {
         try {
