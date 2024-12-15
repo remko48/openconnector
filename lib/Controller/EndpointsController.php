@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Controller;
 
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
+use OCA\OpenConnector\Service\EndpointService;
 use OCA\OpenConnector\Db\Endpoint;
 use OCA\OpenConnector\Db\EndpointMapper;
 use OCP\AppFramework\Controller;
@@ -13,6 +14,9 @@ use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\AppFramework\Db\DoesNotExistException;
 
+/**
+ * Controller for handling endpoint related operations
+ */
 class EndpointsController extends Controller
 {
     /**
@@ -22,12 +26,14 @@ class EndpointsController extends Controller
      * @param IRequest $request The request object
      * @param IAppConfig $config The app configuration object
      * @param EndpointMapper $endpointMapper The endpoint mapper object
+     * @param EndpointService $endpointService Service for handling endpoint operations
      */
     public function __construct(
         $appName,
         IRequest $request,
         private IAppConfig $config,
-        private EndpointMapper $endpointMapper
+        private EndpointMapper $endpointMapper,
+        private EndpointService $endpointService
     )
     {
         parent::__construct($appName, $request);
@@ -171,74 +177,38 @@ class EndpointsController extends Controller
     }
 
     /**
-     * Retrieves call logs for an endpoint
-     *
-     * This method returns all the call logs associated with an endpoint based on its ID.
+     * Handles generic path requests by matching against registered endpoints
+     * 
+     * This method checks if the current path matches any registered endpoint patterns
+     * and forwards the request to the appropriate endpoint service if found
      *
      * @NoAdminRequired
      * @NoCSRFRequired
-     *
-     * @param int $id The ID of the endpoint to retrieve logs for
-     * @return JSONResponse A JSON response containing the call logs
+     * 
+     * @param string $path The request path to match
+     * @return JSONResponse The response from the endpoint service or 404 if no match
      */
-    public function logs(int $id): JSONResponse
+    public function handlePath(string $path): JSONResponse 
     {
-        try {
-            $endpoint = $this->endpointMapper->find($id);
-            $endpointLogs = $this->endpointLogMapper->findAll(null, null, ['endpoint_id' => $endpoint->getId()]);
-            return new JSONResponse($endpointLogs);
-        } catch (DoesNotExistException $e) {
-            return new JSONResponse(['error' => 'Endpoint not found'], 404);
+        // Find matching endpoints for the given path and method
+        $matchingEndpoints = $this->endpointMapper->findByPathRegex(
+            path: $path,
+            method: $this->request->getMethod()
+        );
+
+        // If no matching endpoints found, return 404
+        if (empty($matchingEndpoints)) {
+            return new JSONResponse(
+                data: ['error' => 'No matching endpoint found for path and method: ' . $path . ' ' . $this->request->getMethod()],
+                statusCode: 404
+            );
         }
+
+        // Get the first matching endpoint since we already filtered by method
+        $endpoint = reset($matchingEndpoints);
+
+        // Forward the request to the endpoint service
+        return $this->endpointService->handleRequest($endpoint, $this->request);
     }
 
-    /**
-     * Test an endpoint
-     *
-     * This method fires a test call to the endpoint and returns the response.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * Endpoint: /api/endpoints-test/{id}
-     *
-     * @param int $id The ID of the endpoint to test
-     * @return JSONResponse A JSON response containing the test results
-     */
-    public function test(int $id): JSONResponse
-    {
-        try {
-            $endpoint = $this->endpointMapper->find(id: $id);
-            // Implement the logic to test the endpoint here
-            // This is a placeholder implementation
-            $testResult = ['status' => 'success', 'message' => 'Endpoint test successful'];
-            return new JSONResponse($testResult);
-        } catch (DoesNotExistException $exception) {
-            return new JSONResponse(data: ['error' => 'Endpoint not found'], statusCode: 404);
-        }
-    }
-
-    /**
-     * Actually run an endpoint
-     *
-     * This method runs an endpoint based on its ID.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * @param int $id The ID of the endpoint to run
-     * @return JSONResponse A JSON response containing the run results
-     */
-    public function run(int $id): JSONResponse
-    {
-        try {
-            $endpoint = $this->endpointMapper->find(id: $id);
-            // Implement the logic to run the endpoint here
-            // This is a placeholder implementation
-            $runResult = ['status' => 'success', 'message' => 'Endpoint run successful'];
-            return new JSONResponse($runResult);
-        } catch (DoesNotExistException $exception) {
-            return new JSONResponse(data: ['error' => 'Endpoint not found'], statusCode: 404);
-        }
-    }
 }
