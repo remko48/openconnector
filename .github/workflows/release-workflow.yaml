@@ -189,6 +189,7 @@ jobs:
           tar -xOf nextcloud-release.tar.gz ${{ env.APP_NAME }}/appinfo/info.xml
 
   update-changelog:
+    if: ${{ always() }}
     needs: release-management
     runs-on: ubuntu-latest
     steps:
