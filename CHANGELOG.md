@@ -1,3 +1,10 @@
+# Version: 0.1.38
+
+* [#6](https://github.com/remko48/openconnector/pull/6): Update README.md
+* [#7](https://github.com/remko48/openconnector/pull/7): Update README.md
+* [#8](https://github.com/remko48/openconnector/pull/8): Update release-workflow.yaml
+
+
 # Changelog
 
 ## [Unreleased]
