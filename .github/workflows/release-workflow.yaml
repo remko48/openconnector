@@ -148,7 +148,6 @@ jobs:
         with:
           release_version: ${{ env.NEW_VERSION }}
           config_file: changelog-ci-config.json
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       # Step 14: Output the version
       - name: Use the version
