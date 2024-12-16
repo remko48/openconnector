@@ -1,3 +1,8 @@
+# Version: 0.1.44
+
+* [#12](https://github.com/remko48/openconnector/pull/12): Update README.md
+
+
 # Changelog
 
 ## [Unreleased]
