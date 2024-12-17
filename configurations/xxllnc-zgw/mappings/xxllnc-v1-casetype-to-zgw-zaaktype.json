@@ -1,0 +1,38 @@
+{
+    "name": "Xxllnc Casetype to ZGW ZaakType",
+    "version": "0.0.1",
+    "mapping": {
+        "identificatie": "instance.legacy.zaaktype_id",
+        "catalogus": "_catalogus",
+        "onderwerp": "instance.title",
+        "indicatieInternOfExtern": "extern",
+        "doorlooptijd": "{% if instance.properties.lead_time_legal.weken|default %}P{{ instance.properties.lead_time_legal.weken }}W{% elseif instance.properties.lead_time_legal.kalenderdagen|default %}P{{ instance.properties.lead_time_legal.kalenderdagen }}D{% else %}{{ \"\" }}{% endif %}",
+        "servicenorm": "{% if instance.properties.lead_time_service.weken|default %}P{{ instance.properties.lead_time_service.weken }}W{% elseif instance.properties.lead_time_service.kalenderdagen|default %}P{{ instance.properties.lead_time_service.kalenderdagen }}D{% else %}{{ \"\" }}{% endif %}",
+        "vertrouwelijkheidaanduiding": "{{ instance.properties.designation_of_confidentiality|lower }}",
+        "verlengingMogelijk": "instance.properties.extension",
+        "publicatieIndicatie": "instance.properties.publication",
+        "omschrijving": "instance.title",
+        "opschortingEnAanhoudingMogelijk": "instance.properties.suspension",
+        "statustypen": "[{% for phase in instance.phases %}{% set phase = phase|merge({'_catalogus': _catalogus, '_zaaktypeIdentificatie': instance.legacy.zaaktype_id}) %}{% if not loop.first %},{% endif %}{{ executeMapping(7, phase)|json_encode }}{% endfor %}]",
+        "informatieobjecttypen": "[{% set index=0 %}{% for phase in instance.phases %}{% for field in phase.fields %}{% if field.type == 'file' %}{% set field = field|merge({'_catalogus': _catalogus, '_zaaktypeIdentificatie': instance.legacy.zaaktype_id}) %}{% if index != 0 %},{% endif %}{{ executMapping(8, field)|json_encode }}{% set index=index+1 %}{% endif %}{% endfor %}{% endfor %}]",
+        "eigenschappen": "[{% set index=0 %}{% for phase in instance.phases %}{% for field in phase.fields %}{% if field.type != 'file' %}{% set field = field|merge({'_catalogus': _catalogus, '_zaaktypeIdentificatie': instance.legacy.zaaktype_id}) %}{% if index != 0 %},{% endif %}{{ executMapping(9, field)|json_encode }}{% set index=index+1 %}{% endif %}{% endfor %}{% endfor %}]",
+        "roltypen": "[{% set index=0 %}{% for phase in instance.phases %}{% if phase.route.role|default %}{% set role = phase.route.role|merge({'_catalogus': _catalogus, '_zaaktypeIdentificatie': instance.legacy.zaaktype_id}) %}{% if index != 0 %},{% endif %}{{ executMapping(10, role)|json_encode }}{% set index=index+1 %}{% endif %}{% endfor %}]",
+        "resultaattypen": "[{% if instance.results|default %}{% for result in instance.results %}{% set result = result|merge({'_catalogus': _catalogus, '_zaaktypeIdentificatie': instance.legacy.zaaktype_id}) %}{% if not loop.first %},{% endif %}{{ executMapping(11, result)|json_encode }}{% endfor %}{% endif %}]",
+        "bronzaaktype.url": "url",
+        "bronzaaktype.identificatie": "reference",
+        "bronzaaktype.omschrijving": "instance.title",
+        "referentieproces.naam": "preview",
+        "verantwoordelijke": "instance.properties.supervisor"
+    },
+    "unset": {
+        "identificatie": "unsetIfValue==instance.legacy.zaaktype_id"
+    },
+    "cast": {
+        "statustypen": "jsonToArray",
+        "informatieobjecttypen": "jsonToArray",
+        "eigenschappen": "jsonToArray",
+        "roltypen": "jsonToArray",
+        "resultaattypen": "jsonToArray"
+    },
+    "passTrough": false
+}

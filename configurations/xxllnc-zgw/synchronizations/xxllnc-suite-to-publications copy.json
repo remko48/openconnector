@@ -1,0 +1,25 @@
+{
+    "name": "Xxllnc cases to ZGW zaken",
+    "description": "",
+    "version": "0.0.1",
+    "sourceId": "1",
+    "sourceType": "api",
+    "sourceHash": "",
+    "sourceHashMapping": "",
+    "sourceTargetMapping": "1",
+    "sourceConfig": {
+        "idPosition": "reference",
+        "resultsPosition": "result.instance.rows",
+        "endpoint": "\/case",
+        "query": [],
+        "headers.API-KEY": "",
+        "headers.API-Interface-ID": ""
+    },
+    "currentPage": 1,
+    "targetId": "1\/1",
+    "targetType": "register\/schema",
+    "targetHash": "",
+    "targetSourceMapping": "",
+    "targetConfig": [],
+    "followUps": []
+}
