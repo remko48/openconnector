@@ -7,7 +7,6 @@ return [
 		'Mappings' => ['url' => 'api/mappings'],
 		'Jobs' => ['url' => 'api/jobs'],
 		'Synchronizations' => ['url' => 'api/synchronizations'],
-		'Endpoints' => ['url' => 'api/endpoints'],
 		'Consumers' => ['url' => 'api/consumers'],
 	],
 	'routes' => [
@@ -26,9 +25,9 @@ return [
 		['name' => 'mappings#saveObject', 'url' => '/api/mappings/objects', 'verb' => 'POST'],
 		['name' => 'mappings#getObjects', 'url' => '/api/mappings/objects', 'verb' => 'GET'],
 		// Running endpoints - allow any path after /api/endpoints/
-		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+']],
-		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'PUT', 'requirements' => ['path' => '.+']],
-		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'POST', 'requirements' => ['path' => '.+']],
-		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'DELETE', 'requirements' => ['path' => '.+']], 
+		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{_path}', 'verb' => 'GET', 'requirements' => ['_path' => '.+']],
+//		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'PUT', 'requirements' => ['path' => '.+']],
+//		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'POST', 'requirements' => ['path' => '.+']],
+//		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'DELETE', 'requirements' => ['path' => '.+']],
 	],
 ];

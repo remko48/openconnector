@@ -16,8 +16,13 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
+use OCP\AppFramework\Db\Entity;
+use OCP\AppFramework\Db\QBMapper;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
+use ValueError;
 
 /**
  * Service class for handling endpoint requests
@@ -37,7 +42,8 @@ class EndpointService {
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly CallService $callService,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+		private readonly IURLGenerator $urlGenerator,
     ) {}
 
     /**
@@ -48,19 +54,19 @@ class EndpointService {
      *
      * @param Endpoint $endpoint The endpoint configuration to handle
      * @param IRequest $request The incoming request object
-     * @return \OCP\AppFramework\Http\JSONResponse Response containing the result
+     * @return JSONResponse Response containing the result
      * @throws \Exception When endpoint configuration is invalid
      */
-    public function handleRequest(Endpoint $endpoint, IRequest $request): \OCP\AppFramework\Http\JSONResponse {
+    public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse {
         try {
             // Check if endpoint connects to a schema
-            if ($endpoint->getSchema() !== null) {
+            if ($endpoint->getTargetType() === 'register/schema') {
                 // Handle CRUD operations via ObjectService
-                return $this->handleSchemaRequest($endpoint, $request);
+                return $this->handleSchemaRequest($endpoint, $request, $path);
             }
-            
+
             // Check if endpoint connects to a source
-            if ($endpoint->getSource() !== null) {
+            if ($endpoint->getTargetType() === 'api') {
                 // Proxy request to source via CallService
                 return $this->handleSourceRequest($endpoint, $request);
             }
@@ -70,50 +76,202 @@ class EndpointService {
 
         } catch (\Exception $e) {
             $this->logger->error('Error handling endpoint request: ' . $e->getMessage());
-            return new \OCP\AppFramework\Http\JSONResponse(
+            return new JSONResponse(
                 ['error' => $e->getMessage()],
                 400
             );
         }
     }
 
+	private function getPathParameters(array $endpointArray, string $path): array
+	{
+		$pathParts = explode(separator: '/', string: $path);
+
+		$endpointArrayNormalized = array_map(
+			function($item) {
+				return str_replace(
+					search: ['{{', '{{ ', '}}', '}}'],
+					replace: '',
+					subject: $item
+				);
+			},
+			$endpointArray);
+
+		try {
+			$pathParams = array_combine(
+				keys: $endpointArrayNormalized,
+				values: $pathParts
+			);
+		} catch (ValueError $error) {
+			array_pop($endpointArrayNormalized);
+			$pathParams = array_combine(
+				keys: $endpointArrayNormalized,
+				values: $pathParts
+			);
+		}
+
+		return $pathParams;
+	}
+
+	private function getObjects(
+		\OCA\OpenRegister\Service\ObjectService|QBMapper $mapper,
+		array $parameters,
+		array $pathParams,
+		int &$status = 200
+	): Entity|array
+	{
+		if(isset($pathParams['id']) === true && $pathParams['id'] === end($pathParams)) {
+			return $mapper->find($pathParams['id']);
+		} else if (isset($pathParams['id']) === true) {
+			while(prev($pathParams) !== $pathParams['id']){};
+
+			$property = next($pathParams);
+
+			if(next($pathParams) !== false) {
+				$id = pos($pathParams);
+			}
+
+			$main = $mapper->find($pathParams['id'])->getObject();
+			$ids = $main[$property];
+
+			if(isset($id) === true && in_array(needle: $id, haystack: $ids) === true) {
+
+				return $mapper->findSubObjects([$id], $property)[0];
+			} else if (isset($id) === true) {
+				$status = 404;
+				return ['error' => 'not found', 'message' => "the subobject with id $id does not exist"];
+
+			}
+
+			return $mapper->findSubObjects($ids, $property);
+		}
+
+		$result = $mapper->findAllPaginated(requestParams: $parameters);
+
+		$returnArray = [
+			'count' => $result['total'],
+		];
+
+		if($result['page'] < $result['pages']) {
+			$parameters['page'] = $result['page'] + 1;
+			$parameters['_path'] = implode('/', $pathParams);
+
+
+			$returnArray['next'] = $this->urlGenerator->getAbsoluteURL(
+				$this->urlGenerator->linkToRoute(
+					routeName: 'openconnector.endpoints.handlepath',
+					arguments: $parameters
+				)
+			);
+		}
+		if($result['page'] > 1) {
+			$parameters['page'] = $result['page'] - 1;
+			$parameters['_path'] = implode('/', $pathParams);
+
+			$returnArray['previous'] = $this->urlGenerator->getAbsoluteURL(
+				$this->urlGenerator->linkToRoute(
+					routeName: 'openconnector.endpoints.handlepath',
+					arguments: $parameters
+				)
+			);
+		}
+
+		$returnArray['results'] = $result['results'];
+
+		return $returnArray;
+	}
+
     /**
      * Handles requests for schema-based endpoints
-     * 
+     *
      * @param Endpoint $endpoint The endpoint configuration
      * @param IRequest $request The incoming request
-     * @return \OCP\AppFramework\Http\JSONResponse
+     * @return JSONResponse
      */
-    private function handleSchemaRequest(Endpoint $endpoint, IRequest $request): \OCP\AppFramework\Http\JSONResponse {
+    private function handleSchemaRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse {
         // Get request method
         $method = $request->getMethod();
-        
+		$target = explode('/', $endpoint->getTargetId());
+
+		$register = $target[0];
+		$schema = $target[1];
+
+		$mapper = $this->objectService->getMapper(schema: $schema, register: $register);
+
+		$parameters = $request->getParams();
+
+		$pathParams = $this->getPathParameters($endpoint->getEndpointArray(), $path);
+
+		unset($parameters['_route'], $parameters['_path']);
+
+		$status = 200;
+
         // Route to appropriate ObjectService method based on HTTP method
         return match($method) {
-            'GET' => new \OCP\AppFramework\Http\JSONResponse(
-                $this->objectService->get($endpoint->getSchema(), $request->getParams())
+            'GET' => new JSONResponse(
+                $this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status
             ),
-            'POST' => new \OCP\AppFramework\Http\JSONResponse(
-                $this->objectService->create($endpoint->getSchema(), $request->getParams())
+            'POST' => new JSONResponse(
+                $mapper->createFromArray(object: $parameters)
             ),
-            'PUT' => new \OCP\AppFramework\Http\JSONResponse(
-                $this->objectService->update($endpoint->getSchema(), $request->getParams())
+            'PUT' => new JSONResponse(
+                $mapper->updateFromArray($request->getParams()['id'], $request->getParams(), true, true)
             ),
-            'DELETE' => new \OCP\AppFramework\Http\JSONResponse(
-                $this->objectService->delete($endpoint->getSchema(), $request->getParams())
+            'DELETE' => new JSONResponse(
+                $mapper->delete($request->getParams())
             ),
             default => throw new \Exception('Unsupported HTTP method')
         };
     }
+
+	private function getRawContent(): string
+	{
+		return file_get_contents(filename: 'php://input');
+	}
+
+	private function getHeaders(array $server, bool $proxyHeaders = false): array
+	{
+		$headers = array_filter(
+			array: $server,
+			callback: function (string $key) use ($proxyHeaders){
+				if(str_starts_with($key, 'HTTP_') === false) {
+					return false;
+				} else if ($proxyHeaders === false
+					&& (str_starts_with(haystack: $key, needle: 'HTTP_X_FORWARDED')
+					|| $key === 'HTTP_X_REAL_IP' || $key === 'HTTP_X_ORIGINAL_URI'
+					)
+				) {
+					return false;
+				}
+
+				return true;
+			},
+			mode: ARRAY_FILTER_USE_KEY
+		);
+
+		$keys = array_keys($headers);
+
+		return array_combine(
+			array_map(
+				callback: function($key) {
+					return strtolower(string: substr(string: $key, offset: 5));
+					},
+				array: $keys),
+			$headers
+		);
+	}
 
     /**
      * Handles requests for source-based endpoints
      *
      * @param Endpoint $endpoint The endpoint configuration
      * @param IRequest $request The incoming request
-     * @return \OCP\AppFramework\Http\JSONResponse
+     * @return JSONResponse
      */
-    private function handleSourceRequest(Endpoint $endpoint, IRequest $request): \OCP\AppFramework\Http\JSONResponse {
+    private function handleSourceRequest(Endpoint $endpoint, IRequest $request): JSONResponse {
+
+		$headers = $this->getHeaders($request->server);
+
         // Proxy the request to the source via CallService
         $response = $this->callService->call(
             source: $endpoint->getSource(),
@@ -121,12 +279,12 @@ class EndpointService {
             method: $request->getMethod(),
             config: [
                 'query' => $request->getParams(),
-                'headers' => $request->getHeaders(),
-                'body' => $request->getContent()
+                'headers' => $headers,
+                'body' => $this->getRawContent(),
             ]
         );
 
-        return new \OCP\AppFramework\Http\JSONResponse(
+        return new JSONResponse(
             $response->getResponse(),
             $response->getStatusCode()
         );

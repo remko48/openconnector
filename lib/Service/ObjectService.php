@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use OCP\App\IAppManager;
+use OCP\AppFramework\Db\QBMapper;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -249,6 +250,16 @@ class ObjectService
 		}
 
 		return null;
+	}
+
+	public function getMapper(?string $objecttype = null, ?int $schema = null, ?int $register = null): QBMapper|\OCA\OpenRegister\Service\ObjectService|null
+	{
+		if($register !== null && $schema !== null && $objecttype === null) {
+			return $this->getOpenRegisters()->getMapper(register: $register, schema: $schema);
+		}
+
+		return null;
+
 	}
 
 }

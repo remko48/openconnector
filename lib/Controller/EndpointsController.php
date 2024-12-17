@@ -70,6 +70,7 @@ class EndpointsController extends Controller
      */
     public function index(ObjectService $objectService, SearchService $searchService): JSONResponse
     {
+
         $filters = $this->request->getParams();
         $fieldsToSearch = ['name', 'description', 'endpoint'];
 
@@ -178,28 +179,28 @@ class EndpointsController extends Controller
 
     /**
      * Handles generic path requests by matching against registered endpoints
-     * 
+     *
      * This method checks if the current path matches any registered endpoint patterns
      * and forwards the request to the appropriate endpoint service if found
      *
      * @NoAdminRequired
      * @NoCSRFRequired
-     * 
+     *
      * @param string $path The request path to match
      * @return JSONResponse The response from the endpoint service or 404 if no match
      */
-    public function handlePath(string $path): JSONResponse 
+    public function handlePath(string $_path): JSONResponse
     {
         // Find matching endpoints for the given path and method
         $matchingEndpoints = $this->endpointMapper->findByPathRegex(
-            path: $path,
+            path: $_path,
             method: $this->request->getMethod()
         );
 
         // If no matching endpoints found, return 404
         if (empty($matchingEndpoints)) {
             return new JSONResponse(
-                data: ['error' => 'No matching endpoint found for path and method: ' . $path . ' ' . $this->request->getMethod()],
+                data: ['error' => 'No matching endpoint found for path and method: ' . $_path . ' ' . $this->request->getMethod()],
                 statusCode: 404
             );
         }
@@ -208,7 +209,7 @@ class EndpointsController extends Controller
         $endpoint = reset($matchingEndpoints);
 
         // Forward the request to the endpoint service
-        return $this->endpointService->handleRequest($endpoint, $this->request);
+        return $this->endpointService->handleRequest($endpoint, $this->request, $_path);
     }
 
 }

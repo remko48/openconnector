@@ -61,6 +61,10 @@ class EndpointMapper extends QBMapper
 		return $this->findEntities(query: $qb);
 	}
 
+	private function createEndpointRegex(string $endpoint) {
+		return '#'.preg_replace(pattern: ['#\/{{([^}}]+)}}\/#', '#\/{{([^}}]+)}}$#'], replacement: ['/([^/]+)/', '(/([^/]+))?'], subject: $endpoint).'#';
+	}
+
 	public function createFromArray(array $object): Endpoint
 	{
 		$obj = new Endpoint();
@@ -69,6 +73,10 @@ class EndpointMapper extends QBMapper
 		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
+
+		$obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
+		$obj->setEndpointArray(explode('/', $obj->getEndpoint()));
+
 		return $this->insert(entity: $obj);
 	}
 
@@ -81,6 +89,9 @@ class EndpointMapper extends QBMapper
 		$version = explode('.', $obj->getVersion());
 		$version[2] = (int)$version[2] + 1;
 		$obj->setVersion(implode('.', $version));
+
+		$obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
+		$obj->setEndpointArray(explode('/', $obj->getEndpoint()));
 
 		return $this->update($obj);
 	}
@@ -112,23 +123,23 @@ class EndpointMapper extends QBMapper
      * @param string $method The HTTP method to filter by (GET, POST, etc)
      * @return array Array of matching Endpoint entities
      */
-    public function findByPathRegex(string $path, string $method): array 
+    public function findByPathRegex(string $path, string $method): array
     {
         // Get all endpoints first since we need to do regex comparison
         $endpoints = $this->findAll();
-        
+
         // Filter endpoints where both path matches regex pattern and method matches
         return array_filter($endpoints, function(Endpoint $endpoint) use ($path, $method) {
             // Get the regex pattern from the endpoint
             $pattern = $endpoint->getEndpointRegex();
-            
+
             // Skip if no regex pattern is set
             if (empty($pattern)) {
                 return false;
             }
-            
+
             // Check if both path matches the regex pattern and method matches
-            return preg_match($pattern, $path) === 1 && 
+            return preg_match($pattern, $path) === 1 &&
                    $endpoint->getMethod() === $method;
         });
     }
