@@ -28,6 +28,9 @@ use OCA\OpenConnector\Exception\AuthenticationException;
 use OCP\IUserManager;
 use OCP\IUserSession;
 
+/**
+ * Service class for handling authorization on incoming calls.
+ */
 class AuthorizationService
 {
 	const HMAC_ALGORITHMS = ['HS256', 'HS384', 'HS512'];
@@ -35,12 +38,24 @@ class AuthorizationService
 	const PSS_ALGORITHMS = ['PS256', 'PS384', 'PS512'];
 
 
+	/**
+	 * @param IUserManager $userManager
+	 * @param IUserSession $userSession
+	 * @param ConsumerMapper $consumerMapper
+	 */
 	public function __construct(
 		private readonly IUserManager $userManager,
 		private readonly IUserSession $userSession,
 		private readonly ConsumerMapper $consumerMapper,
 	) {}
 
+	/**
+	 * Find the issuer (consumer) for the request.
+	 *
+	 * @param string $issuer The issuer from the JWT token.
+	 * @return Consumer The consumer for the JWT token.
+	 * @throws AuthenticationException Thrown if no issuer was found.
+	 */
 	private function findIssuer(string $issuer): Consumer
 	{
 		$consumers = $this->consumerMapper->findAll(filters: ['name' => $issuer]);
@@ -52,6 +67,12 @@ class AuthorizationService
 		return $consumers[0];
 	}
 
+	/**
+	 * Check if the headers of a JWT token are valid.
+	 *
+	 * @param JWS $token The unserialized token.
+	 * @return void
+	 */
 	private function checkHeaders(JWS $token): void {
 		$headerChecker = new HeaderCheckerManager(
 			checkers: [
@@ -63,6 +84,14 @@ class AuthorizationService
 
 	}
 
+	/**
+	 * Get the Json Web Key for a public key combined with an algorithm.
+	 *
+	 * @param string $publicKey The public key to create a JWK for
+	 * @param string $algorithm The algorithm deciding how the key should be defined.
+	 * @return JWKSet The resulting JWK-set.
+	 * @throws AuthenticationException
+	 */
 	private function getJWK(string $publicKey, string $algorithm): JWKSet
 	{
 
@@ -94,6 +123,13 @@ class AuthorizationService
 		throw new AuthenticationException(message: 'The token algorithm is not supported', details: ['algorithm' => $algorithm]);
 	}
 
+	/**
+	 * Validate data in the payload.
+	 *
+	 * @param array $payload The payload of the JWT token.
+	 * @return void
+	 * @throws AuthenticationException
+	 */
 	public function validatePayload(array $payload): void
 	{
 		$now = new DateTime();
@@ -115,6 +151,14 @@ class AuthorizationService
 			throw new AuthenticationException(message: 'The token has expired', details: ['iat' => $iat->getTimestamp(), 'exp' => $exp->getTimestamp(), 'time checked' => $now->getTimestamp()]);
 		}
 	}
+
+	/**
+	 * Checks if authorization header contains a valid JWT token.
+	 *
+	 * @param string $authorization The authorization header.
+	 * @return void
+	 * @throws AuthenticationException
+	 */
 	public function authorize(string $authorization): void
 	{
 		$token = substr(string: $authorization, offset: strlen('Bearer '));
