@@ -39,7 +39,7 @@ class Version1Date20241218122708 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if($schema->hasTable(tableName: 'openconnector_consumers') === true) {
+		if ($schema->hasTable(tableName: 'openconnector_consumers') === true) {
 			$table = $schema->getTable(tableName: 'openconnector_consumers');
 			$table->dropColumn('authorization_configuration');
 		}

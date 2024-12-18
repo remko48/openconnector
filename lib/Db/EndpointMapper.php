@@ -134,7 +134,7 @@ class EndpointMapper extends QBMapper
             $pattern = $endpoint->getEndpointRegex();
 
             // Skip if no regex pattern is set
-            if (empty($pattern)) {
+            if (empty($pattern) === true) {
                 return false;
             }
 

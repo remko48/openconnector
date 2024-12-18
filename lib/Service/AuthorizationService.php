@@ -98,23 +98,14 @@ class AuthorizationService
 	private function getJWK(string $publicKey, string $algorithm): JWKSet
 	{
 
-		if (
-			in_array(needle: $algorithm, haystack: self::HMAC_ALGORITHMS) === true
-		) {
+		if (in_array(needle: $algorithm, haystack: self::HMAC_ALGORITHMS) === true) {
 			return new JWKSet([
 				JWKFactory::createFromSecret(
 					secret: $publicKey,
 					additional_values: ['alg' => $algorithm, 'use' => 'sig'])
 			]);
-		} else if (
-			in_array(
-				needle: $algorithm,
-				haystack: self::PKCS1_ALGORITHMS
-			) === true
-			|| in_array(
-				needle: $algorithm,
-				haystack: self::PSS_ALGORITHMS
-			) === true
+		} else if (in_array(needle: $algorithm, haystack: self::PKCS1_ALGORITHMS) === true
+			|| in_array(needle: $algorithm, haystack: self::PSS_ALGORITHMS) === true
 		) {
 			$stamp = microtime() . getmypid();
 			$filename = "/var/tmp/publickey-$stamp";

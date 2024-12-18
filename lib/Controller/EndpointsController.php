@@ -73,7 +73,6 @@ class EndpointsController extends Controller
 	 */
 	public function index(ObjectService $objectService, SearchService $searchService): JSONResponse
 	{
-
 		$filters = $this->request->getParams();
 		$fieldsToSearch = ['name', 'description', 'endpoint'];
 

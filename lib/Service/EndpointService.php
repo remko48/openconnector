@@ -58,7 +58,7 @@ class EndpointService
 	 * @param Endpoint $endpoint The endpoint configuration to handle
 	 * @param IRequest $request The incoming request object
 	 * @return JSONResponse Response containing the result
-	 * @throws \Exception When endpoint configuration is invalid
+	 * @throws Exception When endpoint configuration is invalid
 	 */
 	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
 	{
@@ -76,9 +76,9 @@ class EndpointService
 			}
 
 			// Invalid endpoint configuration
-			throw new \Exception('Endpoint must specify either a schema or source connection');
+			throw new Exception('Endpoint must specify either a schema or source connection');
 
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error('Error handling endpoint request: ' . $e->getMessage());
 			return new JSONResponse(
 				['error' => $e->getMessage()],
@@ -145,8 +145,10 @@ class EndpointService
 		if (isset($pathParams['id']) === true && $pathParams['id'] === end($pathParams)) {
 			return $mapper->find($pathParams['id']);
 		} else if (isset($pathParams['id']) === true) {
+
+			// Set the array pointer to the location of the id, so we can fetch the parameters further down the line in order.
 			while (prev($pathParams) !== $pathParams['id']) {
-			};
+			}
 
 			$property = next($pathParams);
 
@@ -178,7 +180,6 @@ class EndpointService
 		if ($result['page'] < $result['pages']) {
 			$parameters['page'] = $result['page'] + 1;
 			$parameters['_path'] = implode('/', $pathParams);
-
 
 			$returnArray['next'] = $this->urlGenerator->getAbsoluteURL(
 				$this->urlGenerator->linkToRoute(
@@ -244,7 +245,7 @@ class EndpointService
 			'DELETE' => new JSONResponse(
 				$mapper->delete($request->getParams())
 			),
-			default => throw new \Exception('Unsupported HTTP method')
+			default => throw new Exception('Unsupported HTTP method')
 		};
 	}
 
@@ -307,7 +308,6 @@ class EndpointService
 	 */
 	private function handleSourceRequest(Endpoint $endpoint, IRequest $request): JSONResponse
 	{
-
 		$headers = $this->getHeaders($request->server);
 
 		// Proxy the request to the source via CallService
