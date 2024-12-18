@@ -252,9 +252,20 @@ class ObjectService
 		return null;
 	}
 
+	/**
+	 * Get the mapper for the given objecttype (usually the proper instantiation of the objectService of OpenRegister.
+	 *
+	 * @param string|null $objecttype The objecttype as string
+	 * @param int|null $schema The openregister schema
+	 * @param int|null $register The openregister register
+	 *
+	 * @return QBMapper|\OCA\OpenRegister\Service\ObjectService|null The resulting mapper
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 */
 	public function getMapper(?string $objecttype = null, ?int $schema = null, ?int $register = null): QBMapper|\OCA\OpenRegister\Service\ObjectService|null
 	{
-		if($register !== null && $schema !== null && $objecttype === null) {
+		if ($register !== null && $schema !== null && $objecttype === null) {
 			return $this->getOpenRegisters()->getMapper(register: $register, schema: $schema);
 		}
 
