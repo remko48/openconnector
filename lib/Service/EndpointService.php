@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Service;
 
 use Adbar\Dot;
 use Exception;
+use JWadhams\JsonLogic;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
@@ -62,6 +63,12 @@ class EndpointService
 	 */
 	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
 	{
+		$errors = $this->checkConditions($endpoint, $request);
+
+		if($errors !== []) {
+			return new JSONResponse(['error' => 'The following parameters are not correctly set', 'fields' => $errors], 400);
+		}
+
 		try {
 			// Check if endpoint connects to a schema
 			if ($endpoint->getTargetType() === 'register/schema') {
@@ -297,6 +304,21 @@ class EndpointService
 				array: $keys),
 			$headers
 		);
+	}
+
+	private function checkConditions(Endpoint $endpoint, IRequest $request): array
+	{
+		$conditions = $endpoint->getConditions();
+		$data['parameters'] = $request->getParams();
+		$data['headers'] = $this->getHeaders($request->server, true);
+
+		$result = JsonLogic::apply(logic: $conditions, data: $data);
+
+		if($result === true || $result === []) {
+			return [];
+		}
+
+		return $result;
 	}
 
 	/**
