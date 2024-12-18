@@ -159,6 +159,6 @@ class AuthorizationService
 			throw new AuthenticationException(message: 'The token could not be validated', details: ['reason' => 'The token does not match the public key']);
 		}
 		$this->validatePayload($payload);
-//		$this->userSession->setUser($this->userManager->get($issuer->getUserId()));
+		$this->userSession->setUser($this->userManager->get($issuer->getUserId()));
 	}
 }

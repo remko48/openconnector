@@ -26,6 +26,7 @@ class Consumer extends Entity implements JsonSerializable
     protected ?array $authorizationConfiguration = []; // The authorization configuration of the consumer
 	protected ?DateTime $created = null; // the date and time the consumer was created
 	protected ?DateTime $updated = null; // the date and time the consumer was updated
+	protected ?string $userId = null;
 
 	/**
 	 * Consumer constructor.
@@ -41,6 +42,7 @@ class Consumer extends Entity implements JsonSerializable
 		$this->addType('authorizationConfiguration', 'json');
 		$this->addType('created', 'datetime');
 		$this->addType('updated', 'datetime');
+		$this->addType('userId', 'string');
 	}
 
 	/**
@@ -100,6 +102,7 @@ class Consumer extends Entity implements JsonSerializable
 			'ips' => $this->ips,
 			'authorizationType' => $this->authorizationType,
 			'authorizationConfiguration' => $this->authorizationConfiguration,
+			'userId' => $this->userId,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
 			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
 		];
