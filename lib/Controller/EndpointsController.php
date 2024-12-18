@@ -2,6 +2,8 @@
 
 namespace OCA\OpenConnector\Controller;
 
+use OCA\OpenConnector\Exception\AuthenticationException;
+use OCA\OpenConnector\Service\AuthorizationService;
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\EndpointService;
@@ -33,7 +35,8 @@ class EndpointsController extends Controller
         IRequest $request,
         private IAppConfig $config,
         private EndpointMapper $endpointMapper,
-        private EndpointService $endpointService
+        private EndpointService $endpointService,
+		private AuthorizationService $authorizationService
     )
     {
         parent::__construct($appName, $request);
@@ -185,12 +188,23 @@ class EndpointsController extends Controller
      *
      * @NoAdminRequired
      * @NoCSRFRequired
+	 * @PublicPage
      *
      * @param string $path The request path to match
      * @return JSONResponse The response from the endpoint service or 404 if no match
      */
     public function handlePath(string $_path): JSONResponse
     {
+		try {
+			$token = $this->request->getHeader('Authorization');
+			$this->authorizationService->authorize(authorization: $token);
+		} catch (AuthenticationException $exception) {
+			return new JSONResponse(
+				data: ['error' => $exception->getMessage(), 'details' => $exception->getDetails()],
+				statusCode: 401
+			);
+		}
+
         // Find matching endpoints for the given path and method
         $matchingEndpoints = $this->endpointMapper->findByPathRegex(
             path: $_path,
