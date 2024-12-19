@@ -8,7 +8,7 @@
         "indicatieInternOfExtern": "extern",
         "doorlooptijd": "{% if instance.properties.lead_time_legal.weken|default %}P{{ instance.properties.lead_time_legal.weken }}W{% elseif instance.properties.lead_time_legal.kalenderdagen|default %}P{{ instance.properties.lead_time_legal.kalenderdagen }}D{% else %}{{ \"\" }}{% endif %}",
         "servicenorm": "{% if instance.properties.lead_time_service.weken|default %}P{{ instance.properties.lead_time_service.weken }}W{% elseif instance.properties.lead_time_service.kalenderdagen|default %}P{{ instance.properties.lead_time_service.kalenderdagen }}D{% else %}{{ \"\" }}{% endif %}",
-        "vertrouwelijkheidaanduiding": "{{ instance.properties.designation_of_confidentiality|lower }}",
+        "vertrouwelijkheidaanduiding": "{% if instance.properties.designation_of_confidentiality|default %}{{ instance.properties.designation_of_confidentiality|lower }}{% endif %}",
         "verlengingMogelijk": "instance.properties.extension",
         "publicatieIndicatie": "instance.properties.publication",
         "omschrijving": "instance.title",
@@ -21,7 +21,22 @@
     },
     "unset": [],
     "cast": {
-        "identificatie": "unsetIfValue==instance.legacy.zaaktype_id"
+        "identificatie": "unsetIfValue==instance.legacy.zaaktype_id",
+        "catalogus": "unsetIfValue==_catalogus",
+        "onderwerp": "unsetIfValue==instance.title",
+        "indicatieInternOfExtern": "unsetIfValue==extern",
+        "doorlooptijd": "unsetIfValue==",
+        "servicenorm": "unsetIfValue==",
+        "verlengingMogelijk": "unsetIfValue==instance.properties.extension",
+        "publicatieIndicatie": "unsetIfValue==instance.properties.publication",
+        "omschrijving": "unsetIfValue==instance.title",
+        "opschortingEnAanhoudingMogelijk": "unsetIfValue==instance.properties.suspension",
+        "bronzaaktype.url": "unsetIfValue==url",
+        "bronzaaktype.identificatie": "unsetIfValue==reference",
+        "bronzaaktype.omschrijving": "unsetIfValue==instance.title",
+        "bronzaaktype.naam": "unsetIfValue==preview",
+        "referentieproces.naam": "unsetIfValue==preview",
+        "verantwoordelijke": "unsetIfValue==instance.properties.supervisor"
     },
-    "passTrough": false
+    "passThrough": false
 }
