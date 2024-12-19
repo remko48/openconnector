@@ -137,10 +137,13 @@ class ActionTask extends TimedJob
 		if ($forceRun === false) {
 			$nextRun = new DateTime('now + ' . $job->getInterval() . ' seconds');
 			if (isset($result['nextRun']) === true) {
-				$nextRun = DateTime::createFromFormat('U', $result['nextRun'], $nextRun->getTimezone());
+				$nextRunRateLimit = DateTime::createFromFormat('U', $result['nextRun'], $nextRun->getTimezone());
 				// Check if the current seconds part is not zero, and if so, round up to the next minute
-				if ($nextRun->format('s') !== '00') {
-					$nextRun->modify('next minute');
+				if ($nextRunRateLimit->format('s') !== '00') {
+					$nextRunRateLimit->modify('next minute');
+				}
+				if ($nextRunRateLimit > $nextRun) {
+					$nextRun = $nextRunRateLimit;
 				}
 			}
 			$nextRun->setTime(hour: $nextRun->format('H'), minute: $nextRun->format('i'));
