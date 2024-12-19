@@ -238,10 +238,12 @@ class EndpointService
 
 		$status = 200;
 
+		$headers = $request->getHeader('Accept-Crs') === '' ? [] : ['Content-Crs' => $request->getHeader('Accept-Crs')];
+
 		// Route to appropriate ObjectService method based on HTTP method
 		return match ($method) {
 			'GET' => new JSONResponse(
-				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status
+				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
 			),
 			'POST' => new JSONResponse(
 				$mapper->createFromArray(object: $parameters)
