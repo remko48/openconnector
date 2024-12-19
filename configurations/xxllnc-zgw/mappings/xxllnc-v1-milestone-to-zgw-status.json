@@ -9,7 +9,8 @@
     },
     "unset": [],
     "cast": {
-        "indicatieLaatstGezetteStatus": "bool"
+        "indicatieLaatstGezetteStatus": "bool",
+        "statustype": "unsetIfValue=="
     },
     "passTrough": false
 }

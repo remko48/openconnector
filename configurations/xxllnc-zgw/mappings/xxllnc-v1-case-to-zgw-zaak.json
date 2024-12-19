@@ -20,9 +20,9 @@
         "resultaat": "{% if instance.outcome|default %}{% set data = {'outcome': instance.outcome, 'resultaattypen': zaaktype.resultaattypen} %}{{ executeMapping(2, data)|json_encode }}{% endif %}",
         "rollen": "[{% if instance.route.instance.role|default %}{% set dataRol = {'requestor': instance.requestor, 'role': instance.route.instance.role, 'roltypen': zaaktype.roltypen} %}{{ executeMapping(3, dataRol)|json_encode }}{% endif %}]",
         "status": "{% if instance.milestone|default %}{% set data = {'milestone': instance.milestone, 'statustypen': zaaktype.statustypen} %}{{ executeMapping(4, data)|json_encode }}{% endif %}",
-        "zaaktype": "{% if zaaktype|default %}{{ executeMapping(7, zaaktype)|json_encode }}{% endif %}",
-        "eigenschappen": "[{% set index=0 %}{% if zaaktype.eigenschappen|default %}{% for key, attribute in instance.attributes %}{% if index != 0 %},{% endif %}{% set data = {'name': key, 'value': attribute, 'eigenschappen': zaaktype.eigenschappen} %}{% if attribute[0][0]|default and attribute[0][0] is iterable %}{{ attribute|json_encode }}{% else %}{{ executeMapping(5, data)|json_encode }}{% endif %}{% set index=index+1 %}{% endfor %}{% endif %}]",
-        "zaakinformatieobjecten": "[{% set index=0 %}{% if documents.result.instance.rows|default %}{% for document in documents.result.instance.rows %}{% if index != 0 %},{% endif %}{{ executeMapping(6, document)|json_encode }}{% set index=index+1 %}{% endfor %}{% endif %}]",
+        "zaaktype": "{% if casetype|default %}{{ executeMapping(5, casetype)|json_encode }}{% endif %}",
+        "eigenschappen": "[{% set index=0 %}{% if zaaktype.eigenschappen|default %}{% for key, attribute in instance.attributes %}{% if index != 0 %},{% endif %}{% set data = {'name': key, 'value': attribute, 'eigenschappen': zaaktype.eigenschappen} %}{% if attribute[0][0]|default and attribute[0][0] is iterable %}{{ attribute|json_encode }}{% else %}{{ executeMapping(6, data)|json_encode }}{% endif %}{% set index=index+1 %}{% endfor %}{% endif %}]",
+        "zaakinformatieobjecten": "[{% set index=0 %}{% if documents.result.instance.rows|default %}{% for document in documents.result.instance.rows %}{% if index != 0 %},{% endif %}{{ executeMapping(7, document)|json_encode }}{% set index=index+1 %}{% endfor %}{% endif %}]",
         "bronorganisatie": "bronorganisatie",
         "verantwoordelijkeOrganisatie": "bronorganisatie",
         "opschorting.indicatie": "{% if instance.stalled_until|default %}true{% else %}{% endif %}",
@@ -37,7 +37,8 @@
         "opschorting.indicatie": "unsetIfValue==",
         "opschorting.reden": "unsetIfValue==",
         "opschorting": "unsetIfValue==",
-        "zaakinformatieobjecten": "jsonToArray"
+        "zaakinformatieobjecten": "jsonToArray",
+        "zaaktype": "jsonToArray"
     },
     "passTrough": false
 }

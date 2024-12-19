@@ -6,6 +6,8 @@
         "resultaattype": "{% if resultaattypen|default %}{% for resultaattype in resultaattypen %}{% if resultaattype.toelichting == outcome.instance.name %}{{ resultaattype['_self']['id'] }}{% endif %}{% endfor %}{% endif %}"
     },
     "unset": [],
-    "cast": [],
+    "cast": {
+        "resultaattype": "unsetIfValue=="
+    },
     "passTrough": false
 }
