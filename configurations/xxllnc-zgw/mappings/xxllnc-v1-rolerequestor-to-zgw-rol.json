@@ -29,6 +29,9 @@
         "roltype": "{% if role.instance.name|default %}{% for roltype in roltypen %}{% if roltype.omschrijvingGeneriek|lower == role.instance.name|lower %}{{ roltype['_self']['id'] }}{% endif %}{% endfor %}{% endif %}"
     },
     "unset": [],
-    "cast": [],
+    "cast": {
+        "roltype": "unsetIfValue==",
+        "betrokkeneIdentificatie": "unsetIfValue=="
+    },
     "passTrough": false
 }

@@ -13,7 +13,11 @@
         "endpoint": "\/case",
         "query": [],
         "headers.API-KEY": "",
-        "headers.API-Interface-ID": ""
+        "headers.API-Interface-ID": "",
+        "extraDataConfigs.0.staticEndpoint": "/case/{{ originId }}/document",
+        "extraDataConfigs.0.mergeExtraData": "true",
+        "extraDataConfigs.0.keyToSetExtraData": "documents",
+        "extraDataConfigs.0.resultsLocation": "result.instance.rows"
     },
     "currentPage": 1,
     "targetId": "1\/1",

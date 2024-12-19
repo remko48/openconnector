@@ -24,10 +24,9 @@
         "referentieproces.naam": "preview",
         "verantwoordelijke": "instance.properties.supervisor"
     },
-    "unset": {
-        "identificatie": "unsetIfValue==instance.legacy.zaaktype_id"
-    },
+    "unset": [],
     "cast": {
+        "identificatie": "unsetIfValue==instance.legacy.zaaktype_id",
         "statustypen": "jsonToArray",
         "informatieobjecttypen": "jsonToArray",
         "eigenschappen": "jsonToArray",
