@@ -308,6 +308,14 @@ class EndpointService
 		);
 	}
 
+	/**
+	 * Check conditions for using an endpoint.
+	 *
+	 * @param Endpoint $endpoint The endpoint for which the checks should be done.
+	 * @param IRequest $request The inbound request.
+	 * @return array
+	 * @throws Exception
+	 */
 	private function checkConditions(Endpoint $endpoint, IRequest $request): array
 	{
 		$conditions = $endpoint->getConditions();
