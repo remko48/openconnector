@@ -249,7 +249,7 @@ class SynchronizationService
 		$source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
 		// Lets get the source config
-		$sourceConfig = $synchronization->getSourceConfig();
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
 		$config = [
@@ -282,12 +282,13 @@ class SynchronizationService
      *      - KEY_FOR_EXTRA_DATA_LOCATION: The key under which the extra data should be returned.
      *      - MERGE_EXTRA_DATA_OBJECT_LOCATION: Boolean flag indicating whether to merge the extra data with the object.
      * @param array $object The original object for which extra data needs to be fetched.
+     * @param string|null $originId
      *
      * @return array The original object merged with the extra data, or the extra data itself based on the configuration.
      *
      * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
      */
-    private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object)
+    private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object, ?string $originId = null)
     {
         if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
             return $object;
@@ -301,9 +302,20 @@ class SynchronizationService
 
         // Get endpoint static defined in config.
         if (isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === true) {
+
+            if ($originId === null) {
+                $originId = $this->getOriginId($synchronization, $object);
+            }
+
+            if (isset($extraDataConfig['endpointIdLocation']) === true) {
+                $dotObject = new Dot($object);
+                $originId = $dotObject->get($extraDataConfig['endpointIdLocation']);
+            }
+
+
             $endpoint = $extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION];
-            $endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
-            $endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
+            $endpoint = str_replace(search: '{{ originId }}', replace: $originId, subject: $endpoint);
+            $endpoint = str_replace(search: '{{originId}}', replace: $originId, subject: $endpoint);
         }
 
         if (!$endpoint) {
@@ -323,7 +335,7 @@ class SynchronizationService
             $results = $dotObject->get($extraDataConfig['resultsLocation']);
 
             foreach ($results as $key => $result) {
-                $results[$key] = $this->fetchExtraDataForObject($synchronization, $extraDataConfig['extraDataConfigPerResult'], $result);
+                $results[$key] = $this->fetchExtraDataForObject(synchronization: $synchronization, extraDataConfig: $extraDataConfig['extraDataConfigPerResult'], object: $result, originId: $originId);
             }
 
             $extraData = $results;
