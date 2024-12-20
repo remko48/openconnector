@@ -701,8 +701,13 @@ class SynchronizationService
 		$query = $sourceConfig['query'] ?? [];
 		$config = ['headers' => $headers, 'query' => $query];
 
+        $currentPage = 1;
+
 		// Start with the current page
-		$currentPage = $synchronization->getCurrentPage() ?? 1;
+        if ($source->getRateLimitLimit() !== null) {
+            $currentPage = $synchronization->getCurrentPage() ?? 1;
+        }
+		 
 
 		// Fetch all pages recursively
 		$objects = $this->fetchAllPages(
@@ -732,15 +737,18 @@ class SynchronizationService
 	 * @param Synchronization $synchronization The synchronization object containing state information.
 	 * @param int $currentPage The current page number for pagination.
 	 * @param bool $isTest If true, stops after fetching the first object from the first page.
+	 * @param bool $usesNextEndpoint If true, doesnt use normal pagination but next endpoint.
 	 *
 	 * @return array An array of objects retrieved from the API.
 	 * @throws GuzzleException
 	 * @throws TooManyRequestsHttpException
 	 */
-	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false): array
+	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false, ?bool $usesNextEndpoint = false): array
 	{
 		// Update pagination configuration for the current page
-		$config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
+        if ($usesNextEndpoint === false) {
+		    $config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
+        }
 
 		$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);
 		$response = $callLog->getResponse();
@@ -767,13 +775,19 @@ class SynchronizationService
 			return [$objects[0]] ?? [];
 		}
 
+
 		// Increment the current page and update synchronization
 		$currentPage++;
 		$synchronization->setCurrentPage($currentPage);
 		$this->synchronizationMapper->update($synchronization);
 
+        $nextEndpoint = null;
+		$newNextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation());
+        if ($newNextEndpoint !== $endpoint) {
+            $nextEndpoint = $newNextEndpoint;
+        }
+
 		// Check if there's a next page
-		$nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation());
 		if ($nextEndpoint !== null) {
 			// Recursively fetch the next pages
 			$objects = array_merge(
@@ -783,7 +797,9 @@ class SynchronizationService
 					endpoint: $nextEndpoint,
 					config: $config,
 					synchronization: $synchronization,
-					currentPage: $currentPage
+					currentPage: $currentPage,
+                    isTest: $isTest,
+                    usesNextEndpoint: true
 				)
 			);
 		}
