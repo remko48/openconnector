@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Service;
 
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use JWadhams\JsonLogic;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\Mapping;
 use OCA\OpenConnector\Db\Source;
@@ -29,6 +30,7 @@ use DateInterval;
 use DateTime;
 use OCA\OpenConnector\Db\MappingMapper;
 use OCP\AppFramework\Http\NotFoundResponse;
+use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
 
@@ -45,6 +47,12 @@ class SynchronizationService
     private ObjectService $objectService;
     private Source $source;
 
+    const EXTRA_DATA_CONFIGS_LOCATION          = 'extraDataConfigs';
+    const EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION = 'dynamicEndpointLocation';
+    const EXTRA_DATA_STATIC_ENDPOINT_LOCATION  = 'staticEndpoint';
+    const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
+    const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
+
 
 	public function __construct(
 		CallService $callService,
@@ -54,7 +62,7 @@ class SynchronizationService
         MappingMapper $mappingMapper,
 		SynchronizationMapper $synchronizationMapper,
 		SynchronizationContractMapper $synchronizationContractMapper,
-        SynchronizationContractLogMapper $synchronizationContractLogMapper
+        SynchronizationContractLogMapper $synchronizationContractLogMapper,
 	) {
 		$this->callService = $callService;
 		$this->mappingService = $mappingService;
@@ -102,13 +110,11 @@ class SynchronizationService
                     $synchronizationContract = $this->synchronizationContractMapper->createFromArray([
                         'synchronizationId' => $synchronization->getId(),
                         'originId' => $originId,
-                        'originHash' => md5(serialize($object))
                     ]);
                 } else {
                     $synchronizationContract = new SynchronizationContract();
                     $synchronizationContract->setSynchronizationId($synchronization->getId());
                     $synchronizationContract->setOriginId($originId);
-                    $synchronizationContract->setOriginHash(md5(serialize($object)));
                 }
 
                 $synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
@@ -134,6 +140,11 @@ class SynchronizationService
 
             $this->synchronizationContractMapper->update($synchronizationContract);
         }
+
+		foreach ($synchronization->getFollowUps() as $followUp) {
+			$followUpSynchronization = $this->synchronizationMapper->find($followUp);
+			$this->synchronize($followUpSynchronization, $isTest);
+		}
 
         return $objectList;
     }
@@ -175,6 +186,128 @@ class SynchronizationService
     }
 
 	/**
+	 * Fetch an object from a specific endpoint.
+	 *
+	 * @param Synchronization $synchronization The synchronization containing the source.
+	 * @param string $endpoint The endpoint to request to fetch the desired object.
+	 *
+	 * @return array The resulting object.
+	 *
+	 * @throws GuzzleException
+	 * @throws \OCP\DB\Exception
+	 */
+	public function getObjectFromSource(Synchronization $synchronization, string $endpoint): array
+	{
+		$source = $this->sourceMapper->find(id: $synchronization->getSourceId());
+
+		// Lets get the source config
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
+		$headers = $sourceConfig['headers'] ?? [];
+		$query = $sourceConfig['query'] ?? [];
+		$config = [
+			'headers' => $headers,
+			'query' => $query,
+		];
+
+		if (str_starts_with($endpoint, $source->getLocation()) === true) {
+			$endpoint = str_replace(search: $source->getLocation(), replace: '', subject: $endpoint);
+		}
+
+		// Make the initial API call
+		// @TODO: method is now fixed to GET, but could end up in configuration.
+		$response = $this->callService->call(source: $source, endpoint: $endpoint, config: $config)->getResponse();
+
+		return json_decode($response['body'], true);
+	}
+
+    /**
+     * Fetches additional data for a given object based on the synchronization configuration.
+     *
+     * This method retrieves extra data using either a dynamically determined endpoint from the object
+     * or a statically defined endpoint in the configuration. The extra data can be merged with the original
+     * object or returned as-is, based on the provided configuration.
+     *
+     * @param Synchronization $synchronization The synchronization instance containing configuration details.
+     * @param array $extraDataConfig The configuration array specifying how to retrieve and handle the extra data:
+     *      - EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION: The key to retrieve the dynamic endpoint from the object.
+     *      - EXTRA_DATA_STATIC_ENDPOINT_LOCATION: The statically defined endpoint.
+     *      - KEY_FOR_EXTRA_DATA_LOCATION: The key under which the extra data should be returned.
+     *      - MERGE_EXTRA_DATA_OBJECT_LOCATION: Boolean flag indicating whether to merge the extra data with the object.
+     * @param array $object The original object for which extra data needs to be fetched.
+     * @param string|null $originId
+     *
+     * @return array The original object merged with the extra data, or the extra data itself based on the configuration.
+     *
+     * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
+     */
+    private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object, ?string $originId = null)
+    {
+        if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
+            return $object;
+        }
+
+        // Get endpoint from earlier fetched object.
+        if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === true) {
+            $dotObject = new Dot($object);
+            $endpoint = $dotObject->get($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION] ?? null);
+        }
+
+        // Get endpoint static defined in config.
+        if (isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === true) {
+
+            if ($originId === null) {
+                $originId = $this->getOriginId($synchronization, $object);
+            }
+
+            if (isset($extraDataConfig['endpointIdLocation']) === true) {
+                $dotObject = new Dot($object);
+                $originId = $dotObject->get($extraDataConfig['endpointIdLocation']);
+            }
+
+
+            $endpoint = $extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION];
+            $endpoint = str_replace(search: '{{ originId }}', replace: $originId, subject: $endpoint);
+            $endpoint = str_replace(search: '{{originId}}', replace: $originId, subject: $endpoint);
+        }
+
+        if (!$endpoint) {
+            throw new Exception(
+                sprintf(
+                    'Could not get static or dynamic endpoint, object: %s',
+                    json_encode($object)
+                )
+            );
+        }
+
+        $extraData = $this->getObjectFromSource($synchronization, $endpoint);
+
+        // Temporary fix,
+        if (isset($extraDataConfig['extraDataConfigPerResult']) === true) {
+            $dotObject = new Dot($extraData);
+            $results = $dotObject->get($extraDataConfig['resultsLocation']);
+
+            foreach ($results as $key => $result) {
+                $results[$key] = $this->fetchExtraDataForObject(synchronization: $synchronization, extraDataConfig: $extraDataConfig['extraDataConfigPerResult'], object: $result, originId: $originId);
+            }
+
+            $extraData = $results;
+        }
+
+        // Set new key if configured.
+        if (isset($extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION]) === true) {
+            $extraData = [$extraDataConfig[$this::KEY_FOR_EXTRA_DATA_LOCATION] => $extraData];
+        }
+
+        // Merge with earlier fetchde object if configured.
+        if (isset($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION]) === true && ($extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === true || $extraDataConfig[$this::MERGE_EXTRA_DATA_OBJECT_LOCATION] === 'true')) {
+            return array_merge($object, $extraData);
+        }
+
+        return $extraData;
+    }
+
+
+	/**
 	 * Synchronize a contract
 	 *
 	 * @param SynchronizationContract $synchronizationContract
@@ -190,20 +323,40 @@ class SynchronizationService
 	 */
     public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
 	{
+        $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
+
+        // Check if extra data needs to be fetched
+        if (isset($sourceConfig[$this::EXTRA_DATA_CONFIGS_LOCATION]) === true) {
+            foreach ($sourceConfig[$this::EXTRA_DATA_CONFIGS_LOCATION] as $extraDataConfig) {
+                $object = array_merge($object, $this->fetchExtraDataForObject($synchronization, $extraDataConfig, $object));
+            }
+        }
+
+		// @TODO: This should be unset through pre-mapping
+		if(isset($object['d']['vti_x005f_dirlateststamp']) === true) {
+			unset($object['d']['vti_x005f_dirlateststamp']);
+		}
+
+
         // Let create a source hash for the object
         $originHash = md5(serialize($object));
-        $synchronizationContract->setSourceLastChecked(new DateTime());
 
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
         if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
             // The object has not changed and the config has not been updated since last check
-            // return $synchronizationContract;
-            // @todo: somehow this always returns true, so we never do the updateTarget
+			return $synchronizationContract;
         }
-
+		
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
         $synchronizationContract->setSourceLastChanged(new DateTime());
+		$synchronizationContract->setSourceLastChecked(new DateTime());
+
+		// Check if object adheres to conditions.
+		// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
+		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
+			return $synchronizationContract;
+		}
 
         // If no source target mapping is defined, use original object
         if (empty($synchronization->getSourceTargetMapping()) === true) {
@@ -222,7 +375,6 @@ class SynchronizationService
                 $targetObject = $object;
             }
         }
-
 
         // set the target hash
         $targetHash = md5(serialize($targetObject));
@@ -373,7 +525,7 @@ class SynchronizationService
         $source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
         // Lets get the source config
-        $sourceConfig = $synchronization->getSourceConfig();
+        $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
         $endpoint = $sourceConfig['endpoint'] ?? '';
         $headers = $sourceConfig['headers'] ?? [];
         $query = $sourceConfig['query'] ?? [];
@@ -383,6 +535,7 @@ class SynchronizationService
         ];
 
         // Make the initial API call
+		// @TODO: method is now fixed to GET, but could end up in configuration.
         $response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
 		$lastHash = md5($response['body']);
         $body = json_decode($response['body'], true);
@@ -413,7 +566,7 @@ class SynchronizationService
 			$objects = array_merge($objects, $this->getAllObjectsFromArray($body, $synchronization));
 		}
 
-		if ($useNextEndpoint === false) {
+		if ($useNextEndpoint === false && $synchronization->usesPagination() === true) {
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();

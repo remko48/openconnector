@@ -1,5 +1,6 @@
 <script setup>
 import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { getTheme } from '../../services/getTheme.js'
 </script>
 
 <template>
@@ -35,13 +36,47 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 					</p>
 				</NcNoteCard>
 
-				<div v-if="response">
-					<p><b>Status:</b> {{ response?.statusText }} ({{ response?.status }})</p>
-					<p><b>Response time:</b> {{ response?.responseTime ?? 'Onbekend' }} (Milliseconds)</p>
-					<p><b>Size:</b> {{ response?.size ?? 'Onbekend' }} (Bytes)</p>
-					<p><b>Remote IP:</b> {{ response?.remoteIp ?? 'Onbekend' }}</p>
-					<p><b>Headers:</b> {{ response?.headers }}</p>
-					<p><b>Body:</b> {{ response?.body }}</p>
+				<div v-if="response" class="detailTable">
+					<table>
+						<tr>
+							<td><b>Status:</b></td>
+							<td>{{ response?.statusText }} ({{ response?.status }})</td>
+						</tr>
+						<tr>
+							<td><b>Response time:</b></td>
+							<td>{{ response?.responseTime ?? 'Onbekend' }} (Milliseconds)</td>
+						</tr>
+						<tr>
+							<td><b>Size:</b></td>
+							<td>{{ response?.size ?? 'Onbekend' }} (Bytes)</td>
+						</tr>
+						<tr>
+							<td><b>Remote IP:</b></td>
+							<td>{{ response?.remoteIp ?? 'Onbekend' }}</td>
+						</tr>
+						<tr>
+							<td><b>Headers:</b></td>
+							<td>
+								<table>
+									<tr v-for="(header, index) in response?.headers" :key="index">
+										<td><b>{{ header[0] }}:</b></td>
+										<td>{{ header[1] }}</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+						<tr>
+							<td><b>Body:</b></td>
+							<td :class="`codeMirrorContainer ${getTheme()}`">
+								<CodeMirror v-model="responseBody"
+									:basic="true"
+									:dark="getTheme() === 'dark'"
+									:linter="jsonParseLinter()"
+									:lang="json()"
+									:readonly="true" />
+							</td>
+						</tr>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -54,6 +89,8 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 } from '@nextcloud/vue'
+import CodeMirror from 'vue-codemirror6'
+import { json, jsonParseLinter } from '@codemirror/lang-json'
 
 export default {
 	name: 'TestSynchronization',
@@ -61,10 +98,12 @@ export default {
 		NcModal,
 		NcLoadingIcon,
 		NcNoteCard,
+		CodeMirror,
 	},
 	data() {
 		return {
 			response: null,
+			responseBody: '',
 			success: null,
 			loading: false,
 			error: false,
@@ -84,12 +123,14 @@ export default {
 			this.error = false
 
 			synchronizationStore.testSynchronization()
-				.then(({ response }) => {
+				.then(({ response, data }) => {
 					this.response = response
+					this.responseBody = JSON.stringify({ ...data }, null, 2)
 					this.success = response.ok
 				}).catch((error) => {
 					this.success = false
 					this.error = error.message || 'An error occurred while testing the synchronization'
+					console.error(error)
 				}).finally(() => {
 					this.loading = false
 				})
@@ -102,5 +143,70 @@ export default {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 5px;
+}
+
+.detailTable {
+	overflow-x: auto;
+}
+
+.detailTable > table {
+	width: 100%;
+	border: 1px solid grey;
+	border-collapse: collapse;
+}
+
+.detailTable > table > tr > td,
+.detailTable > table > tr > th {
+	border: 1px solid grey;
+	padding: 5px;
+}
+</style>
+
+<style scoped>
+.codeMirrorContainer {
+	margin-block-start: 6px;
+}
+
+.codeMirrorContainer :deep(.cm-content) {
+	border-radius: 0 !important;
+	border: none !important;
+}
+.codeMirrorContainer :deep(.cm-editor) {
+	outline: none !important;
+}
+.codeMirrorContainer.light > .vue-codemirror {
+	border: 1px dotted silver;
+}
+.codeMirrorContainer.dark > .vue-codemirror {
+	border: 1px dotted grey;
+}
+
+/* value text color */
+.codeMirrorContainer.light :deep(.ͼe) {
+	color: #448c27;
+}
+.codeMirrorContainer.dark :deep(.ͼe) {
+	color: #88c379;
+}
+
+/* text cursor */
+.codeMirrorContainer :deep(.cm-content) * {
+	cursor: text !important;
+}
+
+/* value number color */
+.codeMirrorContainer.light :deep(.ͼd) {
+	color: #c68447;
+}
+.codeMirrorContainer.dark :deep(.ͼd) {
+	color: #d19a66;
+}
+
+/* value boolean color */
+.codeMirrorContainer.light :deep(.ͼc) {
+	color: #221199;
+}
+.codeMirrorContainer.dark :deep(.ͼc) {
+	color: #260dd4;
 }
 </style>
