@@ -69,7 +69,7 @@ import { logStore, navigationStore } from '../../store/store.js'
 					<span class="responseBodyLabel">body</span>
 					<div class="responseBodyContent">
 						<div v-if="isValidJson(responseItems.body)" class="responseBodyJson">
-							<NcActions>
+							<NcActions class="responseBodyJsonActions">
 								<NcActionButton @click="copyToClipboard(JSON.stringify(JSON.parse(responseItems.body), null, 2))">
 									<template #icon>
 										<ContentCopy :size="20" />
@@ -152,8 +152,6 @@ export default {
 			this.headersItems = {}
 		},
 		copyToClipboard(text) {
-			console.log(navigator)
-			console.log(navigator.clipboard)
 			navigator.clipboard.writeText(text)
 		},
 	},
@@ -185,4 +183,12 @@ export default {
     margin-block-end: 1rem;
 }
 
+</style>
+
+<style scoped>
+.responseBodyJson {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
 </style>
