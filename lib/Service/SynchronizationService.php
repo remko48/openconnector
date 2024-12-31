@@ -314,8 +314,22 @@ class SynchronizationService
 
 
             $endpoint = $extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION];
+
+            if ($originId === null) {
+                $originId = $this->getOriginId($synchronization, $object);
+            }
+
             $endpoint = str_replace(search: '{{ originId }}', replace: $originId, subject: $endpoint);
             $endpoint = str_replace(search: '{{originId}}', replace: $originId, subject: $endpoint);
+
+            if (isset($extraDataConfig['subObjectId']) === true) {
+                $objectDot = new Dot($object);
+                $subObjectId = $objectDot->get($extraDataConfig['subObjectId']);
+                if ($subObjectId !== null) {
+                    $endpoint = str_replace(search: '{{ subObjectId }}', replace: $subObjectId, subject: $endpoint);
+                    $endpoint = str_replace(search: '{{subObjectId}}', replace: $subObjectId, subject: $endpoint);
+                }
+            }
         }
 
         if (!$endpoint) {
@@ -405,7 +419,7 @@ class SynchronizationService
 
         return $object;
     }
-    
+
     /**
      * Deletes invalid objects associated with a synchronization.
      *
