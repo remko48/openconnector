@@ -167,7 +167,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!contracts.length" class="tabPanel">
+							<div v-if="!synchronizationStore.synchronizationContracts.length" class="tabPanel">
 								No contracts found
 							</div>
 						</BTab>
