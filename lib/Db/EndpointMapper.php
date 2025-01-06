@@ -85,10 +85,12 @@ class EndpointMapper extends QBMapper
 		$obj = $this->find($id);
 		$obj->hydrate($object);
 
-		// Set or update the version
-		$version = explode('.', $obj->getVersion());
-		$version[2] = (int)$version[2] + 1;
-		$obj->setVersion(implode('.', $version));
+		if (isset($object['version']) === false) {
+			// Set or update the version
+			$version = explode('.', $obj->getVersion());
+			$version[2] = (int)$version[2] + 1;
+			$obj->setVersion(implode('.', $version));
+		}
 
 		$obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
 		$obj->setEndpointArray(explode('/', $obj->getEndpoint()));

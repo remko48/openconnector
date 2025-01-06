@@ -228,6 +228,7 @@ class EndpointService
 		$register = $target[0];
 		$schema = $target[1];
 
+		// @todo: shouldn't this just get OpenRegister ObjectService here? In this case we should use: $this->getOpenRegisters()
 		$mapper = $this->objectService->getMapper(schema: $schema, register: $register);
 
 		$parameters = $request->getParams();
