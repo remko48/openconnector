@@ -18,14 +18,15 @@ use OCP\AppFramework\Db\Entity;
 class Consumer extends Entity implements JsonSerializable
 {
     protected ?string $uuid = null;
-	protected ?string $name = null; // The name of the consumer	
+	protected ?string $name = null; // The name of the consumer
 	protected ?string $description = null; // The description of the consumer
     protected ?array $domains = []; // The domains the consumer is allowed to run from
     protected ?array $ips = []; // The ips the consumer is allowed to run from
     protected ?string $authorizationType = null; // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.
-    protected ?string $authorizationConfiguration = null; // The authorization configuration of the consumer	
+    protected ?array $authorizationConfiguration = []; // The authorization configuration of the consumer
 	protected ?DateTime $created = null; // the date and time the consumer was created
 	protected ?DateTime $updated = null; // the date and time the consumer was updated
+	protected ?string $userId = null;
 
 	/**
 	 * Consumer constructor.
@@ -38,9 +39,10 @@ class Consumer extends Entity implements JsonSerializable
 		$this->addType('domains', 'json');
 		$this->addType('ips', 'json');
 		$this->addType('authorizationType', 'string');
-		$this->addType('authorizationConfiguration', 'string');
+		$this->addType('authorizationConfiguration', 'json');
 		$this->addType('created', 'datetime');
 		$this->addType('updated', 'datetime');
+		$this->addType('userId', 'string');
 	}
 
 	/**
@@ -100,6 +102,7 @@ class Consumer extends Entity implements JsonSerializable
 			'ips' => $this->ips,
 			'authorizationType' => $this->authorizationType,
 			'authorizationConfiguration' => $this->authorizationConfiguration,
+			'userId' => $this->userId,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
 			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
 		];

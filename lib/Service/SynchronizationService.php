@@ -249,7 +249,7 @@ class SynchronizationService
 		$source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
 		// Lets get the source config
-		$sourceConfig = $synchronization->getSourceConfig();
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
 		$config = [
@@ -282,12 +282,13 @@ class SynchronizationService
      *      - KEY_FOR_EXTRA_DATA_LOCATION: The key under which the extra data should be returned.
      *      - MERGE_EXTRA_DATA_OBJECT_LOCATION: Boolean flag indicating whether to merge the extra data with the object.
      * @param array $object The original object for which extra data needs to be fetched.
+     * @param string|null $originId
      *
      * @return array The original object merged with the extra data, or the extra data itself based on the configuration.
      *
      * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
      */
-    private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object)
+    private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object, ?string $originId = null)
     {
         if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
             return $object;
@@ -301,9 +302,34 @@ class SynchronizationService
 
         // Get endpoint static defined in config.
         if (isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === true) {
+
+            if ($originId === null) {
+                $originId = $this->getOriginId($synchronization, $object);
+            }
+
+            if (isset($extraDataConfig['endpointIdLocation']) === true) {
+                $dotObject = new Dot($object);
+                $originId = $dotObject->get($extraDataConfig['endpointIdLocation']);
+            }
+
+
             $endpoint = $extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION];
-            $endpoint = str_replace(search: '{{ originId }}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
-            $endpoint = str_replace(search: '{{originId}}', replace: $this->getOriginId($synchronization, $object), subject: $endpoint);
+
+            if ($originId === null) {
+                $originId = $this->getOriginId($synchronization, $object);
+            }
+
+            $endpoint = str_replace(search: '{{ originId }}', replace: $originId, subject: $endpoint);
+            $endpoint = str_replace(search: '{{originId}}', replace: $originId, subject: $endpoint);
+
+            if (isset($extraDataConfig['subObjectId']) === true) {
+                $objectDot = new Dot($object);
+                $subObjectId = $objectDot->get($extraDataConfig['subObjectId']);
+                if ($subObjectId !== null) {
+                    $endpoint = str_replace(search: '{{ subObjectId }}', replace: $subObjectId, subject: $endpoint);
+                    $endpoint = str_replace(search: '{{subObjectId}}', replace: $subObjectId, subject: $endpoint);
+                }
+            }
         }
 
         if (!$endpoint) {
@@ -323,7 +349,7 @@ class SynchronizationService
             $results = $dotObject->get($extraDataConfig['resultsLocation']);
 
             foreach ($results as $key => $result) {
-                $results[$key] = $this->fetchExtraDataForObject($synchronization, $extraDataConfig['extraDataConfigPerResult'], $result);
+                $results[$key] = $this->fetchExtraDataForObject(synchronization: $synchronization, extraDataConfig: $extraDataConfig['extraDataConfigPerResult'], object: $result, originId: $originId);
             }
 
             $extraData = $results;
@@ -393,7 +419,7 @@ class SynchronizationService
 
         return $object;
     }
-    
+
     /**
      * Deletes invalid objects associated with a synchronization.
      *
@@ -689,8 +715,13 @@ class SynchronizationService
 		$query = $sourceConfig['query'] ?? [];
 		$config = ['headers' => $headers, 'query' => $query];
 
+        $currentPage = 1;
+
 		// Start with the current page
-		$currentPage = $synchronization->getCurrentPage() ?? 1;
+        if ($source->getRateLimitLimit() !== null) {
+            $currentPage = $synchronization->getCurrentPage() ?? 1;
+        }
+		 
 
 		// Fetch all pages recursively
 		$objects = $this->fetchAllPages(
@@ -720,15 +751,18 @@ class SynchronizationService
 	 * @param Synchronization $synchronization The synchronization object containing state information.
 	 * @param int $currentPage The current page number for pagination.
 	 * @param bool $isTest If true, stops after fetching the first object from the first page.
+	 * @param bool $usesNextEndpoint If true, doesnt use normal pagination but next endpoint.
 	 *
 	 * @return array An array of objects retrieved from the API.
 	 * @throws GuzzleException
 	 * @throws TooManyRequestsHttpException
 	 */
-	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false): array
+	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false, ?bool $usesNextEndpoint = false): array
 	{
 		// Update pagination configuration for the current page
-		$config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
+        if ($usesNextEndpoint === false) {
+		    $config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
+        }
 
 		$callLog = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config);
 		$response = $callLog->getResponse();
@@ -755,13 +789,19 @@ class SynchronizationService
 			return [$objects[0]] ?? [];
 		}
 
+
 		// Increment the current page and update synchronization
 		$currentPage++;
 		$synchronization->setCurrentPage($currentPage);
 		$this->synchronizationMapper->update($synchronization);
 
+        $nextEndpoint = null;
+		$newNextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation());
+        if ($newNextEndpoint !== $endpoint) {
+            $nextEndpoint = $newNextEndpoint;
+        }
+
 		// Check if there's a next page
-		$nextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation());
 		if ($nextEndpoint !== null) {
 			// Recursively fetch the next pages
 			$objects = array_merge(
@@ -771,7 +811,9 @@ class SynchronizationService
 					endpoint: $nextEndpoint,
 					config: $config,
 					synchronization: $synchronization,
-					currentPage: $currentPage
+					currentPage: $currentPage,
+                    isTest: $isTest,
+                    usesNextEndpoint: true
 				)
 			);
 		}
