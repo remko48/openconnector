@@ -122,6 +122,7 @@ class UploadService
 		unset($phpArray['@context'], $phpArray['@type'], $phpArray['@id']);
 
 		if (isset($id) === true) {
+			// @todo: maybe we should do kind of hash comparison here as well?
 			$object = $mapper->updateFromArray($id, $phpArray);
 			return new JSONResponse(data: ['message' => "Upload successful, updated", 'object' => $object->jsonSerialize()]);
 		}
