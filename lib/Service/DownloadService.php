@@ -42,6 +42,8 @@ class DownloadService
 	 */
 	public function download(string $objectType, string $id, string $accept): JSONResponse
 	{
+		// @todo: remove backslash for / in urls like @id and reference
+
 		try {
 			$mapper = $this->objectService->getMapper(objectType: $objectType);
 		} catch (InvalidArgumentException|NotFoundExceptionInterface|ContainerExceptionInterface $e) {
@@ -58,21 +60,27 @@ class DownloadService
 		$filename = $objectArray['name'].ucfirst($objectType).'-v'.$objectArray['version'];
 
 		if (str_contains(haystack: $accept, needle: 'application/json') === true) {
-			$url = $this->urlGenerator->getAbsoluteURL($this->urlGenerator->linkToRoute('openconnector.'.ucfirst($objectType).'s.show', ['id' => $object->getId()]));
 			if (isset($objectArray['reference']) === true) {
 				$url = $objectArray['reference'];
+			} else {
+				$url = $objectArray['reference'] = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
+					routeName: 'openconnector.'.ucfirst($objectType).'s.show',
+					arguments: ['id' => $object->getId()])
+				);
+				unset($objectArray['id'], $objectArray['uuid'], $objectArray['created'], $objectArray['updated'],
+					$objectArray['dateCreated'], $objectArray['dateModified']);
+				$mapper->updateFromArray(id: $id, object: $objectArray);
 			}
 
 			$objArray['@context'] = "http://schema.org";
 			$objArray['@type'] = $objectType;
 			$objArray['@id'] = $url;
-			unset($objectArray['id'], $objectArray['uuid']);
 			$objArray = array_merge($objArray, $objectArray);
 
 			// Convert the object data to JSON
-			$jsonData = json_encode($objArray, JSON_PRETTY_PRINT);
+			$jsonData = json_encode(value: $objArray, flags: JSON_PRETTY_PRINT);
 
-			$this->downloadJson($jsonData, $filename);
+			$this->downloadJson(jsonData: $jsonData, filename: $filename);
 		}
 
 		return new JSONResponse(data: ['error' => "The Accept type $accept is not supported."], statusCode: 400);
@@ -93,18 +101,18 @@ class DownloadService
 		$filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $fileName;
 
 		// Create and write the JSON data to the file
-		file_put_contents($filePath, $jsonData);
+		file_put_contents(filename: $filePath, data: $jsonData);
 
 		// Set headers to download the file
 		header('Content-Type: application/json');
 		header('Content-Disposition: attachment; filename="' . $fileName . '"');
-		header('Content-Length: ' . filesize($filePath));
+		header('Content-Length: ' . filesize(filename: $filePath));
 
 		// Output the file contents
-		readfile($filePath);
+		readfile(filename: $filePath);
 
 		// Clean up: delete the temporary file
-		unlink($filePath);
+		unlink(filename: $filePath);
 		exit; // Ensure no further script execution
 	}
 }

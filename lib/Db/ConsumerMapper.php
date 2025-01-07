@@ -30,7 +30,7 @@ class ConsumerMapper extends QBMapper
 	}
 
 	/**
-	 * Find a Consumer by its ID
+	 * Find a Consumer by its ID.
 	 *
 	 * @param int $id The ID of the Consumer
 	 * @return Consumer The found Consumer entity
@@ -49,7 +49,26 @@ class ConsumerMapper extends QBMapper
 	}
 
 	/**
-	 * Find all Consumers with optional filtering and pagination
+	 * Find a Consumer by its Reference.
+	 *
+	 * @param string $reference
+	 * @return Endpoint
+	 */
+	public function findByRef(string $reference): Consumer
+	{
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from('openconnector_consumers')
+			->where(
+				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
+			);
+
+		return $this->findEntity(query: $qb);
+	}
+
+	/**
+	 * Find all Consumers with optional filtering and pagination.
 	 *
 	 * @param int|null $limit Maximum number of results to return
 	 * @param int|null $offset Number of results to skip
@@ -88,7 +107,7 @@ class ConsumerMapper extends QBMapper
 	}
 
 	/**
-	 * Create a new Consumer from an array of data
+	 * Create a new Consumer from an array of data.
 	 *
 	 * @param array $object An array of Consumer data
 	 * @return Consumer The newly created Consumer entity
@@ -105,7 +124,7 @@ class ConsumerMapper extends QBMapper
 	}
 
 	/**
-	 * Update an existing Consumer from an array of data
+	 * Update an existing Consumer from an array of data.
 	 *
 	 * @param int $id The ID of the Consumer to update
 	 * @param array $object An array of updated Consumer data

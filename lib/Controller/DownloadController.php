@@ -41,7 +41,7 @@ class DownloadController extends Controller
 	 */
 	public function download(string $type, string $id): JSONResponse
     {
-		$accept = $this->request->getHeader('Accept');
+		$accept = $this->request->getHeader(name: 'Accept');
 
 		if (empty($accept) === true) {
 			return new JSONResponse(data: ['error' => 'Request is missing header Accept'], statusCode: 400);

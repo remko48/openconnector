@@ -29,6 +29,19 @@ class SynchronizationMapper extends QBMapper
 		return $this->findEntity(query: $qb);
 	}
 
+	public function findByRef(string $reference): Synchronization
+	{
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from('openconnector_synchronizations')
+			->where(
+				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
+			);
+
+		return $this->findEntity(query: $qb);
+	}
+
 	public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $searchConditions = [], ?array $searchParams = []): array
 	{
 		$qb = $this->db->getQueryBuilder();
