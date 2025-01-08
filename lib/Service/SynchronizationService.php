@@ -302,6 +302,7 @@ class SynchronizationService
 	 * @param Synchronization|null $synchronization
 	 * @param array $object
 	 * @param bool|null $isTest False by default, currently added for synchronization-test endpoint
+     * @param bool|null $force True if the contract wil be forced to be synced
 	 *
 	 * @return SynchronizationContract|Exception|array
 	 * @throws ContainerExceptionInterface
@@ -309,7 +310,12 @@ class SynchronizationService
 	 * @throws LoaderError
 	 * @throws SyntaxError
 	 */
-    public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
+    public function synchronizeContract(
+        SynchronizationContract $synchronizationContract, 
+        Synchronization $synchronization = null, 
+        array $object = [], 
+        ?bool $isTest = false,
+        ?bool $force = false): SynchronizationContract|Exception|array
 	{
         $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
@@ -325,13 +331,32 @@ class SynchronizationService
 			unset($object['d']['vti_x005f_dirlateststamp']);
 		}
 
+        // Let grap the source target mapping
+        $sourceTargetMapping = null;
+        if (empty($synchronization->getSourceTargetMapping()) === false) {
+            try {
+                $sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
+            } catch (DoesNotExistException $exception) {
+                return new Exception($exception->getMessage());
+            }
+        }
 
         // Let create a source hash for the object
         $originHash = md5(serialize($object));
 
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
-        if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
-            // The object has not changed and the config has not been updated since last check
+        if (
+            $originHash === $synchronizationContract->getOriginHash() && 
+            $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked() &&
+            $force === false &&
+            $synchronizationContract->getTargetId() !== null &&
+            $synchronizationContract->getTargetHash() !== null &&
+            ($sourceTargetMapping === null || 
+                ($sourceTargetMapping->getUpdated() < $synchronizationContract->getSourceLastChecked() )
+            )
+        ) {
+            // The object has not changed, the config has not been updated since last check,
+            // and either there is no mapping or the mapping hasn't been updated and force sync is not enabled
 			return $synchronizationContract;
         }
 		
@@ -342,26 +367,19 @@ class SynchronizationService
 
 		// Check if object adheres to conditions.
 		// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
-		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
+		// Skip if conditions are set and object doesn't match conditions, unless force is enabled
+		if (
+            $synchronization->getConditions() !== [] && 
+            !JsonLogic::apply($synchronization->getConditions(), $object) &&
+            $force === false) {
 			return $synchronizationContract;
 		}
 
-        // If no source target mapping is defined, use original object
-        if (empty($synchronization->getSourceTargetMapping()) === true) {
-            $targetObject = $object;
+        // Execute mapping if found
+        if ($sourceTargetMapping) {
+            $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
         } else {
-            try {
-                $sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
-            } catch (DoesNotExistException $exception) {
-                return new Exception($exception->getMessage());
-            }
-
-            // Execute mapping if found
-            if ($sourceTargetMapping) {
-                $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
-            } else {
-                $targetObject = $object;
-            }
+            $targetObject = $object;
         }
 
         // set the target hash
@@ -558,8 +576,9 @@ class SynchronizationService
 			do {
 				$config   = $this->getNextPage(config: $config, sourceConfig: $sourceConfig, currentPage: $currentPage);
 				$response = $this->callService->call(source: $source, endpoint: $endpoint, method: 'GET', config: $config)->getResponse();
-				$hash     = md5($response['body']);
-
+				
+                // Lets make sure that we are not fetching the same page again
+                $hash     = md5($response['body']);
 				if($hash === $lastHash) {
 					break;
 				}
