@@ -254,7 +254,7 @@ class SynchronizationService
 		$query = $sourceConfig['query'] ?? [];
 		$config = [
 			'headers' => $headers,
-			'query' => $query,
+			'query' => [],
 		];
 
 		if (str_starts_with($endpoint, $source->getLocation()) === true) {
@@ -498,10 +498,10 @@ class SynchronizationService
         $originHash = md5(serialize($hashObject));
 
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
-        if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
-            // The object has not changed and the config has not been updated since last check
-			return $synchronizationContract;
-        }
+        // if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
+        //     // The object has not changed and the config has not been updated since last check
+		// 	return $synchronizationContract;
+        // }
 
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
@@ -721,7 +721,7 @@ class SynchronizationService
         if ($source->getRateLimitLimit() !== null) {
             $currentPage = $synchronization->getCurrentPage() ?? 1;
         }
-		 
+
 
 		// Fetch all pages recursively
 		$objects = $this->fetchAllPages(
