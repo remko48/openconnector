@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace OCA\OpenConnector\AppInfo;
 
+use OCA\OpenConnector\EventListener\ObjectEventListener;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Event\ObjectDeletedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\EventDispatcher\IEventDispatcher;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'openconnector';
@@ -19,6 +24,12 @@ class Application extends App implements IBootstrap {
 
 	public function register(IRegistrationContext $context): void {
 		include_once __DIR__ . '/../../vendor/autoload.php';
+
+		/* @var IEventDispatcher $dispatcher */
+		$dispatcher = $this->getContainer()->get(IEventDispatcher::class);
+		$dispatcher->addServiceListener(eventName: ObjectUpdatedEvent::class, className: ObjectEventListener::class);
+		$dispatcher->addServiceListener(eventName: ObjectCreatedEvent::class, className: ObjectEventListener::class);
+		$dispatcher->addServiceListener(eventName: ObjectDeletedEvent::class, className: ObjectEventListener::class);
 	}
 
 	public function boot(IBootContext $context): void {

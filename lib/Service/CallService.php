@@ -101,6 +101,37 @@ class CallService
 		return array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
 	}
 
+	private function decideMethod(string $default, array $configuration, bool $read = false): string
+	{
+		switch($default) {
+			case 'POST':
+				if(isset($configuration['createMethod']) === true) {
+					return $configuration['createMethod'];
+				}
+				return $default;
+			case 'PUT':
+			case 'PATCH':
+				if(isset($configuration['updateMethod']) === true) {
+					return $configuration['updateMethod'];
+				}
+				return $default;
+			case 'DELETE':
+				if(isset($configuration['destroyMethod']) === true) {
+					return $configuration['destroyMethod'];
+				}
+				return $default;
+			case 'GET':
+			default:
+				if(isset($configuration['listMethod']) === true && $read === false) {
+					return $configuration['listMethod'];
+				}
+				if(isset($configuration['readMethod']) === true && $read === true) {
+					return $configuration['readMethod'];
+				}
+				return $default;
+		}
+	}
+
 	/**
 	 * Calls a source according to given configuration.
 	 *
@@ -125,10 +156,13 @@ class CallService
 		array $config = [],
 		bool $asynchronous = false,
 		bool $createCertificates = true,
-		bool $overruleAuth = false
+		bool $overruleAuth = false,
+		bool $read = false
 	): CallLog
 	{
 		$this->source = $source;
+
+		$method = $this->decideMethod(default: $method, configuration: $config, read: $read);
 
 		if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
 			// Create and save the CallLog
