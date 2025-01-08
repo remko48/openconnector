@@ -251,4 +251,54 @@ class SynchronizationContractMapper extends QBMapper
 
         return (int)$row['count'];
     }
+
+    /**
+     * Handle object removal by updating or removing associated contracts
+     *
+     * @param string $objectId The ID of the removed object
+     * @return void
+     * @throws Exception If query execution fails
+     */
+    public function handleObjectRemoval(string $objectId): void
+    {
+        try {
+            // Create query builder
+            $qb = $this->db->getQueryBuilder();
+
+            // Build query to find contracts matching id as either origin_id or target_id
+            $qb->select('*')
+                ->from('openconnector_synchronization_contracts')
+                ->where(
+                    $qb->expr()->orX(
+                        $qb->expr()->eq('origin_id', $qb->createNamedParameter($objectId)),
+                        $qb->expr()->eq('target_id', $qb->createNamedParameter($objectId))
+                    )
+                );
+
+            $contracts = $this->findEntities($qb);
+
+            foreach ($contracts as $contract) {
+                if ($contract->getOriginId() === $objectId) {
+                    // If object was the source, clear source-related fields
+                    $contract->setOriginId(null);
+                    $contract->setOriginHash(null);
+                    $this->update($contract);
+                }
+                
+                if ($contract->getTargetId() === $objectId) {
+                    // If object was the target, clear target-related fields
+                    $contract->setTargetId(null);
+                    $contract->setTargetHash(null);
+                    $this->update($contract);
+                }
+                
+                // If both source and target are null, delete the contract
+                if ($contract->getOriginId() === null && $contract->getTargetId() === null) {
+                    $this->delete($contract);
+                }
+            }
+        } catch (Exception $e) {
+            throw new Exception('Failed to handle object removal: ' . $e->getMessage());
+        }
+    }
 }
