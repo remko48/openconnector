@@ -14,7 +14,8 @@ class ObjectDeletedEventListener implements IEventListener
 {
 
 	public function __construct(
-		private readonly SynchronizationService $synchronizationService
+		private readonly SynchronizationService $synchronizationService,
+		private readonly SynchronizationContractMapper $synchronizationContractMapper,
 	)
 	{
 	}
@@ -28,6 +29,8 @@ class ObjectDeletedEventListener implements IEventListener
 		{
 			return;
 		}
+
+		$object = $event->getObject();
 
 		$this->synchronizationService->removeObjectFromTarget($object);
 		$this->synchronizationContractMapper->handleObjectRemoval($object->getId());
