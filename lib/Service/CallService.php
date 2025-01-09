@@ -104,9 +104,9 @@ class CallService
     /**
      * Decides method based on configuration and returns that configuration.
      *
-     * @param string $default
-     * @param array  $configuration
-     * @param bool   $read
+     * @param string $default The default method, used if no override is set
+     * @param array  $configuration The configuration to find overrides in.
+     * @param bool   $read For GET as default: decides if we are in a list or read (singular) endpoint.
      *
      * @return string
      */
@@ -172,6 +172,7 @@ class CallService
 		$this->source = $source;
 
 		$method = $this->decideMethod(default: $method, configuration: $config, read: $read);
+        unset($config['createMethod'], $config['updateMethod'], $config['destroyMethod'], $config['listMethod'], $config['readMethod']);
 
 		if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
 			// Create and save the CallLog

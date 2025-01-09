@@ -257,11 +257,11 @@ class SynchronizationContractMapper extends QBMapper
     /**
      * Find a synchronization contract by target ID.
      *
-     * @param string $originId The target ID to search for.
+     * @param string $targetId The target ID to search for.
      *
      * @return SynchronizationContract[] The matching contract or null if not found.
      */
-    public function findByTargetId(string $originId): array
+    public function findByTargetId(string $targetId): array
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
@@ -270,7 +270,7 @@ class SynchronizationContractMapper extends QBMapper
         $qb->select('*')
             ->from('openconnector_synchronization_contracts')
             ->where(
-                $qb->expr()->eq('target_id', $qb->createNamedParameter($originId))
+                $qb->expr()->eq('target_id', $qb->createNamedParameter($targetId))
             ); // Ensure only one result is returned
 
         try {
