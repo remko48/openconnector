@@ -24,8 +24,7 @@ class ObjectUpdatedEventListener implements IEventListener
      */
     public function handle(Event $event): void
     {
-        if ($event instanceof ObjectUpdatedEvent === false)
-		{
+        if ($event instanceof ObjectUpdatedEvent === false) {
 			return;
 		}
 
