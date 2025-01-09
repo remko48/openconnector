@@ -100,15 +100,18 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 
 					<div v-if="typeOptions.value?.id === 'register/schema'">
 						<p>Source ID</p>
-						<NcSelect v-bind="registerOptions"
-							v-model="registerOptions.sourceValue"
-							:disabled="!openRegisterInstalled"
-							input-label="Register" />
-						/
-						<NcSelect v-bind="schemaOptions"
-							v-model="schemaOptions.sourceValue"
-							:disabled="!openRegisterInstalled"
-							input-label="Schema" />
+
+						<div class="css-fix-reg/schema">
+							<NcSelect v-bind="registerOptions"
+								v-model="registerOptions.sourceValue"
+								:disabled="!openRegisterInstalled"
+								input-label="Register" />
+							<p>/</p>
+							<NcSelect v-bind="schemaOptions"
+								v-model="schemaOptions.sourceValue"
+								:disabled="!openRegisterInstalled"
+								input-label="Schema" />
+						</div>
 					</div>
 				</div>
 
@@ -147,15 +150,18 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 
 					<div v-if="targetTypeOptions.value?.id === 'register/schema'">
 						<p>Target ID</p>
-						<NcSelect v-bind="registerOptions"
-							v-model="registerOptions.value"
-							:disabled="!openRegisterInstalled"
-							input-label="Register" />
-						/
-						<NcSelect v-bind="schemaOptions"
-							v-model="schemaOptions.value"
-							:disabled="!openRegisterInstalled"
-							input-label="Schema" />
+
+						<div class="css-fix-reg/schema">
+							<NcSelect v-bind="registerOptions"
+								v-model="registerOptions.value"
+								:disabled="!openRegisterInstalled"
+								input-label="Register" />
+							<p>/</p>
+							<NcSelect v-bind="schemaOptions"
+								v-model="schemaOptions.value"
+								:disabled="!openRegisterInstalled"
+								input-label="Schema" />
+						</div>
 					</div>
 				</div>
 
@@ -639,5 +645,18 @@ export default {
 }
 .close-button .button-vue--vue-tertiary:hover:not(:disabled) {
     background-color: rgba(var(--color-info-rgb), 0.1);
+}
+
+.css-fix-reg\/schema {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+}
+.css-fix-reg\/schema .v-select {
+    width: 100%;
+}
+.css-fix-reg\/schema p {
+    align-self: end;
+    margin-block-end: 10px;
 }
 </style>
