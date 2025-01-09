@@ -265,4 +265,79 @@ class EventService
             'cursor' => $lastCursor
         ];
     }
+
+    /**
+     * Handle object creation by creating and processing a CloudEvent
+     *
+     * @param Object $object The created object
+     * @return Event The created CloudEvent
+     */
+    public function handleObjectCreated(Object $object): Event
+    {
+        $event = $this->eventMapper->createFromArray([
+            'source' => '/objects/' . $object->getType(),
+            'type' => 'com.nextcloud.openregister.object.created',
+            'time' => new DateTime(),
+            'subject' => $object->getId(),
+            'data' => [
+                'type' => $object->getType(),
+                'id' => $object->getId(),
+                'attributes' => $object->getAttributes()
+            ],
+            'userId' => $object->getUserId()
+        ]);
+
+        return $this->processEvent($event);
+    }
+
+    /**
+     * Handle object update by creating and processing a CloudEvent
+     *
+     * @param Object $oldObject The previous state of the object
+     * @param Object $newObject The new state of the object
+     * @return Event The created CloudEvent
+     */
+    public function handleObjectUpdated(Object $oldObject, Object $newObject): Event
+    {
+        $event = $this->eventMapper->createFromArray([
+            'source' => '/objects/' . $newObject->getType(),
+            'type' => 'com.nextcloud.openregister.object.updated',
+            'time' => new DateTime(),
+            'subject' => $newObject->getId(),
+            'data' => [
+                'type' => $newObject->getType(),
+                'id' => $newObject->getId(),
+                'attributes' => $newObject->getAttributes(),
+                'previous' => [
+                    'attributes' => $oldObject->getAttributes()
+                ]
+            ],
+            'userId' => $newObject->getUserId()
+        ]);
+
+        return $this->processEvent($event);
+    }
+
+    /**
+     * Handle object deletion by creating and processing a CloudEvent
+     *
+     * @param Object $object The deleted object
+     * @return Event The created CloudEvent
+     */
+    public function handleObjectDeleted(Object $object): Event
+    {
+        $event = $this->eventMapper->createFromArray([
+            'source' => '/objects/' . $object->getType(),
+            'type' => 'com.nextcloud.openregister.object.deleted',
+            'time' => new DateTime(),
+            'subject' => $object->getId(),
+            'data' => [
+                'type' => $object->getType(),
+                'id' => $object->getId()
+            ],
+            'userId' => $object->getUserId()
+        ]);
+
+        return $this->processEvent($event);
+    }
 }
