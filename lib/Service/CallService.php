@@ -101,6 +101,15 @@ class CallService
 		return array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
 	}
 
+    /**
+     * Decides method based on configuration and returns that configuration.
+     * 
+     * @param string $default
+     * @param array  $configuration
+     * @param bool   $read
+     * 
+     * @return string
+     */
 	private function decideMethod(string $default, array $configuration, bool $read = false): string
 	{
 		switch($default) {

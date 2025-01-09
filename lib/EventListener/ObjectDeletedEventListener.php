@@ -25,8 +25,7 @@ class ObjectDeletedEventListener implements IEventListener
      */
     public function handle(Event $event): void
     {
-        if ($event instanceof ObjectDeletedEvent === false)
-		{
+        if ($event instanceof ObjectDeletedEvent === false) {
 			return;
 		}
 
@@ -37,6 +36,5 @@ class ObjectDeletedEventListener implements IEventListener
 		foreach($contracts as $contract) {
 			$this->synchronizationService->synchronizeToTarget($object, $contract);
 		}
-
     }
 }
