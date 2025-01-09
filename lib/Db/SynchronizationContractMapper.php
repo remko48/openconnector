@@ -234,7 +234,7 @@ class SynchronizationContractMapper extends QBMapper
      *
      * @return SynchronizationContract|null The matching contract or null if not found.
      */
-    public function findByOriginId(?string $originId): ?SynchronizationContract
+    public function findByOriginId(string $originId): ?SynchronizationContract
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();

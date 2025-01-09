@@ -996,7 +996,7 @@ class SynchronizationService
 	 * @param string $endpoint The endpoint to write the object to.
      *
 	 * @return SynchronizationContract The updated contract.
-     * 
+     *
 	 * @throws ContainerExceptionInterface
 	 * @throws GuzzleException
 	 * @throws LoaderError
