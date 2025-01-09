@@ -171,7 +171,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 					// both register and schema need to be selected for register/schema target type
 					|| (targetTypeOptions.value?.id === 'register/schema' && (!registerOptions.value?.id || !schemaOptions.value?.id))
 					|| (typeOptions.value?.id === 'register/schema' && (!registerOptions.sourceValue?.id || !schemaOptions.sourceValue?.id))
-					|| (targetTypeOptions.value?.id === 'api' && (!synchronizationItem.targetId))"
+					|| (targetTypeOptions.value?.id === 'api' && (!sourceOptions.targetValue))"
 				type="primary"
 				@click="editSynchronization()">
 				<template #icon>
