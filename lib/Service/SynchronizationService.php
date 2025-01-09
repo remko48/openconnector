@@ -533,8 +533,6 @@ class SynchronizationService
 		$synchronizationContract->setSourceLastChanged(new DateTime());
 		$synchronizationContract->setSourceLastChecked(new DateTime());
 
-
-
         // Execute mapping if found
         if ($sourceTargetMapping) {
             $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
@@ -594,7 +592,7 @@ class SynchronizationService
 	 *
 	 * @return SynchronizationContract The updated synchronization contract with the modified target ID.
 	 *
-	 * @throws \Exception If an error occurs while interacting with the object service or processing the data.
+	 * @throws Exception If an error occurs while interacting with the object service or processing the data.
 	 */
 	private function updateTargetOpenRegister(SynchronizationContract $synchronizationContract, Synchronization $synchronization, ?array $targetObject = [], ?string $action = 'save'): SynchronizationContract
 	{
@@ -940,12 +938,11 @@ class SynchronizationService
 	/**
 	 * Extracts all objects from the API response body.
 	 *
-	 * @param array $body The decoded JSON body of the API response.
+	 * @param array $array The decoded JSON body of the API response.
 	 * @param Synchronization $synchronization The synchronization object containing source configuration.
 	 *
 	 * @return array An array of items extracted from the response body.
 	 * @throws Exception If the position of objects in the return body cannot be determined.
-	 *
 	 */
 	public function getAllObjectsFromArray(array $array, Synchronization $synchronization): array
 	{
@@ -1024,9 +1021,7 @@ class SynchronizationService
 			)->jsonSerialize();
 		}
 
-
 		$targetConfig = $this->callService->applyConfigDot($synchronization->getTargetConfig());
-
 
 		if (str_starts_with($endpoint, $target->getLocation()) === true) {
 			$endpoint = str_replace(search: $target->getLocation(), replace: '', subject: $endpoint);
@@ -1042,7 +1037,6 @@ class SynchronizationService
 
 			return $contract;
 		}
-
 
 		// @TODO For now only JSON APIs are supported
 		$targetConfig['json'] = $object;
@@ -1101,7 +1095,6 @@ class SynchronizationService
 
 		$synchronization = $synchronizations[0];
 
-
 		if ($synchronizationContract instanceof SynchronizationContract === false) {
 
 			$synchronizationContract = $this->synchronizationContractMapper->createFromArray([
@@ -1116,7 +1109,6 @@ class SynchronizationService
 			// If this is a regular synchronizationContract update it to the database.
 			$synchronizationContract = $this->synchronizationContractMapper->update(entity: $synchronizationContract);
 		}
-
 
 		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
 
