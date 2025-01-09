@@ -253,7 +253,6 @@ class CallService
 		$time_end = microtime(true);
 
 		$body = $response->getBody()->getContents();
-		var_dump($url);
 
 		// Let's create the data array
 		$data = [
