@@ -53,6 +53,7 @@ class SynchronizationService
     const EXTRA_DATA_STATIC_ENDPOINT_LOCATION  = 'staticEndpoint';
     const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
+    const UNSET_CONFIG_KEY_LOCATION            = 'UNSET_CONFIG_KEY';
 
 
 	public function __construct(
@@ -339,6 +340,12 @@ class SynchronizationService
                     json_encode($object)
                 )
             );
+        }
+
+        $sourceConfig = $synchronization->getSourceConfig();
+        if (isset($extraDataConfig[$this::UNSET_CONFIG_KEY_LOCATION]) === true && isset($sourceConfig[$extraDataConfig[$this::UNSET_CONFIG_KEY_LOCATION]]) === true) {
+            unset($sourceConfig[$extraDataConfig[$this::UNSET_CONFIG_KEY_LOCATION]]); 
+            $synchronization->setSourceConfig($sourceConfig);
         }
 
         $extraData = $this->getObjectFromSource($synchronization, $endpoint);
