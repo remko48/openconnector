@@ -29,8 +29,7 @@ class ObjectCreatedEventListener implements IEventListener
 		{
 			return;
 		}
-
-		$object = $event->getObject();
+        $object = $event->getObject();
 		$this->synchronizationService->synchronizeToTarget($object);
 
     }
