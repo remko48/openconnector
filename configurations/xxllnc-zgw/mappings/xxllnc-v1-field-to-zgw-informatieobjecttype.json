@@ -1,5 +1,5 @@
 {
-    "name": "XxllncFieldToZGWInformatieObjectType",
+    "name": "Xxllnc Field to ZGW InformatieObjectType",
     "version": "0.0.1",
     "mapping": {
         "omschrijving": "{% if original_label|default %}{{ original_label }}{% elseif label|default %}{{ label }}{% else %}{{ magic_string }}{% endif %}",

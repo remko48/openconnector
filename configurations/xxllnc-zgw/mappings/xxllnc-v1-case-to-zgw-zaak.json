@@ -30,6 +30,7 @@
     },
     "unset": [],
     "cast": {
+        "zaaktype": "jsonToArray",
         "resultaat": "jsonToArray",
         "rollen": "jsonToArray",
         "status": "jsonToArray",

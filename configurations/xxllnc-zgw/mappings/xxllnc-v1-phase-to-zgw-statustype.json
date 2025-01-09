@@ -1,5 +1,5 @@
 {
-    "name": "XxllncPhaseToZGWStatusType",
+    "name": "Xxllnc Phase to ZGW StatusType",
     "version": "0.0.1",
     "mapping": {
         "volgnummer": "seq",

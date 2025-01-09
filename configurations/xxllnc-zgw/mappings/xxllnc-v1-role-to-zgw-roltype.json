@@ -1,5 +1,5 @@
 {
-    "name": "XxllncRoleToZGWRolType",
+    "name": "Xxllnc Role to ZGW RolType",
     "version": "0.0.1",
     "mapping": {
         "omschrijving": "{% if instance.description|default %}{{ instance.description }}{% endif %}",
