@@ -24,13 +24,10 @@ class ObjectCreatedEventListener implements IEventListener
      */
     public function handle(Event $event): void
     {
-
-        if ($event instanceof ObjectCreatedEvent === false)
-		{
+        if ($event instanceof ObjectCreatedEvent === false) {
 			return;
 		}
         $object = $event->getObject();
 		$this->synchronizationService->synchronizeToTarget($object);
-
     }
 }
