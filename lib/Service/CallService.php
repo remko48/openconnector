@@ -103,38 +103,38 @@ class CallService
 
     /**
      * Decides method based on configuration and returns that configuration.
-     * 
+     *
      * @param string $default
      * @param array  $configuration
      * @param bool   $read
-     * 
+     *
      * @return string
      */
 	private function decideMethod(string $default, array $configuration, bool $read = false): string
 	{
 		switch($default) {
 			case 'POST':
-				if(isset($configuration['createMethod']) === true) {
+				if (isset($configuration['createMethod']) === true) {
 					return $configuration['createMethod'];
 				}
 				return $default;
 			case 'PUT':
 			case 'PATCH':
-				if(isset($configuration['updateMethod']) === true) {
+				if (isset($configuration['updateMethod']) === true) {
 					return $configuration['updateMethod'];
 				}
 				return $default;
 			case 'DELETE':
-				if(isset($configuration['destroyMethod']) === true) {
+				if (isset($configuration['destroyMethod']) === true) {
 					return $configuration['destroyMethod'];
 				}
 				return $default;
 			case 'GET':
 			default:
-				if(isset($configuration['listMethod']) === true && $read === false) {
+				if (isset($configuration['listMethod']) === true && $read === false) {
 					return $configuration['listMethod'];
 				}
-				if(isset($configuration['readMethod']) === true && $read === true) {
+				if (isset($configuration['readMethod']) === true && $read === true) {
 					return $configuration['readMethod'];
 				}
 				return $default;

@@ -40,7 +40,7 @@ class Version1Date20250109121103 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if($schema->hasTable(tableName: 'openconnector_synchronization_contracts') === true) {
+		if ($schema->hasTable(tableName: 'openconnector_synchronization_contracts') === true) {
 			$table = $schema->getTable(tableName: 'openconnector_synchronization_contracts');
 			$table->getColumn('origin_id')->setNotnull(false);
 			$table->getColumn('target_id')->setNotnull(false);

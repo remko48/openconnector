@@ -1087,7 +1087,7 @@ class SynchronizationService
 	{
 		$objectId = $object->getUuid();
 
-		if($synchronizationContract === null) {
+		if ($synchronizationContract === null) {
 			$synchronizationContract = $this->synchronizationContractMapper->findByOriginId($objectId);
 		}
 

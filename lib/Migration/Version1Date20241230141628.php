@@ -40,7 +40,7 @@ class Version1Date20241230141628 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if($schema->hasTable(tableName: 'openconnector_endpoints') === true) {
+		if ($schema->hasTable(tableName: 'openconnector_endpoints') === true) {
 			$table = $schema->getTable(tableName: 'openconnector_endpoints');
 			$table->addColumn('input_mapping', Types::STRING)->setNotnull(false)->setDefault(null);
 			$table->addColumn('output_mapping', Types::STRING)->setNotnull(false)->setDefault(null);
