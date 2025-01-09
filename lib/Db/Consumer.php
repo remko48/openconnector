@@ -20,7 +20,6 @@ class Consumer extends Entity implements JsonSerializable
     protected ?string $uuid = null;
 	protected ?string $name = null; // The name of the consumer
 	protected ?string $description = null; // The description of the consumer
-	protected ?string $reference = null; // The reference of the consumer
     protected ?array $domains = []; // The domains the consumer is allowed to run from
     protected ?array $ips = []; // The ips the consumer is allowed to run from
     protected ?string $authorizationType = null; // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.
@@ -37,7 +36,6 @@ class Consumer extends Entity implements JsonSerializable
         $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
-		$this->addType(fieldName:'reference', type: 'string');
 		$this->addType('domains', 'json');
 		$this->addType('ips', 'json');
 		$this->addType('authorizationType', 'string');
@@ -100,7 +98,6 @@ class Consumer extends Entity implements JsonSerializable
             'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
-			'reference' => $this->reference,
 			'domains' => $this->domains,
 			'ips' => $this->ips,
 			'authorizationType' => $this->authorizationType,

@@ -20,14 +20,14 @@ use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Service for handling file and JSON uploads.
+ * Service for handling file and JSON imports.
  *
- * This service processes uploaded JSON data, either directly via a POST body,
+ * This service processes imported JSON data, either directly via a POST body,
  * from a provided URL, or from an uploaded file. It supports multiple data
  * formats (e.g., JSON, YAML) and integrates with consumers, endpoints, jobs,
  * mappings, sources and synchronizations for database updates.
  */
-class UploadService
+class ImportService
 {
 	public function __construct(
 		private Client $client,
@@ -38,9 +38,9 @@ class UploadService
 	}
 
 	/**
-	 * Handles an upload api-call to create a new object or update an existing one.
-	 * In case of multiple uploaded files this will create/update multipel objects.
-	 * @todo: (To refine) We should create NextCloud files for uploads through OpenCatalogi (If url is posted we should just be able to download and copy the file)
+	 * Handles an import api-call to create a new object or update an existing one.
+	 * In case of multiple uploaded files this will create/update multiple objects.
+	 * @todo: (To refine) We should create NextCloud files for imports through OpenCatalogi (If url is posted we should just be able to download and copy the file)
 	 *
 	 * @param array $data The data from the request body to use in creating/updating a single object.
 	 * @param array|null $uploadedFiles The uploaded files or null.
@@ -48,7 +48,7 @@ class UploadService
 	 * @return JSONResponse The JSONResponse response with a message and the created or updated object(s) or an error message.
 	 * @throws GuzzleException
 	 */
-	public function upload(array $data, ?array $uploadedFiles): JSONResponse
+	public function import(array $data, ?array $uploadedFiles): JSONResponse
 	{
 		// @todo: remove backslash for / in urls like @id and reference
 
@@ -117,7 +117,7 @@ class UploadService
 		if (isset($object) === true && isset($id) === true) {
 			// @todo: maybe we should do kind of hash comparison here as well?
 			$updatedObject = $mapper->updateFromArray(id: $id, object: $phpArray);
-			return new JSONResponse(data: ['message' => "Upload successful, updated", 'object' => $updatedObject->jsonSerialize()]);
+			return new JSONResponse(data: ['message' => "Import successful, updated", 'object' => $updatedObject->jsonSerialize()]);
 		}
 
 		$newObject = $mapper->createFromArray(object: $phpArray);
@@ -128,7 +128,7 @@ class UploadService
 			);
 			$newObject = $mapper->updateFromArray(object: $phpArray);
 		}
-		return new JSONResponse(data: ['message' => "Upload successful, created", 'object' => $newObject->jsonSerialize()], statusCode: 201);
+		return new JSONResponse(data: ['message' => "Import successful, created", 'object' => $newObject->jsonSerialize()], statusCode: 201);
 	}
 
 	/**

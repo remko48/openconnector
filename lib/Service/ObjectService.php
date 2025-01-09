@@ -288,7 +288,6 @@ class ObjectService
 
 		// If the source is internal, return the appropriate mapper based on the object type
 		return match ($objectTypeLower) {
-			'consumer' => $this->consumerMapper,
 			'endpoint' => $this->endpointMapper,
 			'job' 	   => $this->jobMapper,
 			'mapping'  => $this->mappingMapper,
