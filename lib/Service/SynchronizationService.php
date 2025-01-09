@@ -510,16 +510,16 @@ class SynchronizationService
 				return new Exception($exception->getMessage());
 			}
 		}
-        
+
         // Let's prevent pointless updates by checking:
         // 1. If the origin hash matches (object hasn't changed)
         // 2. If the synchronization config hasn't been updated since last check
         // 3. If source target mapping exists, check it hasn't been updated since last check
         // 4. If target ID and hash exist (object hasn't been removed from target)
 		if (
-            $originHash === $synchronizationContract->getOriginHash() && 
+            $originHash === $synchronizationContract->getOriginHash() &&
             $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked() &&
-            ($sourceTargetMapping === null || 
+            ($sourceTargetMapping === null ||
              $sourceTargetMapping->getUpdated() < $synchronizationContract->getSourceLastChecked()) &&
             $synchronizationContract->getTargetId() !== null &&
             $synchronizationContract->getTargetHash() !== null
@@ -533,7 +533,7 @@ class SynchronizationService
 		$synchronizationContract->setSourceLastChanged(new DateTime());
 		$synchronizationContract->setSourceLastChecked(new DateTime());
 
-		
+
 
         // Execute mapping if found
         if ($sourceTargetMapping) {
@@ -997,7 +997,7 @@ class SynchronizationService
 		$target = $this->sourceMapper->find(id: $synchronization->getTargetId());
 
 		$sourceId = $synchronization->getSourceId();
-		if ($synchronization->getSourceType() === 'register/schema') {
+		if ($synchronization->getSourceType() === 'register/schema' && $contract->getOriginId() !== null) {
 			$sourceIds = explode(separator: '/', string: $sourceId);
 
 			$this->objectService->getOpenRegisters()->setRegister($sourceIds[0]);
@@ -1010,12 +1010,26 @@ class SynchronizationService
 
 
 		$targetConfig = $this->callService->applyConfigDot($synchronization->getTargetConfig());
-		// @TODO For now only JSON APIs are supported
-		$targetConfig['json'] = $object;
+
 
 		if (str_starts_with($endpoint, $target->getLocation()) === true) {
 			$endpoint = str_replace(search: $target->getLocation(), replace: '', subject: $endpoint);
 		}
+
+		if ($contract->getOriginId() === null) {
+
+			$endpoint .= '/'.$contract->getTargetId();
+			$response = $this->callService->call(source: $target, endpoint: $endpoint, method: 'DELETE', config: $targetConfig)->getResponse();
+
+			$contract->setTargetHash(md5(serialize($response['body'])));
+			$contract->setTargetId(null);
+
+			return $contract;
+		}
+
+
+		// @TODO For now only JSON APIs are supported
+		$targetConfig['json'] = $object;
 
 		if ($contract->getTargetId() === null) {
 			$response = $this->callService->call(source: $target, endpoint: $endpoint, method: 'POST', config: $targetConfig)->getResponse();
@@ -1028,6 +1042,8 @@ class SynchronizationService
 			return $contract;
 		}
 
+		$endpoint .= '/'.$contract->getTargetId();
+
 		$response = $this->callService->call(source: $target, endpoint: $endpoint, method: 'PUT', config: $targetConfig)->getResponse();
 
 		$body = json_decode($response['body'], true);
@@ -1035,11 +1051,13 @@ class SynchronizationService
 		return $contract;
 	}
 
-	public function synchronizeToTarget(ObjectEntity $object): array
+	public function synchronizeToTarget(ObjectEntity $object, ?SynchronizationContract $synchronizationContract = null): array
 	{
 		$objectId = $object->getUuid();
 
-		$synchronizationContract = $this->synchronizationContractMapper->findByOriginId($objectId);
+		if($synchronizationContract === null) {
+			$synchronizationContract = $this->synchronizationContractMapper->findByOriginId($objectId);
+		}
 
 		$synchronizations = $this->synchronizationMapper->findAll(filters: [
 			'source_type' => 'register/schema',

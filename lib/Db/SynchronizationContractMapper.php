@@ -234,7 +234,7 @@ class SynchronizationContractMapper extends QBMapper
      *
      * @return SynchronizationContract|null The matching contract or null if not found.
      */
-    public function findByOriginId(string $originId): ?SynchronizationContract
+    public function findByOriginId(?string $originId): ?SynchronizationContract
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
@@ -334,7 +334,7 @@ class SynchronizationContractMapper extends QBMapper
 
     /**
      * Handle object removal by updating or removing associated contracts
-     * 
+     *
      * This method finds all contracts associated with the given object identifier,
      * clears the appropriate fields (origin or target) and deletes contracts that
      * have no remaining associations.
@@ -343,7 +343,7 @@ class SynchronizationContractMapper extends QBMapper
      * @return void
      * @throws Exception If there is an error handling the object removal
      */
-    public function handleObjectRemoval(string $objectIdentifier): void 
+    public function handleObjectRemoval(string $objectIdentifier): array
     {
         try {
             // Find contracts where object ID matches either origin or target
@@ -367,7 +367,7 @@ class SynchronizationContractMapper extends QBMapper
                     $this->update($contract);
                 }
 
-                // Clear target fields if object was the target  
+                // Clear target fields if object was the target
                 if ($contract->getTargetId() === $objectIdentifier) {
                     $contract->setTargetId(null);
                     $contract->setTargetHash(null);
@@ -379,6 +379,8 @@ class SynchronizationContractMapper extends QBMapper
                     $this->delete($contract);
                 }
             }
+			return $contracts;
+
         } catch (Exception $e) {
             throw new Exception('Failed to handle object removal: ' . $e->getMessage());
         }

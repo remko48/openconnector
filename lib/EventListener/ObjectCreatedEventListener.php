@@ -24,6 +24,7 @@ class ObjectCreatedEventListener implements IEventListener
      */
     public function handle(Event $event): void
     {
+
         if ($event instanceof ObjectCreatedEvent === false)
 		{
 			return;

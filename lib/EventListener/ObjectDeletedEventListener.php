@@ -32,8 +32,11 @@ class ObjectDeletedEventListener implements IEventListener
 
 		$object = $event->getObject();
 
-		$this->synchronizationService->removeObjectFromTarget($object);
-		$this->synchronizationContractMapper->handleObjectRemoval($object->getId());
+		$contracts = $this->synchronizationContractMapper->handleObjectRemoval($object->getUuid());
+
+		foreach($contracts as $contract) {
+			$this->synchronizationService->synchronizeToTarget($object, $contract);
+		}
 
     }
 }
