@@ -216,21 +216,15 @@ export default {
 		 * Returns the configuration without the authentication configuration
 		 */
 		configuration() {
-			const filteredObj = Object.fromEntries(
-				Object.entries(sourceStore.sourceItem?.configuration)
-					.filter(([key]) => !key.startsWith('authentication.')),
-			)
-			return filteredObj
+			const config = sourceStore.sourceItem?.configuration || {}
+			const { authentication, ...configWithoutAuth } = config
+			return configWithoutAuth
 		},
 		/**
 		 * Returns the authentication configuration
 		 */
 		configurationAuthentication() {
-			const filteredObj = Object.fromEntries(
-				Object.entries(sourceStore.sourceItem?.configuration)
-					.filter(([key]) => key.startsWith('authentication.')),
-			)
-			return filteredObj
+			return sourceStore.sourceItem?.configuration?.authentication || {}
 		},
 	},
 	mounted() {

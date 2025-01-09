@@ -23,6 +23,8 @@ class Endpoint extends Entity implements JsonSerializable
 	protected array $conditions = [];
 	protected ?DateTime $created = null;
 	protected ?DateTime $updated = null;
+	protected ?string $inputMapping = null;
+	protected ?string $outputMapping = null;
 
 	public function __construct() {
         $this->addType(fieldName:'uuid', type: 'string');
@@ -39,6 +41,9 @@ class Endpoint extends Entity implements JsonSerializable
 		$this->addType(fieldName:'conditions', type: 'json');
 		$this->addType(fieldName:'created', type: 'datetime');
 		$this->addType(fieldName:'updated', type: 'datetime');
+		$this->addType(fieldName:'inputMapping', type: 'string');
+		$this->addType(fieldName:'outputMapping', type: 'string');
+
 	}
 
 	public function getJsonFields(): array
@@ -89,6 +94,8 @@ class Endpoint extends Entity implements JsonSerializable
 			'conditions' => $this->conditions,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
 			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
+			'inputMapping' => $this->inputMapping,
+			'outputMapping' => $this->outputMapping,
 
 		];
 	}

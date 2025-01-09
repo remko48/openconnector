@@ -46,6 +46,7 @@ class EndpointService
 		private readonly CallService     $callService,
 		private readonly LoggerInterface $logger,
 		private readonly IURLGenerator   $urlGenerator,
+		private readonly MappingService  $mappingService,
 	)
 	{
 	}
@@ -232,6 +233,12 @@ class EndpointService
 		$mapper = $this->objectService->getMapper(schema: $schema, register: $register);
 
 		$parameters = $request->getParams();
+
+		
+		if($endpoint->getInputMapping() !== null) {
+			$inputMapping = $this->mappingService->getMapping($endpoint->getInputMapping());
+			$parameters = $this->mappingService->executeMapping(mapping: $inputMapping, input: $parameters);
+		}
 
 		$pathParams = $this->getPathParameters($endpoint->getEndpointArray(), $path);
 
