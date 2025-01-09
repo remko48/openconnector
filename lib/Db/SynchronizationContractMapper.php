@@ -340,7 +340,7 @@ class SynchronizationContractMapper extends QBMapper
      * have no remaining associations.
      *
      * @param string $objectIdentifier The ID of the removed object
-     * @return void
+     * @return array
      * @throws Exception If there is an error handling the object removal
      */
     public function handleObjectRemoval(string $objectIdentifier): array
