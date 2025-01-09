@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace OCA\OpenConnector\AppInfo;
 
-use OCA\OpenConnector\EventListener\ObjectEventListener;
+use OCA\OpenConnector\EventListener\ObjectCreatedEventListener;
+use OCA\OpenConnector\EventListener\ObjectDeletedEventListener;
+use OCA\OpenConnector\EventListener\ObjectUpdatedEventListener;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
@@ -27,9 +29,9 @@ class Application extends App implements IBootstrap {
 
 		/* @var IEventDispatcher $dispatcher */
 		$dispatcher = $this->getContainer()->get(IEventDispatcher::class);
-		$dispatcher->addServiceListener(eventName: ObjectUpdatedEvent::class, className: ObjectEventListener::class);
-		$dispatcher->addServiceListener(eventName: ObjectCreatedEvent::class, className: ObjectEventListener::class);
-		$dispatcher->addServiceListener(eventName: ObjectDeletedEvent::class, className: ObjectEventListener::class);
+		$dispatcher->addServiceListener(eventName: ObjectUpdatedEvent::class, className: ObjectCreatedEventListener::class);
+		$dispatcher->addServiceListener(eventName: ObjectCreatedEvent::class, className: ObjectUpdatedEventListener::class);
+		$dispatcher->addServiceListener(eventName: ObjectDeletedEvent::class, className: ObjectDeletedEventListener::class);
 	}
 
 	public function boot(IBootContext $context): void {
