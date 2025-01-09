@@ -500,9 +500,31 @@ class SynchronizationService
 		// Let create a source hash for the object
 		$originHash = md5(serialize($hashObject));
 
-		// Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
-		if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
-			// The object has not changed and the config has not been updated since last check
+		// If no source target mapping is defined, use original object
+		if (empty($synchronization->getSourceTargetMapping()) === true) {
+            $sourceTargetMapping = null;
+		} else {
+			try {
+				$sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
+			} catch (DoesNotExistException $exception) {
+				return new Exception($exception->getMessage());
+			}
+		}
+        
+        // Let's prevent pointless updates by checking:
+        // 1. If the origin hash matches (object hasn't changed)
+        // 2. If the synchronization config hasn't been updated since last check
+        // 3. If source target mapping exists, check it hasn't been updated since last check
+        // 4. If target ID and hash exist (object hasn't been removed from target)
+		if (
+            $originHash === $synchronizationContract->getOriginHash() && 
+            $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked() &&
+            ($sourceTargetMapping === null || 
+             $sourceTargetMapping->getUpdated() < $synchronizationContract->getSourceLastChecked()) &&
+            $synchronizationContract->getTargetId() !== null &&
+            $synchronizationContract->getTargetHash() !== null
+            ) {
+			// The object has not changed and neither config nor mapping have been updated since last check
 			return $synchronizationContract;
 		}
 
@@ -511,23 +533,14 @@ class SynchronizationService
 		$synchronizationContract->setSourceLastChanged(new DateTime());
 		$synchronizationContract->setSourceLastChecked(new DateTime());
 
-		// If no source target mapping is defined, use original object
-		if (empty($synchronization->getSourceTargetMapping()) === true) {
-			$targetObject = $object;
-		} else {
-			try {
-				$sourceTargetMapping = $this->mappingMapper->find(id: $synchronization->getSourceTargetMapping());
-			} catch (DoesNotExistException $exception) {
-				return new Exception($exception->getMessage());
-			}
+		
 
-			// Execute mapping if found
-			if ($sourceTargetMapping) {
-				$targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
-			} else {
-				$targetObject = $object;
-			}
-		}
+        // Execute mapping if found
+        if ($sourceTargetMapping) {
+            $targetObject = $this->mappingService->executeMapping(mapping: $sourceTargetMapping, input: $object);
+        } else {
+            $targetObject = $object;
+        }
 
 		// set the target hash
 		$targetHash = md5(serialize($targetObject));

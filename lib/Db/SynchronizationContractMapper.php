@@ -331,4 +331,56 @@ class SynchronizationContractMapper extends QBMapper
 
         return (int)$row['count'];
     }
+
+    /**
+     * Handle object removal by updating or removing associated contracts
+     * 
+     * This method finds all contracts associated with the given object identifier,
+     * clears the appropriate fields (origin or target) and deletes contracts that
+     * have no remaining associations.
+     *
+     * @param string $objectIdentifier The ID of the removed object
+     * @return void
+     * @throws Exception If there is an error handling the object removal
+     */
+    public function handleObjectRemoval(string $objectIdentifier): void 
+    {
+        try {
+            // Find contracts where object ID matches either origin or target
+            $qb = $this->db->getQueryBuilder();
+            $qb->select('*')
+               ->from('openconnector_synchronization_contracts')
+               ->where(
+                   $qb->expr()->orX(
+                       $qb->expr()->eq('origin_id', $qb->createNamedParameter($objectIdentifier)),
+                       $qb->expr()->eq('target_id', $qb->createNamedParameter($objectIdentifier))
+                   )
+               );
+
+            $contracts = $this->findEntities($qb);
+
+            foreach ($contracts as $contract) {
+                // Clear origin fields if object was the source
+                if ($contract->getOriginId() === $objectIdentifier) {
+                    $contract->setOriginId(null);
+                    $contract->setOriginHash(null);
+                    $this->update($contract);
+                }
+
+                // Clear target fields if object was the target  
+                if ($contract->getTargetId() === $objectIdentifier) {
+                    $contract->setTargetId(null);
+                    $contract->setTargetHash(null);
+                    $this->update($contract);
+                }
+
+                // Delete contract if no remaining associations
+                if ($contract->getOriginId() === null && $contract->getTargetId() === null) {
+                    $this->delete($contract);
+                }
+            }
+        } catch (Exception $e) {
+            throw new Exception('Failed to handle object removal: ' . $e->getMessage());
+        }
+    }
 }

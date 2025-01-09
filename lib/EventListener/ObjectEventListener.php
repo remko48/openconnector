@@ -8,6 +8,7 @@ use OCP\EventDispatcher\IEventListener;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
+use OCA\OpenConnector\Db\SynchronizationContractMapper;
 
 class ObjectEventListener implements IEventListener
 {
@@ -38,6 +39,7 @@ class ObjectEventListener implements IEventListener
 			$this->synchronizationService->synchronizeToTarget($object);
 		} else {
 			$this->synchronizationService->removeObjectFromTarget($object);
+			$this->synchronizationContractMapper->handleObjectRemoval($object->getId());
 		}
     }
 }
