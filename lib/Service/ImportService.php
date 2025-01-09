@@ -50,8 +50,6 @@ class ImportService
 	 */
 	public function import(array $data, ?array $uploadedFiles): JSONResponse
 	{
-		// @todo: remove backslash for / in urls like @id and reference
-
 		// Define the allowed keys
 		$allowedKeys = ['url', 'json'];
 
@@ -63,15 +61,21 @@ class ImportService
 			return new JSONResponse(data: ['error' => 'Missing one of these keys in your POST body: url or json. Or the key file or files[] in form-data.'], statusCode: 400);
 		}
 
+		// If type=x has been added to post body.
+		$allowedType = null;
+		if (empty($data['type']) === false) {
+			$allowedType = $data['type'];
+		}
+
 		// [if] Check if we need to create or update object(s) using uploaded file(s).
 		if (empty($uploadedFiles) === false) {
 			if (count($uploadedFiles) === 1) {
-				return $this->getJSONfromFile(uploadedFile: $uploadedFiles[array_key_first($uploadedFiles)]);
+				return $this->getJSONfromFile(uploadedFile: $uploadedFiles[array_key_first($uploadedFiles)], type: $allowedType);
 			}
 
 			$responses = [];
 			foreach ($uploadedFiles as $i => $uploadedFile) {
-				$response = $this->getJSONfromFile(uploadedFile: $uploadedFile);
+				$response = $this->getJSONfromFile(uploadedFile: $uploadedFile, type: $allowedType);
 				$responses[] = [
 					'filename' => "($i) {$uploadedFile['name']}",
 					'statusCode' => $response->getStatus(),
@@ -83,22 +87,30 @@ class ImportService
 
 		// [elseif] Check if we need to create or update object using given url from the post body.
 		if (empty($data['url']) === false) {
-			return $this->getJSONfromURL(url: $data['url']);
+			return $this->getJSONfromURL(url: $data['url'], type: $allowedType);
 		}
 
 		// [else] Create or update object using given json blob from the post body.
-		return $this->getJSONfromBody($data['json']);
+		return $this->getJSONfromBody($data['json'], type: $allowedType);
 	}
 
 	/**
 	 * Creates or updates an object using the given array as input.
 	 *
 	 * @param array $phpArray The input php array.
+	 * @param string|null $type If the object should be a specific type of object.
 	 *
 	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
 	 */
-	private function saveObject(array $phpArray): JSONResponse
+	private function saveObject(array $phpArray, ?string $type): JSONResponse
 	{
+		if (empty($type) === false && $phpArray['@type'] !== strtolower($type)) {
+			return new JSONResponse(
+				data: ['error' => "The object you are trying to import is not a $type object", '@type' => $phpArray['@type']],
+				statusCode: 400
+			);
+		}
+
 		try {
 			$mapper = $this->objectService->getMapper(objectType: $phpArray['@type']);
 		} catch (InvalidArgumentException|NotFoundExceptionInterface|ContainerExceptionInterface $e) {
@@ -111,24 +123,36 @@ class ImportService
 			$object = $this->checkIfExists(mapper: $mapper, phpArray: $phpArray);
 		}
 
+		$type = $phpArray['@type'];
 		unset($phpArray['@context'], $phpArray['@type'], $phpArray['@id'], $phpArray['id'], $phpArray['uuid'],
 			$phpArray['created'], $phpArray['updated'], $phpArray['dateCreated'], $phpArray['dateModified']);
 
 		if (isset($object) === true) {
 			// @todo: maybe we should do kind of hash comparison here as well?
-			$updatedObject = $mapper->updateFromArray(id: $object->getId(), object: $phpArray);
-			return new JSONResponse(data: ['message' => "Import successful, updated", 'object' => $updatedObject->jsonSerialize()]);
+			$updatedObject = $mapper->updateFromArray(id: $object->getId(), object: $phpArray)->jsonSerialize();
+			return new JSONResponse(
+				data: [
+					'message' => "Import successful, updated",
+					'object' => array_merge(['@type' => $type], $updatedObject)
+				]
+			);
 		}
 
 		$newObject = $mapper->createFromArray(object: $phpArray);
-		if (isset($phpArray['reference']) === false) {
+		if (empty($phpArray['reference']) === true) {
 			$phpArray['reference'] = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
 				routeName: 'openconnector.'.ucfirst($phpArray['@type']).'s.show',
 				arguments: ['id' => $newObject->getId()])
 			);
-			$newObject = $mapper->updateFromArray(object: $phpArray);
+			$newObject = $mapper->updateFromArray(id: $newObject->getId(), object: $phpArray)->jsonSerialize();
 		}
-		return new JSONResponse(data: ['message' => "Import successful, created", 'object' => $newObject->jsonSerialize()], statusCode: 201);
+		return new JSONResponse(
+			data: [
+				'message' => "Import successful, created",
+				'object' => array_merge(['@type' => $type], $newObject)
+			],
+			statusCode: 201
+		);
 	}
 
 	/**
@@ -148,18 +172,18 @@ class ImportService
 			} catch (Exception $exception) {}
 		}
 
-		// Check if @id matches an object of that type in OpenConnector. 'failsafe'
-		$explodedId = explode(separator: '/', string: $phpArray['@id']);
-		$id = end(array: $explodedId);
-		$url = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
-			routeName: 'openconnector.'.ucfirst($phpArray['@type']).'s.show',
-			arguments: ['id' => $id])
-		);
-		if ($phpArray['@id'] === $url) {
-			try {
+		// Check if @id matches an object of that type in OpenConnector. 'failsafe' / backup
+		try {
+			$explodedId = explode(separator: '/', string: $phpArray['@id']);
+			$id = end(array: $explodedId);
+			$url = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
+				routeName: 'openconnector.'.ucfirst($phpArray['@type']).'s.show',
+				arguments: ['id' => $id])
+			);
+			if ($phpArray['@id'] === $url) {
 				return $mapper->find($id);
-			} catch (Exception $exception) {}
-		}
+			}
+		} catch (Exception $exception) {}
 
 		return null;
 	}
@@ -168,10 +192,11 @@ class ImportService
 	 * Gets uploaded file content from a file in the api request as PHP array and use it for creating/updating an object.
 	 *
 	 * @param array $uploadedFile The uploaded file.
+	 * @param string|null $type If the uploaded file should be a specific type of object.
 	 *
 	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
 	 */
-	private function getJSONfromFile(array $uploadedFile): JSONResponse
+	private function getJSONfromFile(array $uploadedFile, ?string $type = null): JSONResponse
 	{
 		// Check for upload errors
 		if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
@@ -189,18 +214,19 @@ class ImportService
 			);
 		}
 
-		return $this->saveObject(phpArray: $phpArray);
+		return $this->saveObject(phpArray: $phpArray, type: $type);
 	}
 
 	/**
 	 * Uses Guzzle to call the given URL and use the response data as PHP array for creating/updating an object.
 	 *
 	 * @param string $url The URL to call.
+	 * @param string|null $type If the object should be a specific type of object.
 	 *
 	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
 	 * @throws GuzzleException
 	 */
-	private function getJSONfromURL(string $url): JSONResponse
+	private function getJSONfromURL(string $url, ?string $type = null): JSONResponse
 	{
 		try {
 			$response = $this->client->request('GET', $url);
@@ -224,17 +250,18 @@ class ImportService
 		// Set reference, might be overwritten if $phpArray has @id set.
 		$phpArray['reference'] = $url;
 
-		return $this->saveObject(phpArray: $phpArray);
+		return $this->saveObject(phpArray: $phpArray, type: $type);
 	}
 
 	/**
 	 * Uses the given string or array as PHP array for creating/updating an object.
 	 *
 	 * @param array|string $phpArray An array or string containing a json blob of data.
+	 * @param string|null $type If the object should be a specific type of object.
 	 *
 	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
 	 */
-	private function getJSONfromBody(array|string $phpArray): JSONResponse
+	private function getJSONfromBody(array|string $phpArray, ?string $type = null): JSONResponse
 	{
 		if (is_string($phpArray) === true) {
 			$phpArray = json_decode($phpArray, associative: true);
@@ -244,7 +271,7 @@ class ImportService
 			return new JSONResponse(data: ['error' => 'Failed to decode JSON input'], statusCode: 400);
 		}
 
-		return $this->saveObject(phpArray: $phpArray);
+		return $this->saveObject(phpArray: $phpArray, type: $type);
 	}
 
 	/**
