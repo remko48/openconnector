@@ -53,7 +53,7 @@ class SynchronizationService
     const EXTRA_DATA_STATIC_ENDPOINT_LOCATION  = 'staticEndpoint';
     const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
-    const UNSET_CONFIG_KEY_LOCATION            = 'UNSET_CONFIG_KEY';
+    const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
 
 
 	public function __construct(
@@ -255,7 +255,7 @@ class SynchronizationService
 		$query = $sourceConfig['query'] ?? [];
 		$config = [
 			'headers' => $headers,
-			'query' => [],
+			'query' => $query,
 		];
 
 		if (str_starts_with($endpoint, $source->getLocation()) === true) {
@@ -505,10 +505,10 @@ class SynchronizationService
         $originHash = md5(serialize($hashObject));
 
         // Let's prevent pointless updates @todo account for omnidirectional sync, unless the config has been updated since last check then we do want to rebuild and check if the tagert object has changed
-        // if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
-        //     // The object has not changed and the config has not been updated since last check
-		// 	return $synchronizationContract;
-        // }
+        if ($originHash === $synchronizationContract->getOriginHash() && $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked()) {
+            // The object has not changed and the config has not been updated since last check
+			return $synchronizationContract;
+        }
 
         // The object has changed, oke let do mappig and bla die bla
         $synchronizationContract->setOriginHash($originHash);
