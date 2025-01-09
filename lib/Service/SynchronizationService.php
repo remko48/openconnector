@@ -528,7 +528,7 @@ class SynchronizationService
 			return $synchronizationContract;
 		}
 
-		// The object has changed, oke let do mappig and bla die bla
+		// The object has changed, oke let do mappig and set metadata
 		$synchronizationContract->setOriginHash($originHash);
 		$synchronizationContract->setSourceLastChanged(new DateTime());
 		$synchronizationContract->setSourceLastChecked(new DateTime());
@@ -688,10 +688,8 @@ class SynchronizationService
 		$type = $synchronization->getSourceType();
 
 		switch ($type) {
-			case 'register/schema':
-				// Setup the object service
-//                $this->objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
-
+            case 'register/schema':
+                //@todo: implement
 				break;
 			case 'api':
 				$objects = $this->getAllObjectsFromApi(synchronization: $synchronization, isTest: $isTest);
