@@ -29,7 +29,7 @@ class MappingMapper extends QBMapper
 		return $this->findEntity(query: $qb);
 	}
 
-	public function findByRef(string $reference): Mapping
+	public function findByRef(string $reference): array
 	{
 		$qb = $this->db->getQueryBuilder();
 
@@ -39,7 +39,7 @@ class MappingMapper extends QBMapper
 				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
 			);
 
-		return $this->findEntity(query: $qb);
+		return $this->findEntities(query: $qb);
 	}
 
 	public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $searchConditions = [], ?array $searchParams = []): array

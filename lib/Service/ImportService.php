@@ -114,9 +114,9 @@ class ImportService
 		unset($phpArray['@context'], $phpArray['@type'], $phpArray['@id'], $phpArray['id'], $phpArray['uuid'],
 			$phpArray['created'], $phpArray['updated'], $phpArray['dateCreated'], $phpArray['dateModified']);
 
-		if (isset($object) === true && isset($id) === true) {
+		if (isset($object) === true) {
 			// @todo: maybe we should do kind of hash comparison here as well?
-			$updatedObject = $mapper->updateFromArray(id: $id, object: $phpArray);
+			$updatedObject = $mapper->updateFromArray(id: $object->getId(), object: $phpArray);
 			return new JSONResponse(data: ['message' => "Import successful, updated", 'object' => $updatedObject->jsonSerialize()]);
 		}
 
@@ -144,7 +144,7 @@ class ImportService
 		// Check reference
 		if (method_exists($mapper, 'findByRef')) {
 			try {
-				return $mapper->findByRef($phpArray['@id']);
+				return $mapper->findByRef($phpArray['@id'])[0];
 			} catch (Exception $exception) {}
 		}
 
