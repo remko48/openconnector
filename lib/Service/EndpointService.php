@@ -4,6 +4,7 @@ namespace OCA\OpenConnector\Service;
 
 use Adbar\Dot;
 use Exception;
+use JWadhams\JsonLogic;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
@@ -45,6 +46,7 @@ class EndpointService
 		private readonly CallService     $callService,
 		private readonly LoggerInterface $logger,
 		private readonly IURLGenerator   $urlGenerator,
+		private readonly MappingService  $mappingService,
 	)
 	{
 	}
@@ -62,6 +64,12 @@ class EndpointService
 	 */
 	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
 	{
+		$errors = $this->checkConditions($endpoint, $request);
+
+		if($errors !== []) {
+			return new JSONResponse(['error' => 'The following parameters are not correctly set', 'fields' => $errors], 400);
+		}
+
 		try {
 			// Check if endpoint connects to a schema
 			if ($endpoint->getTargetType() === 'register/schema') {
@@ -221,9 +229,16 @@ class EndpointService
 		$register = $target[0];
 		$schema = $target[1];
 
+
 		$mapper = $this->objectService->getMapper(schema: $schema, register: $register);
 
 		$parameters = $request->getParams();
+
+		
+		if($endpoint->getInputMapping() !== null) {
+			$inputMapping = $this->mappingService->getMapping($endpoint->getInputMapping());
+			$parameters = $this->mappingService->executeMapping(mapping: $inputMapping, input: $parameters);
+		}
 
 		$pathParams = $this->getPathParameters($endpoint->getEndpointArray(), $path);
 
@@ -231,10 +246,12 @@ class EndpointService
 
 		$status = 200;
 
+		$headers = $request->getHeader('Accept-Crs') === '' ? [] : ['Content-Crs' => $request->getHeader('Accept-Crs')];
+
 		// Route to appropriate ObjectService method based on HTTP method
 		return match ($method) {
 			'GET' => new JSONResponse(
-				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status
+				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
 			),
 			'POST' => new JSONResponse(
 				$mapper->createFromArray(object: $parameters)
@@ -297,6 +314,29 @@ class EndpointService
 				array: $keys),
 			$headers
 		);
+	}
+
+	/**
+	 * Check conditions for using an endpoint.
+	 *
+	 * @param Endpoint $endpoint The endpoint for which the checks should be done.
+	 * @param IRequest $request The inbound request.
+	 * @return array
+	 * @throws Exception
+	 */
+	private function checkConditions(Endpoint $endpoint, IRequest $request): array
+	{
+		$conditions = $endpoint->getConditions();
+		$data['parameters'] = $request->getParams();
+		$data['headers'] = $this->getHeaders($request->server, true);
+
+		$result = JsonLogic::apply(logic: $conditions, data: $data);
+
+		if($result === true || $result === []) {
+			return [];
+		}
+
+		return $result;
 	}
 
 	/**

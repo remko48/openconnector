@@ -1,0 +1,27 @@
+{
+    "name": "Xxllnc Casetype to ZGW ZaakType",
+    "version": "0.0.1",
+    "mapping": {
+        "identificatie": "instance.legacy.zaaktype_id",
+        "catalogus": "_catalogus",
+        "onderwerp": "instance.title",
+        "indicatieInternOfExtern": "extern",
+        "doorlooptijd": "{% if instance.properties.lead_time_legal.weken|default %}P{{ instance.properties.lead_time_legal.weken }}W{% elseif instance.properties.lead_time_legal.kalenderdagen|default %}P{{ instance.properties.lead_time_legal.kalenderdagen }}D{% else %}{{ \"\" }}{% endif %}",
+        "servicenorm": "{% if instance.properties.lead_time_service.weken|default %}P{{ instance.properties.lead_time_service.weken }}W{% elseif instance.properties.lead_time_service.kalenderdagen|default %}P{{ instance.properties.lead_time_service.kalenderdagen }}D{% else %}{{ \"\" }}{% endif %}",
+        "vertrouwelijkheidaanduiding": "{{ instance.properties.designation_of_confidentiality|lower }}",
+        "verlengingMogelijk": "instance.properties.extension",
+        "publicatieIndicatie": "instance.properties.publication",
+        "omschrijving": "instance.title",
+        "opschortingEnAanhoudingMogelijk": "instance.properties.suspension",
+        "bronzaaktype.url": "url",
+        "bronzaaktype.identificatie": "reference",
+        "bronzaaktype.omschrijving": "instance.title",
+        "referentieproces.naam": "preview",
+        "verantwoordelijke": "instance.properties.supervisor"
+    },
+    "unset": [],
+    "cast": {
+        "identificatie": "unsetIfValue==instance.legacy.zaaktype_id"
+    },
+    "passTrough": false
+}

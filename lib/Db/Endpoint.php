@@ -19,8 +19,12 @@ class Endpoint extends Entity implements JsonSerializable
 	protected ?string   $method = null; // One of GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD. method and endpoint combination should be unique
 	protected ?string   $targetType = null; // The target to attach this endpoint to, should be one of source (to create a proxy endpoint) or register/schema (to create an object endpoint) or job (to fire an event) or synchronization (to create a synchronization endpoint)
 	protected ?string   $targetId = null; // The target id to attach this endpoint to
+
+	protected array $conditions = [];
 	protected ?DateTime $created = null;
 	protected ?DateTime $updated = null;
+	protected ?string $inputMapping = null;
+	protected ?string $outputMapping = null;
 
 	public function __construct() {
         $this->addType(fieldName:'uuid', type: 'string');
@@ -34,11 +38,12 @@ class Endpoint extends Entity implements JsonSerializable
 		$this->addType(fieldName:'method', type: 'string');
 		$this->addType(fieldName:'targetType', type: 'string');
 		$this->addType(fieldName:'targetId', type: 'string');
-		$this->addType(fieldName:'schema', type: 'int');
-		$this->addType(fieldName:'register', type: 'int');
-		$this->addType(fieldName:'source', type: 'int');
+		$this->addType(fieldName:'conditions', type: 'json');
 		$this->addType(fieldName:'created', type: 'datetime');
 		$this->addType(fieldName:'updated', type: 'datetime');
+		$this->addType(fieldName:'inputMapping', type: 'string');
+		$this->addType(fieldName:'outputMapping', type: 'string');
+
 	}
 
 	public function getJsonFields(): array
@@ -86,8 +91,11 @@ class Endpoint extends Entity implements JsonSerializable
 			'method' => $this->method,
 			'targetType' => $this->targetType,
 			'targetId' => $this->targetId,
+			'conditions' => $this->conditions,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
 			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
+			'inputMapping' => $this->inputMapping,
+			'outputMapping' => $this->outputMapping,
 
 		];
 	}

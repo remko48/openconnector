@@ -2,6 +2,7 @@
 
 namespace OCA\OpenConnector\Controller;
 
+use Exception;
 use OCA\OpenConnector\Exception\AuthenticationException;
 use OCA\OpenConnector\Service\AuthorizationService;
 use OCA\OpenConnector\Service\ObjectService;
@@ -123,7 +124,7 @@ class EndpointsController extends Controller
 			}
 		}
 
-		if (isset($data['id'])) {
+		if (isset($data['id']) === true) {
 			unset($data['id']);
 		}
 
@@ -140,7 +141,7 @@ class EndpointsController extends Controller
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 *
-	 * @param string $id The ID of the endpoint to update
+	 * @param int $id The ID of the endpoint to update
 	 * @return JSONResponse A JSON response containing the updated endpoint details
 	 */
 	public function update(int $id): JSONResponse
@@ -152,7 +153,7 @@ class EndpointsController extends Controller
 				unset($data[$key]);
 			}
 		}
-		if (isset($data['id'])) {
+		if (isset($data['id']) === true) {
 			unset($data['id']);
 		}
 
@@ -169,8 +170,9 @@ class EndpointsController extends Controller
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 *
-	 * @param string $id The ID of the endpoint to delete
+	 * @param int $id The ID of the endpoint to delete
 	 * @return JSONResponse An empty JSON response
+	 * @throws \OCP\DB\Exception
 	 */
 	public function destroy(int $id): JSONResponse
 	{
@@ -189,8 +191,9 @@ class EndpointsController extends Controller
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
-	 * @param string $path The request path to match
+	 * @param string $_path
 	 * @return JSONResponse The response from the endpoint service or 404 if no match
+	 * @throws Exception
 	 */
 	public function handlePath(string $_path): JSONResponse
 	{

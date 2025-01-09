@@ -3,64 +3,63 @@ import { jobStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'testJob'"
-		ref="modalRef"
-		label-id="testJob"
+	<NcModal ref="modalRef"
+		label-id="runJob"
 		@close="closeModal">
 		<div class="modalContent">
-			<h2>Test job</h2>
+			<h2>Run job</h2>
 
 			<NcButton
 				:disabled="loading"
 				type="primary"
-				@click="testJob()">
+				@click="runJob()">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 					<Sync v-if="!loading" :size="20" />
 				</template>
-				Test job
+				Run job
 			</NcButton>
 
-			<div v-if="jobStore.jobTest">
-				<NcNoteCard v-if="jobStore.jobTest?.level === 'INFO'" type="success">
-					<p>The job test was successful. {{ jobStore.jobTest?.message }}</p>
+			<div v-if="jobStore.jobRun">
+				<NcNoteCard v-if="jobStore.jobRun?.level === 'INFO'" type="success">
+					<p>The job run was successful. {{ jobStore.jobRun?.message }}</p>
 				</NcNoteCard>
-				<NcNoteCard v-if="(jobStore.jobTest?.level !== 'INFO') || error" type="error">
-					<p>An error occurred while testing the job test: {{ jobStore.jobTest ? jobStore.jobTest.message : error }}</p>
+				<NcNoteCard v-if="(jobStore.jobRun?.level !== 'INFO') || error" type="error">
+					<p>An error occurred while running the job: {{ jobStore.jobRun ? jobStore.jobRun.message : error }}</p>
 				</NcNoteCard>
 			</div>
 
-			<div v-if="jobStore.jobTest" class="jobTestTable">
+			<div v-if="jobStore.jobRun" class="jobRunTable">
 				<table>
 					<tr>
 						<th>UUID</th>
-						<td>{{ jobStore.jobTest.uuid }}</td>
+						<td>{{ jobStore.jobRun.uuid }}</td>
 					</tr>
 					<tr>
 						<th>Level</th>
-						<td>{{ jobStore.jobTest.level }}</td>
+						<td>{{ jobStore.jobRun.level }}</td>
 					</tr>
 					<tr>
 						<th>Message</th>
-						<td>{{ jobStore.jobTest.message }}</td>
+						<td>{{ jobStore.jobRun.message }}</td>
 					</tr>
 					<tr>
 						<th>Job ID</th>
-						<td>{{ jobStore.jobTest.jobId }}</td>
+						<td>{{ jobStore.jobRun.jobId }}</td>
 					</tr>
 					<tr>
 						<th>Job List ID</th>
-						<td>{{ jobStore.jobTest.jobListId }}</td>
+						<td>{{ jobStore.jobRun.jobListId }}</td>
 					</tr>
 					<tr>
 						<th>Job Class</th>
-						<td>{{ jobStore.jobTest.jobClass || 'N/A' }}</td>
+						<td>{{ jobStore.jobRun.jobClass || 'N/A' }}</td>
 					</tr>
 					<tr>
 						<th>Arguments</th>
 						<td>
 							<ul>
-								<li v-for="(value, key) in jobStore.jobTest.arguments" :key="key">
+								<li v-for="(value, key) in jobStore.jobRun.arguments" :key="key">
 									{{ key }}: {{ value }}
 								</li>
 							</ul>
@@ -68,21 +67,21 @@ import { jobStore, navigationStore } from '../../store/store.js'
 					</tr>
 					<tr>
 						<th>Execution Time</th>
-						<td>{{ jobStore.jobTest.executionTime }} ms</td>
+						<td>{{ jobStore.jobRun.executionTime }} ms</td>
 					</tr>
 					<tr>
 						<th>User ID</th>
-						<td>{{ jobStore.jobTest.userId || 'N/A' }}</td>
+						<td>{{ jobStore.jobRun.userId || 'N/A' }}</td>
 					</tr>
 					<tr>
 						<th>Session ID</th>
-						<td>{{ jobStore.jobTest.sessionId || 'N/A' }}</td>
+						<td>{{ jobStore.jobRun.sessionId || 'N/A' }}</td>
 					</tr>
 					<tr>
 						<th>Stack Trace</th>
 						<td>
 							<ol>
-								<li v-for="(step, index) in jobStore.jobTest.stackTrace" :key="index">
+								<li v-for="(step, index) in jobStore.jobRun.stackTrace" :key="index">
 									{{ step }}
 								</li>
 							</ol>
@@ -104,7 +103,7 @@ import {
 import Sync from 'vue-material-design-icons/Sync.vue'
 
 export default {
-	name: 'TestJob',
+	name: 'RunJob',
 	components: {
 		NcModal,
 		NcButton,
@@ -125,39 +124,39 @@ export default {
 			this.loading = false
 			this.error = false
 		},
-		async testJob() {
+		async runJob() {
 			this.loading = true
 
 			try {
-				await jobStore.testJob()
+				await jobStore.runJob(jobStore.jobItem.id)
 				this.success = true
 				this.loading = false
 				this.error = false
 			} catch (error) {
 				this.loading = false
 				this.success = false
-				this.error = error.message || 'An error occurred while testing the job'
-				jobStore.setJobTest(false)
+				this.error = error.message || 'An error occurred while running the job'
+				jobStore.setJobRun(false)
 			}
 		},
 	},
 }
 </script>
 <style>
-.testJobDetailGrid {
+.runJobDetailGrid {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 5px;
 }
 
-.jobTestTable th,
-.jobTestTable td {
+.jobRunTable th,
+.jobRunTable td {
   padding: 4px;
 }
-.jobTestTable th {
+.jobRunTable th {
     font-weight: bold
 }
-.jobTestTable ol {
+.jobRunTable ol {
     margin-left: 1rem;
 }
 </style>

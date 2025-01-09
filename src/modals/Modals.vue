@@ -13,6 +13,7 @@ import { navigationStore } from '../store/store.js'
 		<TestSource />
 		<DeleteJob />
 		<TestJob />
+		<RunJob v-if="navigationStore.modal === 'runJob'" />
 		<EditJob />
 		<DeleteLog />
 		<EditLog />
@@ -28,6 +29,7 @@ import { navigationStore } from '../store/store.js'
 		<DeleteSynchronization />
 		<EditSynchronization v-if="navigationStore.modal === 'editSynchronization'" />
 		<TestSynchronization v-if="navigationStore.modal === 'testSynchronization'" />
+		<RunSynchronization v-if="navigationStore.modal === 'runSynchronization'" />
 		<EditJobArgument />
 		<DeleteJobArgument />
 		<EditSourceConfiguration />
@@ -54,6 +56,7 @@ import EditSource from './Source/EditSource.vue'
 import TestSource from './TestSource/TestSource.vue'
 import DeleteSource from './Source/DeleteSource.vue'
 import TestJob from './Job/TestJob.vue'
+import RunJob from './Job/RunJob.vue'
 import EditJob from './Job/EditJob.vue'
 import DeleteJob from './Job/DeleteJob.vue'
 import EditLog from './Log/EditLog.vue'
@@ -64,6 +67,7 @@ import TestMapping from './MappingTest/TestMapping.vue'
 import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
 import TestSynchronization from './Synchronization/TestSynchronization.vue'
+import RunSynchronization from './Synchronization/RunSynchronization.vue'
 import EditJobArgument from './JobArgument/EditJobArgument.vue'
 import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
 import EditSourceConfiguration from './SourceConfiguration/EditSourceConfiguration.vue'
@@ -97,6 +101,7 @@ export default {
 		TestSource,
 		DeleteJob,
 		EditJob,
+		RunJob,
 		TestJob,
 		DeleteLog,
 		EditLog,
@@ -106,6 +111,7 @@ export default {
 		DeleteSynchronization,
 		EditSynchronization,
 		TestSynchronization,
+		RunSynchronization,
 		EditJobArgument,
 		DeleteJobArgument,
 		EditSourceConfiguration,

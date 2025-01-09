@@ -39,6 +39,12 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Test
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('runSynchronization')">
+							<template #icon>
+								<Play :size="20" />
+							</template>
+							Run
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -89,16 +95,20 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 						<p>{{ synchronizationStore.synchronizationItem.sourceHash || 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
+						<b>Source Hash mapping id:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceHashMapping || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
 						<b>Source Last Changed:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceLastChanged || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.sourceLastChanged) ? new Date(synchronizationStore.synchronizationItem.sourceLastChanged).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Source Last Checked:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceLastChecked || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.sourceLastChecked) ? new Date(synchronizationStore.synchronizationItem.sourceLastChecked).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Source Last Synced:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceLastSynced || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.sourceLastSynced) ? new Date(synchronizationStore.synchronizationItem.sourceLastSynced).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Source Target Mapping:</b>
@@ -118,15 +128,15 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Last Changed:</b>
-						<p>{{ synchronizationStore.synchronizationItem.targetLastChanged || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.targetLastChanged) ? new Date(synchronizationStore.synchronizationItem.targetLastChanged).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Last Checked:</b>
-						<p>{{ synchronizationStore.synchronizationItem.targetLastChecked || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.targetLastChecked) ? new Date(synchronizationStore.synchronizationItem.targetLastChecked).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Last Synced:</b>
-						<p>{{ synchronizationStore.synchronizationItem.targetLastSynced || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.targetLastSynced) ? new Date(synchronizationStore.synchronizationItem.targetLastSynced).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Source Mapping:</b>
@@ -163,7 +173,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!contracts.length" class="tabPanel">
+							<div v-if="!synchronizationStore.synchronizationContracts.length" class="tabPanel">
 								No contracts found
 							</div>
 						</BTab>
@@ -287,6 +297,8 @@ import Sync from 'vue-material-design-icons/Sync.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import DatabaseSettingsOutline from 'vue-material-design-icons/DatabaseSettingsOutline.vue'
 import CardBulletedSettingsOutline from 'vue-material-design-icons/CardBulletedSettingsOutline.vue'
+import Play from 'vue-material-design-icons/Play.vue'
+import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {
 	name: 'SynchronizationDetails',

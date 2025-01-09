@@ -18,7 +18,7 @@ use OCP\Migration\SimpleMigrationStep;
 /**
  * FIXME Auto-generated migration step: Please modify to your needs!
  */
-class Version1Date20241218122932 extends SimpleMigrationStep {
+class Version1Date20241210100000 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -40,14 +40,13 @@ class Version1Date20241218122932 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if($schema->hasTable(tableName: 'openconnector_consumers') === true) {
-			$table = $schema->getTable(tableName: 'openconnector_consumers');
-			$table->addColumn('authorization_configuration', Types::JSON);
-			$table->addColumn('user_id', Types::STRING)->setNotnull(false);
-		}
-		if($schema->hasTable(tableName: 'openconnector_endpoints') === true) {
-			$table = $schema->getTable(tableName: 'openconnector_endpoints');
-			$table->addColumn('conditions', Types::JSON);
+		if ($schema->hasTable('openconnector_synchronizations') === true) {
+			$table = $schema->getTable('openconnector_synchronizations');
+
+			if ($table->hasColumn('sourceHashMapping') === false) {
+				$table->dropColumn('sourceHashMapping');
+				$table->addColumn('source_hash_mapping', Types::STRING)->setNotnull(false);
+			}
 		}
 
 		return $schema;
