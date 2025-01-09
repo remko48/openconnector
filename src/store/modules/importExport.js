@@ -13,7 +13,7 @@ export const useImportExportStore = defineStore(
 				console.info('Active exportSource set to ' + exportSource)
 			},
 			async exportFile(id, title, type) {
-				const apiEndpoint = `/index.php/apps/openconnector/api/download/${type}/${id}`
+				const apiEndpoint = `/index.php/apps/openconnector/api/export/${type}/${id}`
 
 				if (!id) {
 					throw Error('Passed id is falsy')
