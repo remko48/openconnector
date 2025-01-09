@@ -27,8 +27,7 @@ class ObjectCreatedEventListener implements IEventListener
         if ($event instanceof ObjectCreatedEvent === false) {
 			return;
 		}
-
-		$object = $event->getObject();
+        $object = $event->getObject();
 		$this->synchronizationService->synchronizeToTarget($object);
     }
 }

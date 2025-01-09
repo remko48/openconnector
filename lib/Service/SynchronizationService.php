@@ -988,6 +988,22 @@ class SynchronizationService
 		throw new Exception("Cannot determine the position of objects in the return body.");
 	}
 
+	/**
+     * Write an created, updated or deleted object to an external target.
+     *
+	 * @param Synchronization $synchronization The synchronization to run.
+	 * @param SynchronizationContract $contract The contract to enforce.
+	 * @param string $endpoint The endpoint to write the object to.
+     *
+	 * @return SynchronizationContract The updated contract.
+     * 
+	 * @throws ContainerExceptionInterface
+	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws NotFoundExceptionInterface
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
+	 */
 	private function writeObjectToTarget(
 		Synchronization         $synchronization,
 		SynchronizationContract $contract,
@@ -1051,6 +1067,22 @@ class SynchronizationService
 		return $contract;
 	}
 
+	/**
+	 * Synchronize data to a target.
+	 *
+	 * The synchronizationContract should be given if the normal procedure to find the contract (on originId) is not available to the contract that should be updated.
+	 *
+	 * @param ObjectEntity $object The object to synchronize
+	 * @param SynchronizationContract|null $synchronizationContract If given: the synchronization contract that should be updated.
+	 *
+	 * @return array The updated synchronizationContracts
+	 *
+	 * @throws ContainerExceptionInterface
+	 * @throws LoaderError
+	 * @throws NotFoundExceptionInterface
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
+	 */
 	public function synchronizeToTarget(ObjectEntity $object, ?SynchronizationContract $synchronizationContract = null): array
 	{
 		$objectId = $object->getUuid();
