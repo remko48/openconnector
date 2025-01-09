@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { Job } from '../../entities/index.js'
+import { importExportStore } from '../../store/store.js'
 
 export const useJobStore = defineStore(
 	'job', {
@@ -211,6 +212,24 @@ export const useJobStore = defineStore(
 					})
 					.catch((err) => {
 						console.error('Error saving job:', err)
+						throw err
+					})
+			},
+			// Export a job
+			exportJob() {
+				if (!this.jobItem) {
+					throw new Error('No job item to export')
+				}
+				importExportStore.exportFile(
+					this.jobItem.id,
+					this.jobItem.name,
+					'job',
+				)
+					.then(({ download }) => {
+						download()
+					})
+					.catch((err) => {
+						console.error('Error exporting job:', err)
 						throw err
 					})
 			},

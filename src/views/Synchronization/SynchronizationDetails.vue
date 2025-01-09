@@ -45,6 +45,12 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Run
 						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.exportSynchronization">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export synchronization
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -298,6 +304,8 @@ import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import DatabaseSettingsOutline from 'vue-material-design-icons/DatabaseSettingsOutline.vue'
 import CardBulletedSettingsOutline from 'vue-material-design-icons/CardBulletedSettingsOutline.vue'
 import Play from 'vue-material-design-icons/Play.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+
 import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {

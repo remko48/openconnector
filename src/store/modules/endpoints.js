@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { Endpoint } from '../../entities/index.js'
 import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { importExportStore } from '../../store/store.js'
 
 export const useEndpointStore = defineStore('endpoint', {
 	state: () => ({
@@ -115,6 +116,24 @@ export const useEndpointStore = defineStore('endpoint', {
 			this.refreshEndpointList()
 
 			return { response, data, entity }
+		},
+		// Export an endpoint
+		exportEndpoint() {
+			if (!this.endpointItem) {
+				throw new Error('No endpoint item to export')
+			}
+			importExportStore.exportFile(
+				this.endpointItem.id,
+				this.endpointItem.name,
+				'endpoint',
+			)
+				.then(({ download }) => {
+					download()
+				})
+				.catch((err) => {
+					console.error('Error exporting endpoint:', err)
+					throw err
+				})
 		},
 	},
 })

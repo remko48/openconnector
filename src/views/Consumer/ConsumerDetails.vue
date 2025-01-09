@@ -21,6 +21,12 @@ import { consumerStore, navigationStore } from '../../store/store.js'
 							</template>
 							Bewerken
 						</NcActionButton>
+						<NcActionButton @click="consumerStore.exportConsumer">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export consumer
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteConsumer')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -84,6 +90,7 @@ import { NcActions, NcActionButton } from '@nextcloud/vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'ConsumerDetails',
@@ -93,6 +100,7 @@ export default {
 		DotsHorizontal,
 		Pencil,
 		TrashCanOutline,
+		FileExportOutline,
 	},
 }
 </script>

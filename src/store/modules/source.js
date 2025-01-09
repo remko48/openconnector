@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { Source } from '../../entities/index.js'
-
+import { importExportStore } from '../../store/store.js'
 export const useSourceStore = defineStore(
 	'source', {
 		state: () => ({
@@ -196,6 +196,24 @@ export const useSourceStore = defineStore(
 					})
 					.catch((err) => {
 						console.error('Error saving source:', err)
+						throw err
+					})
+			},
+			// Export a source
+			exportSource() {
+				if (!this.sourceItem) {
+					throw new Error('No source item to export')
+				}
+				importExportStore.exportFile(
+					this.sourceItem.id,
+					this.sourceItem.name,
+					'source',
+				)
+					.then(({ download }) => {
+						download()
+					})
+					.catch((err) => {
+						console.error('Error exporting source:', err)
 						throw err
 					})
 			},

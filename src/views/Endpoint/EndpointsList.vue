@@ -52,6 +52,12 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 							</template>
 							Bewerken
 						</NcActionButton>
+						<NcActionButton @click="endpointStore.setEndpointItem(endpoint); endpointStore.exportEndpoint();">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export endpoint
+						</NcActionButton>
 						<NcActionButton @click="endpointStore.setEndpointItem(endpoint); navigationStore.setDialog('deleteEndpoint')">
 							<template #icon>
 								<TrashCanOutline />
@@ -83,6 +89,7 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'EndpointsList',

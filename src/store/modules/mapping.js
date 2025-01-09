@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { Mapping } from '../../entities/index.js'
+import { importExportStore } from '../../store/store.js'
 
 export const useMappingStore = defineStore('mapping', {
 	state: () => ({
@@ -233,6 +234,24 @@ export const useMappingStore = defineStore('mapping', {
 
 			// Return the response and parsed data
 			return { response, data }
+		},
+		// Export a mapping
+		exportMapping() {
+			if (!this.mappingItem) {
+				throw new Error('No mapping item to export')
+			}
+			importExportStore.exportFile(
+				this.mappingItem.id,
+				this.mappingItem.name,
+				'mapping',
+			)
+				.then(({ download }) => {
+					download()
+				})
+				.catch((err) => {
+					console.error('Error exporting mapping:', err)
+					throw err
+				})
 		},
 	},
 })
