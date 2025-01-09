@@ -91,6 +91,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 				<NcSelect v-bind="sourceOptions"
 					v-model="sourceOptions.sourceValue"
 					:loading="sourcesLoading"
+					required
 					input-label="Source ID" />
 
 				<NcSelect v-bind="sourceTargetMappingOptions"
@@ -149,6 +150,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 			<NcButton v-if="!success"
 				:disabled="loading
 					|| !synchronizationItem.name
+					|| !synchronizationItem.sourceId
 					// both register and schema need to be selected for register/schema target type
 					|| (targetTypeOptions.value?.id === 'register/schema' && (!registerOptions.value?.id || !schemaOptions.value?.id))"
 				type="primary"

@@ -1,5 +1,5 @@
 <script setup>
-import { endpointStore, navigationStore, searchStore } from '../../store/store.js'
+import { endpointStore, navigationStore, searchStore, importExportStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -20,13 +20,19 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
-						Ververs
+						Refresh
 					</NcActionButton>
 					<NcActionButton @click="endpointStore.setEndpointItem(null); navigationStore.setModal('editEndpoint')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Endpoint toevoegen
+						Add endpoint
+					</NcActionButton>
+					<NcActionButton @click="importExportStore.setImportFileName('endpoint'); navigationStore.setModal('importFile')">
+						<template #icon>
+							<FileImportOutline :size="20" />
+						</template>
+						Import endpoint
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -90,6 +96,7 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 export default {
 	name: 'EndpointsList',

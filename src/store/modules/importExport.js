@@ -6,11 +6,21 @@ export const useImportExportStore = defineStore(
 			exportSource: '',
 			exportSourceResults: '',
 			exportSourceError: '',
+			importedFile: null,
+			importFileName: '',
 		}),
 		actions: {
 			setExportSource(exportSource) {
 				this.exportSource = exportSource
 				console.info('Active exportSource set to ' + exportSource)
+			},
+			setImportedFile(importedFile) {
+				this.importedFile = importedFile
+				console.info('Active importedFile set to ' + importedFile)
+			},
+			setImportFileName(importFileName) {
+				this.importFileName = importFileName
+				console.info('Active importFileName set to ' + importFileName)
 			},
 			async exportFile(id, title, type) {
 				const apiEndpoint = `/index.php/apps/openconnector/api/export/${type}/${id}`

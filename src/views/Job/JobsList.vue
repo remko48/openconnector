@@ -1,5 +1,5 @@
 <script setup>
-import { jobStore, navigationStore, searchStore } from '../../store/store.js'
+import { jobStore, navigationStore, searchStore, importExportStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -27,6 +27,12 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 							<Plus :size="20" />
 						</template>
 						Add job
+					</NcActionButton>
+					<NcActionButton @click="importExportStore.setImportFileName('job'); navigationStore.setModal('importFile')">
+						<template #icon>
+							<FileImportOutline :size="20" />
+						</template>
+						Import job
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -90,6 +96,7 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 export default {
 	name: 'JobsList',
