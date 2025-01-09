@@ -18,13 +18,13 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
 /**
- * Service for handling download requests for database entities.
+ * Service for handling export requests for database entities.
  *
- * This service enables downloading database entities as files in various formats,
+ * This service enables exporting database entities as files in various formats,
  * determined by the `Accept` header of the request. It retrieves the appropriate
  * data from mappers and generates responses or downloadable files.
  */
-class DownloadService
+class ExportService
 {
 	public function __construct(
 		private readonly IURLGenerator $urlGenerator,
@@ -34,13 +34,13 @@ class DownloadService
 	/**
 	 * Handles an upload api-call to create a new object or update an existing one.
 	 *
-	 * @param string $objectType The type of object to download.
-	 * @param string $id The id of the object to download.
-	 * @param string $accept The Accept-header from the download request.
+	 * @param string $objectType The type of object to export.
+	 * @param string $id The id of the object to export.
+	 * @param string $accept The Accept-header from the export request.
 	 *
 	 * @return JSONResponse The JSONResponse response.
 	 */
-	public function download(string $objectType, string $id, string $accept): JSONResponse
+	public function export(string $objectType, string $id, string $accept): JSONResponse
 	{
 		// @todo: remove backslash for / in urls like @id and reference
 

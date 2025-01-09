@@ -3,27 +3,27 @@
 namespace OCA\OpenConnector\Controller;
 
 use GuzzleHttp\Exception\GuzzleException;
-use OCA\OpenConnector\Service\UploadService;
+use OCA\OpenConnector\Service\ImportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
 
-class UploadController extends Controller
+class ImportController extends Controller
 {
 	/**
-	 * Constructor for the UploadController
+	 * Constructor for the ImportController
 	 *
 	 * @param string $appName The name of the app
 	 * @param IRequest $request The request object
 	 * @param IAppConfig $config The app configuration object
-	 * @param UploadService $uploadService The Upload Service.
+	 * @param ImportService $importService The Import Service.
 	 */
     public function __construct(
         $appName,
         IRequest $request,
         private IAppConfig $config,
-		private readonly UploadService $uploadService
+		private readonly ImportService $importService
     )
     {
         parent::__construct($appName, $request);
@@ -38,7 +38,7 @@ class UploadController extends Controller
 	 * @return JSONResponse
 	 * @throws GuzzleException
 	 */
-	public function upload(): JSONResponse
+	public function import(): JSONResponse
     {
 		$data = $this->request->getParams();
 		$uploadedFiles = [];
@@ -65,6 +65,6 @@ class UploadController extends Controller
 			$uploadedFiles[] = $uploadedFile;
 		}
 
-		return $this->uploadService->upload(data: $data, uploadedFiles: $uploadedFiles);
+		return $this->importService->import(data: $data, uploadedFiles: $uploadedFiles);
     }
 }

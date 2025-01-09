@@ -43,10 +43,6 @@ class Version1Date20250107163601 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if ($schema->hasTable(tableName: 'openconnector_consumers') === true) {
-			$table = $schema->getTable(tableName: 'openconnector_consumers');
-			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
-		}
 		if ($schema->hasTable(tableName: 'openconnector_jobs') === true) {
 			$table = $schema->getTable(tableName: 'openconnector_jobs');
 			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);

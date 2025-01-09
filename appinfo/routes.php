@@ -31,8 +31,8 @@ return [
 //		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'POST', 'requirements' => ['path' => '.+']],
 //		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'DELETE', 'requirements' => ['path' => '.+']],
 		// Upload & Download
-		['name' => 'upload#upload', 'url' => '/api/upload', 'verb' => 'POST'],
-//		['name' => 'upload#uploadUpdate', 'url' => '/api/upload/{id}', 'verb' => 'PUT'],
-		['name' => 'download#download', 'url' => '/api/download/{type}/{id}', 'verb' => 'GET'],
+		['name' => 'import#import', 'url' => '/api/import', 'verb' => 'POST'],
+//		['name' => 'import#importUpdate', 'url' => '/api/import/{id}', 'verb' => 'PUT'],
+		['name' => 'export#export', 'url' => '/api/export/{type}/{id}', 'verb' => 'GET'],
 	],
 ];

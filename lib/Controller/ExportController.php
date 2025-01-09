@@ -2,27 +2,27 @@
 
 namespace OCA\OpenConnector\Controller;
 
-use OCA\OpenConnector\Service\DownloadService;
+use OCA\OpenConnector\Service\ExportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
 
-class DownloadController extends Controller
+class ExportController extends Controller
 {
 	/**
-	 * Constructor for the DownloadController
+	 * Constructor for the ExportController
 	 *
 	 * @param string $appName The name of the app
 	 * @param IRequest $request The request object
 	 * @param IAppConfig $config The app configuration object
-	 * @param DownloadService $downloadService The Download Service.
+	 * @param ExportService $exportService The Export Service.
 	 */
     public function __construct(
         $appName,
         IRequest $request,
         private IAppConfig $config,
-		private readonly DownloadService $downloadService
+		private readonly ExportService $exportService
     )
     {
         parent::__construct($appName, $request);
@@ -34,12 +34,12 @@ class DownloadController extends Controller
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 *
-	 * @param string $type The object type we want to download an object for.
-	 * @param string $id The id used to find an existing object to download.
+	 * @param string $type The object type we want to export an object for.
+	 * @param string $id The id used to find an existing object to export.
 	 *
 	 * @return JSONResponse
 	 */
-	public function download(string $type, string $id): JSONResponse
+	public function export(string $type, string $id): JSONResponse
     {
 		$accept = $this->request->getHeader(name: 'Accept');
 
@@ -47,6 +47,6 @@ class DownloadController extends Controller
 			return new JSONResponse(data: ['error' => 'Request is missing header Accept'], statusCode: 400);
 		}
 
-		return $this->downloadService->download(objectType: $type, id: $id, accept: $accept);
+		return $this->exportService->export(objectType: $type, id: $id, accept: $accept);
     }
 }
