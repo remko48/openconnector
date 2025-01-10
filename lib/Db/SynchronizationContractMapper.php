@@ -254,6 +254,32 @@ class SynchronizationContractMapper extends QBMapper
         }
     }
 
+    /**
+     * Find a synchronization contract by target ID.
+     *
+     * @param string $targetId The target ID to search for.
+     *
+     * @return SynchronizationContract[] The matching contract or null if not found.
+     */
+    public function findByTargetId(string $targetId): array
+    {
+        // Create query builder
+        $qb = $this->db->getQueryBuilder();
+
+        // Build query to find contract matching origin_id
+        $qb->select('*')
+            ->from('openconnector_synchronization_contracts')
+            ->where(
+                $qb->expr()->eq('target_id', $qb->createNamedParameter($targetId))
+            ); // Ensure only one result is returned
+
+        try {
+            return $this->findEntities($qb); // Use findEntity to return a single result
+        } catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+            return []; // Return null if no match is found
+        }
+    }
+
 
     /**
      * Find synchronization contracts by type and ID
@@ -304,5 +330,59 @@ class SynchronizationContractMapper extends QBMapper
         $row = $result->fetch();
 
         return (int)$row['count'];
+    }
+
+    /**
+     * Handle object removal by updating or removing associated contracts
+     *
+     * This method finds all contracts associated with the given object identifier,
+     * clears the appropriate fields (origin or target) and deletes contracts that
+     * have no remaining associations.
+     *
+     * @param string $objectIdentifier The ID of the removed object
+     * @return array
+     * @throws Exception If there is an error handling the object removal
+     */
+    public function handleObjectRemoval(string $objectIdentifier): array
+    {
+        try {
+            // Find contracts where object ID matches either origin or target
+            $qb = $this->db->getQueryBuilder();
+            $qb->select('*')
+               ->from('openconnector_synchronization_contracts')
+               ->where(
+                   $qb->expr()->orX(
+                       $qb->expr()->eq('origin_id', $qb->createNamedParameter($objectIdentifier)),
+                       $qb->expr()->eq('target_id', $qb->createNamedParameter($objectIdentifier))
+                   )
+               );
+
+            $contracts = $this->findEntities($qb);
+
+            foreach ($contracts as $contract) {
+                // Clear origin fields if object was the source
+                if ($contract->getOriginId() === $objectIdentifier) {
+                    $contract->setOriginId(null);
+                    $contract->setOriginHash(null);
+                    $this->update($contract);
+                }
+
+                // Clear target fields if object was the target
+                if ($contract->getTargetId() === $objectIdentifier) {
+                    $contract->setTargetId(null);
+                    $contract->setTargetHash(null);
+                    $this->update($contract);
+                }
+
+                // Delete contract if no remaining associations
+                if ($contract->getOriginId() === null && $contract->getTargetId() === null) {
+                    $this->delete($contract);
+                }
+            }
+			return $contracts;
+
+        } catch (Exception $e) {
+            throw new Exception('Failed to handle object removal: ' . $e->getMessage());
+        }
     }
 }
