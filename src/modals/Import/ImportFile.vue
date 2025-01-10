@@ -66,7 +66,7 @@ import { navigationStore, importExportStore } from '../../store/store.js'
 					@click="importFile()">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
-						<Plus v-if="!loading" :size="20" />
+						<FileImportOutline v-if="!loading" :size="20" />
 					</template>
 					Import
 				</NcButton>
@@ -84,6 +84,7 @@ import { ref } from 'vue'
 import Minus from 'vue-material-design-icons/Minus.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import TrayArrowDown from 'vue-material-design-icons/TrayArrowDown.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 const dropZoneRef = ref()
 const { openFileUpload, files, reset, setFiles } = useFileSelection({ allowMultiple: false, dropzone: dropZoneRef })
