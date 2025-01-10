@@ -96,7 +96,6 @@ class MappingMapper extends QBMapper
             }
         }
 
-
 		return $this->update($obj);
 	}
 
