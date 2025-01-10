@@ -2,6 +2,7 @@
     "name": "Xxllnc Case to ZGW Zaak",
     "version": "0.0.1",
     "mapping": {
+        "originId": "reference",
         "identificatie": "reference",
         "omschrijving": "instance.subject",
         "toelichting": "instance.subject_external",
@@ -52,7 +53,8 @@
         "kenmerken.0.kenmerk": "unsetIfValue==reference",
         "resultaattoelichting": "unsetIfValue==",
         "bronorganisatie": "unsetIfValue==bronorganisatie",
-        "verantwoordelijkeOrganisatie": "unsetIfValue==bronorganisatie"
+        "verantwoordelijkeOrganisatie": "unsetIfValue==bronorganisatie",
+        "originId": "unsetIfValue==reference"
     },
     "passTrough": false
 }

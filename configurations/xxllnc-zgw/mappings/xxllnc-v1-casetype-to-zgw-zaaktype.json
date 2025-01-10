@@ -2,6 +2,7 @@
     "name": "Xxllnc Casetype to ZGW ZaakType",
     "version": "0.0.1",
     "mapping": {
+        "originId": "reference",
         "identificatie": "instance.legacy.zaaktype_id",
         "catalogus": "_catalogus",
         "onderwerp": "instance.title",
@@ -46,7 +47,8 @@
         "bronzaaktype.omschrijving": "unsetIfValue==instance.title",
         "bronzaaktype.naam": "unsetIfValue==preview",
         "referentieproces.naam": "unsetIfValue==preview",
-        "verantwoordelijke": "unsetIfValue==instance.properties.supervisor"
+        "verantwoordelijke": "unsetIfValue==instance.properties.supervisor",
+        "originId": "unsetIfValue==reference"
     },
     "passTrough": false
 }
