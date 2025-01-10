@@ -115,7 +115,7 @@ class ImportService
 			default:
 				// If Content-Type is not specified or not recognized, try to parse as JSON first, then YAML
 				$phpArray = json_decode(json: $data, associative: true);
-				if ($phpArray === null) {
+				if ($phpArray === null || $phpArray === false) {
 					try {
 						$phpArray = Yaml::parse(input: $data);
 					} catch (Exception $exception) {

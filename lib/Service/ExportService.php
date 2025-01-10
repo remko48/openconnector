@@ -66,11 +66,11 @@ class ExportService
 			return new JSONResponse(data: ['error' => "Could not find an object with this {id}: ".$id], statusCode: 400);
 		}
 
-		$objectArray = $this->prepareObject($objectType, $mapper, $object);
-		
+		$objectArray = $this->prepareObject(objectType: $objectType, mapper: $mapper, object: $object);
+
 		$filename = ucfirst($objectType).'-'.$objectArray['name'].'-v'.$objectArray['version'];
 
-		$dataString = $this->encode(objectArray: $objectArray, type: $type);
+		$dataString = $this->encode(objectArray: $objectArray, type: $accept);
 
 		$this->download(dataString: $dataString, filename: $filename, type: $type);
 	}
@@ -131,12 +131,29 @@ class ExportService
 	{
 		switch ($type) {
 			case 'application/json':
-				return json_encode(value: $objectArray, flags: JSON_PRETTY_PRINT);
+				$dataString = json_encode(value: $objectArray, flags: JSON_PRETTY_PRINT);
+				break;
 			case 'application/yaml':
-				return Yaml::dump(input: $objectArray);
+				$dataString = Yaml::dump(input: $objectArray);
+				break;
 			default:
-				return null;
+				// If type is not specified or not recognized, try to encode as JSON first, then YAML
+				$dataString = json_encode(value: $objectArray, flags: JSON_PRETTY_PRINT);
+				if ($dataString === false) {
+					try {
+						$dataString = Yaml::dump(input: $objectArray);
+					} catch (Exception $exception) {
+						$dataString = null;
+					}
+				}
+				break;
 		}
+
+		if ($dataString === null || $dataString === false) {
+			return null;
+		}
+
+		return $dataString;
 	}
 
 	/**
