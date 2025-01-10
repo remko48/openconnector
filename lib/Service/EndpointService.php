@@ -66,7 +66,7 @@ class EndpointService
 	{
 		$errors = $this->checkConditions($endpoint, $request);
 
-		if($errors !== []) {
+		if ($errors !== []) {
 			return new JSONResponse(['error' => 'The following parameters are not correctly set', 'fields' => $errors], 400);
 		}
 
@@ -229,13 +229,13 @@ class EndpointService
 		$register = $target[0];
 		$schema = $target[1];
 
-		// @todo: shouldn't this just get OpenRegister ObjectService here? In this case we should use: $this->getOpenRegisters()
+
 		$mapper = $this->objectService->getMapper(schema: $schema, register: $register);
 
 		$parameters = $request->getParams();
 
-		
-		if($endpoint->getInputMapping() !== null) {
+
+		if ($endpoint->getInputMapping() !== null) {
 			$inputMapping = $this->mappingService->getMapping($endpoint->getInputMapping());
 			$parameters = $this->mappingService->executeMapping(mapping: $inputMapping, input: $parameters);
 		}
@@ -332,7 +332,7 @@ class EndpointService
 
 		$result = JsonLogic::apply(logic: $conditions, data: $data);
 
-		if($result === true || $result === []) {
+		if ($result === true || $result === []) {
 			return [];
 		}
 

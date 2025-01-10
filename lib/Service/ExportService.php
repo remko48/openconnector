@@ -42,8 +42,6 @@ class ExportService
 	 */
 	public function export(string $objectType, string $id, string $accept): JSONResponse
 	{
-		// @todo: remove backslash for / in urls like @id and reference
-
 		try {
 			$mapper = $this->objectService->getMapper(objectType: $objectType);
 		} catch (InvalidArgumentException|NotFoundExceptionInterface|ContainerExceptionInterface $e) {
@@ -60,7 +58,7 @@ class ExportService
 		$filename = $objectArray['name'].ucfirst($objectType).'-v'.$objectArray['version'];
 
 		if (str_contains(haystack: $accept, needle: 'application/json') === true) {
-			if (isset($objectArray['reference']) === true) {
+			if (empty($objectArray['reference']) === false) {
 				$url = $objectArray['reference'];
 			} else {
 				$url = $objectArray['reference'] = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
