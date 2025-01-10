@@ -206,7 +206,6 @@ export const useSourceStore = defineStore(
 				}
 				importExportStore.exportFile(
 					sourceItem.id,
-					sourceItem.name,
 					'source',
 				)
 					.then(({ download }) => {
