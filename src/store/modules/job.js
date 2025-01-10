@@ -193,6 +193,9 @@ export const useJobStore = defineStore(
 					}
 				})
 
+				// Remove the version field
+				delete jobToSave.version
+
 				return fetch(
 					endpoint,
 					{

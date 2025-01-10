@@ -71,6 +71,10 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 						<p>{{ jobStore.jobItem.status }}</p>
 					</div>
 					<div class="gridContent">
+						<b>Version:</b>
+						<p>{{ jobStore.jobItem.version }}</p>
+					</div>
+					<div class="gridContent">
 						<b>Enabled:</b>
 						<p>{{ jobStore.jobItem.isEnabled }}</p>
 					</div>

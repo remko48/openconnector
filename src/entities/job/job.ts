@@ -25,7 +25,7 @@ export class Job extends ReadonlyBaseClass implements TJob {
 	public readonly nextRun: string
 	public readonly created: string
 	public readonly updated: string
-
+	public readonly version: string
 	constructor(job: TJob) {
 		const processedJob: TJob = {
 			id: job.id || '',
@@ -48,6 +48,7 @@ export class Job extends ReadonlyBaseClass implements TJob {
 			nextRun: job.nextRun || '',
 			created: getValidISOstring(job.created) ?? '',
 			updated: getValidISOstring(job.updated) ?? '',
+			version: job.version || '',
 		}
 
 		super(processedJob)
@@ -73,6 +74,7 @@ export class Job extends ReadonlyBaseClass implements TJob {
 			errorRetention: z.number().int().positive(),
 			lastRun: z.string().nullable(),
 			nextRun: z.string().nullable(),
+			version: z.string(),
 		})
 
 		return schema.safeParse({ ...this })

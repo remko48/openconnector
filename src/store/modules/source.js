@@ -173,9 +173,11 @@ export const useSourceStore = defineStore(
 					}
 				})
 
-				// remove the dateCreated and dateModified fields
+				// remove the dateCreated, dateModified and version fields
 				delete sourceToSave.dateCreated
 				delete sourceToSave.dateModified
+				delete sourceToSave.version
+
 
 				return fetch(
 					endpoint,

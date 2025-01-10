@@ -95,6 +95,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 					<NcSelect v-if="typeOptions.value?.id !== 'register/schema'"
 						v-bind="sourceOptions"
 						v-model="sourceOptions.sourceValue"
+						required
 						:loading="sourcesLoading"
 						input-label="Source ID" />
 
@@ -174,7 +175,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 			<NcButton v-if="!success"
 				:disabled="loading
 					|| !synchronizationItem.name
-					|| !synchronizationItem.sourceId
+					|| (typeOptions.value?.id !== 'register/schema' && !sourceOptions.sourceValue?.id)
 					// both register and schema need to be selected for register/schema target type
 					|| (targetTypeOptions.value?.id === 'register/schema' && (!registerOptions.value?.id || !schemaOptions.value?.id))
 					|| (typeOptions.value?.id === 'register/schema' && (!registerOptions.sourceValue?.id || !schemaOptions.sourceValue?.id))

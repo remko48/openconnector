@@ -162,6 +162,10 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				: `/index.php/apps/openconnector/api/synchronizations/${synchronizationItem.id}`
 			const method = isNewSynchronization ? 'POST' : 'PUT'
 
+			// Create a copy of the synchronization item and remove empty properties
+			const synchronizationToSave = { ...synchronizationItem }
+			delete synchronizationToSave.version
+
 			const response = await fetch(
 				endpoint,
 				{
@@ -169,7 +173,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(synchronizationItem),
+					body: JSON.stringify(synchronizationToSave),
 				},
 			)
 
