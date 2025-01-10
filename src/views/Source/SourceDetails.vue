@@ -39,6 +39,12 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 							</template>
 							Add Authentication
 						</NcActionButton>
+						<NcActionButton @click="sourceStore.exportSource(sourceStore.sourceItem)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export source
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSource')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -57,6 +63,10 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 					<div class="gridContent">
 						<b>location:</b>
 						<p>{{ sourceStore.sourceItem.location }}</p>
+					</div>
+					<div class="gridContent">
+						<b>version:</b>
+						<p>{{ sourceStore.sourceItem.version }}</p>
 					</div>
 				</div>
 				<div class="tabContainer">
@@ -133,7 +143,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 								</NcListItem>
 							</div>
 							<div v-if="!Object.keys(configurationAuthentication)?.length" class="tabPanel">
-								No configurations found
+								No authentications found
 							</div>
 						</BTab>
 						<BTab title="Endpoints" class="tabPanel">
@@ -196,6 +206,7 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'SourceDetails',

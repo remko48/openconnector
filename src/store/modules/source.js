@@ -1,6 +1,7 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Source } from '../../entities/index.js'
+import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
 
 export const useSourceStore = defineStore(
 	'source', {
@@ -15,31 +16,31 @@ export const useSourceStore = defineStore(
 		actions: {
 			setSourceItem(sourceItem) {
 				this.sourceItem = sourceItem && new Source(sourceItem)
-				console.log('Active source item set to ' + sourceItem)
+				console.info('Active source item set to ' + sourceItem)
 				this.refreshSourceLogs()
 
 			},
 			setSourceTest(sourceTest) {
 				this.sourceTest = sourceTest
-				console.log('Source test set to ' + sourceTest)
+				console.info('Source test set to ' + sourceTest)
 			},
 			setSourceList(sourceList) {
 				this.sourceList = sourceList.map(
 					(sourceItem) => new Source(sourceItem),
 				)
-				console.log('Source list set to ' + sourceList.length + ' items')
+				console.info('Source list set to ' + sourceList.length + ' items')
 			},
 			setSourceLog(sourceLog) {
 				this.sourceLog = sourceLog
-				console.log('Source log set')
+				console.info('Source log set')
 			},
 			setSourceLogs(sourceLogs) {
 				this.sourceLogs = sourceLogs
-				console.log('Source logs set to ' + sourceLogs.length + ' items')
+				console.info('Source logs set to ' + sourceLogs.length + ' items')
 			},
 			setSourceConfigurationKey(sourceConfigurationKey) {
 				this.sourceConfigurationKey = sourceConfigurationKey
-				console.log('Source configuration key set to ' + sourceConfigurationKey)
+				console.info('Source configuration key set to ' + sourceConfigurationKey)
 			},
 			/**
 			 * Refreshes the source list by fetching data from the API.
@@ -104,7 +105,7 @@ export const useSourceStore = defineStore(
 					throw new Error('No source item to delete')
 				}
 
-				console.log('Deleting source...')
+				console.info('Deleting source...')
 
 				const endpoint = `/index.php/apps/openconnector/api/sources/${this.sourceItem.id}`
 
@@ -128,7 +129,7 @@ export const useSourceStore = defineStore(
 					throw new Error('No testobject to test')
 				}
 
-				console.log('Testing source...')
+				console.info('Testing source...')
 
 				const endpoint = `/index.php/apps/openconnector/api/source-test/${this.sourceItem.id}`
 
@@ -142,7 +143,7 @@ export const useSourceStore = defineStore(
 					.then((response) => response.json())
 					.then((data) => {
 						this.setSourceTest(data)
-						console.log('Source tested')
+						console.info('Source tested')
 						// Refresh the source list
 						this.refreshSourceLogs()
 					})
@@ -158,7 +159,7 @@ export const useSourceStore = defineStore(
 					throw new Error('No source item to save')
 				}
 
-				console.log('Saving source...')
+				console.info('Saving source...')
 
 				const isNewSource = !sourceItem.id
 				const endpoint = isNewSource
@@ -167,16 +168,17 @@ export const useSourceStore = defineStore(
 				const method = isNewSource ? 'POST' : 'PUT'
 
 				// Create a copy of the source item and remove empty properties
-				const sourceToSave = { ...sourceItem }
+				const sourceToSave = _.cloneDeep(sourceItem)
 				Object.keys(sourceToSave).forEach(key => {
 					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && !sourceToSave[key].length)) {
 						delete sourceToSave[key]
 					}
 				})
 
-				// remove the dateCreated and dateModified fields
+				// remove the dateCreated, dateModified and version fields
 				delete sourceToSave.dateCreated
 				delete sourceToSave.dateModified
+				delete sourceToSave.version
 
 				return fetch(
 					endpoint,
@@ -191,12 +193,29 @@ export const useSourceStore = defineStore(
 					.then((response) => response.json())
 					.then((data) => {
 						this.setSourceItem(data)
-						console.log('Source saved')
+						console.info('Source saved')
 						// Refresh the source list
 						return this.refreshSourceList()
 					})
 					.catch((err) => {
 						console.error('Error saving source:', err)
+						throw err
+					})
+			},
+			// Export a source
+			exportSource(sourceItem) {
+				if (!sourceItem) {
+					throw new Error('No source item to export')
+				}
+				importExportStore.exportFile(
+					sourceItem.id,
+					'source',
+				)
+					.then(({ download }) => {
+						download()
+					})
+					.catch((err) => {
+						console.error('Error exporting source:', err)
 						throw err
 					})
 			},

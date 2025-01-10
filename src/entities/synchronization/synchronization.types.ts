@@ -22,4 +22,5 @@ export type TSynchronization = {
     targetLastSynced: string
     created: string
     updated: string
+    version: string
 }
