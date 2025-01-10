@@ -39,7 +39,7 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 							</template>
 							Add Authentication
 						</NcActionButton>
-						<NcActionButton @click="sourceStore.exportSource">
+						<NcActionButton @click="sourceStore.exportSource(sourceStore.sourceItem)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

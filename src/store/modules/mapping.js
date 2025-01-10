@@ -236,13 +236,13 @@ export const useMappingStore = defineStore('mapping', {
 			return { response, data }
 		},
 		// Export a mapping
-		exportMapping() {
-			if (!this.mappingItem) {
+		exportMapping(mappingItem) {
+			if (!mappingItem) {
 				throw new Error('No mapping item to export')
 			}
 			importExportStore.exportFile(
-				this.mappingItem.id,
-				this.mappingItem.name,
+				mappingItem.id,
+				mappingItem.name,
 				'mapping',
 			)
 				.then(({ download }) => {

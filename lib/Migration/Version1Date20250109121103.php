@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -18,7 +18,7 @@ use OCP\Migration\SimpleMigrationStep;
 /**
  * FIXME Auto-generated migration step: Please modify to your needs!
  */
-class Version1Date20241230141628 extends SimpleMigrationStep {
+class Version1Date20250109121103 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -40,11 +40,12 @@ class Version1Date20241230141628 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if ($schema->hasTable(tableName: 'openconnector_endpoints') === true) {
-			$table = $schema->getTable(tableName: 'openconnector_endpoints');
-			$table->addColumn('input_mapping', Types::STRING)->setNotnull(false)->setDefault(null);
-			$table->addColumn('output_mapping', Types::STRING)->setNotnull(false)->setDefault(null);
-			$table->getColumn('conditions')->setDefault('[]');
+		if ($schema->hasTable(tableName: 'openconnector_synchronization_contracts') === true) {
+			$table = $schema->getTable(tableName: 'openconnector_synchronization_contracts');
+			$table->getColumn('origin_id')->setNotnull(false);
+			$table->getColumn('target_id')->setNotnull(false);
+			$table->getColumn('origin_hash')->setNotnull(false);
+			$table->getColumn('target_hash')->setNotnull(false);
 		}
 
 		return $schema;

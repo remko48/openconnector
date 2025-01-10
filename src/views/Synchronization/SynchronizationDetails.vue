@@ -45,7 +45,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Run
 						</NcActionButton>
-						<NcActionButton @click="synchronizationStore.exportSynchronization">
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronizationStore.synchronizationItem)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

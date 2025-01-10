@@ -58,7 +58,7 @@ import { synchronizationStore, navigationStore, searchStore, importExportStore }
 							</template>
 							Edit
 						</NcActionButton>
-						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); synchronizationStore.exportSynchronization();">
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronization)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

@@ -239,13 +239,13 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			return { response, data }
 		},
 		// Export a synchronization
-		exportSynchronization() {
-			if (!this.synchronizationItem) {
+		exportSynchronization(synchronizationItem) {
+			if (!synchronizationItem) {
 				throw new Error('No synchronization item to export')
 			}
 			importExportStore.exportFile(
-				this.synchronizationItem.id,
-				this.synchronizationItem.name,
+				synchronizationItem.id,
+				synchronizationItem.name,
 				'synchronization',
 			)
 				.then(({ download }) => {

@@ -200,13 +200,13 @@ export const useSourceStore = defineStore(
 					})
 			},
 			// Export a source
-			exportSource() {
-				if (!this.sourceItem) {
+			exportSource(sourceItem) {
+				if (!sourceItem) {
 					throw new Error('No source item to export')
 				}
 				importExportStore.exportFile(
-					this.sourceItem.id,
-					this.sourceItem.name,
+					sourceItem.id,
+					sourceItem.name,
 					'source',
 				)
 					.then(({ download }) => {
