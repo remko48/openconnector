@@ -5,6 +5,7 @@ namespace OCA\OpenConnector\Service;
 use Adbar\Dot;
 use Exception;
 use JWadhams\JsonLogic;
+use OCA\OpenConnector\Db\EndpointMapper;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
 use OCA\OpenConnector\Service\MappingService;
@@ -17,12 +18,14 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Uid\Uuid;
 use ValueError;
 
 /**
@@ -47,6 +50,7 @@ class EndpointService
 		private readonly LoggerInterface $logger,
 		private readonly IURLGenerator   $urlGenerator,
 		private readonly MappingService  $mappingService,
+        private readonly EndpointMapper  $endpointMapper,
 	)
 	{
 	}
@@ -133,6 +137,57 @@ class EndpointService
 		return $pathParams;
 	}
 
+    /**
+     * Replaces internal pointers with urls and ids by endpoint urls.
+     *
+     * @param QBMapper|\OCA\OpenRegister\Service\ObjectService $mapper The mapper used to find objects.
+     * @param ObjectEntity|null $object The object to substitute pointers in.
+     * @param array $serializedObject The serialized object (if the object itself is not available).
+     *
+     * @return array|null The serialized object including substituted pointers.
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    private function replaceInternalReferences(
+        QBMapper|\OCA\OpenRegister\Service\ObjectService $mapper,
+        ?ObjectEntity $object = null,
+        array $serializedObject = []
+    ): array
+    {
+        if($serializedObject === [] && $object !== null) {
+            $serializedObject = $object->jsonSerialize();
+        } else if ($serializedObject === null) {
+            return $serializedObject;
+        } else {
+            $object = $mapper->find($serializedObject['id']);
+        }
+
+        $uses = $object->getRelations();
+
+        $useUrls = [];
+        foreach($uses as $key=>$use) {
+            if (Uuid::isValid($use)) {
+                $useId = $use;
+            } else if (
+                str_contains(needle: 'localhost', haystack: $use)
+                || str_contains(needle: 'nextcloud.local', haystack: $use)
+                || str_contains(needle: $this->urlGenerator->getBaseUrl(), haystack: $use)
+            ){
+                $explodedUrl = explode(separator: '/', string: $use);
+                $useId = end(array: $explodedUrl);
+            } else {
+                unset($uses[$key]);
+                continue;
+            }
+
+            $useUrls[] = $this->generateEndpointUrl(id: $useId, parentIds: [$object->getUuid()]);
+        }
+
+        $serializedObject = str_replace($uses, $useUrls, $serializedObject);
+
+        return $serializedObject;
+    }
+
 	/**
 	 * Fetch objects for the endpoint.
 	 *
@@ -151,7 +206,9 @@ class EndpointService
 	): Entity|array
 	{
 		if (isset($pathParams['id']) === true && $pathParams['id'] === end($pathParams)) {
-			return $mapper->find($pathParams['id']);
+			return $this->replaceInternalReferences(mapper: $mapper, object: $mapper->find($pathParams['id']));
+
+
 		} else if (isset($pathParams['id']) === true) {
 
 			// Set the array pointer to the location of the id, so we can fetch the parameters further down the line in order.
@@ -169,17 +226,23 @@ class EndpointService
 
 			if (isset($id) === true && in_array(needle: $id, haystack: $ids) === true) {
 
-				return $mapper->findSubObjects([$id], $property)[0];
+				return $this->replaceInternalReferences(mapper: $mapper, object: $mapper->findSubObjects([$id], $property)[0]);
 			} else if (isset($id) === true) {
 				$status = 404;
 				return ['error' => 'not found', 'message' => "the subobject with id $id does not exist"];
 
 			}
 
-			return $mapper->findSubObjects($ids, $property);
+            return array_map(function (ObjectEntity $subObject) use ($mapper) {
+                return $this->replaceInternalReferences(mapper: $mapper, object: $subObject);
+            }, $mapper->findSubObjects($ids, $property));
 		}
 
 		$result = $mapper->findAllPaginated(requestParams: $parameters);
+
+        $result['results'] = array_map(function ($object) use ($mapper) {
+            return $this->replaceInternalReferences(mapper: $mapper, object: $object);
+        }, $result['results']);
 
 		$returnArray = [
 			'count' => $result['total'],
@@ -254,10 +317,10 @@ class EndpointService
 				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
 			),
 			'POST' => new JSONResponse(
-				$mapper->createFromArray(object: $parameters)
+				$this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->createFromArray(object: $parameters))
 			),
 			'PUT' => new JSONResponse(
-				$mapper->updateFromArray($request->getParams()['id'], $request->getParams(), true, true)
+                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($request->getParams()['id'], $request->getParams(), true, true))
 			),
 			'DELETE' => new JSONResponse(
 				$mapper->delete($request->getParams())
@@ -367,4 +430,53 @@ class EndpointService
 			$response->getStatusCode()
 		);
 	}
+
+    /**
+     * Generates url based on available endpoints for the object type.
+     *
+     * @param string $id The id of the object to generate an url for.
+     * @param int|null $register The register of the object (aids performance).
+     * @param int|null $schema The schema of the object (aids performance).
+     * @param array $parentIds The ids of the main object on subobjects.
+     *
+     * @return string The generated url.
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    public function generateEndpointUrl(string $id, ?int $register = null, ?int $schema = null, array $parentIds = []): string
+    {
+        if($register === null) {
+            $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($id);
+            $register = $object->getRegister();
+            $schema   = $object->getSchema();
+        }
+
+        $target = "$register/$schema";
+
+        $endpoints = $this->endpointMapper->findAll(filters: ['target_id' => $target, 'method' => 'GET']);
+
+        if(count($endpoints) === 0) {
+            return $id;
+        }
+
+        $endpoint = $endpoints[0];
+
+        $location = $endpoint->getEndpointArray();
+
+        $iterator = 0;
+        foreach($location as $key=>$part) {
+            if(preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) !== 'id') {
+                $location[$key] = $parentIds[$iterator];
+                $iterator++;
+            }
+
+            if(preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) === 'id') {
+                $location[$key] = $id;
+            }
+        }
+
+        $path = implode(separator: '/', array: $location);
+
+        return $this->urlGenerator->getBaseUrl().'/apps/openconnector/api/endpoint/'.$path;
+    }
 }
