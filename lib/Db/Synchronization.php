@@ -11,7 +11,8 @@ class Synchronization extends Entity implements JsonSerializable
     protected ?string $uuid = null;
 	protected ?string $name = null;	// The name of the synchronization
 	protected ?string $description = null;	// The description of the synchronization
-	protected ?string $version = null;	// The version of the synchronization
+	protected ?string $reference = null; // The reference of the endpoint
+	protected ?string $version = '0.0.0';	// The version of the synchronization
 	// Source
 	protected ?string $sourceId = null;	// The id of the source object
 	protected ?string $sourceType = null;	// The type of the source object (e.g. api, database, register/schema.)
@@ -44,6 +45,7 @@ class Synchronization extends Entity implements JsonSerializable
         $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
+		$this->addType(fieldName:'reference', type: 'string');
 		$this->addType('version', 'string');
 		$this->addType('sourceId', 'string');
 		$this->addType('sourceType', 'string');
@@ -71,7 +73,7 @@ class Synchronization extends Entity implements JsonSerializable
 
     /**
      * Checks through sourceConfig if the source of this sync uses pagination
-     * 
+     *
      * @return bool true if its uses pagination
      */
     public function usesPagination(): bool
@@ -121,6 +123,7 @@ class Synchronization extends Entity implements JsonSerializable
 			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
+			'reference' => $this->reference,
 			'version' => $this->version,
 			'sourceId' => $this->sourceId,
 			'sourceType' => $this->sourceType,

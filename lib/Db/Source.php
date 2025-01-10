@@ -12,7 +12,7 @@ class Source extends Entity implements JsonSerializable
 	protected ?string $name = null;
 	protected ?string $description = null;
 	protected ?string $reference = null;
-	protected ?string $version = null;
+	protected ?string $version = '0.0.0';
 	protected ?string $location = null;
 	protected ?bool $isEnabled = null;
 	protected ?string $type = null;

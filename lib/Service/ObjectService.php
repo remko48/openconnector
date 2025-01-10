@@ -7,6 +7,13 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use InvalidArgumentException;
+use OCA\OpenConnector\Db\ConsumerMapper;
+use OCA\OpenConnector\Db\EndpointMapper;
+use OCA\OpenConnector\Db\JobMapper;
+use OCA\OpenConnector\Db\MappingMapper;
+use OCA\OpenConnector\Db\SourceMapper;
+use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\QBMapper;
 use Psr\Container\ContainerExceptionInterface;
@@ -25,6 +32,12 @@ class ObjectService
 	public function __construct(
 		private readonly IAppManager $appManager,
 		private readonly ContainerInterface $container,
+		private readonly ConsumerMapper     $consumerMapper,
+		private readonly EndpointMapper     $endpointMapper,
+		private readonly JobMapper     		$jobMapper,
+		private readonly MappingMapper      $mappingMapper,
+		private readonly SourceMapper     	$sourceMapper,
+		private readonly SynchronizationMapper $synchronizationMapper,
 	)
 	{
 
@@ -253,23 +266,35 @@ class ObjectService
 	}
 
 	/**
-	 * Get the mapper for the given objecttype (usually the proper instantiation of the objectService of OpenRegister.
+	 * Gets the appropriate mapper based on the object type.
+	 * (This can be a objectType for OpenRegister, by using an instantiation of the objectService of OpenRegister).
 	 *
-	 * @param string|null $objecttype The objecttype as string
+	 * @param string|null $objectType The objectType as string
 	 * @param int|null $schema The openregister schema
 	 * @param int|null $register The openregister register
 	 *
-	 * @return QBMapper|\OCA\OpenRegister\Service\ObjectService|null The resulting mapper
+	 * @return mixed The appropriate mapper.
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
+	 * @throws InvalidArgumentException If an unknown object type is provided.
 	 */
-	public function getMapper(?string $objecttype = null, ?int $schema = null, ?int $register = null): QBMapper|\OCA\OpenRegister\Service\ObjectService|null
+	public function getMapper(?string $objectType = null, ?int $schema = null, ?int $register = null): mixed
 	{
-		if ($register !== null && $schema !== null && $objecttype === null) {
+		if ($register !== null && $schema !== null && $objectType === null) {
 			return $this->getOpenRegisters()->getMapper(register: $register, schema: $schema);
 		}
 
-		return null;
+		$objectTypeLower = strtolower($objectType);
+
+		// If the source is internal, return the appropriate mapper based on the object type
+		return match ($objectTypeLower) {
+			'endpoint' => $this->endpointMapper,
+			'job' 	   => $this->jobMapper,
+			'mapping'  => $this->mappingMapper,
+			'source'   => $this->sourceMapper,
+			'synchronization' => $this->synchronizationMapper,
+			default => throw new InvalidArgumentException("Unknown object type: $objectType"),
+		};
 
 	}
 
