@@ -12,7 +12,7 @@ class Synchronization extends Entity implements JsonSerializable
 	protected ?string $name = null;	// The name of the synchronization
 	protected ?string $description = null;	// The description of the synchronization
 	protected ?string $reference = null; // The reference of the endpoint
-	protected ?string $version = null;	// The version of the synchronization
+	protected ?string $version = '0.0.0';	// The version of the synchronization
 	// Source
 	protected ?string $sourceId = null;	// The id of the source object
 	protected ?string $sourceType = null;	// The type of the source object (e.g. api, database, register/schema.)
