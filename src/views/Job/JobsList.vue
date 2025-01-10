@@ -52,7 +52,7 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
-						<NcActionButton @click="jobStore.setJobItem(job); jobStore.exportJob();">
+						<NcActionButton @click="jobStore.exportJob(job)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

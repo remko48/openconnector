@@ -216,13 +216,13 @@ export const useJobStore = defineStore(
 					})
 			},
 			// Export a job
-			exportJob() {
-				if (!this.jobItem) {
+			exportJob(jobItem) {
+				if (!jobItem) {
 					throw new Error('No job item to export')
 				}
 				importExportStore.exportFile(
-					this.jobItem.id,
-					this.jobItem.name,
+					jobItem.id,
+					jobItem.name,
 					'job',
 				)
 					.then(({ download }) => {

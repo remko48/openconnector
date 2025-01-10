@@ -21,7 +21,7 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 							</template>
 							Bewerken
 						</NcActionButton>
-						<NcActionButton @click="endpointStore.exportEndpoint">
+						<NcActionButton @click="endpointStore.exportEndpoint(endpointStore.endpointItem)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

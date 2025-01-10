@@ -118,13 +118,13 @@ export const useEndpointStore = defineStore('endpoint', {
 			return { response, data, entity }
 		},
 		// Export an endpoint
-		exportEndpoint() {
-			if (!this.endpointItem) {
+		exportEndpoint(endpointItem) {
+			if (!endpointItem) {
 				throw new Error('No endpoint item to export')
 			}
 			importExportStore.exportFile(
-				this.endpointItem.id,
-				this.endpointItem.name,
+				endpointItem.id,
+				endpointItem.name,
 				'endpoint',
 			)
 				.then(({ download }) => {
