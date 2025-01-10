@@ -26,9 +26,13 @@ return [
 		['name' => 'mappings#saveObject', 'url' => '/api/mappings/objects', 'verb' => 'POST'],
 		['name' => 'mappings#getObjects', 'url' => '/api/mappings/objects', 'verb' => 'GET'],
 		// Running endpoints - allow any path after /api/endpoints/
-		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{_path}', 'verb' => 'GET', 'requirements' => ['_path' => '.+']],
-//		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'PUT', 'requirements' => ['path' => '.+']],
-//		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'POST', 'requirements' => ['path' => '.+']],
-//		['name' => 'endpoints#handlePath', 'url' => '/api/endpoint/{path}', 'verb' => 'DELETE', 'requirements' => ['path' => '.+']],
+		['name' => 'endpoints#handlePath', 'postfix' => 'read', 'url' => '/api/endpoint/{_path}', 'verb' => 'GET', 'requirements' => ['_path' => '.+']],
+		['name' => 'endpoints#handlePath', 'postfix' => 'update', 'url' => '/api/endpoint/{_path}', 'verb' => 'PUT', 'requirements' => ['_path' => '.+']],
+		['name' => 'endpoints#handlePath', 'postfix' => 'create', 'url' => '/api/endpoint/{_path}', 'verb' => 'POST', 'requirements' => ['_path' => '.+']],
+		['name' => 'endpoints#handlePath', 'postfix' => 'destroy', 'url' => '/api/endpoint/{_path}', 'verb' => 'DELETE', 'requirements' => ['_path' => '.+']],
+		// Import & Export
+		['name' => 'import#import', 'url' => '/api/import', 'verb' => 'POST'],
+//		['name' => 'import#importUpdate', 'url' => '/api/import/{id}', 'verb' => 'PUT'],
+		['name' => 'export#export', 'url' => '/api/export/{type}/{id}', 'verb' => 'GET'],
 	],
 ];

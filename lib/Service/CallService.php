@@ -101,6 +101,46 @@ class CallService
 		return array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
 	}
 
+    /**
+     * Decides method based on configuration and returns that configuration.
+     *
+     * @param string $default The default method, used if no override is set
+     * @param array  $configuration The configuration to find overrides in.
+     * @param bool   $read For GET as default: decides if we are in a list or read (singular) endpoint.
+     *
+     * @return string
+     */
+	private function decideMethod(string $default, array $configuration, bool $read = false): string
+	{
+		switch($default) {
+			case 'POST':
+				if (isset($configuration['createMethod']) === true) {
+					return $configuration['createMethod'];
+				}
+				return $default;
+			case 'PUT':
+			case 'PATCH':
+				if (isset($configuration['updateMethod']) === true) {
+					return $configuration['updateMethod'];
+				}
+				return $default;
+			case 'DELETE':
+				if (isset($configuration['destroyMethod']) === true) {
+					return $configuration['destroyMethod'];
+				}
+				return $default;
+			case 'GET':
+			default:
+				if (isset($configuration['listMethod']) === true && $read === false) {
+					return $configuration['listMethod'];
+				}
+				if (isset($configuration['readMethod']) === true && $read === true) {
+					return $configuration['readMethod'];
+				}
+				return $default;
+		}
+	}
+
 	/**
 	 * Calls a source according to given configuration.
 	 *
@@ -125,10 +165,14 @@ class CallService
 		array $config = [],
 		bool $asynchronous = false,
 		bool $createCertificates = true,
-		bool $overruleAuth = false
+		bool $overruleAuth = false,
+		bool $read = false
 	): CallLog
 	{
 		$this->source = $source;
+
+		$method = $this->decideMethod(default: $method, configuration: $config, read: $read);
+        unset($config['createMethod'], $config['updateMethod'], $config['destroyMethod'], $config['listMethod'], $config['readMethod']);
 
 		if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
 			// Create and save the CallLog

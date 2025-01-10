@@ -45,6 +45,12 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Run
 						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronizationStore.synchronizationItem)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export synchronization
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -59,6 +65,10 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 					<div class="gridContent gridFullWidth">
 						<b>id:</b>
 						<p>{{ synchronizationStore.synchronizationItem.uuid }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Version:</b>
+						<p>{{ synchronizationStore.synchronizationItem.version }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Created:</b>
@@ -298,6 +308,8 @@ import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import DatabaseSettingsOutline from 'vue-material-design-icons/DatabaseSettingsOutline.vue'
 import CardBulletedSettingsOutline from 'vue-material-design-icons/CardBulletedSettingsOutline.vue'
 import Play from 'vue-material-design-icons/Play.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+
 import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {

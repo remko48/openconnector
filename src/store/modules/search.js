@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 
 export const useSearchStore = defineStore(
@@ -11,11 +10,11 @@ export const useSearchStore = defineStore(
 		actions: {
 			setSearch(search) {
 				this.search = search
-				console.log('Active search set to ' + search)
+				console.info('Active search set to ' + search)
 			},
 			setSearchResults(searchResults) {
 				this.searchResults = searchResults
-				console.log('Active search set to ' + searchResults)
+				console.info('Active search set to ' + searchResults)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			getSearchResults() {
@@ -31,7 +30,7 @@ export const useSearchStore = defineStore(
 								(data) => {
 									if (data?.code === 403 && data?.message) {
 										this.searchError = data.message
-										console.log(this.searchError)
+										console.info(this.searchError)
 									} else {
 										this.searchError = '' // Clear any previous errors
 									}

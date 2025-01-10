@@ -90,23 +90,23 @@ export default {
 			if (!sourceStore.sourceConfigurationKey) {
 				return
 			}
-			const configurationItem = Object.entries(sourceStore.sourceItem.configuration).find(([key]) => key === sourceStore.sourceConfigurationKey)
-			if (configurationItem) {
+			// Get authentication object or initialize empty object if it doesn't exist
+			const authentication = sourceStore.sourceItem.configuration?.authentication || {}
+			const key = sourceStore.sourceConfigurationKey
+
+			if (key in authentication) {
 				this.configurationItem = {
-					key: configurationItem[0].replace(/^authentication\./g, '') || '',
-					value: configurationItem[1] || '',
+					key,
+					value: authentication[key] || '',
 				}
-				this.oldKey = configurationItem[0]
+				this.oldKey = key
 				this.isEdit = true
 			}
 		},
 		checkIfKeyIsUnique(key) {
-			if (!sourceStore.sourceItem.configuration) return false
-			const fullKey = `authentication.${key}`
-			const keys = Object.keys(sourceStore.sourceItem.configuration)
-			if (this.oldKey === fullKey) return false
-			if (keys.includes(fullKey)) return true
-			return false
+			if (!sourceStore.sourceItem.configuration?.authentication) return false
+			if (this.oldKey === key) return false
+			return key in sourceStore.sourceItem.configuration.authentication
 		},
 		closeModal() {
 			navigationStore.setModal(false)
@@ -116,16 +116,27 @@ export default {
 		async editSourceConfiguration() {
 			this.loading = true
 
+			// Get current configuration and authentication or initialize empty objects
+			const currentConfig = sourceStore.sourceItem.configuration || {}
+			const currentAuth = currentConfig.authentication || {}
+
+			// Create new authentication object with updated values
+			const newAuth = {
+				...currentAuth,
+				[this.configurationItem.key]: this.configurationItem.value,
+			}
+
+			// Remove old key if it was renamed
+			if (this.oldKey && this.oldKey !== this.configurationItem.key) {
+				delete newAuth[this.oldKey]
+			}
+
 			const newSourceItem = {
 				...sourceStore.sourceItem,
 				configuration: {
-					...sourceStore.sourceItem.configuration,
-					[`authentication.${this.configurationItem.key}`]: this.configurationItem.value,
+					...currentConfig,
+					authentication: newAuth,
 				},
-			}
-
-			if (this.oldKey !== '' && this.oldKey !== `authentication.${this.configurationItem.key}`) {
-				delete newSourceItem.configuration[this.oldKey]
 			}
 
 			try {

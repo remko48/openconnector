@@ -26,6 +26,7 @@ export const mockSynchronizationData = (): TSynchronization[] => [
 		targetLastSynced: '2023-05-01T13:45:00Z',
 		created: '2023-05-01T11:00:00Z',
 		updated: '2023-05-01T14:00:00Z',
+		version: '1.0.0',
 	},
 	{
 		id: 2,
@@ -51,6 +52,7 @@ export const mockSynchronizationData = (): TSynchronization[] => [
 		targetLastSynced: '2023-05-02T13:45:00Z',
 		created: '2023-05-02T11:00:00Z',
 		updated: '2023-05-02T14:00:00Z',
+		version: '1.0.0',
 	},
 ]
 

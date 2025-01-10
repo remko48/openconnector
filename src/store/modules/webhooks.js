@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Webhook } from '../../entities/index.js'
 
@@ -11,13 +10,13 @@ export const useWebhookStore = defineStore(
 		actions: {
 			setWebhookItem(webhookItem) {
 				this.webhookItem = webhookItem && new Webhook(webhookItem)
-				console.log('Active webhook item set to ' + webhookItem)
+				console.info('Active webhook item set to ' + webhookItem)
 			},
 			setWebhookList(webhookList) {
 				this.webhookList = webhookList.map(
 					(webhookItem) => new Webhook(webhookItem),
 				)
-				console.log('Webhook list set to ' + webhookList.length + ' items')
+				console.info('Webhook list set to ' + webhookList.length + ' items')
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshWebhookList(search = null) {
@@ -65,7 +64,7 @@ export const useWebhookStore = defineStore(
 					throw new Error('No webhook item to delete')
 				}
 
-				console.log('Deleting webhook...')
+				console.info('Deleting webhook...')
 
 				const endpoint = `/index.php/apps/openconnector/api/webhooks/${this.webhookItem.id}`
 
@@ -86,7 +85,7 @@ export const useWebhookStore = defineStore(
 					throw new Error('No webhook item to save')
 				}
 
-				console.log('Saving webhook...')
+				console.info('Saving webhook...')
 
 				const isNewWebhook = !this.webhookItem.id
 				const endpoint = isNewWebhook
@@ -115,7 +114,7 @@ export const useWebhookStore = defineStore(
 					.then((response) => response.json())
 					.then((data) => {
 						this.setWebhookItem(data)
-						console.log('Webhook saved')
+						console.info('Webhook saved')
 						// Refresh the webhook list
 						return this.refreshWebhookList()
 					})

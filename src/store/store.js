@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 // The store script handles app wide variables (or state), for the use of these variables and their governing concepts read the design.md
 import pinia from '../pinia.js'
 import { useNavigationStore } from './modules/navigation.js'
@@ -11,6 +10,7 @@ import { useSynchronizationStore } from './modules/synchronization.js'
 import { useWebhookStore } from './modules/webhooks.js'
 import { useEndpointStore } from './modules/endpoints.js'
 import { useConsumerStore } from './modules/consumer.js'
+import { useImportExportStore } from './modules/importExport.js'
 
 const navigationStore = useNavigationStore(pinia)
 const searchStore = useSearchStore(pinia)
@@ -22,6 +22,7 @@ const synchronizationStore = useSynchronizationStore(pinia)
 const webhookStore = useWebhookStore(pinia)
 const endpointStore = useEndpointStore(pinia)
 const consumerStore = useConsumerStore(pinia)
+const importExportStore = useImportExportStore(pinia)
 
 export {
 	// generic
@@ -36,4 +37,5 @@ export {
 	webhookStore,
 	endpointStore,
 	consumerStore,
+	importExportStore,
 }

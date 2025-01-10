@@ -16,9 +16,12 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 /**
- * FIXME Auto-generated migration step: Please modify to your needs!
+ * This migration changes the following:
+ * - Adding 1 new column for the table Consumers: reference
+ * - Adding 1 new column for the table Jobs: reference
+ * - Adding 1 new column for the table Synchronizations: reference
  */
-class Version1Date20241218122932 extends SimpleMigrationStep {
+class Version1Date20250107163601 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -40,14 +43,13 @@ class Version1Date20241218122932 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if ($schema->hasTable(tableName: 'openconnector_consumers') === true) {
-			$table = $schema->getTable(tableName: 'openconnector_consumers');
-			$table->addColumn('authorization_configuration', Types::JSON);
-			$table->addColumn('user_id', Types::STRING)->setNotnull(false);
+		if ($schema->hasTable(tableName: 'openconnector_jobs') === true) {
+			$table = $schema->getTable(tableName: 'openconnector_jobs');
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
 		}
-		if ($schema->hasTable(tableName: 'openconnector_endpoints') === true) {
-			$table = $schema->getTable(tableName: 'openconnector_endpoints');
-			$table->addColumn('conditions', Types::JSON);
+		if ($schema->hasTable(tableName: 'openconnector_synchronizations') === true) {
+			$table = $schema->getTable(tableName: 'openconnector_synchronizations');
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
 		}
 
 		return $schema;
