@@ -55,7 +55,7 @@ class ExportService
 		}
 
 		$objectArray = $object->jsonSerialize();
-		$filename = $objectArray['name'].ucfirst($objectType).'-v'.$objectArray['version'];
+		$filename = ucfirst($objectType).'-'.$objectArray['name'].'-v'.$objectArray['version'];
 
 		if (str_contains(haystack: $accept, needle: 'application/json') === true) {
 			if (empty($objectArray['reference']) === false) {
@@ -70,7 +70,7 @@ class ExportService
 				$mapper->updateFromArray(id: $id, object: $objectArray);
 			}
 
-			$objArray['@context'] = "http://schema.org";
+			$objArray['@context'] = ["schema" => "http://schema.org", "register" => "501"];
 			$objArray['@type'] = $objectType;
 			$objArray['@id'] = $url;
 			$objArray = array_merge($objArray, $objectArray);

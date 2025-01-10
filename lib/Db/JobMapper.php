@@ -34,7 +34,7 @@ class JobMapper extends QBMapper
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
-			->from('openconnector_endpoints')
+			->from('openconnector_jobs')
 			->where(
 				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
 			);
