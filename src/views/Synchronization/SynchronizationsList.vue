@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore, searchStore, importExportStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, searchStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -28,11 +28,11 @@ import { synchronizationStore, navigationStore, searchStore, importExportStore }
 						</template>
 						Add synchronization
 					</NcActionButton>
-					<NcActionButton @click="importExportStore.setImportFileName('synchronization'); navigationStore.setModal('importFile')">
+					<NcActionButton @click="navigationStore.setModal('importFile')">
 						<template #icon>
 							<FileImportOutline :size="20" />
 						</template>
-						Import synchronization
+						Import
 					</NcActionButton>
 				</NcActions>
 			</div>

@@ -1,5 +1,5 @@
 <script setup>
-import { sourceStore, navigationStore, searchStore, importExportStore } from '../../store/store.js'
+import { sourceStore, navigationStore, searchStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -28,11 +28,11 @@ import { sourceStore, navigationStore, searchStore, importExportStore } from '..
 						</template>
 						Add source
 					</NcActionButton>
-					<NcActionButton @click="importExportStore.setImportFileName('source'); navigationStore.setModal('importFile')">
+					<NcActionButton @click="navigationStore.setModal('importFile')">
 						<template #icon>
 							<FileImportOutline :size="20" />
 						</template>
-						Import source
+						Import
 					</NcActionButton>
 				</NcActions>
 			</div>

@@ -323,6 +323,7 @@ export default {
 
 			// update targetTypeOptions with the synchronization item target type
 			this.targetTypeOptions.value = this.targetTypeOptions.options.find(option => option.id === this.synchronizationItem.targetType)
+			this.typeOptions.value = this.typeOptions.options.find(option => option.id === this.synchronizationItem.sourceType)
 		}
 
 		// Fetch sources, mappings, register, and schema
@@ -603,7 +604,7 @@ export default {
 			let sourceId = null
 			if (this.typeOptions.value?.id === 'register/schema') {
 				sourceId = `${this.registerOptions.sourceValue?.id}/${this.schemaOptions.sourceValue?.id}`
-			} else if (this.typeOptions.value?.id === 'api') {
+			} else {
 				sourceId = this.sourceOptions.sourceValue?.id
 			}
 

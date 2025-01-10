@@ -1,5 +1,5 @@
 <script setup>
-import { endpointStore, navigationStore, searchStore, importExportStore } from '../../store/store.js'
+import { endpointStore, navigationStore, searchStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -28,11 +28,11 @@ import { endpointStore, navigationStore, searchStore, importExportStore } from '
 						</template>
 						Add endpoint
 					</NcActionButton>
-					<NcActionButton @click="importExportStore.setImportFileName('endpoint'); navigationStore.setModal('importFile')">
+					<NcActionButton @click="navigationStore.setModal('importFile')">
 						<template #icon>
 							<FileImportOutline :size="20" />
 						</template>
-						Import endpoint
+						Import
 					</NcActionButton>
 				</NcActions>
 			</div>

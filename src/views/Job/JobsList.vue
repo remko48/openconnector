@@ -1,5 +1,5 @@
 <script setup>
-import { jobStore, navigationStore, searchStore, importExportStore } from '../../store/store.js'
+import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -28,11 +28,11 @@ import { jobStore, navigationStore, searchStore, importExportStore } from '../..
 						</template>
 						Add job
 					</NcActionButton>
-					<NcActionButton @click="importExportStore.setImportFileName('job'); navigationStore.setModal('importFile')">
+					<NcActionButton @click="navigationStore.setModal('importFile')">
 						<template #icon>
 							<FileImportOutline :size="20" />
 						</template>
-						Import job
+						Import
 					</NcActionButton>
 				</NcActions>
 			</div>

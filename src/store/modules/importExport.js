@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { sourceStore, endpointStore, jobStore, mappingStore, synchronizationStore } from '../../store/store.js'
+import axios from 'axios'
 
 export const useImportExportStore = defineStore(
 	'importExport', {
@@ -6,21 +8,11 @@ export const useImportExportStore = defineStore(
 			exportSource: '',
 			exportSourceResults: '',
 			exportSourceError: '',
-			importedFile: null,
-			importFileName: '',
 		}),
 		actions: {
 			setExportSource(exportSource) {
 				this.exportSource = exportSource
 				console.info('Active exportSource set to ' + exportSource)
-			},
-			setImportedFile(importedFile) {
-				this.importedFile = importedFile
-				console.info('Active importedFile set to ' + importedFile)
-			},
-			setImportFileName(importFileName) {
-				this.importFileName = importFileName
-				console.info('Active importFileName set to ' + importFileName)
 			},
 			async exportFile(id, type) {
 				const apiEndpoint = `/index.php/apps/openconnector/api/export/${type}/${id}`
@@ -54,6 +46,73 @@ export const useImportExportStore = defineStore(
 				return { response, blob, download }
 			},
 
+			importFile(files, reset) {
+				if (!files) {
+					throw Error('No files to import')
+				}
+				if (!reset) {
+					throw Error('No reset function to call')
+				}
+
+				return axios.post('/index.php/apps/openconnector/api/import', {
+					file: files.value ? files.value[0] : '',
+				}, {
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				})
+					.then((response) => {
+
+						console.info('Importing file:', response.data)
+
+						const setItem = () => {
+							switch (response.data.object['@type']) {
+							case 'source':
+								return (
+									sourceStore.refreshSourceList().then(() => {
+										const source = sourceStore.sourceList.find(source => source.id === response.data.object.id)
+										sourceStore.setSourceItem(source)
+									})
+								)
+							case 'endpoint':
+								return (
+									endpointStore.refreshEndpointList().then(() => {
+										const endpoint = endpointStore.endpointList.find(endpoint => endpoint.id === response.data.object.id)
+										endpointStore.setEndpointItem(endpoint)
+									})
+								)
+							case 'job':
+								return (
+									jobStore.refreshJobList().then(() => {
+										const job = jobStore.jobList.find(job => job.id === response.data.object.id)
+										jobStore.setJobItem(job)
+									})
+								)
+							case 'mapping':
+								return (
+									mappingStore.refreshMappingList().then(() => {
+										const mapping = mappingStore.mappingList.find(mapping => mapping.id === response.data.object.id)
+										mappingStore.setMappingItem(mapping)
+									})
+								)
+							case 'synchronization':
+								return (
+									synchronizationStore.refreshSynchronizationList().then(() => {
+										const synchronization = synchronizationStore.synchronizationList.find(synchronization => synchronization.id === response.data.object.id)
+										synchronizationStore.setSynchronizationItem(synchronization)
+									})
+								)
+							}
+						}
+						return setItem()
+					// Wait for the user to read the feedback then close the model
+					})
+					.catch((err) => {
+						console.error('Error importing file:', err)
+						throw err
+					})
+
+			},
 		},
 	},
 )

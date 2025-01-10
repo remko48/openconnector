@@ -49,23 +49,18 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			if (search !== null && search !== '') {
 				endpoint = endpoint + '?_search=' + search
 			}
-			return fetch(endpoint, {
+
+			const response = await fetch(endpoint, {
 				method: 'GET',
 			})
-				.then(
-					(response) => {
-						response.json().then(
-							(data) => {
-								this.setSynchronizationList(data.results)
-							},
-						)
-					},
-				)
-				.catch(
-					(err) => {
-						console.error(err)
-					},
-				)
+
+			const data = (await response.json()).results
+			const entities = data.map(item => new Synchronization(item))
+
+			this.setSynchronizationList(entities)
+
+			return { response, data, entities }
+
 		},
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
 		async refreshSynchronizationContracts(search = null) {

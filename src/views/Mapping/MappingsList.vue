@@ -1,5 +1,5 @@
 <script setup>
-import { mappingStore, navigationStore, searchStore, importExportStore } from '../../store/store.js'
+import { mappingStore, navigationStore, searchStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -28,11 +28,11 @@ import { mappingStore, navigationStore, searchStore, importExportStore } from '.
 						</template>
 						Add mapping
 					</NcActionButton>
-					<NcActionButton @click="importExportStore.setImportFileName('mapping'); navigationStore.setModal('importFile')">
+					<NcActionButton @click="navigationStore.setModal('importFile')">
 						<template #icon>
 							<FileImportOutline :size="20" />
 						</template>
-						Import mapping
+						Import
 					</NcActionButton>
 				</NcActions>
 			</div>

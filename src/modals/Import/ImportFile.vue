@@ -1,5 +1,5 @@
 <script setup>
-import { navigationStore, importExportStore, sourceStore, endpointStore, jobStore, mappingStore, synchronizationStore } from '../../store/store.js'
+import { navigationStore, importExportStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -33,7 +33,7 @@ import { navigationStore, importExportStore, sourceStore, endpointStore, jobStor
 							</div>
 
 							<h3 class="filesListDragDropNoticeTitle">
-								Of
+								Or
 							</h3>
 
 							<div class="filesListDragDropNoticeTitle">
@@ -85,8 +85,6 @@ import Minus from 'vue-material-design-icons/Minus.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import TrayArrowDown from 'vue-material-design-icons/TrayArrowDown.vue'
 
-import axios from 'axios'
-
 const dropZoneRef = ref()
 const { openFileUpload, files, reset, setFiles } = useFileSelection({ allowMultiple: false, dropzone: dropZoneRef })
 
@@ -120,91 +118,35 @@ export default {
 	watch: {
 		dropFiles: {
 			handler(addedFiles) {
-				importExportStore.importedFile && setFiles(addedFiles)
+				setFiles(addedFiles)
 			},
 			deep: true,
 		},
 	},
 	mounted() {
-		importExportStore.setImportedFile(null)
 	},
 	methods: {
 
 		closeModal() {
 			navigationStore.setModal(false)
-			importExportStore.setImportedFile(null)
-			importExportStore.setImportFileName('')
 			reset()
 
 		},
 		importFile() {
 			this.loading = true
 			this.errorMessage = false
-
-			axios.post('/index.php/apps/openconnector/api/import', {
-				file: files.value ? files.value[0] : '',
-			}, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-			}).then((response) => {
-
+			importExportStore.importFile(files, reset).then((response) => {
 				this.success = true
-				reset()
 
-				const setItem = () => {
-					switch (importExportStore.importFileName) {
-					case 'source':
-						return (
-							sourceStore.refreshSourceList().then(() => {
-								const source = sourceStore.sourceList.find(source => source.id === response.data.object.id)
-								sourceStore.setSourceItem(source)
-							})
-						)
-					case 'endpoint':
-						return (
-							endpointStore.refreshEndpointList().then(() => {
-								const endpoint = endpointStore.endpointList.find(endpoint => endpoint.id === response.data.object.id)
-								endpointStore.setEndpointItem(endpoint)
-							})
-						)
-					case 'job':
-						return (
-							jobStore.refreshJobList().then(() => {
-								const job = jobStore.jobList.find(job => job.id === response.data.object.id)
-								jobStore.setJobItem(job)
-							})
-						)
-					case 'mapping':
-						return (
-							mappingStore.refreshMappingList().then(() => {
-								const mapping = mappingStore.mappingList.find(mapping => mapping.id === response.data.object.id)
-								mappingStore.setMappingItem(mapping)
-							})
-						)
-					case 'synchronization':
-						return (
-							synchronizationStore.refreshSynchronizationList().then(() => {
-								const synchronization = synchronizationStore.synchronizationList.find(synchronization => synchronization.id === response.data.object.id)
-								synchronizationStore.setSynchronizationItem(synchronization)
-							})
-						)
-					}
-				}
-
-				setItem()
-				// Wait for the user to read the feedback then close the model
 				const self = this
 				setTimeout(function() {
 					self.success = null
 					self.closeModal()
 				}, 2000)
-
+			}).catch((err) => {
+				this.error = err.response?.data?.error ?? err
+				this.loading = false
 			})
-				.catch((err) => {
-					this.error = err.response?.data?.error ?? err
-					this.loading = false
-				})
 		},
 	},
 }
