@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { Mapping } from '../../entities/index.js'
 import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
 
 export const useMappingStore = defineStore('mapping', {
 	state: () => ({
@@ -103,7 +104,7 @@ export const useMappingStore = defineStore('mapping', {
 			const method = isNewMapping ? 'POST' : 'PUT'
 
 			// Create a copy of the mapping item and remove empty properties
-			const mappingToSave = { ...mappingItem }
+			const mappingToSave = _.cloneDeep(mappingItem)
 
 			// Remove the version field
 			delete mappingToSave.version

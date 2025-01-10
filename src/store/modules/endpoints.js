@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { Endpoint } from '../../entities/index.js'
 import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
 import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
 
 export const useEndpointStore = defineStore('endpoint', {
 	state: () => ({
@@ -97,7 +98,7 @@ export const useEndpointStore = defineStore('endpoint', {
 			const method = isNewEndpoint ? 'POST' : 'PUT'
 
 			// Create a copy of the endpoint item and remove empty properties
-			const endpointToSave = { ...endpointItem }
+			const endpointToSave = _.cloneDeep(endpointItem)
 
 			// Remove the version field
 			delete endpointToSave.version

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { Synchronization } from '../../entities/index.js'
 import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
 
 export const useSynchronizationStore = defineStore('synchronization', {
 	state: () => ({
@@ -163,7 +164,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			const method = isNewSynchronization ? 'POST' : 'PUT'
 
 			// Create a copy of the synchronization item and remove empty properties
-			const synchronizationToSave = { ...synchronizationItem }
+			const synchronizationToSave = _.cloneDeep(synchronizationItem)
 			delete synchronizationToSave.version
 
 			const response = await fetch(

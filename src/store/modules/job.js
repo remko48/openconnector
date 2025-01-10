@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { Job } from '../../entities/index.js'
 import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
 
 export const useJobStore = defineStore(
 	'job', {
@@ -186,7 +187,7 @@ export const useJobStore = defineStore(
 				const method = isNewJob ? 'POST' : 'PUT'
 
 				// Create a copy of the job item and remove empty properties
-				const jobToSave = { ...jobItem }
+				const jobToSave = _.cloneDeep(jobItem)
 				Object.keys(jobToSave).forEach(key => {
 					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && !jobToSave[key].length) || key === 'created' || key === 'updated') {
 						delete jobToSave[key]
