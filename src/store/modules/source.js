@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { Source } from '../../entities/index.js'
 import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
+
 export const useSourceStore = defineStore(
 	'source', {
 		state: () => ({
@@ -166,16 +168,17 @@ export const useSourceStore = defineStore(
 				const method = isNewSource ? 'POST' : 'PUT'
 
 				// Create a copy of the source item and remove empty properties
-				const sourceToSave = { ...sourceItem }
+				const sourceToSave = _.cloneDeep(sourceItem)
 				Object.keys(sourceToSave).forEach(key => {
 					if (sourceToSave[key] === '' || (Array.isArray(sourceToSave[key]) && !sourceToSave[key].length)) {
 						delete sourceToSave[key]
 					}
 				})
 
-				// remove the dateCreated and dateModified fields
+				// remove the dateCreated, dateModified and version fields
 				delete sourceToSave.dateCreated
 				delete sourceToSave.dateModified
+				delete sourceToSave.version
 
 				return fetch(
 					endpoint,

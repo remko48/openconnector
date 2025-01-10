@@ -19,4 +19,5 @@ export type TJob = {
     nextRun: string
     created: string
     updated: string
+    version: string
 }

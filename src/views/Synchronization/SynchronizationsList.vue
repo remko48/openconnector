@@ -28,6 +28,12 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 						</template>
 						Add synchronization
 					</NcActionButton>
+					<NcActionButton @click="navigationStore.setModal('importFile')">
+						<template #icon>
+							<FileImportOutline :size="20" />
+						</template>
+						Import
+					</NcActionButton>
 				</NcActions>
 			</div>
 			<div v-if="synchronizationStore.synchronizationList && synchronizationStore.synchronizationList.length > 0">
@@ -90,6 +96,7 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 export default {
 	name: 'SynchronizationsList',

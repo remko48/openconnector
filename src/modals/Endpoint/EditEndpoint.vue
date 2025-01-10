@@ -30,14 +30,6 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 						:value.sync="endpointItem.description" />
 
 					<NcTextField
-						label="Reference"
-						:value.sync="endpointItem.reference" />
-
-					<NcTextField
-						label="Version"
-						:value.sync="endpointItem.version" />
-
-					<NcTextField
 						label="Endpoint"
 						:value.sync="endpointItem.endpoint" />
 
@@ -105,8 +97,6 @@ export default {
 			endpointItem: {
 				name: '',
 				description: '',
-				reference: '',
-				version: '',
 				endpoint: '',
 				endpointArray: '',
 				endpointRegex: '',
@@ -150,8 +140,6 @@ export default {
 					...endpointStore.endpointItem,
 					name: endpointStore.endpointItem.name,
 					description: endpointStore.endpointItem.description,
-					reference: endpointStore.endpointItem.reference,
-					version: endpointStore.endpointItem.version,
 					endpoint: endpointStore.endpointItem.endpoint,
 					endpointArray: endpointStore.endpointItem.endpointArray.join(', '),
 					endpointRegex: endpointStore.endpointItem.endpointRegex,
@@ -177,8 +165,6 @@ export default {
 			this.endpointItem = {
 				name: '',
 				description: '',
-				reference: '',
-				version: '',
 				endpoint: '',
 				endpointArray: '',
 				endpointRegex: '',

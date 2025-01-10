@@ -51,10 +51,7 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 						<b>Description:</b>
 						<p>{{ endpointStore.endpointItem.description }}</p>
 					</div>
-					<div class="gridContent gridFullWidth">
-						<b>Reference:</b>
-						<p>{{ endpointStore.endpointItem.reference }}</p>
-					</div>
+
 					<div class="gridContent gridFullWidth">
 						<b>Version:</b>
 						<p>{{ endpointStore.endpointItem.version }}</p>

@@ -20,13 +20,19 @@ import { mappingStore, navigationStore, searchStore } from '../../store/store.js
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
-						Ververs
+						Refresh
 					</NcActionButton>
 					<NcActionButton @click="mappingStore.setMappingItem({}); navigationStore.setModal('editMapping')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Mapping toevoegen
+						Add mapping
+					</NcActionButton>
+					<NcActionButton @click="navigationStore.setModal('importFile')">
+						<template #icon>
+							<FileImportOutline :size="20" />
+						</template>
+						Import
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -97,6 +103,7 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import TestTube from 'vue-material-design-icons/TestTube.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 export default {
 	name: 'MappingsList',

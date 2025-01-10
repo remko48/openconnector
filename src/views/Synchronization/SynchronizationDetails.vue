@@ -66,6 +66,10 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 						<b>id:</b>
 						<p>{{ synchronizationStore.synchronizationItem.uuid }}</p>
 					</div>
+					<div class="gridContent">
+						<b>Version:</b>
+						<p>{{ synchronizationStore.synchronizationItem.version }}</p>
+					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Created:</b>
 						<p>

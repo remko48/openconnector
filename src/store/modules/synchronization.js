@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { Synchronization } from '../../entities/index.js'
 import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
 
 export const useSynchronizationStore = defineStore('synchronization', {
 	state: () => ({
@@ -49,23 +50,18 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			if (search !== null && search !== '') {
 				endpoint = endpoint + '?_search=' + search
 			}
-			return fetch(endpoint, {
+
+			const response = await fetch(endpoint, {
 				method: 'GET',
 			})
-				.then(
-					(response) => {
-						response.json().then(
-							(data) => {
-								this.setSynchronizationList(data.results)
-							},
-						)
-					},
-				)
-				.catch(
-					(err) => {
-						console.error(err)
-					},
-				)
+
+			const data = (await response.json()).results
+			const entities = data.map(item => new Synchronization(item))
+
+			this.setSynchronizationList(entities)
+
+			return { response, data, entities }
+
 		},
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
 		async refreshSynchronizationContracts(search = null) {
@@ -167,6 +163,10 @@ export const useSynchronizationStore = defineStore('synchronization', {
 				: `/index.php/apps/openconnector/api/synchronizations/${synchronizationItem.id}`
 			const method = isNewSynchronization ? 'POST' : 'PUT'
 
+			// Create a copy of the synchronization item and remove empty properties
+			const synchronizationToSave = _.cloneDeep(synchronizationItem)
+			delete synchronizationToSave.version
+
 			const response = await fetch(
 				endpoint,
 				{
@@ -174,7 +174,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(synchronizationItem),
+					body: JSON.stringify(synchronizationToSave),
 				},
 			)
 

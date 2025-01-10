@@ -95,6 +95,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 					<NcSelect v-if="typeOptions.value?.id !== 'register/schema'"
 						v-bind="sourceOptions"
 						v-model="sourceOptions.sourceValue"
+						required
 						:loading="sourcesLoading"
 						input-label="Source ID" />
 
@@ -174,6 +175,7 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 			<NcButton v-if="!success"
 				:disabled="loading
 					|| !synchronizationItem.name
+					|| (typeOptions.value?.id !== 'register/schema' && !sourceOptions.sourceValue?.id)
 					// both register and schema need to be selected for register/schema target type
 					|| (targetTypeOptions.value?.id === 'register/schema' && (!registerOptions.value?.id || !schemaOptions.value?.id))
 					|| (typeOptions.value?.id === 'register/schema' && (!registerOptions.sourceValue?.id || !schemaOptions.sourceValue?.id))
@@ -322,6 +324,7 @@ export default {
 
 			// update targetTypeOptions with the synchronization item target type
 			this.targetTypeOptions.value = this.targetTypeOptions.options.find(option => option.id === this.synchronizationItem.targetType)
+			this.typeOptions.value = this.typeOptions.options.find(option => option.id === this.synchronizationItem.sourceType)
 		}
 
 		// Fetch sources, mappings, register, and schema
@@ -602,7 +605,7 @@ export default {
 			let sourceId = null
 			if (this.typeOptions.value?.id === 'register/schema') {
 				sourceId = `${this.registerOptions.sourceValue?.id}/${this.schemaOptions.sourceValue?.id}`
-			} else if (this.typeOptions.value?.id === 'api') {
+			} else {
 				sourceId = this.sourceOptions.sourceValue?.id
 			}
 
