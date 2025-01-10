@@ -22,7 +22,7 @@ export const useImportExportStore = defineStore(
 				this.importFileName = importFileName
 				console.info('Active importFileName set to ' + importFileName)
 			},
-			async exportFile(id, title, type) {
+			async exportFile(id, type) {
 				const apiEndpoint = `/index.php/apps/openconnector/api/export/${type}/${id}`
 
 				if (!id) {
@@ -37,6 +37,7 @@ export const useImportExportStore = defineStore(
 						},
 					},
 				)
+				const filename = response.headers.get('Content-Disposition').split('filename=')[1].replace(/['"]/g, '')
 
 				const blob = await response.blob()
 
@@ -45,7 +46,7 @@ export const useImportExportStore = defineStore(
 					const link = document.createElement('a')
 					link.href = url
 
-					link.setAttribute('download', `${title}.json`)
+					link.setAttribute('download', `${filename}`)
 					document.body.appendChild(link)
 					link.click()
 				}

@@ -242,7 +242,6 @@ export const useMappingStore = defineStore('mapping', {
 			}
 			importExportStore.exportFile(
 				mappingItem.id,
-				mappingItem.name,
 				'mapping',
 			)
 				.then(({ download }) => {

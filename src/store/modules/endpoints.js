@@ -124,7 +124,6 @@ export const useEndpointStore = defineStore('endpoint', {
 			}
 			importExportStore.exportFile(
 				endpointItem.id,
-				endpointItem.name,
 				'endpoint',
 			)
 				.then(({ download }) => {

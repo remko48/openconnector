@@ -245,7 +245,6 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			}
 			importExportStore.exportFile(
 				synchronizationItem.id,
-				synchronizationItem.name,
 				'synchronization',
 			)
 				.then(({ download }) => {

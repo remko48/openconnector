@@ -222,7 +222,6 @@ export const useJobStore = defineStore(
 				}
 				importExportStore.exportFile(
 					jobItem.id,
-					jobItem.name,
 					'job',
 				)
 					.then(({ download }) => {
