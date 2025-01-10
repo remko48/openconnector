@@ -1,7 +1,7 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Endpoint } from '../../entities/index.js'
 import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { importExportStore } from '../../store/store.js'
 
 export const useEndpointStore = defineStore('endpoint', {
 	state: () => ({
@@ -11,13 +11,13 @@ export const useEndpointStore = defineStore('endpoint', {
 	actions: {
 		setEndpointItem(endpointItem) {
 			this.endpointItem = endpointItem && new Endpoint(endpointItem)
-			console.log('Active endpoint item set to ' + endpointItem)
+			console.info('Active endpoint item set to ' + endpointItem)
 		},
 		setEndpointList(endpointList) {
 			this.endpointList = endpointList.map(
 				(endpointItem) => new Endpoint(endpointItem),
 			)
-			console.log('Endpoint list set to ' + endpointList.length + ' items')
+			console.info('Endpoint list set to ' + endpointList.length + ' items')
 		},
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
 		async refreshEndpointList(search = null) {
@@ -59,7 +59,7 @@ export const useEndpointStore = defineStore('endpoint', {
 				throw new MissingParameterError('endpointItem')
 			}
 
-			console.log('Deleting endpoint...')
+			console.info('Deleting endpoint...')
 
 			const endpoint = `/index.php/apps/openconnector/api/endpoints/${endpointItem.id}`
 
@@ -88,7 +88,7 @@ export const useEndpointStore = defineStore('endpoint', {
 				throw new ValidationError(validationResult.error)
 			}
 
-			console.log('Saving endpoint...')
+			console.info('Saving endpoint...')
 
 			const isNewEndpoint = !endpointItem.id
 			const endpoint = isNewEndpoint
@@ -116,6 +116,23 @@ export const useEndpointStore = defineStore('endpoint', {
 			this.refreshEndpointList()
 
 			return { response, data, entity }
+		},
+		// Export an endpoint
+		exportEndpoint(endpointItem) {
+			if (!endpointItem) {
+				throw new Error('No endpoint item to export')
+			}
+			importExportStore.exportFile(
+				endpointItem.id,
+				'endpoint',
+			)
+				.then(({ download }) => {
+					download()
+				})
+				.catch((err) => {
+					console.error('Error exporting endpoint:', err)
+					throw err
+				})
 		},
 	},
 })

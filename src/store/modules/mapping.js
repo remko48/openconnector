@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Mapping } from '../../entities/index.js'
+import { importExportStore } from '../../store/store.js'
 
 export const useMappingStore = defineStore('mapping', {
 	state: () => ({
@@ -13,25 +13,25 @@ export const useMappingStore = defineStore('mapping', {
 	actions: {
 		setMappingItem(mappingItem) {
 			this.mappingItem = mappingItem && new Mapping(mappingItem)
-			console.log('Active mapping item set to ' + mappingItem)
+			console.info('Active mapping item set to ' + mappingItem)
 		},
 		setMappingList(mappingList) {
 			this.mappingList = mappingList.map(
 				(mappingItem) => new Mapping(mappingItem),
 			)
-			console.log('Mapping list set to ' + mappingList.length + ' items')
+			console.info('Mapping list set to ' + mappingList.length + ' items')
 		},
 		setMappingMappingKey(mappingMappingKey) {
 			this.mappingMappingKey = mappingMappingKey
-			console.log('Active mapping mapping key set to ' + mappingMappingKey)
+			console.info('Active mapping mapping key set to ' + mappingMappingKey)
 		},
 		setMappingCastKey(mappingCastKey) {
 			this.mappingCastKey = mappingCastKey
-			console.log('Active mapping cast key set to ' + mappingCastKey)
+			console.info('Active mapping cast key set to ' + mappingCastKey)
 		},
 		setMappingUnsetKey(mappingUnsetKey) {
 			this.mappingUnsetKey = mappingUnsetKey
-			console.log('Active mapping unset key set to ' + mappingUnsetKey)
+			console.info('Active mapping unset key set to ' + mappingUnsetKey)
 		},
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
 		async refreshMappingList(search = null) {
@@ -73,7 +73,7 @@ export const useMappingStore = defineStore('mapping', {
 				throw new Error('No mapping item to delete')
 			}
 
-			console.log('Deleting mapping...')
+			console.info('Deleting mapping...')
 
 			const endpoint = `/index.php/apps/openconnector/api/mappings/${this.mappingItem.id}`
 
@@ -94,7 +94,7 @@ export const useMappingStore = defineStore('mapping', {
 				throw new Error('No mapping item to save')
 			}
 
-			console.log('Saving mapping...')
+			console.info('Saving mapping...')
 
 			const isNewMapping = !mappingItem.id
 			const endpoint = isNewMapping
@@ -160,7 +160,7 @@ export const useMappingStore = defineStore('mapping', {
 				mappingTestObject.schema = JSON.parse(mappingTestObject.schema)
 			}
 
-			console.log('Testing mapping...')
+			console.info('Testing mapping...')
 
 			const response = await fetch(
 				'/index.php/apps/openconnector/api/mappings/test',
@@ -186,7 +186,7 @@ export const useMappingStore = defineStore('mapping', {
 		 * @return { Promise<{ response: Response, data: object }> } The response and data from the API.
 		 */
 		async getMappingObjects() {
-			console.log('Fetching mapping objects...')
+			console.info('Fetching mapping objects...')
 
 			// Fetch objects related to a mapping from the API endpoint
 			const response = await fetch(
@@ -215,7 +215,7 @@ export const useMappingStore = defineStore('mapping', {
 		 * @throws Will throw an error if the save operation fails.
 		 */
 		async saveMappingObject(mappingObject) {
-			console.log('Saving mapping object...')
+			console.info('Saving mapping object...')
 
 			// Send the mapping object to the API endpoint to be saved
 			const response = await fetch(
@@ -234,6 +234,23 @@ export const useMappingStore = defineStore('mapping', {
 
 			// Return the response and parsed data
 			return { response, data }
+		},
+		// Export a mapping
+		exportMapping(mappingItem) {
+			if (!mappingItem) {
+				throw new Error('No mapping item to export')
+			}
+			importExportStore.exportFile(
+				mappingItem.id,
+				'mapping',
+			)
+				.then(({ download }) => {
+					download()
+				})
+				.catch((err) => {
+					console.error('Error exporting mapping:', err)
+					throw err
+				})
 		},
 	},
 })

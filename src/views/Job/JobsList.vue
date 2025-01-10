@@ -52,6 +52,12 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="jobStore.exportJob(job)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export job
+						</NcActionButton>
 						<NcActionButton @click="jobStore.setJobItem(job); navigationStore.setDialog('deleteJob')">
 							<template #icon>
 								<TrashCanOutline />
@@ -83,6 +89,7 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'JobsList',

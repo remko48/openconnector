@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Log } from '../../entities/index.js'
 
@@ -13,21 +12,21 @@ export const useLogStore = defineStore(
 		actions: {
 			setLogItem(logItem) {
 				this.logItem = logItem && new Log(logItem)
-				console.log('Active log item set to ' + logItem)
+				console.info('Active log item set to ' + logItem)
 			},
 			setLogList(logList) {
 				this.logList = logList.map(
 					(logItem) => new Log(logItem),
 				)
-				console.log('Log list set to ' + logList.length + ' items')
+				console.info('Log list set to ' + logList.length + ' items')
 			},
 			setViewLogItem(logItem) {
 				this.viewLogItem = logItem
-				console.log('Active log item set to ' + logItem)
+				console.info('Active log item set to ' + logItem)
 			},
 			setActiveLogKey(activeLogKey) {
 				this.activeLogKey = activeLogKey
-				console.log('Active log key set to ' + activeLogKey)
+				console.info('Active log key set to ' + activeLogKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshLogList(search = null) {
@@ -75,7 +74,7 @@ export const useLogStore = defineStore(
 					throw new Error('No log item to delete')
 				}
 
-				console.log('Deleting log...')
+				console.info('Deleting log...')
 
 				const endpoint = `/index.php/apps/openconnector/api/logs/${this.logItem.id}`
 
@@ -96,7 +95,7 @@ export const useLogStore = defineStore(
 					throw new Error('No log item to save')
 				}
 
-				console.log('Saving log...')
+				console.info('Saving log...')
 
 				const isNewLog = !this.logItem.id
 				const endpoint = isNewLog
@@ -125,7 +124,7 @@ export const useLogStore = defineStore(
 					.then((response) => response.json())
 					.then((data) => {
 						this.setLogItem(data)
-						console.log('Log saved')
+						console.info('Log saved')
 						// Refresh the log list
 						return this.refreshLogList()
 					})

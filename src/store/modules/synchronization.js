@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { Synchronization } from '../../entities/index.js'
+import { importExportStore } from '../../store/store.js'
 
 export const useSynchronizationStore = defineStore('synchronization', {
 	state: () => ({
@@ -236,6 +237,23 @@ export const useSynchronizationStore = defineStore('synchronization', {
 			this.refreshSynchronizationLogs()
 
 			return { response, data }
+		},
+		// Export a synchronization
+		exportSynchronization(synchronizationItem) {
+			if (!synchronizationItem) {
+				throw new Error('No synchronization item to export')
+			}
+			importExportStore.exportFile(
+				synchronizationItem.id,
+				'synchronization',
+			)
+				.then(({ download }) => {
+					download()
+				})
+				.catch((err) => {
+					console.error('Error exporting synchronization:', err)
+					throw err
+				})
 		},
 	},
 })

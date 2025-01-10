@@ -39,12 +39,17 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 							</template>
 							Run
 						</NcActionButton>
-
 						<NcActionButton @click="refreshJobLogs()">
 							<template #icon>
 								<Sync :size="20" />
 							</template>
 							Refresh Logs
+						</NcActionButton>
+						<NcActionButton @click="jobStore.exportJob(jobStore.jobItem)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export job
 						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteJob')">
 							<template #icon>
@@ -201,6 +206,7 @@ import Update from 'vue-material-design-icons/Update.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import Play from 'vue-material-design-icons/Play.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 import getValidISOstring from '../../services/getValidISOstring.js'
 

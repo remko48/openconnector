@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { setActivePinia, createPinia } from 'pinia'
 
 import { useWebhookStore } from './webhooks.js'
