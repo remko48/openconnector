@@ -4,7 +4,7 @@ export const useNavigationStore = defineStore(
 	'ui', {
 		state: () => ({
 			// The currently active menu item, defaults to '' which triggers the dashboard
-			selected: 'sources',
+			selected: 'dashboard',
 			// The currently active modal, managed trough the state to ensure that only one modal can be active at the same time
 			modal: false,
 			// The currently active dialog
