@@ -212,7 +212,10 @@ class ImportService
 		}
 
 		if ($phpArray === null || $phpArray === false) {
-			return new JSONResponse(data: ['error' => 'Failed to decode JSON input'], statusCode: 400);
+			return new JSONResponse(
+				data: ['error' => 'Failed to decode JSON input'],
+				statusCode: 400
+			);
 		}
 
 		return $this->saveObject(objectArray: $phpArray, type: $type);
@@ -244,7 +247,7 @@ class ImportService
 		// Check if object already exists.
 		if (isset($objectArray['@id']) === true) {
 			$objectArray['reference'] = $objectArray['@id'];
-			$object = $this->checkIfExists(mapper: $mapper, phpArray: $objectArray);
+			$object = $this->checkIfExists(mapper: $mapper, objectArray: $objectArray);
 		}
 
 		if (isset($object) === true && $object instanceof Entity) {
@@ -258,28 +261,28 @@ class ImportService
 	 * Check if the object already exists by using the @id from the phpArray data.
 	 *
 	 * @param mixed $mapper The mapper of the correct object type to look for.
-	 * @param array $phpArray The array data we want to use to create/update an object.
+	 * @param array $objectArray The array data we want to use to create/update an object.
 	 *
 	 * @return Entity|null The already existing object or null.
 	 */
-	private function checkIfExists(mixed $mapper, array $phpArray): ?Entity
+	private function checkIfExists(mixed $mapper, array $objectArray): ?Entity
 	{
 		// Check reference
 		if (method_exists($mapper, 'findByRef')) {
 			try {
-				return $mapper->findByRef($phpArray['@id'])[0];
+				return $mapper->findByRef($objectArray['@id'])[0];
 			} catch (Exception $exception) {}
 		}
 
 		// Check if @id matches an object of that type in OpenConnector. 'failsafe' / backup
 		try {
-			$explodedId = explode(separator: '/', string: $phpArray['@id']);
+			$explodedId = explode(separator: '/', string: $objectArray['@id']);
 			$id = end(array: $explodedId);
 			$url = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
-				routeName: 'openconnector.'.ucfirst($phpArray['@type']).'s.show',
+				routeName: 'openconnector.'.ucfirst($objectArray['@type']).'s.show',
 				arguments: ['id' => $id])
 			);
-			if ($phpArray['@id'] === $url) {
+			if ($objectArray['@id'] === $url) {
 				return $mapper->find($id);
 			}
 		} catch (Exception $exception) {}
@@ -292,18 +295,23 @@ class ImportService
 	 * Will prepare and return some default values for the object to save.
 	 * Will also unset some fields from the array used to create or update the object.
 	 *
-	 * @param array $objectArray
+	 * @param array $objectArray The array data we want to use to create/update an object.
 	 *
-	 * @return array
+	 * @return array The Json-LD default properties for any object created or updated.
 	 */
 	private function prepareObject(array &$objectArray): array
 	{
+		// Prepare Json-LD default properties before unsetting fields from the $objectArray.
 		$jsonLdDefault = [
-			'@context' => ["schema" => "http://schema.org", "register" => "501"],
+			'@context' => [
+				"schema" => "http://schema.org",
+				"register" => "501"
+			],
 			'@type' => $objectArray['@type'],
 			'@id' => $objectArray['reference'] ?? null
 		];
 
+		// Remove all fields from ObjectArray that we should not copy or update when importing an object.
 		unset(
 			$objectArray['@context'],
 			$objectArray['@type'],
@@ -323,15 +331,16 @@ class ImportService
 	 * Updates an object using the given array as input.
 	 *
 	 * @param mixed $mapper The mapper of the object type we want to update an object for.
-	 * @param array $objectArray
+	 * @param array $objectArray The array data we want to use to update an object.
 	 * @param Entity $object
 	 *
-	 * @return JSONResponse
+	 * @return JSONResponse A JSON response with a message and the updated object or an error message.
 	 */
 	private function updateObject(mixed $mapper, array $objectArray, Entity $object): JSONResponse
 	{
 		$jsonLdDefault = $this->prepareObject($objectArray);
 
+		// @todo: maybe we should do some kind of hash comparison here as well?
 		if ($object->getVersion() !== null && empty($objectArray['version']) === false
 			&& version_compare(version1: $object->getVersion(), version2: $objectArray['version'], operator: '>=')
 		) {
@@ -344,8 +353,9 @@ class ImportService
 				]
 			);
 		}
-		// @todo: maybe we should do kind of hash comparison here as well?
+
 		$updatedObject = $mapper->updateFromArray(id: $object->getId(), object: $objectArray);
+
 		return new JSONResponse(
 			data: [
 				'message' => "Import successful, updated",
@@ -358,9 +368,9 @@ class ImportService
 	 * Creates an object using the given array as input.
 	 *
 	 * @param mixed $mapper The mapper of the object type we want to create an object for.
-	 * @param array $objectArray
+	 * @param array $objectArray The array data we want to use to create an object.
 	 *
-	 * @return JSONResponse
+	 * @return JSONResponse A JSON response with a message and the created object or an error message.
 	 */
 	private function createObject(mixed $mapper, array $objectArray): JSONResponse
 	{
