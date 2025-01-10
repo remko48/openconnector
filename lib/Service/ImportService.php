@@ -95,64 +95,163 @@ class ImportService
 	}
 
 	/**
-	 * Creates or updates an object using the given array as input.
+	 * A function used to decode file content or the response of an url get call.
+	 * Before the data can be used to create or update an object.
 	 *
-	 * @param array $phpArray The input php array.
+	 * @param string $data The file content or the response body content.
+	 * @param string|null $type The file MIME type or the response Content-Type header.
+	 *
+	 * @return array|null The decoded data or null.
+	 */
+	private function decode(string $data, ?string $type): ?array
+	{
+		switch ($type) {
+			case 'application/json':
+				$phpArray = json_decode(json: $data, associative: true);
+				break;
+			case 'application/yaml':
+				$phpArray = Yaml::parse(input: $data);
+				break;
+			default:
+				// If Content-Type is not specified or not recognized, try to parse as JSON first, then YAML
+				$phpArray = json_decode(json: $data, associative: true);
+				if ($phpArray === null) {
+					try {
+						$phpArray = Yaml::parse(input: $data);
+					} catch (Exception $exception) {
+						$phpArray = null;
+					}
+				}
+				break;
+		}
+
+		if ($phpArray === null || $phpArray === false) {
+			return null;
+		}
+
+		return $phpArray;
+	}
+
+	/**
+	 * Gets uploaded file content from a file in the api request as PHP array and use it for creating/updating an object.
+	 *
+	 * @param array $uploadedFile The uploaded file.
+	 * @param string|null $type If the uploaded file should be a specific type of object.
+	 *
+	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
+	 */
+	private function getJSONfromFile(array $uploadedFile, ?string $type = null): JSONResponse
+	{
+		// Check for upload errors
+		if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
+			return new JSONResponse(data: ['error' => 'File upload error: '.$uploadedFile['error']], statusCode: 400);
+		}
+
+		$fileExtension = pathinfo(path: $uploadedFile['name'], flags: PATHINFO_EXTENSION);
+		$fileContent = file_get_contents(filename: $uploadedFile['tmp_name']);
+
+		$phpArray = $this->decode(data: $fileContent, type: $fileExtension);
+		if ($phpArray === null) {
+			return new JSONResponse(
+				data: ['error' => 'Failed to decode file content as JSON or YAML', 'MIME-type' => $fileExtension],
+				statusCode: 400
+			);
+		}
+
+		return $this->saveObject(objectArray: $phpArray, type: $type);
+	}
+
+	/**
+	 * Uses Guzzle to call the given URL and use the response data as PHP array for creating/updating an object.
+	 *
+	 * @param string $url The URL to call.
+	 * @param string|null $type If the object should be a specific type of object.
+	 *
+	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
+	 * @throws GuzzleException
+	 */
+	private function getJSONfromURL(string $url, ?string $type = null): JSONResponse
+	{
+		try {
+			$response = $this->client->request('GET', $url);
+		} catch (GuzzleHttp\Exception\BadResponseException $e) {
+			return new JSONResponse(data: ['error' => 'Failed to do a GET api-call on url: '.$url.' '.$e->getMessage()], statusCode: 400);
+		}
+
+		$responseBody = $response->getBody()->getContents();
+
+		// Use Content-Type header to determine the format
+		$contentType = $response->getHeaderLine('Content-Type');
+		$phpArray = $this->decode(data: $responseBody, type: $contentType);
+
+		if ($phpArray === null) {
+			return new JSONResponse(
+				data: ['error' => 'Failed to parse response body as JSON or YAML', 'Content-Type' => $contentType],
+				statusCode: 400
+			);
+		}
+
+		// Set reference, might be overwritten if $phpArray has @id set.
+		$phpArray['reference'] = $url;
+
+		return $this->saveObject(objectArray: $phpArray, type: $type);
+	}
+
+	/**
+	 * Uses the given string or array as PHP array for creating/updating an object.
+	 *
+	 * @param array|string $phpArray An array or string containing a json blob of data.
 	 * @param string|null $type If the object should be a specific type of object.
 	 *
 	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
 	 */
-	private function saveObject(array $phpArray, ?string $type): JSONResponse
+	private function getJSONfromBody(array|string $phpArray, ?string $type = null): JSONResponse
 	{
-		if (empty($type) === false && $phpArray['@type'] !== strtolower($type)) {
+		if (is_string($phpArray) === true) {
+			$phpArray = json_decode($phpArray, associative: true);
+		}
+
+		if ($phpArray === null || $phpArray === false) {
+			return new JSONResponse(data: ['error' => 'Failed to decode JSON input'], statusCode: 400);
+		}
+
+		return $this->saveObject(objectArray: $phpArray, type: $type);
+	}
+
+	/**
+	 * Creates or updates an object using the given array as input.
+	 *
+	 * @param array $objectArray The input php array we use to create or update an object.
+	 * @param string|null $type If the object should be a specific type of object.
+	 *
+	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
+	 */
+	private function saveObject(array $objectArray, ?string $type): JSONResponse
+	{
+		if (empty($type) === false && $objectArray['@type'] !== strtolower($type)) {
 			return new JSONResponse(
-				data: ['error' => "The object you are trying to import is not a $type object", '@type' => $phpArray['@type']],
+				data: ['error' => "The object you are trying to import is not a $type object", '@type' => $objectArray['@type']],
 				statusCode: 400
 			);
 		}
 
 		try {
-			$mapper = $this->objectService->getMapper(objectType: $phpArray['@type']);
+			$mapper = $this->objectService->getMapper(objectType: $objectArray['@type']);
 		} catch (InvalidArgumentException|NotFoundExceptionInterface|ContainerExceptionInterface $e) {
-			return new JSONResponse(data: ['error' => "Could not find a mapper for this @type: ".$phpArray['@type']], statusCode: 400);
+			return new JSONResponse(data: ['error' => "Could not find a mapper for this @type: ".$objectArray['@type']], statusCode: 400);
 		}
 
 		// Check if object already exists.
-		if (isset($phpArray['@id']) === true) {
-			$phpArray['reference'] = $phpArray['@id'];
-			$object = $this->checkIfExists(mapper: $mapper, phpArray: $phpArray);
+		if (isset($objectArray['@id']) === true) {
+			$objectArray['reference'] = $objectArray['@id'];
+			$object = $this->checkIfExists(mapper: $mapper, phpArray: $objectArray);
 		}
 
-		$type = $phpArray['@type'];
-		unset($phpArray['@context'], $phpArray['@type'], $phpArray['@id'], $phpArray['id'], $phpArray['uuid'],
-			$phpArray['created'], $phpArray['updated'], $phpArray['dateCreated'], $phpArray['dateModified']);
-
-		if (isset($object) === true) {
-			// @todo: maybe we should do kind of hash comparison here as well?
-			$updatedObject = $mapper->updateFromArray(id: $object->getId(), object: $phpArray)->jsonSerialize();
-			return new JSONResponse(
-				data: [
-					'message' => "Import successful, updated",
-					'object' => array_merge(['@type' => $type], $updatedObject)
-				]
-			);
+		if (isset($object) === true && $object instanceof Entity) {
+			return $this->updateObject(mapper: $mapper, objectArray: $objectArray, object: $object);
 		}
 
-		$newObject = $mapper->createFromArray(object: $phpArray);
-		if (empty($phpArray['reference']) === true) {
-			$phpArray['reference'] = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
-				routeName: 'openconnector.'.ucfirst($phpArray['@type']).'s.show',
-				arguments: ['id' => $newObject->getId()])
-			);
-			$newObject = $mapper->updateFromArray(id: $newObject->getId(), object: $phpArray)->jsonSerialize();
-		}
-		return new JSONResponse(
-			data: [
-				'message' => "Import successful, created",
-				'object' => array_merge(['@type' => $type], $newObject)
-			],
-			statusCode: 201
-		);
+		return $this->createObject(mapper: $mapper, objectArray: $objectArray);
 	}
 
 	/**
@@ -189,126 +288,101 @@ class ImportService
 	}
 
 	/**
-	 * Gets uploaded file content from a file in the api request as PHP array and use it for creating/updating an object.
+	 * Prepare the input array before creating or updating an object.
+	 * Will prepare and return some default values for the object to save.
+	 * Will also unset some fields from the array used to create or update the object.
 	 *
-	 * @param array $uploadedFile The uploaded file.
-	 * @param string|null $type If the uploaded file should be a specific type of object.
+	 * @param array $objectArray
 	 *
-	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
+	 * @return array
 	 */
-	private function getJSONfromFile(array $uploadedFile, ?string $type = null): JSONResponse
+	private function prepareObject(array &$objectArray): array
 	{
-		// Check for upload errors
-		if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
-			return new JSONResponse(data: ['error' => 'File upload error: '.$uploadedFile['error']], statusCode: 400);
-		}
+		$jsonLdDefault = [
+			'@context' => ["schema" => "http://schema.org", "register" => "501"],
+			'@type' => $objectArray['@type'],
+			'@id' => $objectArray['reference'] ?? null
+		];
 
-		$fileExtension = pathinfo(path: $uploadedFile['name'], flags: PATHINFO_EXTENSION);
-		$fileContent = file_get_contents(filename: $uploadedFile['tmp_name']);
+		unset(
+			$objectArray['@context'],
+			$objectArray['@type'],
+			$objectArray['@id'],
+			$objectArray['id'],
+			$objectArray['uuid'],
+			$objectArray['created'],
+			$objectArray['updated'],
+			$objectArray['dateCreated'],
+			$objectArray['dateModified']
+		);
 
-		$phpArray = $this->decode(data: $fileContent, type: $fileExtension);
-		if ($phpArray === null) {
+		return $jsonLdDefault;
+	}
+
+	/**
+	 * Updates an object using the given array as input.
+	 *
+	 * @param mixed $mapper The mapper of the object type we want to update an object for.
+	 * @param array $objectArray
+	 * @param Entity $object
+	 *
+	 * @return JSONResponse
+	 */
+	private function updateObject(mixed $mapper, array $objectArray, Entity $object): JSONResponse
+	{
+		$jsonLdDefault = $this->prepareObject($objectArray);
+
+		if ($object->getVersion() !== null && empty($objectArray['version']) === false
+			&& version_compare(version1: $object->getVersion(), version2: $objectArray['version'], operator: '>=')
+		) {
 			return new JSONResponse(
-				data: ['error' => 'Failed to decode file content as JSON or YAML', 'MIME-type' => $fileExtension],
-				statusCode: 400
+				data: [
+					'message' => "Import ok, but nothing changed (currentVersion >= importVersion)",
+					'currentVersion' => $object->getVersion(),
+					'importVersion' => $objectArray['version'],
+					'object' => array_merge($jsonLdDefault, $object->jsonSerialize())
+				]
 			);
 		}
-
-		return $this->saveObject(phpArray: $phpArray, type: $type);
+		// @todo: maybe we should do kind of hash comparison here as well?
+		$updatedObject = $mapper->updateFromArray(id: $object->getId(), object: $objectArray);
+		return new JSONResponse(
+			data: [
+				'message' => "Import successful, updated",
+				'object' => array_merge($jsonLdDefault, $updatedObject->jsonSerialize())
+			]
+		);
 	}
 
 	/**
-	 * Uses Guzzle to call the given URL and use the response data as PHP array for creating/updating an object.
+	 * Creates an object using the given array as input.
 	 *
-	 * @param string $url The URL to call.
-	 * @param string|null $type If the object should be a specific type of object.
+	 * @param mixed $mapper The mapper of the object type we want to create an object for.
+	 * @param array $objectArray
 	 *
-	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
-	 * @throws GuzzleException
+	 * @return JSONResponse
 	 */
-	private function getJSONfromURL(string $url, ?string $type = null): JSONResponse
+	private function createObject(mixed $mapper, array $objectArray): JSONResponse
 	{
-		try {
-			$response = $this->client->request('GET', $url);
-		} catch (GuzzleHttp\Exception\BadResponseException $e) {
-			return new JSONResponse(data: ['error' => 'Failed to do a GET api-call on url: '.$url.' '.$e->getMessage()], statusCode: 400);
-		}
+		$jsonLdDefault = $this->prepareObject($objectArray);
 
-		$responseBody = $response->getBody()->getContents();
+		$newObject = $mapper->createFromArray(object: $objectArray);
 
-		// Use Content-Type header to determine the format
-		$contentType = $response->getHeaderLine('Content-Type');
-		$phpArray = $this->decode(data: $responseBody, type: $contentType);
-
-		if ($phpArray === null) {
-			return new JSONResponse(
-				data: ['error' => 'Failed to parse response body as JSON or YAML', 'Content-Type' => $contentType],
-				statusCode: 400
+		// Make sure we set the reference when creating an imported object.
+		if (empty($objectArray['reference']) === true) {
+			$objectArray['reference'] = $this->urlGenerator->getAbsoluteURL(url: $this->urlGenerator->linkToRoute(
+				routeName: 'openconnector.'.ucfirst($objectArray['@type']).'s.show',
+				arguments: ['id' => $newObject->getId()])
 			);
+			$newObject = $mapper->updateFromArray(id: $newObject->getId(), object: $objectArray);
 		}
 
-		// Set reference, might be overwritten if $phpArray has @id set.
-		$phpArray['reference'] = $url;
-
-		return $this->saveObject(phpArray: $phpArray, type: $type);
-	}
-
-	/**
-	 * Uses the given string or array as PHP array for creating/updating an object.
-	 *
-	 * @param array|string $phpArray An array or string containing a json blob of data.
-	 * @param string|null $type If the object should be a specific type of object.
-	 *
-	 * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
-	 */
-	private function getJSONfromBody(array|string $phpArray, ?string $type = null): JSONResponse
-	{
-		if (is_string($phpArray) === true) {
-			$phpArray = json_decode($phpArray, associative: true);
-		}
-
-		if ($phpArray === null || $phpArray === false) {
-			return new JSONResponse(data: ['error' => 'Failed to decode JSON input'], statusCode: 400);
-		}
-
-		return $this->saveObject(phpArray: $phpArray, type: $type);
-	}
-
-	/**
-	 * A function used to decode file content or the response of an url get call.
-	 * Before the data can be used to create or update an object.
-	 *
-	 * @param string $data The file content or the response body content.
-	 * @param string|null $type The file MIME type or the response Content-Type header.
-	 *
-	 * @return array|null The decoded data or null.
-	 */
-	private function decode(string $data, ?string $type): ?array
-	{
-		switch ($type) {
-			case 'application/json':
-				$phpArray = json_decode(json: $data, associative: true);
-				break;
-			case 'application/yaml':
-				$phpArray = Yaml::parse(input: $data);
-				break;
-			default:
-				// If Content-Type is not specified or not recognized, try to parse as JSON first, then YAML
-				$phpArray = json_decode(json: $data, associative: true);
-				if ($phpArray === null) {
-					try {
-						$phpArray = Yaml::parse(input: $data);
-					} catch (Exception $exception) {
-						$phpArray = null;
-					}
-				}
-				break;
-		}
-
-		if ($phpArray === null || $phpArray === false) {
-			return null;
-		}
-
-		return $phpArray;
+		return new JSONResponse(
+			data: [
+				'message' => "Import successful, created",
+				'object' => array_merge($jsonLdDefault, ['@id' => $objectArray['reference']], $newObject->jsonSerialize())
+			],
+			statusCode: 201
+		);
 	}
 }
