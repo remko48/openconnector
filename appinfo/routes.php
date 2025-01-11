@@ -8,6 +8,7 @@ return [
 		'Jobs' => ['url' => 'api/jobs'],
 		'Synchronizations' => ['url' => 'api/synchronizations'],
 		'Consumers' => ['url' => 'api/consumers'],
+		'Rules' => ['url' => 'api/rules'],
 	],
 	'routes' => [
 		['name' => 'dashboard#page', 'url' => '/', 'verb' => 'GET'],

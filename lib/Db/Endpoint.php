@@ -25,6 +25,7 @@ class Endpoint extends Entity implements JsonSerializable
 	protected ?DateTime $updated = null;
 	protected ?string $inputMapping = null;
 	protected ?string $outputMapping = null;
+	protected array $rules = []; // Array of rules to be applied
 
 	public function __construct() {
         $this->addType(fieldName:'uuid', type: 'string');
@@ -43,6 +44,7 @@ class Endpoint extends Entity implements JsonSerializable
 		$this->addType(fieldName:'updated', type: 'datetime');
 		$this->addType(fieldName:'inputMapping', type: 'string');
 		$this->addType(fieldName:'outputMapping', type: 'string');
+		$this->addType('rules', 'json');
 
 	}
 
@@ -78,25 +80,9 @@ class Endpoint extends Entity implements JsonSerializable
 
 	public function jsonSerialize(): array
 	{
-		return [
-			'id' => $this->id,
-            'uuid' => $this->uuid,
-			'name' => $this->name,
-			'description' => $this->description,
-			'reference' => $this->reference,
-			'version' => $this->version,
-			'endpoint' => $this->endpoint,
-			'endpointArray' => $this->endpointArray,
-			'endpointRegex' => $this->endpointRegex,
-			'method' => $this->method,
-			'targetType' => $this->targetType,
-			'targetId' => $this->targetId,
-			'conditions' => $this->conditions,
-			'created' => isset($this->created) ? $this->created->format('c') : null,
-			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
-			'inputMapping' => $this->inputMapping,
-			'outputMapping' => $this->outputMapping,
-
-		];
+		return array_merge(
+			parent::jsonSerialize(),
+			['rules' => $this->rules]
+		);
 	}
 }
