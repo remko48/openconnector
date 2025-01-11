@@ -11,6 +11,8 @@ import { useSynchronizationStore } from './modules/synchronization.js'
 import { useWebhookStore } from './modules/webhooks.js'
 import { useEndpointStore } from './modules/endpoints.js'
 import { useConsumerStore } from './modules/consumer.js'
+import { useEventStore } from './modules/event.js'
+import { useRuleStore } from './modules/rule.js'
 
 const navigationStore = useNavigationStore(pinia)
 const searchStore = useSearchStore(pinia)
@@ -22,6 +24,8 @@ const synchronizationStore = useSynchronizationStore(pinia)
 const webhookStore = useWebhookStore(pinia)
 const endpointStore = useEndpointStore(pinia)
 const consumerStore = useConsumerStore(pinia)
+const eventStore = useEventStore(pinia)
+const ruleStore = useRuleStore(pinia)
 
 export {
 	// generic
@@ -36,4 +40,6 @@ export {
 	webhookStore,
 	endpointStore,
 	consumerStore,
+	eventStore,
+	ruleStore,
 }

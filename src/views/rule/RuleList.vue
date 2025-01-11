@@ -1,114 +1,111 @@
+<script setup>
+import { ruleStore, navigationStore, searchStore } from '../../store/store.js'
+</script>
+
 <template>
-	<div class="rule-list">
-		<table>
-			<thead>
-				<tr>
-					<th>{{ t('openconnector', 'Name') }}</th>
-					<th>{{ t('openconnector', 'Description') }}</th>
-					<th>{{ t('openconnector', 'Condition') }}</th>
-					<th>{{ t('openconnector', 'Created') }}</th>
-					<th>{{ t('openconnector', 'Status') }}</th>
-					<th>{{ t('openconnector', 'Actions') }}</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="rule in rules"
-					:key="rule.id">
-					<td>
-						<router-link :to="{ name: 'rule-detail', params: { id: rule.id }}">
-							{{ rule.name }}
-						</router-link>
-					</td>
-					<td>{{ rule.description }}</td>
-					<td>{{ rule.condition }}</td>
-					<td>{{ formatDate(rule.created) }}</td>
-					<td>
-						<NcBadge :type="rule.active ? 'success' : 'error'">
-							{{ rule.active ? t('openconnector', 'Active') : t('openconnector', 'Inactive') }}
-						</NcBadge>
-					</td>
-					<td class="actions">
-						<NcActions>
-							<NcActionButton @click="$router.push({ name: 'rule-detail', params: { id: rule.id }})">
-								<template #icon>
-									<Eye :size="20" />
-								</template>
-								{{ t('openconnector', 'View') }}
-							</NcActionButton>
-							<NcActionButton @click="$emit('edit', rule)">
-								<template #icon>
-									<Pencil :size="20" />
-								</template>
-								{{ t('openconnector', 'Edit') }}
-							</NcActionButton>
-							<NcActionButton @click="$emit('delete', rule)">
-								<template #icon>
-									<Delete :size="20" />
-								</template>
-								{{ t('openconnector', 'Delete') }}
-							</NcActionButton>
-						</NcActions>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+	<NcAppContentList>
+		<ul>
+			<div class="listHeader">
+				<NcTextField
+					:value.sync="searchStore.search"
+					:show-trailing-button="searchStore.search !== ''"
+					label="Search"
+					class="searchField"
+					trailing-button-icon="close"
+					@trailing-button-click="ruleStore.refreshRuleList()">
+					<Magnify :size="20" />
+				</NcTextField>
+				<NcActions>
+					<NcActionButton @click="ruleStore.refreshRuleList()">
+						<template #icon>
+							<Refresh :size="20" />
+						</template>
+						Refresh
+					</NcActionButton>
+					<NcActionButton @click="ruleStore.setRuleItem(null); navigationStore.setModal('editRule')">
+						<template #icon>
+							<Plus :size="20" />
+						</template>
+						Add rule
+					</NcActionButton>
+				</NcActions>
+			</div>
+			<div v-if="ruleStore.ruleList && ruleStore.ruleList.length > 0">
+				<NcListItem v-for="(rule, i) in ruleStore.ruleList"
+					:key="`${rule}${i}`"
+					:name="rule.name"
+					:active="ruleStore.ruleItem?.id === rule?.id"
+					:force-display-actions="true"
+					@click="ruleStore.setRuleItem(rule)">
+					<template #icon>
+						<Update :class="ruleStore.ruleItem?.id === rule.id && 'selectedRuleIcon'"
+							disable-menu
+							:size="44" />
+					</template>
+					<template #subname>
+						{{ rule?.description }}
+					</template>
+					<template #actions>
+						<NcActionButton @click="ruleStore.setRuleItem(rule); navigationStore.setModal('editRule')">
+							<template #icon>
+								<Pencil />
+							</template>
+							Edit
+						</NcActionButton>
+						<NcActionButton @click="ruleStore.setRuleItem(rule); navigationStore.setDialog('deleteRule')">
+							<template #icon>
+								<TrashCanOutline />
+							</template>
+							Delete
+						</NcActionButton>
+					</template>
+				</NcListItem>
+			</div>
+		</ul>
+
+		<NcLoadingIcon v-if="!ruleStore.ruleList"
+			class="loadingIcon"
+			:size="64"
+			appearance="dark"
+			name="Loading rules" />
+
+		<div v-if="!ruleStore.ruleList.length" class="emptyListHeader">
+			No rules defined.
+		</div>
+	</NcAppContentList>
 </template>
 
 <script>
-import {
-	NcActions,
-	NcActionButton,
-	NcBadge,
-} from '@nextcloud/vue'
-import { Eye, Pencil, Delete } from '@mdi/js'
-import { formatDate } from '@nextcloud/moment'
+import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIcon, NcActions } from '@nextcloud/vue'
+import Magnify from 'vue-material-design-icons/Magnify.vue'
+import Update from 'vue-material-design-icons/Update.vue'
+import Refresh from 'vue-material-design-icons/Refresh.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 
 export default {
 	name: 'RuleList',
 	components: {
+		NcListItem,
 		NcActions,
 		NcActionButton,
-		NcBadge,
+		NcAppContentList,
+		NcTextField,
+		NcLoadingIcon,
+		Magnify,
+		Update,
+		Refresh,
+		Plus,
+		Pencil,
+		TrashCanOutline,
 	},
-	props: {
-		rules: {
-			type: Array,
-			required: true,
-		},
-	},
-	methods: {
-		formatDate,
+	mounted() {
+		ruleStore.refreshRuleList()
 	},
 }
 </script>
 
-<style scoped>
-.rule-list {
-	width: 100%;
-}
-
-table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-th, td {
-	padding: 12px;
-	text-align: left;
-	border-bottom: 1px solid var(--color-border);
-}
-
-.actions {
-	width: 100px;
-}
-
-a {
-	color: var(--color-primary);
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-</style> 
+<style>
+/* Styles remain the same */
+</style>

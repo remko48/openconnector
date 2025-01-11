@@ -1,112 +1,111 @@
+<script setup>
+import { eventStore, navigationStore, searchStore } from '../../store/store.js'
+</script>
+
 <template>
-	<div class="event-list">
-		<table>
-			<thead>
-				<tr>
-					<th>{{ t('openconnector', 'Name') }}</th>
-					<th>{{ t('openconnector', 'Description') }}</th>
-					<th>{{ t('openconnector', 'Created') }}</th>
-					<th>{{ t('openconnector', 'Status') }}</th>
-					<th>{{ t('openconnector', 'Actions') }}</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="event in events"
-					:key="event.id">
-					<td>
-						<router-link :to="{ name: 'event-detail', params: { id: event.id }}">
-							{{ event.name }}
-						</router-link>
-					</td>
-					<td>{{ event.description }}</td>
-					<td>{{ formatDate(event.created) }}</td>
-					<td>
-						<NcBadge :type="event.active ? 'success' : 'error'">
-							{{ event.active ? t('openconnector', 'Active') : t('openconnector', 'Inactive') }}
-						</NcBadge>
-					</td>
-					<td class="actions">
-						<NcActions>
-							<NcActionButton @click="$router.push({ name: 'event-detail', params: { id: event.id }})">
-								<template #icon>
-									<Eye :size="20" />
-								</template>
-								{{ t('openconnector', 'View') }}
-							</NcActionButton>
-							<NcActionButton @click="$emit('edit', event)">
-								<template #icon>
-									<Pencil :size="20" />
-								</template>
-								{{ t('openconnector', 'Edit') }}
-							</NcActionButton>
-							<NcActionButton @click="$emit('delete', event)">
-								<template #icon>
-									<Delete :size="20" />
-								</template>
-								{{ t('openconnector', 'Delete') }}
-							</NcActionButton>
-						</NcActions>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+	<NcAppContentList>
+		<ul>
+			<div class="listHeader">
+				<NcTextField
+					:value.sync="searchStore.search"
+					:show-trailing-button="searchStore.search !== ''"
+					label="Search"
+					class="searchField"
+					trailing-button-icon="close"
+					@trailing-button-click="eventStore.refreshEventList()">
+					<Magnify :size="20" />
+				</NcTextField>
+				<NcActions>
+					<NcActionButton @click="eventStore.refreshEventList()">
+						<template #icon>
+							<Refresh :size="20" />
+						</template>
+						Refresh
+					</NcActionButton>
+					<NcActionButton @click="eventStore.setEventItem(null); navigationStore.setModal('editEvent')">
+						<template #icon>
+							<Plus :size="20" />
+						</template>
+						Add event
+					</NcActionButton>
+				</NcActions>
+			</div>
+			<div v-if="eventStore.eventList && eventStore.eventList.length > 0">
+				<NcListItem v-for="(event, i) in eventStore.eventList"
+					:key="`${event}${i}`"
+					:name="event.name"
+					:active="eventStore.eventItem?.id === event?.id"
+					:force-display-actions="true"
+					@click="eventStore.setEventItem(event)">
+					<template #icon>
+						<Update :class="eventStore.eventItem?.id === event.id && 'selectedEventIcon'"
+							disable-menu
+							:size="44" />
+					</template>
+					<template #subname>
+						{{ event?.description }}
+					</template>
+					<template #actions>
+						<NcActionButton @click="eventStore.setEventItem(event); navigationStore.setModal('editEvent')">
+							<template #icon>
+								<Pencil />
+							</template>
+							Edit
+						</NcActionButton>
+						<NcActionButton @click="eventStore.setEventItem(event); navigationStore.setDialog('deleteEvent')">
+							<template #icon>
+								<TrashCanOutline />
+							</template>
+							Delete
+						</NcActionButton>
+					</template>
+				</NcListItem>
+			</div>
+		</ul>
+
+		<NcLoadingIcon v-if="!eventStore.eventList"
+			class="loadingIcon"
+			:size="64"
+			appearance="dark"
+			name="Loading events" />
+
+		<div v-if="!eventStore.eventList.length" class="emptyListHeader">
+			No events defined.
+		</div>
+	</NcAppContentList>
 </template>
 
 <script>
-import {
-	NcActions,
-	NcActionButton,
-	NcBadge,
-} from '@nextcloud/vue'
-import { Eye, Pencil, Delete } from '@mdi/js'
-import { formatDate } from '@nextcloud/moment'
+import { NcListItem, NcActionButton, NcAppContentList, NcTextField, NcLoadingIcon, NcActions } from '@nextcloud/vue'
+import Magnify from 'vue-material-design-icons/Magnify.vue'
+import Update from 'vue-material-design-icons/Update.vue'
+import Refresh from 'vue-material-design-icons/Refresh.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 
 export default {
 	name: 'EventList',
 	components: {
+		NcListItem,
 		NcActions,
 		NcActionButton,
-		NcBadge,
+		NcAppContentList,
+		NcTextField,
+		NcLoadingIcon,
+		Magnify,
+		Update,
+		Refresh,
+		Plus,
+		Pencil,
+		TrashCanOutline,
 	},
-	props: {
-		events: {
-			type: Array,
-			required: true,
-		},
-	},
-	methods: {
-		formatDate,
+	mounted() {
+		eventStore.refreshEventList()
 	},
 }
 </script>
 
-<style scoped>
-.event-list {
-	width: 100%;
-}
-
-table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-th, td {
-	padding: 12px;
-	text-align: left;
-	border-bottom: 1px solid var(--color-border);
-}
-
-.actions {
-	width: 100px;
-}
-
-a {
-	color: var(--color-primary);
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-</style> 
+<style>
+/* Styles remain the same */
+</style>

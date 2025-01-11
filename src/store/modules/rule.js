@@ -1,64 +1,64 @@
 /**
- * @fileoverview Event store module for managing event-related state and actions
+ * @fileoverview Rule store module for managing rule-related state and actions
  */
 
 import { defineStore } from 'pinia'
-import { Event } from '../../entities/index.js'
+import { Rule } from '../../entities/index.js'
 
 /**
- * Event store definition using Pinia
+ * Rule store definition using Pinia
  * @returns {Object} Store instance with state and actions
  */
-export const useEventStore = defineStore('event', {
+export const useRuleStore = defineStore('rule', {
 	state: () => ({
-		/** @type {Event|false} Current active event */
-		eventItem: false,
-		/** @type {Event[]} List of events */
-		eventList: [],
-		/** @type {Object|false} Event test results */
-		eventTest: false,
-		/** @type {Object|false} Event run results */
-		eventRun: false,
-		/** @type {Array} Event logs */
-		eventLogs: [],
+		/** @type {Rule|false} Current active rule */
+		ruleItem: false,
+		/** @type {Rule[]} List of rules */
+		ruleList: [],
+		/** @type {Object|false} Rule test results */
+		ruleTest: false,
+		/** @type {Object|false} Rule run results */
+		ruleRun: false,
+		/** @type {Array} Rule logs */
+		ruleLogs: [],
 	}),
 	actions: {
 		/**
-		 * Sets the current active event
-		 * @param {Object} eventItem - Event data to set
+		 * Sets the current active rule
+		 * @param {Object} ruleItem - Rule data to set
 		 * @returns {void}
 		 */
-		setEventItem(eventItem) {
-			this.eventItem = eventItem && new Event(eventItem)
-			console.log('Active event item set to ' + eventItem)
+		setRuleItem(ruleItem) {
+			this.ruleItem = ruleItem && new Rule(ruleItem)
+			console.log('Active rule item set to ' + ruleItem)
 		},
 
 		/**
-		 * Sets the list of events
-		 * @param {Array} eventList - Array of event data
+		 * Sets the list of rules
+		 * @param {Array} ruleList - Array of rule data
 		 * @returns {void}
 		 */
-		setEventList(eventList) {
-			this.eventList = eventList.map(
-				(eventItem) => new Event(eventItem),
+		setRuleList(ruleList) {
+			this.ruleList = ruleList.map(
+				(ruleItem) => new Rule(ruleItem),
 			)
-			console.log('Event list set to ' + eventList.length + ' items')
+			console.log('Rule list set to ' + ruleList.length + ' items')
 		},
 
 		/**
-		 * Refreshes the event list from the API
+		 * Refreshes the rule list from the API
 		 * @param {string|null} search - Optional search query
 		 * @returns {Promise} Fetch promise
 		 */
-		async refreshEventList(search = null) {
-			let endpoint = '/index.php/apps/openconnector/api/events'
+		async refreshRuleList(search = null) {
+			let endpoint = '/index.php/apps/openconnector/api/rules'
 			if (search !== null && search !== '') {
 				endpoint = endpoint + '?_search=' + search
 			}
 			try {
 				const response = await fetch(endpoint)
 				const data = await response.json()
-				this.setEventList(data.results)
+				this.setRuleList(data.results)
 				return data
 			} catch (err) {
 				console.error(err)
@@ -67,16 +67,16 @@ export const useEventStore = defineStore('event', {
 		},
 
 		/**
-		 * Gets a single event by ID
-		 * @param {string} id - Event ID
+		 * Gets a single rule by ID
+		 * @param {string} id - Rule ID
 		 * @returns {Promise} Fetch promise
 		 */
-		async getEvent(id) {
-			const endpoint = `/index.php/apps/openconnector/api/events/${id}`
+		async getRule(id) {
+			const endpoint = `/index.php/apps/openconnector/api/rules/${id}`
 			try {
 				const response = await fetch(endpoint)
 				const data = await response.json()
-				this.setEventItem(data)
+				this.setRuleItem(data)
 				return data
 			} catch (err) {
 				console.error(err)
@@ -85,29 +85,29 @@ export const useEventStore = defineStore('event', {
 		},
 
 		/**
-		 * Saves or creates an event
-		 * @param {Object} eventItem - Event data to save
+		 * Saves or creates a rule
+		 * @param {Object} ruleItem - Rule data to save
 		 * @returns {Promise} Fetch promise
 		 */
-		async saveEvent(eventItem) {
-			if (!eventItem) {
-				throw new Error('No event item to save')
+		async saveRule(ruleItem) {
+			if (!ruleItem) {
+				throw new Error('No rule item to save')
 			}
 
-			const isNewEvent = !eventItem.id
-			const endpoint = isNewEvent
-				? '/index.php/apps/openconnector/api/events'
-				: `/index.php/apps/openconnector/api/events/${eventItem.id}`
-			const method = isNewEvent ? 'POST' : 'PUT'
+			const isNewRule = !ruleItem.id
+			const endpoint = isNewRule
+				? '/index.php/apps/openconnector/api/rules'
+				: `/index.php/apps/openconnector/api/rules/${ruleItem.id}`
+			const method = isNewRule ? 'POST' : 'PUT'
 
-			// Clean up the event data before saving
-			const eventToSave = { ...eventItem }
-			Object.keys(eventToSave).forEach(key => {
-				if (eventToSave[key] === '' || 
-					(Array.isArray(eventToSave[key]) && !eventToSave[key].length) || 
+			// Clean up the rule data before saving
+			const ruleToSave = { ...ruleItem }
+			Object.keys(ruleToSave).forEach(key => {
+				if (ruleToSave[key] === '' || 
+					(Array.isArray(ruleToSave[key]) && !ruleToSave[key].length) || 
 					key === 'created' || 
 					key === 'updated') {
-					delete eventToSave[key]
+					delete ruleToSave[key]
 				}
 			})
 
@@ -115,14 +115,14 @@ export const useEventStore = defineStore('event', {
 				const response = await fetch(endpoint, {
 					method,
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(eventToSave),
+					body: JSON.stringify(ruleToSave),
 				})
 				const data = await response.json()
-				this.setEventItem(data)
-				await this.refreshEventList()
+				this.setRuleItem(data)
+				await this.refreshRuleList()
 				return data
 			} catch (err) {
-				console.error('Error saving event:', err)
+				console.error('Error saving rule:', err)
 				throw err
 			}
 		},
