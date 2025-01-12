@@ -112,20 +112,22 @@ export default {
                 if (!updatedEndpoint.rules) {
                     updatedEndpoint.rules = []
                 } else if (!Array.isArray(updatedEndpoint.rules)) {
-                    // If rules exists but is not an array, convert it to array
                     updatedEndpoint.rules = []
                 }
 
-                // Add the new rule ID
-                updatedEndpoint.rules.push(this.ruleOptions.value.value)
+                // Convert existing rules to strings and add the new rule ID as string
+                const updatedRules = [
+                    ...updatedEndpoint.rules.map(id => String(id)),
+                    String(this.ruleOptions.value.value)
+                ]
 
-                // Ensure we're not modifying properties that should remain unchanged
+                // Prepare endpoint data for saving
                 const endpointToSave = {
                     ...updatedEndpoint,
                     endpointArray: Array.isArray(updatedEndpoint.endpointArray) 
                         ? updatedEndpoint.endpointArray 
                         : updatedEndpoint.endpointArray.split(/ *, */g),
-                    rules: updatedEndpoint.rules
+                    rules: updatedRules // Use the array of string IDs
                 }
 
                 const { response } = await endpointStore.saveEndpoint(endpointToSave)

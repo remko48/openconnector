@@ -118,17 +118,17 @@ import { endpointStore, navigationStore, ruleStore } from '../../store/store.js'
 										<span v-else>Loading...</span>
 									</template>
 									<template #actions>
-										<NcActionButton @click.stop="editRule(ruleId)">
+										<NcActionButton @click.stop="viewRule(ruleId)">
 											<template #icon>
-												<Pencil :size="20" />
+												<EyeOutline :size="20" />
 											</template>
-											Edit
+											View
 										</NcActionButton>
-										<NcActionButton @click.stop="deleteRule(ruleId)">
+										<NcActionButton @click.stop="removeRule(ruleId)">
 											<template #icon>
-												<Delete :size="20" />
+												<LinkOff :size="20" />
 											</template>
-											Delete
+											Remove
 										</NcActionButton>
 									</template>
 								</NcListItem>
@@ -161,6 +161,8 @@ import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
+import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import LinkOff from 'vue-material-design-icons/LinkOff.vue'
 
 export default {
 	name: 'EndpointDetails',
@@ -177,6 +179,8 @@ export default {
 		SitemapOutline,
 		Delete,
 		Plus,
+		EyeOutline,
+		LinkOff,
 	},
 	data() {
 		return {
@@ -188,6 +192,7 @@ export default {
 		this.loadRules()
 	},
 	methods: {
+		
 		async loadRules() {
 			try {
 				await ruleStore.refreshRuleList()
@@ -220,16 +225,33 @@ export default {
 			}
 		},
 		viewRule(ruleId) {
-			ruleStore.setRuleItem(this.rulesList.find(rule => rule.id === ruleId))
-			navigationStore.setView('ruleDetails')
+			const rule = this.rulesList.find(rule => String(rule.id) === String(ruleId))
+			if (rule) {
+				ruleStore.setRuleItem(rule)
+				navigationStore.setView('rule')
+			}
 		},
-		editRule(ruleId) {
-			ruleStore.setRuleItem(this.rulesList.find(rule => rule.id === ruleId))
-			navigationStore.setModal('editRule')
-		},
-		deleteRule(ruleId) {
-			ruleStore.setRuleItem(this.rulesList.find(rule => rule.id === ruleId))
-			navigationStore.setDialog('deleteRule')
+		async removeRule(ruleId) {
+			try {
+				const updatedEndpoint = { ...endpointStore.endpointItem }
+				
+				// Remove the rule ID from the rules array
+				updatedEndpoint.rules = updatedEndpoint.rules.filter(id => String(id) !== String(ruleId))
+
+				// Save the updated endpoint
+				await endpointStore.saveEndpoint({
+					...updatedEndpoint,
+					endpointArray: Array.isArray(updatedEndpoint.endpointArray)
+						? updatedEndpoint.endpointArray
+						: updatedEndpoint.endpointArray.split(/ *, */g),
+					rules: updatedEndpoint.rules.map(id => String(id))
+				})
+
+				// Refresh the rules list
+				await this.loadRules()
+			} catch (error) {
+				console.error('Failed to remove rule:', error)
+			}
 		}
 	}
 }
