@@ -114,7 +114,8 @@ import { endpointStore, navigationStore, ruleStore } from '../../store/store.js'
 											:size="44" />
 									</template>
 									<template #subname>
-										{{ getRuleType(ruleId) }}
+										<span v-if="rulesLoaded">{{ getRuleType(ruleId) }}</span>
+										<span v-else>Loading...</span>
 									</template>
 									<template #actions>
 										<NcActionButton @click.stop="editRule(ruleId)">
@@ -179,7 +180,8 @@ export default {
 	},
 	data() {
 		return {
-			rulesList: []
+			rulesList: [],
+			rulesLoaded: false
 		}
 	},
 	mounted() {
@@ -187,18 +189,35 @@ export default {
 	},
 	methods: {
 		async loadRules() {
-			if (endpointStore.endpointItem?.rules?.length) {
+			try {
 				await ruleStore.refreshRuleList()
 				this.rulesList = ruleStore.ruleList
+				this.rulesLoaded = true
+			} catch (error) {
+				console.error('Failed to load rules:', error)
 			}
 		},
 		getRuleName(ruleId) {
-			const rule = this.rulesList.find(rule => rule.id === ruleId)
+			const rule = this.rulesList.find(rule => String(rule.id) === String(ruleId))
 			return rule ? rule.name : `Rule ${ruleId}`
 		},
 		getRuleType(ruleId) {
-			const rule = this.rulesList.find(rule => rule.id === ruleId)
-			return rule ? rule.type : 'Unknown type'
+			const rule = this.rulesList.find(rule => String(rule.id) === String(ruleId))
+			if (!rule) return 'Unknown type'
+			
+			// Convert type to more readable format
+			switch (rule.type) {
+				case 'error':
+					return 'Error Handler'
+				case 'mapping':
+					return 'Data Mapping'
+				case 'synchronization':
+					return 'Synchronization'
+				case 'javascript':
+					return 'JavaScript'
+				default:
+					return rule.type || 'Unknown type'
+			}
 		},
 		viewRule(ruleId) {
 			ruleStore.setRuleItem(this.rulesList.find(rule => rule.id === ruleId))

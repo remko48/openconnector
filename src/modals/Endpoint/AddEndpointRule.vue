@@ -105,15 +105,30 @@ export default {
 
             this.loading = true
             try {
-                const updatedEndpoint = {
-                    ...endpointStore.endpointItem,
-                    rules: [
-                        ...(endpointStore.endpointItem.rules || []),
-                        this.ruleOptions.value.value
-                    ]
+                // Create a copy of the current endpoint
+                const updatedEndpoint = { ...endpointStore.endpointItem }
+                
+                // Initialize rules array if it doesn't exist
+                if (!updatedEndpoint.rules) {
+                    updatedEndpoint.rules = []
+                } else if (!Array.isArray(updatedEndpoint.rules)) {
+                    // If rules exists but is not an array, convert it to array
+                    updatedEndpoint.rules = []
                 }
 
-                const { response } = await endpointStore.saveEndpoint(updatedEndpoint)
+                // Add the new rule ID
+                updatedEndpoint.rules.push(this.ruleOptions.value.value)
+
+                // Ensure we're not modifying properties that should remain unchanged
+                const endpointToSave = {
+                    ...updatedEndpoint,
+                    endpointArray: Array.isArray(updatedEndpoint.endpointArray) 
+                        ? updatedEndpoint.endpointArray 
+                        : updatedEndpoint.endpointArray.split(/ *, */g),
+                    rules: updatedEndpoint.rules
+                }
+
+                const { response } = await endpointStore.saveEndpoint(endpointToSave)
                 
                 if (response.ok) {
                     this.success = true
@@ -124,6 +139,7 @@ export default {
                     this.error = 'Failed to add rule to endpoint'
                 }
             } catch (error) {
+                console.error('Error adding rule:', error)
                 this.success = false
                 this.error = error.message || 'An error occurred while adding the rule'
             } finally {
