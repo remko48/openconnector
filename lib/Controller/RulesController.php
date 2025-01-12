@@ -21,7 +21,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
  *
  * @package OCA\OpenConnector\Controller
  */
-class RuleController extends Controller
+class RulesController extends Controller
 {
     /**
      * Constructor for the RuleController

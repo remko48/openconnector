@@ -24,6 +24,8 @@ class Rule extends Entity implements JsonSerializable
     protected ?string $type = null; // mapping, error, script, synchronization
     protected ?array $configuration = []; // Type-specific configuration
     protected int $order = 0; // Order in which the rule should be applied
+    
+    // Additional tracking fields
     protected ?DateTime $created = null;
     protected ?DateTime $updated = null;
 
@@ -41,7 +43,46 @@ class Rule extends Entity implements JsonSerializable
         $this->addType('updated', 'datetime');
     }
 
-    // ... existing methods ...
+    /**
+     * Get fields that should be JSON encoded
+     *
+     * @return array<string> List of field names that are JSON type
+     */
+    public function getJsonFields(): array
+    {
+        return array_keys(
+            array_filter($this->getFieldTypes(), function ($field) {
+                return $field === 'json';
+            })
+        );
+    }
+
+    /**
+     * Hydrate the entity from an array of data
+     *
+     * @param array<string,mixed> $object Data to hydrate from
+     * @return self Returns the hydrated entity
+     */
+    public function hydrate(array $object): self
+    {
+        $jsonFields = $this->getJsonFields();
+
+        foreach ($object as $key => $value) {
+            if (in_array($key, $jsonFields) === true && $value === []) {
+                $value = [];
+            }
+
+            $method = 'set'.ucfirst($key);
+
+            try {
+                $this->$method($value);
+            } catch (\Exception $exception) {
+                // Silent fail if property doesn't exist
+            }
+        }
+
+        return $this;
+    }
 
     public function jsonSerialize(): array
     {

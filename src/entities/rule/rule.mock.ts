@@ -7,37 +7,45 @@ import { TRule } from './rule.types'
  */
 export const mockRuleData = (): TRule[] => [
 	{
-		id: '5137a1e5-b54d-43ad-abd1-4b5bff5fcd3f',
+		uuid: '5137a1e5-b54d-43ad-abd1-4b5bff5fcd3f',
 		name: 'System Backup Rule',
 		description: 'Rule for system backup process',
-		ruleType: 'system.backup',
-		priority: 1,
-		isEnabled: true,
-		userId: 'admin',
-		ruleGroupId: 'system-rules',
-		created: '',
-		updated: '',
-		conditions: [],
-		actions: [],
-		executionCount: 0,
-		lastExecuted: '',
+		action: 'create',
+		timing: 'before',
+		conditions: [
+			{
+				if: [{ var: 'data.type' }, 'backup']
+			}
+		],
+		type: 'script',
+		configuration: {
+			script: 'backup.js'
+		},
+		order: 1,
+		created: '2023-01-01T00:00:00Z',
+		updated: '2023-01-01T00:00:00Z'
 	},
 	{
-		id: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
-		name: 'Weekly Report Rule',
+		uuid: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
+		name: 'Weekly Report Rule', 
 		description: 'Rule for generating weekly reports',
-		ruleType: 'system.report',
-		priority: 2,
-		isEnabled: true,
-		userId: 'reporter',
-		ruleGroupId: 'reporting-rules',
-		created: '',
-		updated: '',
-		conditions: [],
-		actions: [],
-		executionCount: 0,
-		lastExecuted: '',
-	},
+		action: 'read',
+		timing: 'after',
+		conditions: [
+			{
+				if: [{ var: 'data.type' }, 'report']
+			}
+		],
+		type: 'mapping',
+		configuration: {
+			mappings: {
+				'source': 'target'
+			}
+		},
+		order: 2,
+		created: '2023-01-01T00:00:00Z',
+		updated: '2023-01-01T00:00:00Z'
+	}
 ]
 
 /**

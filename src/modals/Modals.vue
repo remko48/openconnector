@@ -44,6 +44,8 @@ import { navigationStore } from '../store/store.js'
 		<DeleteSynchronizationSourceConfig v-if="navigationStore.modal === 'deleteSynchronizationSourceConfig'" />
 		<EditSynchronizationTargetConfig v-if="navigationStore.modal === 'editSynchronizationTargetConfig'" />
 		<DeleteSynchronizationTargetConfig v-if="navigationStore.modal === 'deleteSynchronizationTargetConfig'" />
+		<EditRule />
+		<DeleteRule />
 	</div>
 </template>
 
@@ -88,6 +90,8 @@ import EditSynchronizationSourceConfig from './SynchronizationSourceConfig/EditS
 import DeleteSynchronizationSourceConfig from './SynchronizationSourceConfig/DeleteSynchronizationSourceConfig.vue'
 import EditSynchronizationTargetConfig from './SynchronizationTargetConfig/EditSynchronizationTargetConfig.vue'
 import DeleteSynchronizationTargetConfig from './SynchronizationTargetConfig/DeleteSynchronizationTargetConfig.vue'
+import EditRule from './Rule/EditRule.vue'
+import DeleteRule from './Rule/DeleteRule.vue'
 
 export default {
 	name: 'Modals',
@@ -132,6 +136,8 @@ export default {
 		DeleteSynchronizationSourceConfig,
 		EditSynchronizationTargetConfig,
 		DeleteSynchronizationTargetConfig,
+		EditRule,
+		DeleteRule,
 	},
 	setup() {
 		return {

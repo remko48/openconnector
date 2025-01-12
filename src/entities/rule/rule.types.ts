@@ -1,26 +1,17 @@
+/**
+ * Interface representing a Rule entity
+ * Defines the structure and types for rule objects in the system
+ */
 export interface TRule {
-    id: string;
+    uuid: string;
     name: string;
     description: string;
-    ruleType: string;
-    payload?: object;
-    priority: number;
-    timeout?: number;
-    isAsync?: boolean;
-    allowDuplicates?: boolean;
-    isEnabled: boolean;
-    oneTime?: boolean;
-    scheduleAfter?: string;
-    userId: string;
-    ruleGroupId: string;
-    retentionPeriod?: number;
-    errorRetention?: number;
-    lastTriggered?: string;
-    nextTrigger?: string;
+    action: 'create' | 'read' | 'update' | 'delete';
+    timing: 'before' | 'after';
+    conditions: object[];
+    type: 'mapping' | 'error' | 'script' | 'synchronization';
+    configuration: object;
+    order: number;
     created: string;
     updated: string;
-    conditions: any[];
-    actions: any[];
-    executionCount: number;
-    lastExecuted: string;
 }
