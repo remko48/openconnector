@@ -1,5 +1,5 @@
 <script setup>
-import { ruleStore, navigationStore } from '../../store/store.js'
+import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -58,6 +58,24 @@ import { ruleStore, navigationStore } from '../../store/store.js'
 					v-model="typeOptions.value"
 					input-label="Type" />
 
+				<!-- Add mapping select -->
+				<NcSelect v-if="typeOptions.value?.id === 'mapping'"
+					v-bind="mappingOptions"
+					v-model="mappingOptions.value"
+					:loading="mappingOptions.loading"
+					input-label="Select Mapping"
+					:multiple="false"
+					:clearable="false" />
+
+				<!-- Add synchronization select -->
+				<NcSelect v-if="typeOptions.value?.id === 'synchronization'"
+					v-bind="syncOptions"
+					v-model="syncOptions.value"
+					:loading="syncOptions.loading"
+					input-label="Select Synchronization"
+					:multiple="false"
+					:clearable="false" />
+
 				<NcTextArea :value.sync="ruleItem.actionConfig"
 					label="Action Configuration (JSON)" />
 			</form>
@@ -106,6 +124,17 @@ export default {
 			success: null,
 			loading: false,
 			error: false,
+			mappingOptions: {
+				options: [],
+				value: null,
+				loading: false
+			},
+			
+			syncOptions: {
+				options: [],
+				value: null,
+				loading: false
+			},
 
 			ruleItem: {
 				name: '',
@@ -114,7 +143,17 @@ export default {
 				order: 0,
 				action: '',
 				type: '',
-				actionConfig: '{}'
+				actionConfig: '{}',
+				configuration: {
+					mapping: null,
+					synchronization: null,
+					error: {
+						code: 500,
+						name: 'Something went wrong',
+						message: 'We encountered an unexpected problem'
+					},
+					javascript: ''
+				}
 			},
 
 			actionOptions: {
@@ -156,8 +195,62 @@ export default {
 				option => option.id === this.ruleItem.type  
 			)
 		}
+		this.getMappings()
+		this.getSynchronizations()
 	},
 	methods: {
+		async getMappings() {
+			try {
+				this.mappingOptions.loading = true
+				const { results: mappings } = await mappingStore.refreshMappingList()
+				
+				this.mappingOptions.options = mappings.map(mapping => ({
+					label: mapping.name,
+					value: mapping.id
+				}))
+
+				// Set active mapping if editing
+				if (this.IS_EDIT && this.ruleItem.configuration?.mapping) {
+					const activeMapping = this.mappingOptions.options.find(
+						option => option.value === this.ruleItem.configuration.mapping
+					)
+					if (activeMapping) {
+						this.mappingOptions.value = activeMapping
+					}
+				}
+			} catch (error) {
+				console.error('Failed to fetch mappings:', error)
+			} finally {
+				this.mappingOptions.loading = false
+			}
+		},
+
+		async getSynchronizations() {
+			try {
+				this.syncOptions.loading = true
+				const { results: synchronizations } = await synchronizationStore.refreshSynchronizationList()
+				
+				this.syncOptions.options = synchronizations.map(sync => ({
+					label: sync.name,
+					value: sync.id
+				}))
+
+				// Set active synchronization if editing
+				if (this.IS_EDIT && this.ruleItem.configuration?.synchronization) {
+					const activeSync = this.syncOptions.options.find(
+						option => option.value === this.ruleItem.configuration.synchronization
+					)
+					if (activeSync) {
+						this.syncOptions.value = activeSync
+					}
+				}
+			} catch (error) {
+				console.error('Failed to fetch synchronizations:', error)
+			} finally {
+				this.syncOptions.loading = false
+			}
+		},
+
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
