@@ -126,5 +126,32 @@ export const useRuleStore = defineStore('rule', {
 				throw err
 			}
 		},
+
+        
+        /**
+         * Deletes a rule
+         * @throws {Error} If no rule item is set or has no ID
+         * @returns {Promise} Fetch promise
+         */
+        async deleteRule() {
+            if (!this.ruleItem || !this.ruleItem.id) {
+                throw new Error('No rule item to delete')
+            }
+
+            console.log('Deleting rule...')
+
+            const endpoint = `/index.php/apps/openconnector/api/rules/${this.ruleItem.id}`
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'DELETE',
+                })
+                await this.refreshRuleList()
+                return response
+            } catch (err) {
+                console.error('Error deleting rule:', err)
+                throw err
+            }
+        },
 	},
 })

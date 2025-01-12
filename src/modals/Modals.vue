@@ -44,8 +44,8 @@ import { navigationStore } from '../store/store.js'
 		<DeleteSynchronizationSourceConfig v-if="navigationStore.modal === 'deleteSynchronizationSourceConfig'" />
 		<EditSynchronizationTargetConfig v-if="navigationStore.modal === 'editSynchronizationTargetConfig'" />
 		<DeleteSynchronizationTargetConfig v-if="navigationStore.modal === 'deleteSynchronizationTargetConfig'" />
-		<EditRule />
-		<DeleteRule />
+		<EditRule v-if="navigationStore.modal === 'editRule'" />
+		<DeleteRule  />
 	</div>
 </template>
 

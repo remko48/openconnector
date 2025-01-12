@@ -7,10 +7,12 @@ import { TRule } from './rule.types'
  */
 export const mockRuleData = (): TRule[] => [
 	{
+		id: '1',
 		uuid: '5137a1e5-b54d-43ad-abd1-4b5bff5fcd3f',
 		name: 'System Backup Rule',
 		description: 'Rule for system backup process',
 		action: 'create',
+		
 		timing: 'before',
 		conditions: [
 			{
@@ -26,6 +28,7 @@ export const mockRuleData = (): TRule[] => [
 		updated: '2023-01-01T00:00:00Z'
 	},
 	{
+		id: '2',
 		uuid: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
 		name: 'Weekly Report Rule', 
 		description: 'Rule for generating weekly reports',

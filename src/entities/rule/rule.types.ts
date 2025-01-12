@@ -3,6 +3,7 @@
  * Defines the structure and types for rule objects in the system
  */
 export interface TRule {
+    id: string;
     uuid: string;
     name: string;
     description: string;

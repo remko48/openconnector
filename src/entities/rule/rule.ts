@@ -12,6 +12,7 @@ import getValidISOstring from '../../services/getValidISOstring.js'
  * @implements {TRule}
  */
 export class Rule extends ReadonlyBaseClass implements TRule {
+	public readonly id: string
 	public readonly uuid: string
 	public readonly name: string 
 	public readonly description: string
@@ -31,6 +32,7 @@ export class Rule extends ReadonlyBaseClass implements TRule {
 	constructor(rule: TRule) {
 		// Process and set default values for all rule properties
 		const processedRule: TRule = {
+			id: rule.id || '',
 			uuid: rule.uuid || '',
 			name: rule.name || '',
 			description: rule.description || '',
@@ -53,6 +55,7 @@ export class Rule extends ReadonlyBaseClass implements TRule {
 	 */
 	public validate(): SafeParseReturnType<TRule, unknown> {
 		const schema = z.object({
+			id: z.string(),
 			uuid: z.string().uuid(),
 			name: z.string().max(255),
 			description: z.string().nullable(),
