@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { setActivePinia, createPinia } from 'pinia'
 
 import { useMappingStore } from './mapping.js'

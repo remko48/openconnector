@@ -40,12 +40,12 @@ class Version1Date20241218122932 extends SimpleMigrationStep {
 		 */
 		$schema = $schemaClosure();
 
-		if($schema->hasTable(tableName: 'openconnector_consumers') === true) {
+		if ($schema->hasTable(tableName: 'openconnector_consumers') === true) {
 			$table = $schema->getTable(tableName: 'openconnector_consumers');
 			$table->addColumn('authorization_configuration', Types::JSON);
 			$table->addColumn('user_id', Types::STRING)->setNotnull(false);
 		}
-		if($schema->hasTable(tableName: 'openconnector_endpoints') === true) {
+		if ($schema->hasTable(tableName: 'openconnector_endpoints') === true) {
 			$table = $schema->getTable(tableName: 'openconnector_endpoints');
 			$table->addColumn('conditions', Types::JSON);
 		}

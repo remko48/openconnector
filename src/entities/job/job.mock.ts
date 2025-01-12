@@ -23,6 +23,7 @@ export const mockJobData = (): TJob[] => [
 		nextRun: '',
 		created: '',
 		updated: '',
+		version: '1.0.0',
 	},
 	{
 		id: '4c3edd34-a90d-4d2a-8894-adb5836ecde8',
@@ -45,6 +46,7 @@ export const mockJobData = (): TJob[] => [
 		nextRun: '',
 		created: '',
 		updated: '',
+		version: '1.0.0',
 	},
 ]
 

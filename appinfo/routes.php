@@ -31,5 +31,9 @@ return [
 		['name' => 'endpoints#handlePath', 'postfix' => 'update', 'url' => '/api/endpoint/{_path}', 'verb' => 'PUT', 'requirements' => ['_path' => '.+']],
 		['name' => 'endpoints#handlePath', 'postfix' => 'create', 'url' => '/api/endpoint/{_path}', 'verb' => 'POST', 'requirements' => ['_path' => '.+']],
 		['name' => 'endpoints#handlePath', 'postfix' => 'destroy', 'url' => '/api/endpoint/{_path}', 'verb' => 'DELETE', 'requirements' => ['_path' => '.+']],
+		// Import & Export
+		['name' => 'import#import', 'url' => '/api/import', 'verb' => 'POST'],
+//		['name' => 'import#importUpdate', 'url' => '/api/import/{id}', 'verb' => 'PUT'],
+		['name' => 'export#export', 'url' => '/api/export/{type}/{id}', 'verb' => 'GET'],
 	],
 ];

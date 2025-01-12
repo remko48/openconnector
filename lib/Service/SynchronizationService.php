@@ -510,16 +510,16 @@ class SynchronizationService
 				return new Exception($exception->getMessage());
 			}
 		}
-        
+
         // Let's prevent pointless updates by checking:
         // 1. If the origin hash matches (object hasn't changed)
         // 2. If the synchronization config hasn't been updated since last check
         // 3. If source target mapping exists, check it hasn't been updated since last check
         // 4. If target ID and hash exist (object hasn't been removed from target)
 		if (
-            $originHash === $synchronizationContract->getOriginHash() && 
+            $originHash === $synchronizationContract->getOriginHash() &&
             $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked() &&
-            ($sourceTargetMapping === null || 
+            ($sourceTargetMapping === null ||
              $sourceTargetMapping->getUpdated() < $synchronizationContract->getSourceLastChecked()) &&
             $synchronizationContract->getTargetId() !== null &&
             $synchronizationContract->getTargetHash() !== null
@@ -528,12 +528,10 @@ class SynchronizationService
 			return $synchronizationContract;
 		}
 
-		// The object has changed, oke let do mappig and bla die bla
+		// The object has changed, oke let do mappig and set metadata
 		$synchronizationContract->setOriginHash($originHash);
 		$synchronizationContract->setSourceLastChanged(new DateTime());
 		$synchronizationContract->setSourceLastChecked(new DateTime());
-
-		
 
         // Execute mapping if found
         if ($sourceTargetMapping) {
@@ -594,7 +592,7 @@ class SynchronizationService
 	 *
 	 * @return SynchronizationContract The updated synchronization contract with the modified target ID.
 	 *
-	 * @throws \Exception If an error occurs while interacting with the object service or processing the data.
+	 * @throws Exception If an error occurs while interacting with the object service or processing the data.
 	 */
 	private function updateTargetOpenRegister(SynchronizationContract $synchronizationContract, Synchronization $synchronization, ?array $targetObject = [], ?string $action = 'save'): SynchronizationContract
 	{
@@ -690,10 +688,8 @@ class SynchronizationService
 		$type = $synchronization->getSourceType();
 
 		switch ($type) {
-			case 'register/schema':
-				// Setup the object service
-//                $this->objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
-
+            case 'register/schema':
+                //@todo: implement
 				break;
 			case 'api':
 				$objects = $this->getAllObjectsFromApi(synchronization: $synchronization, isTest: $isTest);
@@ -940,12 +936,11 @@ class SynchronizationService
 	/**
 	 * Extracts all objects from the API response body.
 	 *
-	 * @param array $body The decoded JSON body of the API response.
+	 * @param array $array The decoded JSON body of the API response.
 	 * @param Synchronization $synchronization The synchronization object containing source configuration.
 	 *
 	 * @return array An array of items extracted from the response body.
 	 * @throws Exception If the position of objects in the return body cannot be determined.
-	 *
 	 */
 	public function getAllObjectsFromArray(array $array, Synchronization $synchronization): array
 	{
@@ -988,6 +983,22 @@ class SynchronizationService
 		throw new Exception("Cannot determine the position of objects in the return body.");
 	}
 
+	/**
+     * Write an created, updated or deleted object to an external target.
+     *
+	 * @param Synchronization $synchronization The synchronization to run.
+	 * @param SynchronizationContract $contract The contract to enforce.
+	 * @param string $endpoint The endpoint to write the object to.
+     *
+	 * @return SynchronizationContract The updated contract.
+     *
+	 * @throws ContainerExceptionInterface
+	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws NotFoundExceptionInterface
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
+	 */
 	private function writeObjectToTarget(
 		Synchronization         $synchronization,
 		SynchronizationContract $contract,
@@ -997,7 +1008,7 @@ class SynchronizationService
 		$target = $this->sourceMapper->find(id: $synchronization->getTargetId());
 
 		$sourceId = $synchronization->getSourceId();
-		if ($synchronization->getSourceType() === 'register/schema') {
+		if ($synchronization->getSourceType() === 'register/schema' && $contract->getOriginId() !== null) {
 			$sourceIds = explode(separator: '/', string: $sourceId);
 
 			$this->objectService->getOpenRegisters()->setRegister($sourceIds[0]);
@@ -1008,14 +1019,25 @@ class SynchronizationService
 			)->jsonSerialize();
 		}
 
-
 		$targetConfig = $this->callService->applyConfigDot($synchronization->getTargetConfig());
-		// @TODO For now only JSON APIs are supported
-		$targetConfig['json'] = $object;
 
 		if (str_starts_with($endpoint, $target->getLocation()) === true) {
 			$endpoint = str_replace(search: $target->getLocation(), replace: '', subject: $endpoint);
 		}
+
+		if ($contract->getOriginId() === null) {
+
+			$endpoint .= '/'.$contract->getTargetId();
+			$response = $this->callService->call(source: $target, endpoint: $endpoint, method: 'DELETE', config: $targetConfig)->getResponse();
+
+			$contract->setTargetHash(md5(serialize($response['body'])));
+			$contract->setTargetId(null);
+
+			return $contract;
+		}
+
+		// @TODO For now only JSON APIs are supported
+		$targetConfig['json'] = $object;
 
 		if ($contract->getTargetId() === null) {
 			$response = $this->callService->call(source: $target, endpoint: $endpoint, method: 'POST', config: $targetConfig)->getResponse();
@@ -1028,6 +1050,8 @@ class SynchronizationService
 			return $contract;
 		}
 
+		$endpoint .= '/'.$contract->getTargetId();
+
 		$response = $this->callService->call(source: $target, endpoint: $endpoint, method: 'PUT', config: $targetConfig)->getResponse();
 
 		$body = json_decode($response['body'], true);
@@ -1035,11 +1059,29 @@ class SynchronizationService
 		return $contract;
 	}
 
-	public function synchronizeToTarget(ObjectEntity $object): array
+	/**
+	 * Synchronize data to a target.
+	 *
+	 * The synchronizationContract should be given if the normal procedure to find the contract (on originId) is not available to the contract that should be updated.
+	 *
+	 * @param ObjectEntity $object The object to synchronize
+	 * @param SynchronizationContract|null $synchronizationContract If given: the synchronization contract that should be updated.
+	 *
+	 * @return array The updated synchronizationContracts
+	 *
+	 * @throws ContainerExceptionInterface
+	 * @throws LoaderError
+	 * @throws NotFoundExceptionInterface
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
+	 */
+	public function synchronizeToTarget(ObjectEntity $object, ?SynchronizationContract $synchronizationContract = null): array
 	{
 		$objectId = $object->getUuid();
 
-		$synchronizationContract = $this->synchronizationContractMapper->findByOriginId($objectId);
+		if ($synchronizationContract === null) {
+			$synchronizationContract = $this->synchronizationContractMapper->findByOriginId($objectId);
+		}
 
 		$synchronizations = $this->synchronizationMapper->findAll(filters: [
 			'source_type' => 'register/schema',
@@ -1050,7 +1092,6 @@ class SynchronizationService
 		}
 
 		$synchronization = $synchronizations[0];
-
 
 		if ($synchronizationContract instanceof SynchronizationContract === false) {
 
@@ -1066,7 +1107,6 @@ class SynchronizationService
 			// If this is a regular synchronizationContract update it to the database.
 			$synchronizationContract = $this->synchronizationContractMapper->update(entity: $synchronizationContract);
 		}
-
 
 		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
 
