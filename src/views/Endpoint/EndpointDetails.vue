@@ -33,6 +33,12 @@ import { endpointStore, navigationStore, ruleStore } from '../../store/store.js'
 							</template>
 							Verwijderen
 						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('addEndpointRule')">
+							<template #icon>
+								<Plus :size="20" />
+							</template>
+							Add Rule
+						</NcActionButton>
 					</NcActions>
 				</div>
 
@@ -153,6 +159,7 @@ import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
 
 export default {
 	name: 'EndpointDetails',
@@ -168,6 +175,7 @@ export default {
 		FileExportOutline,
 		SitemapOutline,
 		Delete,
+		Plus,
 	},
 	data() {
 		return {

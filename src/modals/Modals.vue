@@ -47,6 +47,7 @@ import { navigationStore } from '../store/store.js'
 		<ImportFile v-if="navigationStore.modal === 'importFile'" />
 		<EditRule v-if="navigationStore.modal === 'editRule'" />
 		<DeleteRule  />
+		<AddEndpointRule v-if="navigationStore.modal === 'addEndpointRule'" />
 	</div>
 </template>
 
@@ -94,6 +95,7 @@ import DeleteSynchronizationTargetConfig from './SynchronizationTargetConfig/Del
 import ImportFile from './Import/ImportFile.vue'
 import EditRule from './Rule/EditRule.vue'
 import DeleteRule from './Rule/DeleteRule.vue'
+import AddEndpointRule from './Endpoint/AddEndpointRule.vue'
 
 export default {
 	name: 'Modals',
@@ -141,6 +143,7 @@ export default {
 		ImportFile,
 		EditRule,
 		DeleteRule,
+		AddEndpointRule,
 	},
 	setup() {
 		return {
