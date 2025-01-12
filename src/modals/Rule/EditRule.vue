@@ -202,10 +202,12 @@ export default {
 		async getMappings() {
 			try {
 				this.mappingOptions.loading = true
-				const response = await mappingStore.refreshMappingList()
+				await mappingStore.refreshMappingList()
 				
-				if (response && response.results) {
-					this.mappingOptions.options = response.results.map(mapping => ({
+				// Use the store's mappingList directly
+				const mappings = mappingStore.mappingList
+				if (mappings?.length) {
+					this.mappingOptions.options = mappings.map(mapping => ({
 						label: mapping.name,
 						value: mapping.id
 					}))
@@ -230,10 +232,12 @@ export default {
 		async getSynchronizations() {
 			try {
 				this.syncOptions.loading = true
-				const response = await synchronizationStore.refreshSynchronizationList()
+				await synchronizationStore.refreshSynchronizationList()
 				
-				if (response && response.results) {
-					this.syncOptions.options = response.results.map(sync => ({
+				// Use the store's synchronizationList directly
+				const synchronizations = synchronizationStore.synchronizationList
+				if (synchronizations?.length) {
+					this.syncOptions.options = synchronizations.map(sync => ({
 						label: sync.name,
 						value: sync.id
 					}))
