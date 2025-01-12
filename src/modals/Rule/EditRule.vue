@@ -76,8 +76,56 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 					:multiple="false"
 					:clearable="false" />
 
-				<NcTextArea :value.sync="ruleItem.actionConfig"
-					label="Action Configuration (JSON)" />
+				<!-- Error Configuration -->
+				<template v-if="typeOptions.value?.id === 'error'">
+					<NcInputField
+						type="number"
+						label="Error Code"
+						:min="100"
+						:max="999"
+						:value.sync="ruleItem.configuration.error.code"
+						placeholder="500" />
+					
+					<NcTextField
+						label="Error Title"
+						maxlength="255"
+						:value.sync="ruleItem.configuration.error.name"
+						placeholder="Something went wrong" />
+					
+					<NcTextArea
+						label="Error Message"
+						maxlength="2550"
+						:value.sync="ruleItem.configuration.error.message"
+						placeholder="We encountered an unexpected problem" />
+				</template>
+
+				<!-- Mapping Configuration -->
+				<NcSelect v-if="typeOptions.value?.id === 'mapping'"
+					v-bind="mappingOptions"
+					v-model="mappingOptions.value"
+					:loading="mappingOptions.loading"
+					input-label="Select Mapping"
+					:multiple="false"
+					:clearable="false" />
+
+				<!-- Synchronization Configuration -->
+				<NcSelect v-if="typeOptions.value?.id === 'synchronization'"
+					v-bind="syncOptions"
+					v-model="syncOptions.value"
+					:loading="syncOptions.loading"
+					input-label="Select Synchronization"
+					:multiple="false"
+					:clearable="false" />
+
+				<!-- JavaScript Configuration -->
+				<template v-if="typeOptions.value?.id === 'javascript'">
+					<NcTextArea
+						label="JavaScript Code"
+						:value.sync="ruleItem.configuration.javascript"
+						class="code-editor"
+						placeholder="Enter your JavaScript code here..."
+						rows="10" />
+				</template>
 			</form>
 
 			<NcButton v-if="!success"
@@ -103,6 +151,7 @@ import {
 	NcSelect,
 	NcLoadingIcon,
 	NcNoteCard,
+	NcInputField,
 } from '@nextcloud/vue'
 
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
@@ -117,6 +166,7 @@ export default {
 		NcSelect,
 		NcLoadingIcon,
 		NcNoteCard,
+		NcInputField,
 	},
 	data() {
 		return {
@@ -289,16 +339,46 @@ export default {
 		editRule() {
 			this.loading = true
 
+			const configuration = {}
+			const type = this.typeOptions.value?.id
+
+			// Build configuration based on type
+			switch (type) {
+				case 'error':
+					configuration.error = {
+						code: this.ruleItem.configuration.error.code,
+						name: this.ruleItem.configuration.error.name,
+						message: this.ruleItem.configuration.error.message
+					}
+					break
+				case 'mapping':
+					configuration.mapping = this.mappingOptions.value?.value
+					break
+				case 'synchronization':
+					configuration.synchronization = this.syncOptions.value?.value
+					break
+				case 'javascript':
+					configuration.javascript = this.ruleItem.configuration.javascript
+					break
+			}
+
 			ruleStore.saveRule({
 				...this.ruleItem,
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
-				type: this.typeOptions.value?.id || null,
-				actionConfig: this.ruleItem.actionConfig ? JSON.parse(this.ruleItem.actionConfig) : {}
+				type: type || null,
+				configuration
 			})
-				.then(({ response }) => {
-					this.success = response.ok
-					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				.then(response => {
+					// Check if we have a successful response
+					if (response?.entity) {
+						this.success = true
+						this.error = false
+						this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+					} else {
+						this.success = false
+						this.error = 'Failed to save rule'
+					}
 				})
 				.catch(error => {
 					this.success = false
@@ -341,5 +421,12 @@ export default {
 	font-size: 0.8rem;
 	margin-top: 0.25rem;
 	display: block;
+}
+
+/* Add styles for the code editor */
+.code-editor {
+	font-family: monospace;
+	width: 100%;
+	background-color: var(--color-background-dark);
 }
 </style>
