@@ -99,24 +99,6 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 						placeholder="We encountered an unexpected problem" />
 				</template>
 
-				<!-- Mapping Configuration -->
-				<NcSelect v-if="typeOptions.value?.id === 'mapping'"
-					v-bind="mappingOptions"
-					v-model="mappingOptions.value"
-					:loading="mappingOptions.loading"
-					input-label="Select Mapping"
-					:multiple="false"
-					:clearable="false" />
-
-				<!-- Synchronization Configuration -->
-				<NcSelect v-if="typeOptions.value?.id === 'synchronization'"
-					v-bind="syncOptions"
-					v-model="syncOptions.value"
-					:loading="syncOptions.loading"
-					input-label="Select Synchronization"
-					:multiple="false"
-					:clearable="false" />
-
 				<!-- JavaScript Configuration -->
 				<template v-if="typeOptions.value?.id === 'javascript'">
 					<NcTextArea
@@ -208,10 +190,10 @@ export default {
 
 			actionOptions: {
 				options: [
-					{ label: 'Create', id: 'create' },
-					{ label: 'Read', id: 'read' },
-					{ label: 'Update', id: 'update' },
-					{ label: 'Delete', id: 'delete' }
+					{ label: 'Post (Create)', id: 'post' },
+					{ label: 'Get (Read)', id: 'get' },
+					{ label: 'Put (Update)', id: 'put' },
+					{ label: 'Delete (Delete)', id: 'delete' }
 				],
 				value: { label: 'Create', id: 'create' }
 			},
@@ -369,9 +351,8 @@ export default {
 				type: type || null,
 				configuration
 			})
-				.then(response => {
-					// Check if we have a successful response
-					if (response?.entity) {
+				.then(({ response, entity }) => {
+					if (response.ok && entity) {
 						this.success = true
 						this.error = false
 						this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)

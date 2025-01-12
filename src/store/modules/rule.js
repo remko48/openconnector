@@ -118,9 +118,10 @@ export const useRuleStore = defineStore('rule', {
 					body: JSON.stringify(ruleToSave),
 				})
 				const data = await response.json()
-				this.setRuleItem(data)
+				const entity = new Rule(data)
+				this.setRuleItem(entity)
 				await this.refreshRuleList()
-				return data
+				return { response, data, entity }
 			} catch (err) {
 				console.error('Error saving rule:', err)
 				throw err
