@@ -24,6 +24,8 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 use ValueError;
+use OCA\OpenConnector\Db\Rule;
+use OCA\OpenConnector\Db\RuleMapper;
 
 /**
  * Service class for handling endpoint requests
@@ -47,6 +49,7 @@ class EndpointService
 		private readonly LoggerInterface $logger,
 		private readonly IURLGenerator   $urlGenerator,
 		private readonly MappingService  $mappingService,
+		private readonly RuleMapper    $ruleMapper,
 	)
 	{
 	}
@@ -71,6 +74,23 @@ class EndpointService
 		}
 
 		try {
+			// Process initial data
+			$data = [
+				'parameters' => $request->getParams(),
+				'headers' => $this->getHeaders($request->server, true),
+				'path' => $path,
+				'method' => $request->getMethod(),
+			];
+
+			// Process rules before handling the request
+			$ruleResult = $this->processRules($endpoint, $request, $data);
+			if ($ruleResult instanceof JSONResponse) {
+				return $ruleResult;
+			}
+
+			// Update request data with rule processing results
+			$request = $this->updateRequestWithRuleData($request, $ruleResult);
+
 			// Check if endpoint connects to a schema
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
@@ -366,5 +386,151 @@ class EndpointService
 			$response->getResponse(),
 			$response->getStatusCode()
 		);
+	}
+
+	/**
+	 * Processes rules for an endpoint request
+	 *
+	 * @param Endpoint $endpoint The endpoint being processed
+	 * @param IRequest $request The incoming request
+	 * @param array $data Current request data
+	 * @return array|JSONResponse Returns modified data or error response if rule fails
+	 */
+	private function processRules(Endpoint $endpoint, IRequest $request, array $data): array|JSONResponse 
+	{
+		$rules = $endpoint->getRules();
+		if (empty($rules)) {
+			return $data;
+		}
+
+		try {
+			// Get all rules at once and sort by order
+			$ruleEntities = array_filter(
+				array_map(
+					fn($ruleId) => $this->getRuleById($ruleId),
+					$rules
+				)
+			);
+
+			// Sort rules by order
+			usort($ruleEntities, fn($a, $b) => $a->getOrder() - $b->getOrder());
+			
+			// Process each rule in order
+			foreach ($ruleEntities as $rule) {
+				// Skip if rule action doesn't match request method
+				if ($rule->getAction() !== $request->getMethod()) {
+					continue;
+				}
+
+				// Check rule conditions
+				if (!$this->checkRuleConditions($rule, $data)) {
+					continue;
+				}
+
+				// Process rule based on type
+				$result = match ($rule->getType()) {
+					'error' => $this->processErrorRule($rule),
+					'mapping' => $this->processMappingRule($rule, $data),
+					'synchronization' => $this->processSyncRule($rule, $data),
+					'javascript' => $this->processJavaScriptRule($rule, $data),
+					default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
+				};
+
+				// If result is JSONResponse, return error immediately
+				if ($result instanceof JSONResponse) {
+					return $result;
+				}
+
+				// Update data with rule result
+				$data = $result;
+			}
+
+			return $data;
+		} catch (Exception $e) {
+			$this->logger->error('Error processing rules: ' . $e->getMessage());
+			return new JSONResponse(['error' => 'Rule processing failed: ' . $e->getMessage()], 500);
+		}
+	}
+
+	/**
+	 * Get a rule by its ID using RuleMapper
+	 */
+	private function getRuleById(string $id): ?Rule 
+	{
+		try {
+			return $this->ruleMapper->find((int)$id);
+		} catch (Exception $e) {
+			$this->logger->error('Error fetching rule: ' . $e->getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * Processes an error rule
+	 */
+	private function processErrorRule(Rule $rule): JSONResponse 
+	{
+		$config = $rule->getConfiguration();
+		return new JSONResponse(
+			[
+				'error' => $config['error']['name'],
+				'message' => $config['error']['message']
+			],
+			$config['error']['code']
+		);
+	}
+
+	/**
+	 * Processes a mapping rule
+	 */
+	private function processMappingRule(Rule $rule, array $data): array 
+	{
+		$config = $rule->getConfiguration();
+		$mapping = $this->mappingService->getMapping($config['mapping']);
+		return $this->mappingService->executeMapping($mapping, $data);
+	}
+
+	/**
+	 * Processes a synchronization rule
+	 */
+	private function processSyncRule(Rule $rule, array $data): array 
+	{
+		$config = $rule->getConfiguration();
+		// Here you would implement the synchronization logic
+		// For now, just return the data unchanged
+		return $data;
+	}
+
+	/**
+	 * Processes a JavaScript rule
+	 */
+	private function processJavaScriptRule(Rule $rule, array $data): array 
+	{
+		$config = $rule->getConfiguration();
+		// @todo: Here we need to implement the JavaScript execution logic
+		// For now, just return the data unchanged
+		return $data;
+	}
+
+	/**
+	 * Checks if rule conditions are met
+	 */
+	private function checkRuleConditions(Rule $rule, array $data): bool 
+	{
+		$conditions = $rule->getConditions();
+		if (empty($conditions)) {
+			return true;
+		}
+
+		return JsonLogic::apply($conditions, $data) === true;
+	}
+
+	/**
+	 * Updates request object with processed rule data
+	 */
+	private function updateRequestWithRuleData(IRequest $request, array $ruleData): IRequest 
+	{
+		// @todo: Here we need to implement the update request with rule data logic
+		return $request; // For now, just return original request
 	}
 }
