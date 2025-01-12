@@ -202,20 +202,22 @@ export default {
 		async getMappings() {
 			try {
 				this.mappingOptions.loading = true
-				const { results: mappings } = await mappingStore.refreshMappingList()
+				const response = await mappingStore.refreshMappingList()
 				
-				this.mappingOptions.options = mappings.map(mapping => ({
-					label: mapping.name,
-					value: mapping.id
-				}))
+				if (response && response.results) {
+					this.mappingOptions.options = response.results.map(mapping => ({
+						label: mapping.name,
+						value: mapping.id
+					}))
 
-				// Set active mapping if editing
-				if (this.IS_EDIT && this.ruleItem.configuration?.mapping) {
-					const activeMapping = this.mappingOptions.options.find(
-						option => option.value === this.ruleItem.configuration.mapping
-					)
-					if (activeMapping) {
-						this.mappingOptions.value = activeMapping
+					// Set active mapping if editing
+					if (this.IS_EDIT && this.ruleItem.configuration?.mapping) {
+						const activeMapping = this.mappingOptions.options.find(
+							option => option.value === this.ruleItem.configuration.mapping
+						)
+						if (activeMapping) {
+							this.mappingOptions.value = activeMapping
+						}
 					}
 				}
 			} catch (error) {
@@ -228,20 +230,22 @@ export default {
 		async getSynchronizations() {
 			try {
 				this.syncOptions.loading = true
-				const { results: synchronizations } = await synchronizationStore.refreshSynchronizationList()
+				const response = await synchronizationStore.refreshSynchronizationList()
 				
-				this.syncOptions.options = synchronizations.map(sync => ({
-					label: sync.name,
-					value: sync.id
-				}))
+				if (response && response.results) {
+					this.syncOptions.options = response.results.map(sync => ({
+						label: sync.name,
+						value: sync.id
+					}))
 
-				// Set active synchronization if editing
-				if (this.IS_EDIT && this.ruleItem.configuration?.synchronization) {
-					const activeSync = this.syncOptions.options.find(
-						option => option.value === this.ruleItem.configuration.synchronization
-					)
-					if (activeSync) {
-						this.syncOptions.value = activeSync
+					// Set active synchronization if editing
+					if (this.IS_EDIT && this.ruleItem.configuration?.synchronization) {
+						const activeSync = this.syncOptions.options.find(
+							option => option.value === this.ruleItem.configuration.synchronization
+						)
+						if (activeSync) {
+							this.syncOptions.value = activeSync
+						}
 					}
 				}
 			} catch (error) {
