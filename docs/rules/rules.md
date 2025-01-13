@@ -21,7 +21,7 @@ Rules have several key properties that define their behavior:
 - action: Specifies when the rule triggers (create, read, update, delete)
 - timing: Controls if rule runs 'before' or 'after' the action (defaults to 'before')
 - conditions: JSON Logic format conditions that determine when rule applies
-- type: The rule type (mapping, error, script, synchronization)
+- type: The rule type (mapping, error, script, synchronization, authentication, download)
 - configuration: Type-specific configuration stored as JSON
 - order: Integer determining execution order when multiple rules exist
 
@@ -42,6 +42,27 @@ The current implementation shows:
 - Rules can be retrieved and managed through the Rules resource controller
 - Rule IDs are stored and validated as strings within endpoints
 - The endpoint entity ensures rules are always stored as an array
+
+## Rule Types
+
+### Authentication Rules
+
+Authentication rules control access to endpoints by validating user credentials and permissions. Configuration options include:
+
+- type: The authentication method to use
+  - basic: Basic HTTP authentication
+  - jwt: JSON Web Token authentication
+  - jwt-zgw: ZGW-specific JWT authentication
+  - oauth: OAuth 2.0 authentication
+- users: Array of specific users allowed to access the endpoint
+- groups: Array of user groups allowed to access the endpoint
+
+### Download Rules
+
+Download rules handle file access and retrieval. Configuration includes:
+
+- fileIdPosition: Specifies the position of the file ID in the URL path
+- Automatic validation of user access rights to requested files
 
 ## Rule Validation
 

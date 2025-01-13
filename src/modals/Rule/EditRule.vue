@@ -108,6 +108,51 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 						placeholder="Enter your JavaScript code here..."
 						rows="10" />
 				</template>
+
+				<!-- Authentication Configuration -->
+				<template v-if="typeOptions.value?.id === 'authentication'">
+					<NcSelect
+						:options="[
+							{ label: 'Basic Authentication', value: 'basic' },
+							{ label: 'JWT', value: 'jwt' },
+							{ label: 'JWT-ZGW', value: 'jwt-zgw' },
+							{ label: 'OAuth', value: 'oauth' }
+						]"
+						v-model="ruleItem.configuration.authentication.type"
+						input-label="Authentication Type" />
+
+					<!-- Users Multi-Select -->
+					<NcSelect
+						:options="usersList"
+						v-model="ruleItem.configuration.authentication.users"
+						input-label="Allowed Users"
+						:multiple="true"
+						:clearable="true"
+						placeholder="Select users who can access" />
+
+					<!-- Groups Multi-Select -->
+					<NcSelect
+						:options="groupsList"
+						v-model="ruleItem.configuration.authentication.groups"
+						input-label="Allowed Groups"
+						:multiple="true"
+						:clearable="true"
+						placeholder="Select groups who can access" />
+				</template>
+
+				<!-- Download Configuration -->
+				<template v-if="typeOptions.value?.id === 'download'">
+					<NcTextField
+						label="File ID Position"
+						type="number"
+						:min="0"
+						:value.sync="ruleItem.configuration.download.fileIdPosition"
+						placeholder="Position of file ID in URL path (e.g. 2)" />
+					
+					<div class="info-text">
+						<p>The system will automatically check if the authenticated user has access rights to the requested file.</p>
+					</div>
+				</template>
 			</form>
 
 			<NcButton v-if="!success"
@@ -168,6 +213,16 @@ export default {
 				loading: false
 			},
 
+			// @todoMock data for users and groups - should be fetched from backend
+			usersList: [
+				{ label: 'User 1', value: 'user1' },
+				{ label: 'User 2', value: 'user2' }
+			],
+			groupsList: [
+				{ label: 'Group 1', value: 'group1' },
+				{ label: 'Group 2', value: 'group2' }
+			],
+
 			ruleItem: {
 				name: '',
 				description: '',
@@ -184,7 +239,15 @@ export default {
 						name: 'Something went wrong',
 						message: 'We encountered an unexpected problem'
 					},
-					javascript: ''
+					javascript: '',
+					authentication: {
+						type: 'basic',
+						users: [],
+						groups: []
+					},
+					download: {
+						fileIdPosition: 0
+					}
 				}
 			},
 
@@ -203,7 +266,9 @@ export default {
 					{ label: 'Error', id: 'error' },
 					{ label: 'Mapping', id: 'mapping' },
 					{ label: 'Synchronization', id: 'synchronization' },
-					{ label: 'JavaScript', id: 'javascript' }
+					{ label: 'JavaScript', id: 'javascript' },
+					{ label: 'Authentication', id: 'authentication' },
+					{ label: 'Download', id: 'download' }
 				],
 				value: { label: 'Error', id: 'error' }
 			},
@@ -342,6 +407,18 @@ export default {
 				case 'javascript':
 					configuration.javascript = this.ruleItem.configuration.javascript
 					break
+				case 'authentication':
+					configuration.authentication = {
+						type: this.ruleItem.configuration.authentication.type,
+						users: this.ruleItem.configuration.authentication.users,
+						groups: this.ruleItem.configuration.authentication.groups
+					}
+					break
+				case 'download':
+					configuration.download = {
+						fileIdPosition: this.ruleItem.configuration.download.fileIdPosition
+					}
+					break
 			}
 
 			ruleStore.saveRule({
@@ -409,5 +486,12 @@ export default {
 	font-family: monospace;
 	width: 100%;
 	background-color: var(--color-background-dark);
+}
+
+.info-text {
+	margin: 1rem 0;
+	padding: 0.5rem;
+	background-color: var(--color-background-dark);
+	border-radius: var(--border-radius);
 }
 </style>
