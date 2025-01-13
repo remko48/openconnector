@@ -28,4 +28,4 @@ describe('Rule Store', () => {
 			expect(item.validate().success).toBe(true)
 		})
 	})
-}) 
+})

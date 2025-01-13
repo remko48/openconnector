@@ -8,6 +8,7 @@ import getValidISOstring from '../../services/getValidISOstring.js'
  * Implements TEvent interface and extends ReadonlyBaseClass for immutability
  */
 export class Event extends ReadonlyBaseClass implements TEvent {
+
 	public readonly id: string
 	public readonly name: string
 	public readonly description: string
@@ -62,7 +63,7 @@ export class Event extends ReadonlyBaseClass implements TEvent {
 
 	/**
 	 * Validates the event data against a schema
-	 * @returns SafeParseReturnType containing validation results
+	 * @return SafeParseReturnType containing validation results
 	 */
 	public validate(): SafeParseReturnType<TEvent, unknown> {
 		const schema = z.object({
@@ -85,9 +86,10 @@ export class Event extends ReadonlyBaseClass implements TEvent {
 			lastTriggered: z.string().nullable(),
 			nextTrigger: z.string().nullable(),
 			created: z.string(),
-			updated: z.string()
+			updated: z.string(),
 		})
 
 		return schema.safeParse({ ...this })
 	}
+
 }

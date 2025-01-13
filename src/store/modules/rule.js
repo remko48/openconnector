@@ -1,5 +1,5 @@
 /**
- * @fileoverview Rule store module for managing rule-related state and actions
+ * @file Rule store module for managing rule-related state and actions
  */
 
 import { defineStore } from 'pinia'
@@ -7,7 +7,7 @@ import { Rule } from '../../entities/index.js'
 
 /**
  * Rule store definition using Pinia
- * @returns {Object} Store instance with state and actions
+ * @return {object} Store instance with state and actions
  */
 export const useRuleStore = defineStore('rule', {
 	state: () => ({
@@ -15,9 +15,9 @@ export const useRuleStore = defineStore('rule', {
 		ruleItem: false,
 		/** @type {Rule[]} List of rules */
 		ruleList: [],
-		/** @type {Object|false} Rule test results */
+		/** @type {object | false} Rule test results */
 		ruleTest: false,
-		/** @type {Object|false} Rule run results */
+		/** @type {object | false} Rule run results */
 		ruleRun: false,
 		/** @type {Array} Rule logs */
 		ruleLogs: [],
@@ -25,8 +25,8 @@ export const useRuleStore = defineStore('rule', {
 	actions: {
 		/**
 		 * Sets the current active rule
-		 * @param {Object} ruleItem - Rule data to set
-		 * @returns {void}
+		 * @param {object} ruleItem - Rule data to set
+		 * @return {void}
 		 */
 		setRuleItem(ruleItem) {
 			this.ruleItem = ruleItem && new Rule(ruleItem)
@@ -36,7 +36,7 @@ export const useRuleStore = defineStore('rule', {
 		/**
 		 * Sets the list of rules
 		 * @param {Array} ruleList - Array of rule data
-		 * @returns {void}
+		 * @return {void}
 		 */
 		setRuleList(ruleList) {
 			this.ruleList = ruleList.map(
@@ -48,7 +48,7 @@ export const useRuleStore = defineStore('rule', {
 		/**
 		 * Refreshes the rule list from the API
 		 * @param {string|null} search - Optional search query
-		 * @returns {Promise} Fetch promise
+		 * @return {Promise} Fetch promise
 		 */
 		async refreshRuleList(search = null) {
 			let endpoint = '/index.php/apps/openconnector/api/rules'
@@ -69,7 +69,7 @@ export const useRuleStore = defineStore('rule', {
 		/**
 		 * Gets a single rule by ID
 		 * @param {string} id - Rule ID
-		 * @returns {Promise} Fetch promise
+		 * @return {Promise} Fetch promise
 		 */
 		async getRule(id) {
 			const endpoint = `/index.php/apps/openconnector/api/rules/${id}`
@@ -86,8 +86,8 @@ export const useRuleStore = defineStore('rule', {
 
 		/**
 		 * Saves or creates a rule
-		 * @param {Object} ruleItem - Rule data to save
-		 * @returns {Promise} Fetch promise
+		 * @param {object} ruleItem - Rule data to save
+		 * @return {Promise} Fetch promise
 		 */
 		async saveRule(ruleItem) {
 			if (!ruleItem) {
@@ -103,10 +103,10 @@ export const useRuleStore = defineStore('rule', {
 			// Clean up the rule data before saving
 			const ruleToSave = { ...ruleItem }
 			Object.keys(ruleToSave).forEach(key => {
-				if (ruleToSave[key] === '' || 
-					(Array.isArray(ruleToSave[key]) && !ruleToSave[key].length) || 
-					key === 'created' || 
-					key === 'updated') {
+				if (ruleToSave[key] === ''
+					|| (Array.isArray(ruleToSave[key]) && !ruleToSave[key].length)
+					|| key === 'created'
+					|| key === 'updated') {
 					delete ruleToSave[key]
 				}
 			})
@@ -128,31 +128,30 @@ export const useRuleStore = defineStore('rule', {
 			}
 		},
 
-        
-        /**
-         * Deletes a rule
-         * @throws {Error} If no rule item is set or has no ID
-         * @returns {Promise} Fetch promise
-         */
-        async deleteRule() {
-            if (!this.ruleItem || !this.ruleItem.id) {
-                throw new Error('No rule item to delete')
-            }
+		/**
+		 * Deletes a rule
+		 * @throws {Error} If no rule item is set or has no ID
+		 * @return {Promise} Fetch promise
+		 */
+		async deleteRule() {
+			if (!this.ruleItem || !this.ruleItem.id) {
+				throw new Error('No rule item to delete')
+			}
 
-            console.log('Deleting rule...')
+			console.log('Deleting rule...')
 
-            const endpoint = `/index.php/apps/openconnector/api/rules/${this.ruleItem.id}`
+			const endpoint = `/index.php/apps/openconnector/api/rules/${this.ruleItem.id}`
 
-            try {
-                const response = await fetch(endpoint, {
-                    method: 'DELETE',
-                })
-                await this.refreshRuleList()
-                return response
-            } catch (err) {
-                console.error('Error deleting rule:', err)
-                throw err
-            }
-        },
+			try {
+				const response = await fetch(endpoint, {
+					method: 'DELETE',
+				})
+				await this.refreshRuleList()
+				return response
+			} catch (err) {
+				console.error('Error deleting rule:', err)
+				throw err
+			}
+		},
 	},
 })

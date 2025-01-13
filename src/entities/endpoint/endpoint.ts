@@ -6,9 +6,9 @@ import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
 /**
  * Endpoint entity class that represents a system endpoint
  * Implements TEndpoint interface and extends ReadonlyBaseClass
- * 
+ *
  * @class Endpoint
- * @extends {ReadonlyBaseClass}
+ * @augments {ReadonlyBaseClass}
  * @implements {TEndpoint}
  */
 export class Endpoint extends ReadonlyBaseClass implements TEndpoint {
@@ -45,7 +45,7 @@ export class Endpoint extends ReadonlyBaseClass implements TEndpoint {
 			targetId: endpoint.targetId || '',
 			created: getValidISOstring(endpoint.created) ?? '',
 			updated: getValidISOstring(endpoint.updated) ?? '',
-			rules: endpoint.rules ?? [] // Initialize rules array with empty array if not provided
+			rules: endpoint.rules ?? [], // Initialize rules array with empty array if not provided
 		}
 
 		super(processedEndpoint)
@@ -55,8 +55,8 @@ export class Endpoint extends ReadonlyBaseClass implements TEndpoint {
 	 * Validates the endpoint data before posting
 	 * IDs are optional, meaning the id property is not required to exist on the posted content
 	 * NOT that it can be empty or '0'
-	 * 
-	 * @returns {SafeParseReturnType<TEndpoint, unknown>} Result of validation
+	 *
+	 * @return {SafeParseReturnType<TEndpoint, unknown>} Result of validation
 	 */
 	public validate(): SafeParseReturnType<TEndpoint, unknown> {
 		const schema = z.object({
@@ -73,7 +73,7 @@ export class Endpoint extends ReadonlyBaseClass implements TEndpoint {
 			targetType: z.string(),
 			created: z.string().datetime().or(z.literal('')).optional(),
 			updated: z.string().datetime().or(z.literal('')).optional(),
-			rules: z.string().array() // Validate rules as array of strings (rule IDs)
+			rules: z.string().array(), // Validate rules as array of strings (rule IDs)
 		})
 
 		return schema.safeParse({ ...this })

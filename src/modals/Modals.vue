@@ -46,7 +46,7 @@ import { navigationStore } from '../store/store.js'
 		<DeleteSynchronizationTargetConfig v-if="navigationStore.modal === 'deleteSynchronizationTargetConfig'" />
 		<ImportFile v-if="navigationStore.modal === 'importFile'" />
 		<EditRule v-if="navigationStore.modal === 'editRule'" />
-		<DeleteRule  />
+		<DeleteRule />
 		<AddEndpointRule v-if="navigationStore.modal === 'addEndpointRule'" />
 	</div>
 </template>
