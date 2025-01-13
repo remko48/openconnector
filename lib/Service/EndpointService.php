@@ -225,7 +225,17 @@ class EndpointService
 			}
 
 			$main = $mapper->find($pathParams['id'])->getObject();
-			$ids = $main[$property];
+			$ids = array_map(function ($identifier) {
+                if(is_int($identifier) === true) {
+                    return $identifier;
+                } else if (Uuid::isValid($identifier) === true) {
+                    return $identifier;
+                } else if (filter_var($identifier, FILTER_VALIDATE_URL) !== false) {
+                    $explodedUrl = explode(separator: '/', string: $identifier);
+                    return end($explodedUrl);
+                }
+                return null;
+            }, $main[$property]);
 
 			if (isset($id) === true && in_array(needle: $id, haystack: $ids) === true) {
 
