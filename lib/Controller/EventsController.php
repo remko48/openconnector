@@ -19,10 +19,10 @@ use OCP\AppFramework\Db\DoesNotExistException;
 /**
  * Controller for managing events and their subscriptions
  */
-class EventController extends Controller
+class EventsController extends Controller
 {
     /**
-     * Constructor for the EventController
+     * Constructor for the EventsController
      *
      * @param string $appName The name of the app
      * @param IRequest $request The request object
@@ -339,9 +339,9 @@ class EventController extends Controller
 
             // Get messages for this subscription
             $messages = $this->messageMapper->findAll(
-                filters: ['subscriptionId' => $subscriptionId],
                 limit: $this->request->getParam('limit', 50),
-                offset: $this->request->getParam('offset', 0)
+				offset: $this->request->getParam('offset', 0),
+				filters: ['subscriptionId' => $subscriptionId]
             );
 
             return new JSONResponse([

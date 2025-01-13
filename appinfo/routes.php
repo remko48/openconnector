@@ -9,6 +9,7 @@ return [
 		'Synchronizations' => ['url' => 'api/synchronizations'],
 		'Consumers' => ['url' => 'api/consumers'],
 		'Rules' => ['url' => 'api/rules'],
+		'Events' => ['url' => 'api/events'],
 	],
 	'routes' => [
 		['name' => 'dashboard#page', 'url' => '/', 'verb' => 'GET'],
@@ -38,20 +39,19 @@ return [
 
 		// Import & Export
 		['name' => 'import#import', 'url' => '/api/import', 'verb' => 'POST'],
-//		['name' => 'import#importUpdate', 'url' => '/api/import/{id}', 'verb' => 'PUT'],
 		['name' => 'export#export', 'url' => '/api/export/{type}/{id}', 'verb' => 'GET'],
 
 		// Event messages
-		['name' => 'event#messages', 'url' => '/api/events/{id}/messages', 'verb' => 'GET'],
+		['name' => 'events#messages', 'url' => '/api/events/{id}/messages', 'verb' => 'GET'],
 
 		// Subscription management
-		['name' => 'event#subscribe', 'url' => '/api/events/subscriptions', 'verb' => 'POST'],
-		['name' => 'event#updateSubscription', 'url' => '/api/events/subscriptions/{subscriptionId}', 'verb' => 'PUT'],
-		['name' => 'event#unsubscribe', 'url' => '/api/events/subscriptions/{subscriptionId}', 'verb' => 'DELETE'],
-		['name' => 'event#subscriptions', 'url' => '/api/events/subscriptions', 'verb' => 'GET'],
-		['name' => 'event#subscriptionMessages', 'url' => '/api/events/subscriptions/{subscriptionId}/messages', 'verb' => 'GET'],
+		['name' => 'events#subscriptions', 'url' => '/api/events/subscriptions', 'verb' => 'GET'],
+		['name' => 'events#subscriptionMessages', 'url' => '/api/events/subscriptions/{subscriptionId}/messages', 'verb' => 'GET'],
+		['name' => 'events#subscribe', 'url' => '/api/events/subscriptions', 'verb' => 'POST'],
+		['name' => 'events#updateSubscription', 'url' => '/api/events/subscriptions/{subscriptionId}', 'verb' => 'PUT'],
+		['name' => 'events#unsubscribe', 'url' => '/api/events/subscriptions/{subscriptionId}', 'verb' => 'DELETE'],
 
 		// Pull-based delivery
-		['name' => 'event#pull', 'url' => '/api/events/subscriptions/{subscriptionId}/pull', 'verb' => 'GET'],
+		['name' => 'events#pull', 'url' => '/api/events/subscriptions/{subscriptionId}/pull', 'verb' => 'GET'],
 	],
 ];
