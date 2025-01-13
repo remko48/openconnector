@@ -1,5 +1,6 @@
 <script setup>
 import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '../../store/store.js'
+import { getTheme } from '../../services/getTheme.js'
 </script>
 
 <template>
@@ -34,12 +35,22 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 
 				<div class="json-editor">
 					<label>Conditions (JSON Logic)</label>
-					<textarea
-						v-model="ruleItem.conditions"
-						:class="{ 'invalid-json': !isValidJson(ruleItem.conditions) }"
-						rows="5"
-						placeholder="{&quot;and&quot;: [{&quot;==&quot;: [{&quot;var&quot;: &quot;status&quot;}, &quot;active&quot;]}, {&quot;>=&quot;: [{&quot;var&quot;: &quot;age&quot;}, 18]}]}"
-						@input="validateJson" />
+					<div :class="`codeMirrorContainer ${getTheme()}`">
+						<CodeMirror v-model="ruleItem.conditions"
+							:basic="true"
+							placeholder="{&quot;and&quot;: [{&quot;==&quot;: [{&quot;var&quot;: &quot;status&quot;}, &quot;active&quot;]}, {&quot;>=&quot;: [{&quot;var&quot;: &quot;age&quot;}, 18]}]}"
+							:dark="getTheme() === 'dark'"
+							:linter="jsonParseLinter()"
+							:lang="json()"
+							:tab-size="2" />
+
+						<NcButton class="format-json-button"
+							type="secondary"
+							size="small"
+							@click="formatJson">
+							Format JSON
+						</NcButton>
+					</div>
 					<span v-if="!isValidJson(ruleItem.conditions)" class="error-message">
 						Invalid JSON format
 					</span>
@@ -225,6 +236,8 @@ import {
 	NcNoteCard,
 	NcInputField,
 } from '@nextcloud/vue'
+import { json, jsonParseLinter } from '@codemirror/lang-json'
+import CodeMirror from 'vue-codemirror6'
 
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -427,7 +440,7 @@ export default {
 			}
 		},
 
-		validateJson() {
+		formatJson() {
 			try {
 				if (this.ruleItem.conditions) {
 					// Format the JSON with proper indentation
@@ -497,15 +510,11 @@ export default {
 				type: type || null,
 				configuration,
 			})
-				.then(({ response, entity }) => {
-					if (response.ok && entity) {
-						this.success = true
-						this.error = false
-						this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-					} else {
-						this.success = false
-						this.error = 'Failed to save rule'
-					}
+				.then(({ response }) => {
+					this.success = response.ok
+					this.error = !response.ok && 'Failed to save rule'
+
+					response.ok && (this.closeTimeoutFunc = setTimeout(this.closeModal, 2000))
 				})
 				.catch(error => {
 					this.success = false
@@ -521,7 +530,8 @@ export default {
 
 <style scoped>
 .json-editor {
-	margin-bottom: 1rem;
+    position: relative;
+	margin-bottom: 2.5rem;
 }
 
 .json-editor label {
@@ -530,24 +540,23 @@ export default {
 	font-weight: bold;
 }
 
-.json-editor textarea {
-	width: 100%;
-	padding: 0.5rem;
-	font-family: monospace;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	background-color: var(--color-main-background);
-}
-
-.json-editor .invalid-json {
-	border-color: var(--color-error);
-}
-
 .json-editor .error-message {
+    position: absolute;
+	bottom: 0;
+	right: 50%;
+    transform: translateY(100%) translateX(50%);
+
 	color: var(--color-error);
 	font-size: 0.8rem;
-	margin-top: 0.25rem;
+	padding-top: 0.25rem;
 	display: block;
+}
+
+.json-editor .format-json-button {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+    transform: translateY(100%);
 }
 
 /* Add styles for the code editor */
@@ -562,5 +571,54 @@ export default {
 	padding: 0.5rem;
 	background-color: var(--color-background-dark);
 	border-radius: var(--border-radius);
+}
+
+/* CodeMirror */
+.codeMirrorContainer {
+	margin-block-start: 6px;
+    text-align: left;
+}
+
+.codeMirrorContainer :deep(.cm-content) {
+	border-radius: 0 !important;
+	border: none !important;
+}
+.codeMirrorContainer :deep(.cm-editor) {
+	outline: none !important;
+}
+.codeMirrorContainer.light > .vue-codemirror {
+	border: 1px dotted silver;
+}
+.codeMirrorContainer.dark > .vue-codemirror {
+	border: 1px dotted grey;
+}
+
+/* value text color */
+.codeMirrorContainer.light :deep(.ͼe) {
+	color: #448c27;
+}
+.codeMirrorContainer.dark :deep(.ͼe) {
+	color: #88c379;
+}
+
+/* text cursor */
+.codeMirrorContainer :deep(.cm-content) * {
+	cursor: text !important;
+}
+
+/* value number color */
+.codeMirrorContainer.light :deep(.ͼd) {
+	color: #c68447;
+}
+.codeMirrorContainer.dark :deep(.ͼd) {
+	color: #d19a66;
+}
+
+/* value boolean color */
+.codeMirrorContainer.light :deep(.ͼc) {
+	color: #221199;
+}
+.codeMirrorContainer.dark :deep(.ͼc) {
+	color: #260dd4;
 }
 </style>

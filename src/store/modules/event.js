@@ -1,41 +1,32 @@
-/**
- * @file Event store module for managing event-related state and actions
- * @module store/modules/event
- */
-
 import { defineStore } from 'pinia'
-import { Event } from '../../entities/index.js'
+import { Event, TEvent } from '../../entities/index.js'
 
-/**
- * Event store definition using Pinia
- * @return {object} Store instance with state and actions
- */
 export const useEventStore = defineStore('event', {
 	state: () => ({
-		/** @type {Event|false} Current active event */
-		eventItem: false,
-		/** @type {object | false} Event test results */
-		eventTest: false,
-		/** @type {object | false} Event run results */
-		eventRun: false,
+		/** @type {Event} Current active event */
+		eventItem: null,
+		/** @type {object} Event test results */
+		eventTest: null,
+		/** @type {object} Event run results */
+		eventRun: null,
 		/** @type {Event[]} List of events */
 		eventList: [],
-		/** @type {object | false} Current event log */
-		eventLog: false,
+		/** @type {object} Current event log */
+		eventLog: null,
 		/** @type {Array} Event logs collection */
 		eventLogs: [],
-		/** @type {string|null} Current event argument key */
+		/** @type {string} Current event argument key */
 		eventArgumentKey: null,
 	}),
 	actions: {
 		/**
 		 * Sets the current active event
-		 * @param {object} eventItem - Event data to set
+		 * @param {TEvent | Event} eventItem - Event data to set
 		 * @return {void}
 		 */
 		setEventItem(eventItem) {
 			this.eventItem = eventItem && new Event(eventItem)
-			console.log('Active event item set to ' + eventItem)
+			console.info('Active event item set to ' + eventItem)
 		},
 
 		/**
@@ -45,7 +36,7 @@ export const useEventStore = defineStore('event', {
 		 */
 		setEventTest(eventTest) {
 			this.eventTest = eventTest
-			console.log('Event test set to ' + eventTest)
+			console.info('Event test set to ' + eventTest)
 		},
 
 		/**
@@ -55,19 +46,19 @@ export const useEventStore = defineStore('event', {
 		 */
 		setEventRun(eventRun) {
 			this.eventRun = eventRun
-			console.log('Event run set to ' + eventRun)
+			console.info('Event run set to ' + eventRun)
 		},
 
 		/**
 		 * Sets the list of events
-		 * @param {Array} eventList - Array of event data
+		 * @param {Array<TEvent | Event>} eventList - Array of event data
 		 * @return {void}
 		 */
 		setEventList(eventList) {
 			this.eventList = eventList.map(
 				(eventItem) => new Event(eventItem),
 			)
-			console.log('Event list set to ' + eventList.length + ' items')
+			console.info('Event list set to ' + eventList.length + ' items')
 		},
 
 		/**
@@ -77,7 +68,7 @@ export const useEventStore = defineStore('event', {
 		 */
 		setEventLogs(eventLogs) {
 			this.eventLogs = eventLogs
-			console.log('Event logs set to ' + eventLogs.length + ' items')
+			console.info('Event logs set to ' + eventLogs.length + ' items')
 		},
 
 		/**
@@ -87,12 +78,12 @@ export const useEventStore = defineStore('event', {
 		 */
 		setEventArgumentKey(eventArgumentKey) {
 			this.eventArgumentKey = eventArgumentKey
-			console.log('Active event argument key set to ' + eventArgumentKey)
+			console.info('Active event argument key set to ' + eventArgumentKey)
 		},
 
 		/**
 		 * Refreshes the event list from the API
-		 * @param {string|null} search - Optional search query
+		 * @param {string} search - Optional search query
 		 * @return {Promise} Fetch promise
 		 */
 		async refreshEventList(search = null) {
@@ -151,23 +142,23 @@ export const useEventStore = defineStore('event', {
 
 		/**
 		 * Deletes the current event
+		 * @param {string} id - Event ID to delete
 		 * @return {Promise} Fetch promise
 		 */
-		async deleteEvent() {
-			if (!this.eventItem?.id) {
-				throw new Error('No event item to delete')
+		async deleteEvent(id) {
+			if (!id) {
+				throw new Error('No event ID provided to delete')
 			}
 
-			console.log('Deleting event...')
-			const endpoint = `/index.php/apps/openconnector/api/events/${this.eventItem.id}`
+			console.info('Deleting event...')
+			const endpoint = `/index.php/apps/openconnector/api/events/${id}`
 
-			try {
-				await fetch(endpoint, { method: 'DELETE' })
-				await this.refreshEventList()
-			} catch (err) {
-				console.error('Error deleting event:', err)
-				throw err
-			}
+			const response = await fetch(endpoint, { method: 'DELETE' })
+
+			if (response.ok) this.setEventItem(null)
+			this.refreshEventList()
+
+			return response
 		},
 
 		/**
@@ -179,7 +170,7 @@ export const useEventStore = defineStore('event', {
 				throw new Error('No event item to test')
 			}
 
-			console.log('Testing event...')
+			console.info('Testing event...')
 			const endpoint = `/index.php/apps/openconnector/api/events-test/${this.eventItem.id}`
 
 			try {
@@ -209,7 +200,7 @@ export const useEventStore = defineStore('event', {
 				throw new Error('No event ID provided to run')
 			}
 
-			console.log('Running event...')
+			console.info('Running event...')
 			const endpoint = `/index.php/apps/openconnector/api/events-run/${id}`
 
 			try {
@@ -231,15 +222,15 @@ export const useEventStore = defineStore('event', {
 
 		/**
 		 * Saves or creates an event
-		 * @param {object} eventItem - Event data to save
-		 * @return {Promise} Fetch promise
+		 * @param {TEvent | Event} eventItem - Event data to save
+		 * @return {{ response: Response, data: TEvent, entity: Event }} Fetch promise
 		 */
 		async saveEvent(eventItem) {
 			if (!eventItem) {
 				throw new Error('No event item to save')
 			}
 
-			console.log('Saving event...')
+			console.info('Saving event...')
 			const isNewEvent = !eventItem.id
 			const endpoint = isNewEvent
 				? '/index.php/apps/openconnector/api/events'
@@ -257,20 +248,19 @@ export const useEventStore = defineStore('event', {
 				}
 			})
 
-			try {
-				const response = await fetch(endpoint, {
-					method,
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(eventToSave),
-				})
-				const data = await response.json()
-				this.setEventItem(data)
-				await this.refreshEventList()
-				return data
-			} catch (err) {
-				console.error('Error saving event:', err)
-				throw err
-			}
+			const response = await fetch(endpoint, {
+				method,
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(eventToSave),
+			})
+
+			const data = await response.json()
+			const entity = new Event(data)
+
+			this.setEventItem(entity)
+			this.refreshEventList()
+
+			return { response, data, entity }
 		},
 	},
 })

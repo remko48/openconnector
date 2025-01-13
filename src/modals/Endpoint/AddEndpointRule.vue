@@ -3,8 +3,7 @@ import { endpointStore, navigationStore, ruleStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcModal v-if="navigationStore.modal === 'addEndpointRule'"
-		ref="modalRef"
+	<NcModal ref="modalRef"
 		label-id="addEndpointRule"
 		@close="closeModal">
 		<div class="modalContent">
@@ -52,6 +51,7 @@ import {
 	NcNoteCard,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
+import _ from 'lodash'
 
 export default {
 	name: 'AddEndpointRule',
@@ -74,13 +74,14 @@ export default {
 			closeTimeoutFunc: null,
 		}
 	},
-	async mounted() {
-		await this.loadAvailableRules()
+	mounted() {
+		this.loadAvailableRules()
 	},
 	methods: {
 		async loadAvailableRules() {
+			this.loading = true
+
 			try {
-				this.loading = true
 				await ruleStore.refreshRuleList()
 
 				// Filter out rules that are already added to the endpoint
@@ -104,9 +105,10 @@ export default {
 			if (!this.ruleOptions.value) return
 
 			this.loading = true
+
 			try {
 				// Create a copy of the current endpoint
-				const updatedEndpoint = { ...endpointStore.endpointItem }
+				const updatedEndpoint = _.cloneDeep(endpointStore.endpointItem)
 
 				// Initialize rules array if it doesn't exist
 				if (!updatedEndpoint.rules) {
@@ -152,10 +154,6 @@ export default {
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = null
-			this.loading = false
-			this.error = false
-			this.ruleOptions.value = null
 		},
 	},
 }
