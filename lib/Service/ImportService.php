@@ -244,6 +244,12 @@ class ImportService
 			return new JSONResponse(data: ['error' => "Could not find a mapper for this @type: ".$objectArray['@type']], statusCode: 400);
 		}
 
+		if (in_array(strtolower($objectArray['@type']), ['calllog','consumer','event','eventmessage',
+				'synchronizationcontract','synchronizationcontractlog']) === true
+		) {
+			return new JSONResponse(data: ['error' => "It is not allowed to import objects of {type}: " . $objectArray['@type']], statusCode: 400);
+		}
+
 		// Check if object already exists.
 		if (isset($objectArray['@id']) === true) {
 			$objectArray['reference'] = $objectArray['@id'];

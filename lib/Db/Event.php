@@ -8,7 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 /**
  * Entity class representing a CloudEvent
- * 
+ *
  * This class implements the CloudEvents specification (https://cloudevents.io/)
  * for events generated when objects are updated in open registers.
  */
@@ -16,18 +16,17 @@ class Event extends Entity implements JsonSerializable
 {
     // Required CloudEvent attributes
     protected ?string $uuid = null; // Unique UUID identifier for the event
-    protected ?string $id = null; // Unique identifier for the event
     protected ?string $source = null; // URI identifying the context where event happened
     protected ?string $type = null; // Event type identifier
     protected ?string $specversion = '1.0'; // CloudEvents specification version
     protected ?DateTime $time = null; // Timestamp of when the event occurred
-    
+
     // Optional CloudEvent attributes
     protected ?string $datacontenttype = 'application/json'; // Content type of data
     protected ?string $dataschema = null; // URI to the schema that data adheres to
     protected ?string $subject = null; // Subject of the event
     protected ?array $data = null; // Event payload
-    
+
     // Additional tracking fields
     protected ?string $userId = null; // User who triggered the event
     protected ?DateTime $created = null; // When the event was created in our system
@@ -40,7 +39,6 @@ class Event extends Entity implements JsonSerializable
      */
     public function __construct() {
         $this->addType('uuid', 'string');
-        $this->addType('id', 'string');
         $this->addType('source', 'string');
         $this->addType('type', 'string');
         $this->addType('specversion', 'string');
@@ -105,8 +103,8 @@ class Event extends Entity implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
+			'id' => $this->id,
             'uuid' => $this->uuid,
-            'id' => $this->id,
             'source' => $this->source,
             'type' => $this->type,
             'specversion' => $this->specversion,

@@ -60,6 +60,8 @@ class Version1Date20250109093325 extends SimpleMigrationStep {
 			$table = $schema->createTable('openconnector_event_subscriptions');
 			$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
 			$table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]);
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('version', Types::STRING, ['notnull' => true, 'length' => 255, 'default' => '0.0.1']);
 			$table->addColumn('source', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('types', Types::JSON, ['notnull' => false]);
 			$table->addColumn('config', Types::JSON, ['notnull' => false]);
@@ -73,7 +75,7 @@ class Version1Date20250109093325 extends SimpleMigrationStep {
 			$table->addColumn('consumer_id', Types::BIGINT, ['notnull' => true, 'length' => 20]);
 			$table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-			
+
 			$table->setPrimaryKey(['id']);
 			$table->addIndex(['uuid'], 'openconnector_event_subs_uuid_index');
 			$table->addIndex(['consumer_id'], 'openconnector_event_subs_consumer_index');
@@ -96,7 +98,7 @@ class Version1Date20250109093325 extends SimpleMigrationStep {
 			$table->addColumn('next_attempt', Types::DATETIME, ['notnull' => false]);
 			$table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-			
+
 			$table->setPrimaryKey(['id']);
 			$table->addIndex(['uuid'], 'openconnector_event_msg_uuid_index');
 			$table->addIndex(['event_id'], 'openconnector_event_msg_event_index');
@@ -112,6 +114,8 @@ class Version1Date20250109093325 extends SimpleMigrationStep {
 			$table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]);
 			$table->addColumn('name', Types::STRING, ['notnull' => true, 'length' => 255]);
 			$table->addColumn('description', Types::TEXT, ['notnull' => false]);
+			$table->addColumn('reference', Types::STRING, ['notnull' => false, 'length' => 255]);
+			$table->addColumn('version', Types::STRING, ['notnull' => true, 'length' => 255, 'default' => '0.0.1']);
 			$table->addColumn('action', Types::STRING, ['notnull' => true, 'length' => 20]); // create, read, update, delete
 			$table->addColumn('timing', Types::STRING, ['notnull' => true, 'length' => 10, 'default' => 'before']); // before or after
 			$table->addColumn('conditions', Types::JSON, ['notnull' => false]);
@@ -120,7 +124,7 @@ class Version1Date20250109093325 extends SimpleMigrationStep {
 			$table->addColumn('order', Types::INTEGER, ['notnull' => true, 'default' => 0]);
 			$table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-			
+
 			$table->setPrimaryKey(['id']);
 			$table->addIndex(['uuid'], 'openconnector_rules_uuid_index');
 			$table->addIndex(['action'], 'openconnector_rules_action_index');

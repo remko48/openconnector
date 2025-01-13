@@ -31,6 +31,8 @@ use OCP\AppFramework\Db\Entity;
 class EventSubscription extends Entity implements JsonSerializable
 {
     protected ?string $uuid = null;
+	protected ?string $reference = null;
+	protected ?string $version = '0.0.0';
     protected ?string $source = null;
     protected ?array $types = [];
     protected ?array $config = [];
@@ -49,6 +51,8 @@ class EventSubscription extends Entity implements JsonSerializable
      */
     public function __construct() {
         $this->addType('uuid', 'string');
+		$this->addType(fieldName:'reference', type: 'string');
+		$this->addType(fieldName:'version', type: 'string');
         $this->addType('source', 'string');
         $this->addType('types', 'json');
         $this->addType('config', 'json');
@@ -128,4 +132,4 @@ class EventSubscription extends Entity implements JsonSerializable
             'updated' => isset($this->updated) ? $this->updated->format('c') : null
         ];
     }
-} 
+}

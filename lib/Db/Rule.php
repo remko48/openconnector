@@ -8,7 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 /**
  * Class Rule
- * 
+ *
  * Represents a rule that can be triggered during endpoint handling
  *
  * @package OCA\OpenConnector\Db
@@ -18,13 +18,15 @@ class Rule extends Entity implements JsonSerializable
     protected ?string $uuid = null;
     protected ?string $name = null;
     protected ?string $description = null;
+	protected ?string $reference = null;
+	protected ?string $version = '0.0.0';
     protected ?string $action = null; // create, read, update, delete
     protected ?string $timing = 'before'; // before or after
     protected ?array $conditions = []; // JSON Logic format conditions
     protected ?string $type = null; // mapping, error, script, synchronization
     protected ?array $configuration = []; // Type-specific configuration
     protected int $order = 0; // Order in which the rule should be applied
-    
+
     // Additional tracking fields
     protected ?DateTime $created = null;
     protected ?DateTime $updated = null;
@@ -33,6 +35,8 @@ class Rule extends Entity implements JsonSerializable
         $this->addType('uuid', 'string');
         $this->addType('name', 'string');
         $this->addType('description', 'string');
+		$this->addType(fieldName:'reference', type: 'string');
+		$this->addType(fieldName:'version', type: 'string');
         $this->addType('action', 'string');
         $this->addType('timing', 'string');
         $this->addType('conditions', 'json');
@@ -91,6 +95,8 @@ class Rule extends Entity implements JsonSerializable
             'uuid' => $this->uuid,
             'name' => $this->name,
             'description' => $this->description,
+			'reference' => $this->reference,
+			'version' => $this->version,
             'action' => $this->action,
             'timing' => $this->timing,
             'conditions' => $this->conditions,
@@ -101,4 +107,4 @@ class Rule extends Entity implements JsonSerializable
             'updated' => isset($this->updated) ? $this->updated->format('c') : null
         ];
     }
-} 
+}
