@@ -245,7 +245,7 @@ class ImportService
 		}
 
 		if (in_array(strtolower($objectArray['@type']), ['calllog','consumer','event','eventmessage',
-				'synchronizationcontract','synchronizationcontractlog']) === true
+				'joblog','synchronizationcontract','synchronizationcontractlog']) === true
 		) {
 			return new JSONResponse(data: ['error' => "It is not allowed to import objects of {type}: " . $objectArray['@type']], statusCode: 400);
 		}

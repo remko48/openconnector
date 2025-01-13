@@ -60,8 +60,8 @@ class ExportService
 			return new JSONResponse(data: ['error' => "Could not find a mapper for this {type}: " . $objectType], statusCode: 400);
 		}
 
-		if (in_array(strtolower($objectType), ['calllog','consumer','event','eventmessage','synchronizationcontract',
-				'synchronizationcontractlog']) === true
+		if (in_array(strtolower($objectType), ['calllog','consumer','event','eventmessage','joblog',
+				'synchronizationcontract','synchronizationcontractlog']) === true
 		) {
 			return new JSONResponse(data: ['error' => "It is not allowed to export objects of {type}: " . $objectType], statusCode: 400);
 		}
