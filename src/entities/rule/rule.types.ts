@@ -10,7 +10,7 @@ export interface TRule {
     action: 'create' | 'read' | 'update' | 'delete';
     timing: 'before' | 'after';
     conditions: object[];
-    type: 'mapping' | 'error' | 'script' | 'synchronization' | 'authentication' | 'download';
+    type: 'mapping' | 'error' | 'script' | 'synchronization' | 'authentication' | 'download' | 'upload' | 'locking';
     configuration: object;
     order: number;
     created: string;

@@ -153,6 +153,52 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 						<p>The system will automatically check if the authenticated user has access rights to the requested file.</p>
 					</div>
 				</template>
+
+				<!-- Upload Configuration -->
+				<template v-if="typeOptions.value?.id === 'upload'">
+					<NcTextField
+						label="Upload Path"
+						:value.sync="ruleItem.configuration.upload.path"
+						placeholder="/path/to/upload/directory" />
+					
+					<NcTextField
+						label="Allowed File Types"
+						:value.sync="ruleItem.configuration.upload.allowedTypes"
+						placeholder="jpg,png,pdf" />
+					
+					<NcInputField
+						type="number"
+						label="Max File Size (MB)"
+						:min="1"
+						:value.sync="ruleItem.configuration.upload.maxSize"
+						placeholder="10" />
+					
+					<div class="info-text">
+						<p>Configure file upload settings including path, allowed types and maximum file size.</p>
+					</div>
+				</template>
+
+				<!-- Locking Configuration -->
+				<template v-if="typeOptions.value?.id === 'locking'">
+					<NcSelect
+						:options="[
+							{ label: 'Lock Resource', value: 'lock' },
+							{ label: 'Unlock Resource', value: 'unlock' }
+						]"
+						v-model="ruleItem.configuration.locking.action"
+						input-label="Lock Action" />
+					
+					<NcInputField
+						type="number"
+						label="Lock Timeout (minutes)"
+						:min="1"
+						:value.sync="ruleItem.configuration.locking.timeout"
+						placeholder="30" />
+					
+					<div class="info-text">
+						<p>Lock or unlock resources for exclusive access by the current user.</p>
+					</div>
+				</template>
 			</form>
 
 			<NcButton v-if="!success"
@@ -247,6 +293,15 @@ export default {
 					},
 					download: {
 						fileIdPosition: 0
+					},
+					upload: {
+						path: '',
+						allowedTypes: '',
+						maxSize: 10
+					},
+					locking: {
+						action: 'lock',
+						timeout: 30
 					}
 				}
 			},
@@ -268,7 +323,9 @@ export default {
 					{ label: 'Synchronization', id: 'synchronization' },
 					{ label: 'JavaScript', id: 'javascript' },
 					{ label: 'Authentication', id: 'authentication' },
-					{ label: 'Download', id: 'download' }
+					{ label: 'Download', id: 'download' },
+					{ label: 'Upload', id: 'upload' },
+					{ label: 'Locking', id: 'locking' }
 				],
 				value: { label: 'Error', id: 'error' }
 			},
@@ -417,6 +474,19 @@ export default {
 				case 'download':
 					configuration.download = {
 						fileIdPosition: this.ruleItem.configuration.download.fileIdPosition
+					}
+					break
+				case 'upload':
+					configuration.upload = {
+						path: this.ruleItem.configuration.upload.path,
+						allowedTypes: this.ruleItem.configuration.upload.allowedTypes,
+						maxSize: this.ruleItem.configuration.upload.maxSize
+					}
+					break
+				case 'locking':
+					configuration.locking = {
+						action: this.ruleItem.configuration.locking.action,
+						timeout: this.ruleItem.configuration.locking.timeout
 					}
 					break
 			}

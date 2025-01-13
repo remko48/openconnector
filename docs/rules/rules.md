@@ -21,7 +21,7 @@ Rules have several key properties that define their behavior:
 - action: Specifies when the rule triggers (create, read, update, delete)
 - timing: Controls if rule runs 'before' or 'after' the action (defaults to 'before')
 - conditions: JSON Logic format conditions that determine when rule applies
-- type: The rule type (mapping, error, script, synchronization, authentication, download)
+- type: The rule type (mapping, error, script, synchronization, authentication, download, upload, locking)
 - configuration: Type-specific configuration stored as JSON
 - order: Integer determining execution order when multiple rules exist
 
@@ -63,6 +63,23 @@ Download rules handle file access and retrieval. Configuration includes:
 
 - fileIdPosition: Specifies the position of the file ID in the URL path
 - Automatic validation of user access rights to requested files
+
+### Upload Rules
+
+Upload rules manage file upload functionality and restrictions. Configuration includes:
+
+- path: The target directory path for uploaded files
+- allowedTypes: Comma-separated list of allowed file extensions (e.g., jpg,png,pdf)
+- maxSize: Maximum allowed file size in megabytes
+
+### Locking Rules
+
+Locking rules provide exclusive access control for resources. Configuration includes:
+
+- action: The locking operation to perform
+  - lock: Lock a resource for exclusive access
+  - unlock: Release a previously locked resource
+- timeout: Duration in minutes before the lock automatically expires
 
 ## Rule Validation
 
