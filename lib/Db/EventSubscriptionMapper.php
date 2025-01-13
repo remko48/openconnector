@@ -45,6 +45,12 @@ class EventSubscriptionMapper extends QBMapper
         return $this->findEntity($qb);
     }
 
+	/**
+	 * Find a subscription by reference
+	 *
+	 * @param int $id The subscription ID
+	 * @return EventSubscription
+	 */
 	public function findByRef(string $reference): array
 	{
 		$qb = $this->db->getQueryBuilder();

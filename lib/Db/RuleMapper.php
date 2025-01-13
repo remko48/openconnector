@@ -44,6 +44,12 @@ class RuleMapper extends QBMapper
 		return $this->findEntity($qb);
 	}
 
+	/**
+	 * Find a rule by reference
+	 *
+	 * @param int $id
+	 * @return Rule
+	 */
 	public function findByRef(string $reference): array
 	{
 		$qb = $this->db->getQueryBuilder();

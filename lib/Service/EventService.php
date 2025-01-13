@@ -82,19 +82,19 @@ class EventService
     private function doesEventMatchSubscription(Event $event, EventSubscription $subscription): bool
     {
         // Check event type matches
-        if (!empty($subscription->getTypes()) && 
-            !in_array($event->getType(), $subscription->getTypes())) {
+        if (empty($subscription->getTypes() === false) &&
+            in_array($event->getType(), $subscription->getTypes()) === false) {
             return false;
         }
 
         // Check source matches
-        if ($subscription->getSource() && 
+        if ($subscription->getSource() &&
             $event->getSource() !== $subscription->getSource()) {
             return false;
         }
 
         // Process filters if any exist
-        if (!empty($subscription->getFilters())) {
+        if (empty($subscription->getFilters()) === false) {
             return $this->evaluateFilters($event, $subscription->getFilters());
         }
 
@@ -111,7 +111,7 @@ class EventService
     private function evaluateFilters(Event $event, array $filters): bool
     {
         $expressionLanguage = new ExpressionLanguage();
-        
+
         foreach ($filters as $filter) {
             foreach ($filter as $dialect => $condition) {
                 switch ($dialect) {
@@ -125,7 +125,7 @@ class EventService
 
                     case 'prefix':
                         foreach ($condition as $field => $value) {
-                            if (!str_starts_with($event->{'get' . ucfirst($field)}(), $value)) {
+                            if (str_starts_with($event->{'get' . ucfirst($field)}(), $value) === false) {
                                 return false;
                             }
                         }
@@ -133,7 +133,7 @@ class EventService
 
                     case 'suffix':
                         foreach ($condition as $field => $value) {
-                            if (!str_ends_with($event->{'get' . ucfirst($field)}(), $value)) {
+                            if (str_ends_with($event->{'get' . ucfirst($field)}(), $value) === false) {
                                 return false;
                             }
                         }
@@ -141,7 +141,7 @@ class EventService
 
                     case 'expression':
                         $variables = $event->jsonSerialize();
-                        if (!$expressionLanguage->evaluate($condition, $variables)) {
+                        if ($expressionLanguage->evaluate($condition, $variables) === false) {
                             return false;
                         }
                         break;
@@ -182,7 +182,7 @@ class EventService
     {
         try {
             $subscription = $this->subscriptionMapper->find($message->getSubscriptionId());
-            
+
             if ($subscription->getStyle() !== 'push') {
                 return false;
             }
@@ -252,7 +252,7 @@ class EventService
     public function pullEvents(EventSubscription $subscription, ?int $limit = 100, ?string $cursor = null): array
     {
         $filters = ['subscriptionId' => $subscription->getId(), 'status' => 'pending'];
-        
+
         if ($cursor) {
             $filters['id'] = ['>' => $cursor];
         }
@@ -266,14 +266,15 @@ class EventService
         ];
     }
 
-    /**
-     * Handle object creation by creating and processing a CloudEvent
-     *
-     * @param Object $object The created object
-     * @return Event The created CloudEvent
-     */
-    public function handleObjectCreated(Object $object): Event
-    {
+	/**
+	 * Handle object creation by creating and processing a CloudEvent
+	 *
+	 * @param Object $object The created object
+	 * @return EventMessage[] The created CloudEvent
+	 * @throws Exception
+	 */
+    public function handleObjectCreated(Object $object): array
+	{
         $event = $this->eventMapper->createFromArray([
             'source' => '/objects/' . $object->getType(),
             'type' => 'com.nextcloud.openregister.object.created',
@@ -290,15 +291,16 @@ class EventService
         return $this->processEvent($event);
     }
 
-    /**
-     * Handle object update by creating and processing a CloudEvent
-     *
-     * @param Object $oldObject The previous state of the object
-     * @param Object $newObject The new state of the object
-     * @return Event The created CloudEvent
-     */
-    public function handleObjectUpdated(Object $oldObject, Object $newObject): Event
-    {
+	/**
+	 * Handle object update by creating and processing a CloudEvent
+	 *
+	 * @param Object $oldObject The previous state of the object
+	 * @param Object $newObject The new state of the object
+	 * @return EventMessage[] The created CloudEvent
+	 * @throws Exception
+	 */
+    public function handleObjectUpdated(Object $oldObject, Object $newObject): array
+	{
         $event = $this->eventMapper->createFromArray([
             'source' => '/objects/' . $newObject->getType(),
             'type' => 'com.nextcloud.openregister.object.updated',
@@ -318,14 +320,15 @@ class EventService
         return $this->processEvent($event);
     }
 
-    /**
-     * Handle object deletion by creating and processing a CloudEvent
-     *
-     * @param Object $object The deleted object
-     * @return Event The created CloudEvent
-     */
-    public function handleObjectDeleted(Object $object): Event
-    {
+	/**
+	 * Handle object deletion by creating and processing a CloudEvent
+	 *
+	 * @param Object $object The deleted object
+	 * @return EventMessage[] The created CloudEvent
+	 * @throws Exception
+	 */
+    public function handleObjectDeleted(Object $object): array
+	{
         $event = $this->eventMapper->createFromArray([
             'source' => '/objects/' . $object->getType(),
             'type' => 'com.nextcloud.openregister.object.deleted',

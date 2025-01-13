@@ -30,7 +30,7 @@ use OCP\AppFramework\Db\Entity;
  */
 class EventSubscription extends Entity implements JsonSerializable
 {
-    protected ?string $uuid = null;
+	protected ?string $uuid = null;
 	protected ?string $reference = null;
 	protected ?string $version = '0.0.0';
     protected ?string $source = null;

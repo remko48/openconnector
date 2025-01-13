@@ -17,12 +17,18 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ServerException;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\SyntaxError;
 use ValueError;
 use OCA\OpenConnector\Db\Rule;
 use OCA\OpenConnector\Db\RuleMapper;
@@ -62,6 +68,8 @@ class EndpointService
 	 *
 	 * @param Endpoint $endpoint The endpoint configuration to handle
 	 * @param IRequest $request The incoming request object
+	 * @param string $path @todo
+	 *
 	 * @return JSONResponse Response containing the result
 	 * @throws Exception When endpoint configuration is invalid
 	 */
@@ -238,7 +246,11 @@ class EndpointService
 	 *
 	 * @param Endpoint $endpoint The endpoint configuration
 	 * @param IRequest $request The incoming request
+	 * @param string $path
+	 *
 	 * @return JSONResponse
+	 * @throws DoesNotExistException|LoaderError|MultipleObjectsReturnedException|SyntaxError
+	 * @throws ContainerExceptionInterface|NotFoundExceptionInterface
 	 */
 	private function handleSchemaRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
 	{
@@ -287,9 +299,9 @@ class EndpointService
 	}
 
 	/**
-	 * Gets the raw content for an http request from the input stream.
+	 * Gets the raw content for a http request from the input stream.
 	 *
-	 * @return string The raw content body for an http request
+	 * @return string The raw content body for a http request
 	 */
 	private function getRawContent(): string
 	{
@@ -341,6 +353,7 @@ class EndpointService
 	 *
 	 * @param Endpoint $endpoint The endpoint for which the checks should be done.
 	 * @param IRequest $request The inbound request.
+	 *
 	 * @return array
 	 * @throws Exception
 	 */
@@ -364,7 +377,9 @@ class EndpointService
 	 *
 	 * @param Endpoint $endpoint The endpoint configuration
 	 * @param IRequest $request The incoming request
+	 *
 	 * @return JSONResponse
+	 * @throws GuzzleException|LoaderError|SyntaxError|\OCP\DB\Exception
 	 */
 	private function handleSourceRequest(Endpoint $endpoint, IRequest $request): JSONResponse
 	{
@@ -394,12 +409,13 @@ class EndpointService
 	 * @param Endpoint $endpoint The endpoint being processed
 	 * @param IRequest $request The incoming request
 	 * @param array $data Current request data
+	 *
 	 * @return array|JSONResponse Returns modified data or error response if rule fails
 	 */
-	private function processRules(Endpoint $endpoint, IRequest $request, array $data): array|JSONResponse 
+	private function processRules(Endpoint $endpoint, IRequest $request, array $data): array|JSONResponse
 	{
 		$rules = $endpoint->getRules();
-		if (empty($rules)) {
+		if (empty($rules) === true) {
 			return $data;
 		}
 
@@ -414,7 +430,7 @@ class EndpointService
 
 			// Sort rules by order
 			usort($ruleEntities, fn($a, $b) => $a->getOrder() - $b->getOrder());
-			
+
 			// Process each rule in order
 			foreach ($ruleEntities as $rule) {
 				// Skip if rule action doesn't match request method
@@ -423,7 +439,7 @@ class EndpointService
 				}
 
 				// Check rule conditions
-				if (!$this->checkRuleConditions($rule, $data)) {
+				if ($this->checkRuleConditions($rule, $data) === false) {
 					continue;
 				}
 
@@ -454,8 +470,12 @@ class EndpointService
 
 	/**
 	 * Get a rule by its ID using RuleMapper
+	 *
+	 * @param string $id @todo
+	 *
+	 * @return Rule|null @todo
 	 */
-	private function getRuleById(string $id): ?Rule 
+	private function getRuleById(string $id): ?Rule
 	{
 		try {
 			return $this->ruleMapper->find((int)$id);
@@ -467,8 +487,12 @@ class EndpointService
 
 	/**
 	 * Processes an error rule
+	 *
+	 * @param Rule $rule @todo
+	 *
+	 * @return JSONResponse @todo
 	 */
-	private function processErrorRule(Rule $rule): JSONResponse 
+	private function processErrorRule(Rule $rule): JSONResponse
 	{
 		$config = $rule->getConfiguration();
 		return new JSONResponse(
@@ -482,8 +506,17 @@ class EndpointService
 
 	/**
 	 * Processes a mapping rule
+	 *
+	 * @param Rule $rule @todo
+	 * @param array $data @todo
+	 *
+	 * @return array @todo
+	 * @throws DoesNotExistException
+	 * @throws MultipleObjectsReturnedException
+	 * @throws LoaderError
+	 * @throws SyntaxError
 	 */
-	private function processMappingRule(Rule $rule, array $data): array 
+	private function processMappingRule(Rule $rule, array $data): array
 	{
 		$config = $rule->getConfiguration();
 		$mapping = $this->mappingService->getMapping($config['mapping']);
@@ -492,8 +525,13 @@ class EndpointService
 
 	/**
 	 * Processes a synchronization rule
+	 *
+	 * @param Rule $rule @todo
+	 * @param array $data @todo
+	 *
+	 * @return array @todo
 	 */
-	private function processSyncRule(Rule $rule, array $data): array 
+	private function processSyncRule(Rule $rule, array $data): array
 	{
 		$config = $rule->getConfiguration();
 		// Here you would implement the synchronization logic
@@ -503,8 +541,13 @@ class EndpointService
 
 	/**
 	 * Processes a JavaScript rule
+	 *
+	 * @param Rule $rule @todo
+	 * @param array $data @todo
+	 *
+	 * @return array @todo
 	 */
-	private function processJavaScriptRule(Rule $rule, array $data): array 
+	private function processJavaScriptRule(Rule $rule, array $data): array
 	{
 		$config = $rule->getConfiguration();
 		// @todo: Here we need to implement the JavaScript execution logic
@@ -514,11 +557,16 @@ class EndpointService
 
 	/**
 	 * Checks if rule conditions are met
+	 *
+	 * @param Rule $rule @todo
+	 * @param array $data @todo
+	 *
+	 * @return bool @todo
 	 */
-	private function checkRuleConditions(Rule $rule, array $data): bool 
+	private function checkRuleConditions(Rule $rule, array $data): bool
 	{
 		$conditions = $rule->getConditions();
-		if (empty($conditions)) {
+		if (empty($conditions) === true) {
 			return true;
 		}
 
@@ -527,8 +575,13 @@ class EndpointService
 
 	/**
 	 * Updates request object with processed rule data
+	 *
+	 * @param IRequest $request @todo
+	 * @param array $ruleData @todo
+	 *
+	 * @return IRequest @todo
 	 */
-	private function updateRequestWithRuleData(IRequest $request, array $ruleData): IRequest 
+	private function updateRequestWithRuleData(IRequest $request, array $ruleData): IRequest
 	{
 		// @todo: Here we need to implement the update request with rule data logic
 		return $request; // For now, just return original request
