@@ -1,5 +1,6 @@
 <script setup>
 import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '../../store/store.js'
+import { getTheme } from '../../services/getTheme.js'
 </script>
 
 <template>
@@ -34,13 +35,22 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 
 				<div class="json-editor">
 					<label>Conditions (JSON Logic)</label>
-					<textarea
-						v-model="ruleItem.conditions"
-						:class="{ 'invalid-json': !isValidJson(ruleItem.conditions) }"
-						@input="validateJson"
-						rows="5"
-						placeholder='{"and": [{"==": [{"var": "status"}, "active"]}, {">=": [{"var": "age"}, 18]}]}'
-					></textarea>
+					<div :class="`codeMirrorContainer ${getTheme()}`">
+						<CodeMirror v-model="ruleItem.conditions"
+							:basic="true"
+							placeholder="{&quot;and&quot;: [{&quot;==&quot;: [{&quot;var&quot;: &quot;status&quot;}, &quot;active&quot;]}, {&quot;>=&quot;: [{&quot;var&quot;: &quot;age&quot;}, 18]}]}"
+							:dark="getTheme() === 'dark'"
+							:linter="jsonParseLinter()"
+							:lang="json()"
+							:tab-size="2" />
+
+						<NcButton class="format-json-button"
+							type="secondary"
+							size="small"
+							@click="formatJson">
+							Format JSON
+						</NcButton>
+					</div>
 					<span v-if="!isValidJson(ruleItem.conditions)" class="error-message">
 						Invalid JSON format
 					</span>
@@ -51,7 +61,7 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 					type="number" />
 
 				<NcSelect v-bind="actionOptions"
-					v-model="actionOptions.value" 
+					v-model="actionOptions.value"
 					input-label="Action" />
 
 				<NcSelect v-bind="typeOptions"
@@ -85,13 +95,13 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 						:max="999"
 						:value.sync="ruleItem.configuration.error.code"
 						placeholder="500" />
-					
+
 					<NcTextField
 						label="Error Title"
 						maxlength="255"
 						:value.sync="ruleItem.configuration.error.name"
 						placeholder="Something went wrong" />
-					
+
 					<NcTextArea
 						label="Error Message"
 						maxlength="2550"
@@ -112,19 +122,19 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 				<!-- Authentication Configuration -->
 				<template v-if="typeOptions.value?.id === 'authentication'">
 					<NcSelect
+						v-model="ruleItem.configuration.authentication.type"
 						:options="[
 							{ label: 'Basic Authentication', value: 'basic' },
 							{ label: 'JWT', value: 'jwt' },
 							{ label: 'JWT-ZGW', value: 'jwt-zgw' },
 							{ label: 'OAuth', value: 'oauth' }
 						]"
-						v-model="ruleItem.configuration.authentication.type"
 						input-label="Authentication Type" />
 
 					<!-- Users Multi-Select -->
 					<NcSelect
-						:options="usersList"
 						v-model="ruleItem.configuration.authentication.users"
+						:options="usersList"
 						input-label="Allowed Users"
 						:multiple="true"
 						:clearable="true"
@@ -132,8 +142,8 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 
 					<!-- Groups Multi-Select -->
 					<NcSelect
-						:options="groupsList"
 						v-model="ruleItem.configuration.authentication.groups"
+						:options="groupsList"
 						input-label="Allowed Groups"
 						:multiple="true"
 						:clearable="true"
@@ -148,7 +158,7 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 						:min="0"
 						:value.sync="ruleItem.configuration.download.fileIdPosition"
 						placeholder="Position of file ID in URL path (e.g. 2)" />
-					
+
 					<div class="info-text">
 						<p>The system will automatically check if the authenticated user has access rights to the requested file.</p>
 					</div>
@@ -160,19 +170,19 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 						label="Upload Path"
 						:value.sync="ruleItem.configuration.upload.path"
 						placeholder="/path/to/upload/directory" />
-					
+
 					<NcTextField
 						label="Allowed File Types"
 						:value.sync="ruleItem.configuration.upload.allowedTypes"
 						placeholder="jpg,png,pdf" />
-					
+
 					<NcInputField
 						type="number"
 						label="Max File Size (MB)"
 						:min="1"
 						:value.sync="ruleItem.configuration.upload.maxSize"
 						placeholder="10" />
-					
+
 					<div class="info-text">
 						<p>Configure file upload settings including path, allowed types and maximum file size.</p>
 					</div>
@@ -181,20 +191,20 @@ import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '
 				<!-- Locking Configuration -->
 				<template v-if="typeOptions.value?.id === 'locking'">
 					<NcSelect
+						v-model="ruleItem.configuration.locking.action"
 						:options="[
 							{ label: 'Lock Resource', value: 'lock' },
 							{ label: 'Unlock Resource', value: 'unlock' }
 						]"
-						v-model="ruleItem.configuration.locking.action"
 						input-label="Lock Action" />
-					
+
 					<NcInputField
 						type="number"
 						label="Lock Timeout (minutes)"
 						:min="1"
 						:value.sync="ruleItem.configuration.locking.timeout"
 						placeholder="30" />
-					
+
 					<div class="info-text">
 						<p>Lock or unlock resources for exclusive access by the current user.</p>
 					</div>
@@ -226,6 +236,8 @@ import {
 	NcNoteCard,
 	NcInputField,
 } from '@nextcloud/vue'
+import { json, jsonParseLinter } from '@codemirror/lang-json'
+import CodeMirror from 'vue-codemirror6'
 
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
@@ -250,23 +262,23 @@ export default {
 			mappingOptions: {
 				options: [],
 				value: null,
-				loading: false
+				loading: false,
 			},
-			
+
 			syncOptions: {
 				options: [],
 				value: null,
-				loading: false
+				loading: false,
 			},
 
 			// @todoMock data for users and groups - should be fetched from backend
 			usersList: [
 				{ label: 'User 1', value: 'user1' },
-				{ label: 'User 2', value: 'user2' }
+				{ label: 'User 2', value: 'user2' },
 			],
 			groupsList: [
 				{ label: 'Group 1', value: 'group1' },
-				{ label: 'Group 2', value: 'group2' }
+				{ label: 'Group 2', value: 'group2' },
 			],
 
 			ruleItem: {
@@ -283,27 +295,27 @@ export default {
 					error: {
 						code: 500,
 						name: 'Something went wrong',
-						message: 'We encountered an unexpected problem'
+						message: 'We encountered an unexpected problem',
 					},
 					javascript: '',
 					authentication: {
 						type: 'basic',
 						users: [],
-						groups: []
+						groups: [],
 					},
 					download: {
-						fileIdPosition: 0
+						fileIdPosition: 0,
 					},
 					upload: {
 						path: '',
 						allowedTypes: '',
-						maxSize: 10
+						maxSize: 10,
 					},
 					locking: {
 						action: 'lock',
-						timeout: 30
-					}
-				}
+						timeout: 30,
+					},
+				},
 			},
 
 			actionOptions: {
@@ -311,9 +323,9 @@ export default {
 					{ label: 'Post (Create)', id: 'post' },
 					{ label: 'Get (Read)', id: 'get' },
 					{ label: 'Put (Update)', id: 'put' },
-					{ label: 'Delete (Delete)', id: 'delete' }
+					{ label: 'Delete (Delete)', id: 'delete' },
 				],
-				value: { label: 'Create', id: 'create' }
+				value: { label: 'Create', id: 'create' },
 			},
 
 			typeOptions: {
@@ -325,12 +337,12 @@ export default {
 					{ label: 'Authentication', id: 'authentication' },
 					{ label: 'Download', id: 'download' },
 					{ label: 'Upload', id: 'upload' },
-					{ label: 'Locking', id: 'locking' }
+					{ label: 'Locking', id: 'locking' },
 				],
-				value: { label: 'Error', id: 'error' }
+				value: { label: 'Error', id: 'error' },
 			},
 
-			closeTimeoutFunc: null
+			closeTimeoutFunc: null,
 		}
 	},
 	mounted() {
@@ -338,15 +350,15 @@ export default {
 			this.ruleItem = {
 				...ruleStore.ruleItem,
 				conditions: JSON.stringify(ruleStore.ruleItem.conditions, null, 2),
-				actionConfig: JSON.stringify(ruleStore.ruleItem.actionConfig)
+				actionConfig: JSON.stringify(ruleStore.ruleItem.actionConfig),
 			}
 
 			this.actionOptions.value = this.actionOptions.options.find(
-				option => option.id === this.ruleItem.action
+				option => option.id === this.ruleItem.action,
 			)
 
 			this.typeOptions.value = this.typeOptions.options.find(
-				option => option.id === this.ruleItem.type  
+				option => option.id === this.ruleItem.type,
 			)
 		}
 		this.getMappings()
@@ -357,19 +369,19 @@ export default {
 			try {
 				this.mappingOptions.loading = true
 				await mappingStore.refreshMappingList()
-				
+
 				// Use the store's mappingList directly
 				const mappings = mappingStore.mappingList
 				if (mappings?.length) {
 					this.mappingOptions.options = mappings.map(mapping => ({
 						label: mapping.name,
-						value: mapping.id
+						value: mapping.id,
 					}))
 
 					// Set active mapping if editing
 					if (this.IS_EDIT && this.ruleItem.configuration?.mapping) {
 						const activeMapping = this.mappingOptions.options.find(
-							option => option.value === this.ruleItem.configuration.mapping
+							option => option.value === this.ruleItem.configuration.mapping,
 						)
 						if (activeMapping) {
 							this.mappingOptions.value = activeMapping
@@ -387,19 +399,19 @@ export default {
 			try {
 				this.syncOptions.loading = true
 				await synchronizationStore.refreshSynchronizationList()
-				
+
 				// Use the store's synchronizationList directly
 				const synchronizations = synchronizationStore.synchronizationList
 				if (synchronizations?.length) {
 					this.syncOptions.options = synchronizations.map(sync => ({
 						label: sync.name,
-						value: sync.id
+						value: sync.id,
 					}))
 
 					// Set active synchronization if editing
 					if (this.IS_EDIT && this.ruleItem.configuration?.synchronization) {
 						const activeSync = this.syncOptions.options.find(
-							option => option.value === this.ruleItem.configuration.synchronization
+							option => option.value === this.ruleItem.configuration.synchronization,
 						)
 						if (activeSync) {
 							this.syncOptions.value = activeSync
@@ -428,7 +440,7 @@ export default {
 			}
 		},
 
-		validateJson() {
+		formatJson() {
 			try {
 				if (this.ruleItem.conditions) {
 					// Format the JSON with proper indentation
@@ -448,47 +460,47 @@ export default {
 
 			// Build configuration based on type
 			switch (type) {
-				case 'error':
-					configuration.error = {
-						code: this.ruleItem.configuration.error.code,
-						name: this.ruleItem.configuration.error.name,
-						message: this.ruleItem.configuration.error.message
-					}
-					break
-				case 'mapping':
-					configuration.mapping = this.mappingOptions.value?.value
-					break
-				case 'synchronization':
-					configuration.synchronization = this.syncOptions.value?.value
-					break
-				case 'javascript':
-					configuration.javascript = this.ruleItem.configuration.javascript
-					break
-				case 'authentication':
-					configuration.authentication = {
-						type: this.ruleItem.configuration.authentication.type,
-						users: this.ruleItem.configuration.authentication.users,
-						groups: this.ruleItem.configuration.authentication.groups
-					}
-					break
-				case 'download':
-					configuration.download = {
-						fileIdPosition: this.ruleItem.configuration.download.fileIdPosition
-					}
-					break
-				case 'upload':
-					configuration.upload = {
-						path: this.ruleItem.configuration.upload.path,
-						allowedTypes: this.ruleItem.configuration.upload.allowedTypes,
-						maxSize: this.ruleItem.configuration.upload.maxSize
-					}
-					break
-				case 'locking':
-					configuration.locking = {
-						action: this.ruleItem.configuration.locking.action,
-						timeout: this.ruleItem.configuration.locking.timeout
-					}
-					break
+			case 'error':
+				configuration.error = {
+					code: this.ruleItem.configuration.error.code,
+					name: this.ruleItem.configuration.error.name,
+					message: this.ruleItem.configuration.error.message,
+				}
+				break
+			case 'mapping':
+				configuration.mapping = this.mappingOptions.value?.value
+				break
+			case 'synchronization':
+				configuration.synchronization = this.syncOptions.value?.value
+				break
+			case 'javascript':
+				configuration.javascript = this.ruleItem.configuration.javascript
+				break
+			case 'authentication':
+				configuration.authentication = {
+					type: this.ruleItem.configuration.authentication.type,
+					users: this.ruleItem.configuration.authentication.users,
+					groups: this.ruleItem.configuration.authentication.groups,
+				}
+				break
+			case 'download':
+				configuration.download = {
+					fileIdPosition: this.ruleItem.configuration.download.fileIdPosition,
+				}
+				break
+			case 'upload':
+				configuration.upload = {
+					path: this.ruleItem.configuration.upload.path,
+					allowedTypes: this.ruleItem.configuration.upload.allowedTypes,
+					maxSize: this.ruleItem.configuration.upload.maxSize,
+				}
+				break
+			case 'locking':
+				configuration.locking = {
+					action: this.ruleItem.configuration.locking.action,
+					timeout: this.ruleItem.configuration.locking.timeout,
+				}
+				break
 			}
 
 			ruleStore.saveRule({
@@ -496,17 +508,13 @@ export default {
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
 				type: type || null,
-				configuration
+				configuration,
 			})
-				.then(({ response, entity }) => {
-					if (response.ok && entity) {
-						this.success = true
-						this.error = false
-						this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-					} else {
-						this.success = false
-						this.error = 'Failed to save rule'
-					}
+				.then(({ response }) => {
+					this.success = response.ok
+					this.error = !response.ok && 'Failed to save rule'
+
+					response.ok && (this.closeTimeoutFunc = setTimeout(this.closeModal, 2000))
 				})
 				.catch(error => {
 					this.success = false
@@ -515,14 +523,15 @@ export default {
 				.finally(() => {
 					this.loading = false
 				})
-		}
-	}
+		},
+	},
 }
 </script>
 
 <style scoped>
 .json-editor {
-	margin-bottom: 1rem;
+    position: relative;
+	margin-bottom: 2.5rem;
 }
 
 .json-editor label {
@@ -531,24 +540,23 @@ export default {
 	font-weight: bold;
 }
 
-.json-editor textarea {
-	width: 100%;
-	padding: 0.5rem;
-	font-family: monospace;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	background-color: var(--color-main-background);
-}
-
-.json-editor .invalid-json {
-	border-color: var(--color-error);
-}
-
 .json-editor .error-message {
+    position: absolute;
+	bottom: 0;
+	right: 50%;
+    transform: translateY(100%) translateX(50%);
+
 	color: var(--color-error);
 	font-size: 0.8rem;
-	margin-top: 0.25rem;
+	padding-top: 0.25rem;
 	display: block;
+}
+
+.json-editor .format-json-button {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+    transform: translateY(100%);
 }
 
 /* Add styles for the code editor */
@@ -563,5 +571,54 @@ export default {
 	padding: 0.5rem;
 	background-color: var(--color-background-dark);
 	border-radius: var(--border-radius);
+}
+
+/* CodeMirror */
+.codeMirrorContainer {
+	margin-block-start: 6px;
+    text-align: left;
+}
+
+.codeMirrorContainer :deep(.cm-content) {
+	border-radius: 0 !important;
+	border: none !important;
+}
+.codeMirrorContainer :deep(.cm-editor) {
+	outline: none !important;
+}
+.codeMirrorContainer.light > .vue-codemirror {
+	border: 1px dotted silver;
+}
+.codeMirrorContainer.dark > .vue-codemirror {
+	border: 1px dotted grey;
+}
+
+/* value text color */
+.codeMirrorContainer.light :deep(.ͼe) {
+	color: #448c27;
+}
+.codeMirrorContainer.dark :deep(.ͼe) {
+	color: #88c379;
+}
+
+/* text cursor */
+.codeMirrorContainer :deep(.cm-content) * {
+	cursor: text !important;
+}
+
+/* value number color */
+.codeMirrorContainer.light :deep(.ͼd) {
+	color: #c68447;
+}
+.codeMirrorContainer.dark :deep(.ͼd) {
+	color: #d19a66;
+}
+
+/* value boolean color */
+.codeMirrorContainer.light :deep(.ͼc) {
+	color: #221199;
+}
+.codeMirrorContainer.dark :deep(.ͼc) {
+	color: #260dd4;
 }
 </style>

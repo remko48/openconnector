@@ -3,7 +3,7 @@ import { TEvent } from './event.types'
 
 /**
  * Mock event data for testing purposes
- * @returns {TEvent[]} Array of mock event data
+ * @return {TEvent[]} Array of mock event data
  */
 export const mockEventData = (): TEvent[] => [
 	{
@@ -55,6 +55,6 @@ export const mockEventData = (): TEvent[] => [
 /**
  * Creates Event instances from mock data
  * @param {TEvent[]} data - Optional mock event data to use
- * @returns {Event[]} Array of Event instances
+ * @return {Event[]} Array of Event instances
  */
 export const mockEvent = (data: TEvent[] = mockEventData()): Event[] => data.map(item => new Event(item))

@@ -97,8 +97,8 @@ export default {
 		NcActionButton,
 		DotsHorizontal,
 		Pencil,
-		TrashCanOutline
-	}
+		TrashCanOutline,
+	},
 }
 </script>
 

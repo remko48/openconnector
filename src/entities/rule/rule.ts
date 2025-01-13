@@ -6,15 +6,16 @@ import getValidISOstring from '../../services/getValidISOstring.js'
 /**
  * Rule entity class that represents a system rule
  * Implements TRule interface and extends ReadonlyBaseClass
- * 
+ *
  * @class Rule
- * @extends {ReadonlyBaseClass}
+ * @augments {ReadonlyBaseClass}
  * @implements {TRule}
  */
 export class Rule extends ReadonlyBaseClass implements TRule {
+
 	public readonly id: string
 	public readonly uuid: string
-	public readonly name: string 
+	public readonly name: string
 	public readonly description: string
 	public readonly action: 'create' | 'read' | 'update' | 'delete'
 	public readonly timing: 'before' | 'after'
@@ -43,7 +44,7 @@ export class Rule extends ReadonlyBaseClass implements TRule {
 			configuration: rule.configuration || {},
 			order: rule.order || 0,
 			created: getValidISOstring(rule.created) ?? '',
-			updated: getValidISOstring(rule.updated) ?? ''
+			updated: getValidISOstring(rule.updated) ?? '',
 		}
 
 		super(processedRule)
@@ -51,7 +52,7 @@ export class Rule extends ReadonlyBaseClass implements TRule {
 
 	/**
 	 * Validates the rule object against a schema
-	 * @returns {SafeParseReturnType<TRule, unknown>} Validation result
+	 * @return {SafeParseReturnType<TRule, unknown>} Validation result
 	 */
 	public validate(): SafeParseReturnType<TRule, unknown> {
 		const schema = z.object({
@@ -66,9 +67,10 @@ export class Rule extends ReadonlyBaseClass implements TRule {
 			configuration: z.record(z.unknown()),
 			order: z.number().int().min(0),
 			created: z.string(),
-			updated: z.string()
+			updated: z.string(),
 		})
 
 		return schema.safeParse({ ...this })
 	}
+
 }

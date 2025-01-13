@@ -185,14 +185,14 @@ export default {
 	data() {
 		return {
 			rulesList: [],
-			rulesLoaded: false
+			rulesLoaded: false,
 		}
 	},
 	mounted() {
 		this.loadRules()
 	},
 	methods: {
-		
+
 		async loadRules() {
 			try {
 				await ruleStore.refreshRuleList()
@@ -209,19 +209,19 @@ export default {
 		getRuleType(ruleId) {
 			const rule = this.rulesList.find(rule => String(rule.id) === String(ruleId))
 			if (!rule) return 'Unknown type'
-			
+
 			// Convert type to more readable format
 			switch (rule.type) {
-				case 'error':
-					return 'Error Handler'
-				case 'mapping':
-					return 'Data Mapping'
-				case 'synchronization':
-					return 'Synchronization'
-				case 'javascript':
-					return 'JavaScript'
-				default:
-					return rule.type || 'Unknown type'
+			case 'error':
+				return 'Error Handler'
+			case 'mapping':
+				return 'Data Mapping'
+			case 'synchronization':
+				return 'Synchronization'
+			case 'javascript':
+				return 'JavaScript'
+			default:
+				return rule.type || 'Unknown type'
 			}
 		},
 		viewRule(ruleId) {
@@ -234,7 +234,7 @@ export default {
 		async removeRule(ruleId) {
 			try {
 				const updatedEndpoint = { ...endpointStore.endpointItem }
-				
+
 				// Remove the rule ID from the rules array
 				updatedEndpoint.rules = updatedEndpoint.rules.filter(id => String(id) !== String(ruleId))
 
@@ -244,7 +244,7 @@ export default {
 					endpointArray: Array.isArray(updatedEndpoint.endpointArray)
 						? updatedEndpoint.endpointArray
 						: updatedEndpoint.endpointArray.split(/ *, */g),
-					rules: updatedEndpoint.rules.map(id => String(id))
+					rules: updatedEndpoint.rules.map(id => String(id)),
 				})
 
 				// Refresh the rules list
@@ -252,8 +252,8 @@ export default {
 			} catch (error) {
 				console.error('Failed to remove rule:', error)
 			}
-		}
-	}
+		},
+	},
 }
 </script>
 

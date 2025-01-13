@@ -3,8 +3,7 @@ import { ruleStore, navigationStore } from '../../store/store.js'
 </script>
 
 <template>
-	<NcDialog v-if="navigationStore.dialog === 'deleteRule'"
-		name="Delete rule"
+	<NcDialog name="Delete rule"
 		size="normal"
 		:can-close="false">
 		<p v-if="!success">
@@ -75,12 +74,11 @@ export default {
 		closeModal() {
 			navigationStore.setDialog(false)
 			clearTimeout(this.closeTimeoutFunc)
-			this.success = null
 		},
 		async deleteRule() {
 			this.loading = true
 			try {
-				await ruleStore.deleteRule()
+				await ruleStore.deleteRule(ruleStore.ruleItem.id)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

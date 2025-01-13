@@ -28,4 +28,4 @@ describe('Event Store', () => {
 			expect(item.validate().success).toBe(true)
 		})
 	})
-}) 
+})
