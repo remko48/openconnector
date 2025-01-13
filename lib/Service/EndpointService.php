@@ -154,7 +154,7 @@ class EndpointService
         array $serializedObject = []
     ): array
     {
-        if($serializedObject === [] && $object !== null) {
+        if ($serializedObject === [] && $object !== null) {
             $serializedObject = $object->jsonSerialize();
         } else if ($serializedObject === null) {
             return $serializedObject;
@@ -165,7 +165,7 @@ class EndpointService
         $uses = $object->getRelations();
 
         $useUrls = [];
-        foreach($uses as $key=>$use) {
+        foreach ($uses as $key=>$use) {
             if (Uuid::isValid($use)) {
                 $useId = $use;
             } else if (
@@ -448,7 +448,7 @@ class EndpointService
      */
     public function generateEndpointUrl(string $id, ?int $register = null, ?int $schema = null, array $parentIds = []): string
     {
-        if($register === null) {
+        if ($register === null) {
             $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($id);
             $register = $object->getRegister();
             $schema   = $object->getSchema();
@@ -458,7 +458,7 @@ class EndpointService
 
         $endpoints = $this->endpointMapper->findAll(filters: ['target_id' => $target, 'method' => 'GET']);
 
-        if(count($endpoints) === 0) {
+        if (count($endpoints) === 0) {
             return $id;
         }
 
@@ -467,13 +467,13 @@ class EndpointService
         $location = $endpoint->getEndpointArray();
 
         $iterator = 0;
-        foreach($location as $key=>$part) {
-            if(preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) !== 'id') {
+        foreach ($location as $key=>$part) {
+            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) !== 'id') {
                 $location[$key] = $parentIds[$iterator];
                 $iterator++;
             }
 
-            if(preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) === 'id') {
+            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) === 'id') {
                 $location[$key] = $id;
             }
         }
