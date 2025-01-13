@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Consumer } from '../../entities/index.js'
 import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
@@ -11,13 +10,13 @@ export const useConsumerStore = defineStore('consumer', {
 	actions: {
 		setConsumerItem(consumerItem) {
 			this.consumerItem = consumerItem && new Consumer(consumerItem)
-			console.log('Active consumer item set to ' + consumerItem)
+			console.info('Active consumer item set to ' + consumerItem)
 		},
 		setConsumerList(consumerList) {
 			this.consumerList = consumerList.map(
 				(consumerItem) => new Consumer(consumerItem),
 			)
-			console.log('Consumer list set to ' + consumerList.length + ' items')
+			console.info('Consumer list set to ' + consumerList.length + ' items')
 		},
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
 		async refreshConsumerList(search = null) {
@@ -59,7 +58,7 @@ export const useConsumerStore = defineStore('consumer', {
 				throw new MissingParameterError('consumerItem')
 			}
 
-			console.log('Deleting consumer...')
+			console.info('Deleting consumer...')
 
 			const endpoint = `/index.php/apps/openconnector/api/consumers/${this.consumerItem.id}`
 
@@ -90,11 +89,11 @@ export const useConsumerStore = defineStore('consumer', {
 			const validationResult = consumerItem.validate()
 			if (!validationResult.success) {
 				console.error(validationResult.error)
-				console.log(consumerItem)
+				console.info(consumerItem)
 				throw new ValidationError(validationResult.error)
 			}
 
-			console.log('Saving consumer...')
+			console.info('Saving consumer...')
 
 			const isNewConsumer = !consumerItem.id
 			const endpoint = isNewConsumer

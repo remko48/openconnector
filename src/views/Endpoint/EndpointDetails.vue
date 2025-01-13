@@ -21,6 +21,12 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 							</template>
 							Bewerken
 						</NcActionButton>
+						<NcActionButton @click="endpointStore.exportEndpoint(endpointStore.endpointItem)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export endpoint
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteEndpoint')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -45,10 +51,7 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 						<b>Description:</b>
 						<p>{{ endpointStore.endpointItem.description }}</p>
 					</div>
-					<div class="gridContent gridFullWidth">
-						<b>Reference:</b>
-						<p>{{ endpointStore.endpointItem.reference }}</p>
-					</div>
+
 					<div class="gridContent gridFullWidth">
 						<b>Version:</b>
 						<p>{{ endpointStore.endpointItem.version }}</p>
@@ -98,6 +101,7 @@ import { NcActions, NcActionButton } from '@nextcloud/vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'EndpointDetails',

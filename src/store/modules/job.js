@@ -1,6 +1,7 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 import { Job } from '../../entities/index.js'
+import { importExportStore } from '../../store/store.js'
+import _ from 'lodash'
 
 export const useJobStore = defineStore(
 	'job', {
@@ -16,29 +17,29 @@ export const useJobStore = defineStore(
 		actions: {
 			setJobItem(jobItem) {
 				this.jobItem = jobItem && new Job(jobItem)
-				console.log('Active job item set to ' + jobItem)
+				console.info('Active job item set to ' + jobItem)
 			},
 			setJobTest(jobTest) {
 				this.jobTest = jobTest
-				console.log('Job test set to ' + jobTest)
+				console.info('Job test set to ' + jobTest)
 			},
 			setJobRun(jobRun) {
 				this.jobRun = jobRun
-				console.log('Job run set to ' + jobRun)
+				console.info('Job run set to ' + jobRun)
 			},
 			setJobList(jobList) {
 				this.jobList = jobList.map(
 					(jobItem) => new Job(jobItem),
 				)
-				console.log('Job list set to ' + jobList.length + ' items')
+				console.info('Job list set to ' + jobList.length + ' items')
 			},
 			setJobLogs(jobLogs) {
 				this.jobLogs = jobLogs
-				console.log('Job logs set to ' + jobLogs.length + ' items')
+				console.info('Job logs set to ' + jobLogs.length + ' items')
 			},
 			setJobArgumentKey(jobArgumentKey) {
 				this.jobArgumentKey = jobArgumentKey
-				console.log('Active job argument key set to ' + jobArgumentKey)
+				console.info('Active job argument key set to ' + jobArgumentKey)
 			},
 			/* istanbul ignore next */ // ignore this for Jest until moved into a service
 			async refreshJobList(search = null) {
@@ -101,7 +102,7 @@ export const useJobStore = defineStore(
 					throw new Error('No job item to delete')
 				}
 
-				console.log('Deleting job...')
+				console.info('Deleting job...')
 
 				const endpoint = `/index.php/apps/openconnector/api/jobs/${this.jobItem.id}`
 
@@ -121,7 +122,7 @@ export const useJobStore = defineStore(
 				if (!this.jobItem) {
 					throw new Error('No job item to test')
 				}
-				console.log('Testing job...')
+				console.info('Testing job...')
 
 				const endpoint = `/index.php/apps/openconnector/api/jobs-test/${this.jobItem.id}`
 
@@ -136,7 +137,7 @@ export const useJobStore = defineStore(
 					.then((response) => response.json())
 					.then((data) => {
 						this.setJobTest(data)
-						console.log('Job tested')
+						console.info('Job tested')
 						// Refresh the job list
 						this.refreshJobLogs()
 					})
@@ -151,7 +152,7 @@ export const useJobStore = defineStore(
 				if (!id) {
 					throw new Error('No job item to run')
 				}
-				console.log('Running job...')
+				console.info('Running job...')
 
 				const endpoint = `/index.php/apps/openconnector/api/jobs-test/${id}`
 
@@ -165,7 +166,7 @@ export const useJobStore = defineStore(
 
 				const data = await response.json()
 				this.setJobRun(data)
-				console.log('Job run')
+				console.info('Job run')
 				// Refresh the job list
 				this.refreshJobLogs()
 
@@ -177,7 +178,7 @@ export const useJobStore = defineStore(
 					throw new Error('No job item to save')
 				}
 
-				console.log('Saving job...')
+				console.info('Saving job...')
 
 				const isNewJob = !jobItem.id
 				const endpoint = isNewJob
@@ -186,12 +187,15 @@ export const useJobStore = defineStore(
 				const method = isNewJob ? 'POST' : 'PUT'
 
 				// Create a copy of the job item and remove empty properties
-				const jobToSave = { ...jobItem }
+				const jobToSave = _.cloneDeep(jobItem)
 				Object.keys(jobToSave).forEach(key => {
 					if (jobToSave[key] === '' || (Array.isArray(jobToSave[key]) && !jobToSave[key].length) || key === 'created' || key === 'updated') {
 						delete jobToSave[key]
 					}
 				})
+
+				// Remove the version field
+				delete jobToSave.version
 
 				return fetch(
 					endpoint,
@@ -206,12 +210,29 @@ export const useJobStore = defineStore(
 					.then((response) => response.json())
 					.then((data) => {
 						this.setJobItem(data)
-						console.log('Job saved')
+						console.info('Job saved')
 						// Refresh the job list
 						return this.refreshJobList()
 					})
 					.catch((err) => {
 						console.error('Error saving job:', err)
+						throw err
+					})
+			},
+			// Export a job
+			exportJob(jobItem) {
+				if (!jobItem) {
+					throw new Error('No job item to export')
+				}
+				importExportStore.exportFile(
+					jobItem.id,
+					'job',
+				)
+					.then(({ download }) => {
+						download()
+					})
+					.catch((err) => {
+						console.error('Error exporting job:', err)
 						throw err
 					})
 			},

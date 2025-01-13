@@ -28,6 +28,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 	public targetLastSynced: string
 	public created: string
 	public updated: string
+	public version: string
 
 	constructor(synchronization: TSynchronization) {
 		const processedSynchronization: TSynchronization = {
@@ -54,6 +55,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			targetLastSynced: synchronization.targetLastSynced || '',
 			created: getValidISOstring(synchronization.created) ?? '',
 			updated: getValidISOstring(synchronization.updated) ?? '',
+			version: synchronization.version || '',
 		}
 
 		super(processedSynchronization)
@@ -84,6 +86,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			targetLastSynced: z.string(),
 			created: z.string(),
 			updated: z.string(),
+			version: z.string(),
 		})
 
 		return schema.safeParse({ ...this })
