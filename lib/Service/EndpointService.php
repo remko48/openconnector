@@ -183,8 +183,8 @@ class EndpointService
             $useUrls[] = $this->generateEndpointUrl(id: $useId, parentIds: [$object->getUuid()]);
         }
 
-		$uses[] = $object->getUri();
-		$useUrls = $this->generateEndpointUrl(id: $object->getUuid());
+		$uses[]    = $object->getUri();
+		$useUrls[] = $this->generateEndpointUrl(id: $object->getUuid());
 
         $serializedObject = str_replace($uses, $useUrls, $serializedObject);
 
