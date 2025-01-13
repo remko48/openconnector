@@ -45,6 +45,19 @@ class EventSubscriptionMapper extends QBMapper
         return $this->findEntity($qb);
     }
 
+	public function findByRef(string $reference): array
+	{
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from('openconnector_event_subscriptions')
+			->where(
+				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
+			);
+
+		return $this->findEntities(query: $qb);
+	}
+
     /**
      * Find all subscriptions matching the given criteria
      *
@@ -102,4 +115,4 @@ class EventSubscriptionMapper extends QBMapper
         $subscription->hydrate($data);
         return $this->update($subscription);
     }
-} 
+}

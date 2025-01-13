@@ -10,7 +10,7 @@ use Symfony\Component\Uid\Uuid;
 
 /**
  * Class RuleMapper
- * 
+ *
  * Handles database operations for rules
  *
  * @package OCA\OpenConnector\Db
@@ -42,6 +42,19 @@ class RuleMapper extends QBMapper
 			);
 
 		return $this->findEntity($qb);
+	}
+
+	public function findByRef(string $reference): array
+	{
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from('openconnector_rules')
+			->where(
+				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
+			);
+
+		return $this->findEntities(query: $qb);
 	}
 
 	/**
@@ -94,7 +107,7 @@ class RuleMapper extends QBMapper
 	{
 		$obj = new Rule();
 		$obj->hydrate($object);
-		
+
 		// Set uuid if not provided
 		if ($obj->getUuid() === null) {
 			$obj->setUuid(Uuid::v4());

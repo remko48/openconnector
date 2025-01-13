@@ -253,6 +253,9 @@ class ImportService
 		// Check if object already exists.
 		if (isset($objectArray['@id']) === true) {
 			$objectArray['reference'] = $objectArray['@id'];
+			if (method_exists($mapper, 'findByRef') === false) {
+				return new JSONResponse(data: ['error' => ucfirst($objectArray['@type'])."Mapper does not have a findByRef function"], statusCode: 501);
+			}
 			$object = $this->checkIfExists(mapper: $mapper, objectArray: $objectArray);
 		}
 
@@ -274,11 +277,9 @@ class ImportService
 	private function checkIfExists(mixed $mapper, array $objectArray): ?Entity
 	{
 		// Check reference
-		if (method_exists($mapper, 'findByRef')) {
-			try {
-				return $mapper->findByRef($objectArray['@id'])[0];
-			} catch (Exception $exception) {}
-		}
+		try {
+			return $mapper->findByRef($objectArray['@id'])[0];
+		} catch (Exception $exception) {}
 
 		// Check if @id matches an object of that type in OpenConnector. 'failsafe' / backup
 		try {
