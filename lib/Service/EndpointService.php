@@ -173,8 +173,8 @@ class EndpointService
      * @param array $serializedObject The serialized object (if the object itself is not available).
      *
      * @return array|null The serialized object including substituted pointers.
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function replaceInternalReferences(
         QBMapper|\OCA\OpenRegister\Service\ObjectService $mapper,
@@ -478,8 +478,8 @@ class EndpointService
      * @param array $parentIds The ids of the main object on subobjects.
      *
      * @return string The generated url.
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function generateEndpointUrl(string $id, ?int $register = null, ?int $schema = null, array $parentIds = []): string
     {
@@ -549,7 +549,7 @@ class EndpointService
 			// Process each rule in order
 			foreach ($ruleEntities as $rule) {
 				// Skip if rule action doesn't match request method
-				if ($rule->getAction() !== $request->getMethod()) {
+				if (strtolower($rule->getAction()) !== strtolower($request->getMethod())) {
 					continue;
 				}
 
@@ -677,6 +677,7 @@ class EndpointService
 	 * @param array $data The input data against which the conditions are evaluated
 	 *
 	 * @return bool True if conditions are met, false otherwise
+	 * @throws Exception
 	 */
 	private function checkRuleConditions(Rule $rule, array $data): bool
 	{
