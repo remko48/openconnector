@@ -5,6 +5,10 @@ namespace OCA\OpenConnector\Service;
 use Adbar\Dot;
 use Exception;
 use JWadhams\JsonLogic;
+use OC\AppFramework\Http\Request;
+use OC\AppFramework\Http\RequestId;
+use OC\Config;
+use OC\Security\SecureRandom;
 use OCA\OpenConnector\Db\EndpointMapper;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Service\AuthenticationService;
@@ -24,6 +28,7 @@ use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use Psr\Container\ContainerExceptionInterface;
@@ -60,6 +65,7 @@ class EndpointService
 		private readonly MappingService  $mappingService,
         private readonly EndpointMapper  $endpointMapper,
 		private readonly RuleMapper    $ruleMapper,
+		private readonly IConfig $config,
 	)
 	{
 	}
@@ -437,7 +443,7 @@ class EndpointService
 
 		$result = JsonLogic::apply(logic: $conditions, data: $data);
 
-		if ($result === true || $result === []) {
+		if ($result === true || $result === [] || $result === null) {
 			return [];
 		}
 
@@ -705,56 +711,29 @@ class EndpointService
 	 */
 	private function updateRequestWithRuleData(IRequest $request, array $ruleData): IRequest
 	{
-		// @todo: Here we need to implement the update request with rule data logic
-		return $request; // For now, just return original request
+		// create items array of request
+		$items = [
+			'get'		 => $_GET,
+			'post'		 => $_POST,
+			'files'		 => $_FILES,
+			'server'	 => $_SERVER,
+			'env'		 => $_ENV,
+			'cookies'	 => $_COOKIE,
+			'urlParams'  => $request->urlParams,
+			'params' => $ruleData['parameters'],
+			'method'     => $ruleData['method'],
+			'requesttoken' => false,
+		];
+
+		$items['server']['headers'] = $ruleData['headers'];
+
+		// build the new request
+		$request = new Request(
+			vars: $items,
+			requestId: new RequestId($request->getId(), new SecureRandom()),
+			config: $this->config
+		);
+
+		return $request; // Return the overridden request
 	}
-
-    /**
-     * Generates url based on available endpoints for the object type.
-     *
-     * @param string $id The id of the object to generate an url for.
-     * @param int|null $register The register of the object (aids performance).
-     * @param int|null $schema The schema of the object (aids performance).
-     * @param array $parentIds The ids of the main object on subobjects.
-     *
-     * @return string The generated url.
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     */
-    public function generateEndpointUrl(string $id, ?int $register = null, ?int $schema = null, array $parentIds = []): string
-    {
-        if ($register === null) {
-            $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($id);
-            $register = $object->getRegister();
-            $schema   = $object->getSchema();
-        }
-
-        $target = "$register/$schema";
-
-        $endpoints = $this->endpointMapper->findAll(filters: ['target_id' => $target, 'method' => 'GET']);
-
-        if (count($endpoints) === 0) {
-            return $id;
-        }
-
-        $endpoint = $endpoints[0];
-
-        $location = $endpoint->getEndpointArray();
-
-        $iterator = 0;
-        foreach ($location as $key=>$part) {
-            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) !== 'id') {
-                $location[$key] = $parentIds[$iterator];
-                $iterator++;
-            }
-
-            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) === 'id') {
-                $location[$key] = $id;
-            }
-        }
-
-        $path = implode(separator: '/', array: $location);
-
-        return $this->urlGenerator->getBaseUrl().'/apps/openconnector/api/endpoint/'.$path;
-    }
 }
