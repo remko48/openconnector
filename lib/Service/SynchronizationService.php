@@ -964,6 +964,10 @@ class SynchronizationService
 		// Check if a specific objects position is defined in the source configuration
 		if (empty($sourceConfig['resultsPosition']) === false) {
 			$position = $sourceConfig['resultsPosition'];
+			// if position is root, return the array
+			if ($position === '_root') {
+				return $array;
+			}
 			// Use Dot notation to access nested array elements
 			$dot = new Dot($array);
 			if ($dot->has($position) === true) {
