@@ -28,6 +28,12 @@ import { ruleStore, navigationStore, searchStore } from '../../store/store.js'
 						</template>
 						Add rule
 					</NcActionButton>
+					<NcActionButton @click="navigationStore.setModal('importFile')">
+						<template #icon>
+							<FileImportOutline :size="20" />
+						</template>
+						Import
+					</NcActionButton>
 				</NcActions>
 			</div>
 			<div v-if="ruleStore.ruleList && ruleStore.ruleList.length > 0">
@@ -83,6 +89,7 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 export default {
 	name: 'RuleList',
@@ -99,6 +106,7 @@ export default {
 		Plus,
 		Pencil,
 		TrashCanOutline,
+		FileImportOutline,
 	},
 	mounted() {
 		ruleStore.refreshRuleList()
