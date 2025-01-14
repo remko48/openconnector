@@ -325,7 +325,7 @@ export default {
 					{ label: 'Put (Update)', id: 'put' },
 					{ label: 'Delete (Delete)', id: 'delete' },
 				],
-				value: { label: 'Create', id: 'create' },
+				value: { label: 'Post (Create)', id: 'post' },
 			},
 
 			typeOptions: {

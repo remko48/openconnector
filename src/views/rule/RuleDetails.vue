@@ -21,6 +21,12 @@ import { ruleStore, navigationStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="ruleStore.exportRule(ruleStore.ruleItem)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export rule
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteRule')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -89,6 +95,7 @@ import { NcActions, NcActionButton } from '@nextcloud/vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'RuleDetails',
@@ -98,6 +105,7 @@ export default {
 		DotsHorizontal,
 		Pencil,
 		TrashCanOutline,
+		FileExportOutline,
 	},
 }
 </script>
