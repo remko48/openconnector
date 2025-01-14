@@ -307,6 +307,9 @@ class EndpointService
 		}
 
 		$pathParams = $this->getPathParameters($endpoint->getEndpointArray(), $path);
+        if (isset($pathParams['id']) === true) {
+            $parameters['id'] = $pathParams['id'];
+        }
 
 		unset($parameters['_route'], $parameters['_path']);
 
@@ -323,8 +326,11 @@ class EndpointService
 				$this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->createFromArray(object: $parameters))
 			),
 			'PUT' => new JSONResponse(
-                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($request->getParams()['id'], $request->getParams(), true, true))
+                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, false))
 			),
+            'PATCH' => new JSONResponse(
+                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, true))
+            ),
 			'DELETE' => new JSONResponse(
 				$mapper->delete($request->getParams())
 			),
