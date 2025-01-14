@@ -58,6 +58,12 @@ import { ruleStore, navigationStore, searchStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="ruleStore.exportRule(rule)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export rule
+						</NcActionButton>
 						<NcActionButton @click="ruleStore.setRuleItem(rule); navigationStore.setDialog('deleteRule')">
 							<template #icon>
 								<TrashCanOutline />
@@ -90,6 +96,7 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'RuleList',
