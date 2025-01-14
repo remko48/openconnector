@@ -72,7 +72,7 @@ class EndpointService
 	 *
 	 * @param Endpoint $endpoint The endpoint configuration to handle
 	 * @param IRequest $request The incoming request object
-	 * @param string $path @todo
+	 * @param string $path The specific path or sub-route being requested
 	 *
 	 * @return JSONResponse Response containing the result
 	 * @throws Exception When endpoint configuration is invalid
@@ -173,8 +173,8 @@ class EndpointService
      * @param array $serializedObject The serialized object (if the object itself is not available).
      *
      * @return array|null The serialized object including substituted pointers.
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function replaceInternalReferences(
         QBMapper|\OCA\OpenRegister\Service\ObjectService $mapper,
@@ -475,6 +475,55 @@ class EndpointService
 		);
 	}
 
+    /**
+     * Generates url based on available endpoints for the object type.
+     *
+     * @param string $id The id of the object to generate an url for.
+     * @param int|null $register The register of the object (aids performance).
+     * @param int|null $schema The schema of the object (aids performance).
+     * @param array $parentIds The ids of the main object on subobjects.
+     *
+     * @return string The generated url.
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function generateEndpointUrl(string $id, ?int $register = null, ?int $schema = null, array $parentIds = []): string
+    {
+        if ($register === null) {
+            $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($id);
+            $register = $object->getRegister();
+            $schema   = $object->getSchema();
+        }
+
+        $target = "$register/$schema";
+
+        $endpoints = $this->endpointMapper->findAll(filters: ['target_id' => $target, 'method' => 'GET']);
+
+        if (count($endpoints) === 0) {
+            return $id;
+        }
+
+        $endpoint = $endpoints[0];
+
+        $location = $endpoint->getEndpointArray();
+
+        $iterator = 0;
+        foreach ($location as $key=>$part) {
+            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) !== 'id') {
+                $location[$key] = $parentIds[$iterator];
+                $iterator++;
+            }
+
+            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) === 'id') {
+                $location[$key] = $id;
+            }
+        }
+
+        $path = implode(separator: '/', array: $location);
+
+        return $this->urlGenerator->getBaseUrl().'/apps/openconnector/api/endpoint/'.$path;
+    }
+
 	/**
 	 * Processes rules for an endpoint request
 	 *
@@ -506,7 +555,7 @@ class EndpointService
 			// Process each rule in order
 			foreach ($ruleEntities as $rule) {
 				// Skip if rule action doesn't match request method
-				if ($rule->getAction() !== $request->getMethod()) {
+				if (strtolower($rule->getAction()) !== strtolower($request->getMethod())) {
 					continue;
 				}
 
@@ -543,9 +592,9 @@ class EndpointService
 	/**
 	 * Get a rule by its ID using RuleMapper
 	 *
-	 * @param string $id @todo
+	 * @param string $id The unique identifier of the rule
 	 *
-	 * @return Rule|null @todo
+	 * @return Rule|null The rule object if found, or null if not found
 	 */
 	private function getRuleById(string $id): ?Rule
 	{
@@ -560,9 +609,9 @@ class EndpointService
 	/**
 	 * Processes an error rule
 	 *
-	 * @param Rule $rule @todo
+	 * @param Rule $rule The rule object containing error details
 	 *
-	 * @return JSONResponse @todo
+	 * @return JSONResponse Response containing error details and HTTP status code
 	 */
 	private function processErrorRule(Rule $rule): JSONResponse
 	{
@@ -579,14 +628,14 @@ class EndpointService
 	/**
 	 * Processes a mapping rule
 	 *
-	 * @param Rule $rule @todo
-	 * @param array $data @todo
+	 * @param Rule $rule The rule object containing mapping details
+	 * @param array $data The data to be processed through the mapping rule
 	 *
-	 * @return array @todo
-	 * @throws DoesNotExistException
-	 * @throws MultipleObjectsReturnedException
-	 * @throws LoaderError
-	 * @throws SyntaxError
+	 * @return array The processed data after applying the mapping rule
+	 * @throws DoesNotExistException When the mapping configuration does not exist
+	 * @throws MultipleObjectsReturnedException When multiple mapping objects are returned unexpectedly
+	 * @throws LoaderError When there is an error loading the mapping
+	 * @throws SyntaxError When there is a syntax error in the mapping configuration
 	 */
 	private function processMappingRule(Rule $rule, array $data): array
 	{
@@ -598,10 +647,10 @@ class EndpointService
 	/**
 	 * Processes a synchronization rule
 	 *
-	 * @param Rule $rule @todo
-	 * @param array $data @todo
+	 * @param Rule $rule The rule object containing synchronization details
+	 * @param array $data The data to be synchronized
 	 *
-	 * @return array @todo
+	 * @return array The data after synchronization processing
 	 */
 	private function processSyncRule(Rule $rule, array $data): array
 	{
@@ -614,10 +663,10 @@ class EndpointService
 	/**
 	 * Processes a JavaScript rule
 	 *
-	 * @param Rule $rule @todo
-	 * @param array $data @todo
+	 * @param Rule $rule The rule object containing JavaScript execution details
+	 * @param array $data The input data to be processed by the JavaScript rule
 	 *
-	 * @return array @todo
+	 * @return array The processed data after executing the JavaScript rule
 	 */
 	private function processJavaScriptRule(Rule $rule, array $data): array
 	{
@@ -630,10 +679,11 @@ class EndpointService
 	/**
 	 * Checks if rule conditions are met
 	 *
-	 * @param Rule $rule @todo
-	 * @param array $data @todo
+	 * @param Rule $rule The rule object containing conditions to be checked
+	 * @param array $data The input data against which the conditions are evaluated
 	 *
-	 * @return bool @todo
+	 * @return bool True if conditions are met, false otherwise
+	 * @throws Exception
 	 */
 	private function checkRuleConditions(Rule $rule, array $data): bool
 	{
@@ -648,10 +698,10 @@ class EndpointService
 	/**
 	 * Updates request object with processed rule data
 	 *
-	 * @param IRequest $request @todo
-	 * @param array $ruleData @todo
+	 * @param IRequest $request The request object to be updated
+	 * @param array $ruleData The processed rule data to update the request with
 	 *
-	 * @return IRequest @todo
+	 * @return IRequest The updated request object
 	 */
 	private function updateRequestWithRuleData(IRequest $request, array $ruleData): IRequest
 	{
