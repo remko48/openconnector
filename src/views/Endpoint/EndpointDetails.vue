@@ -159,7 +159,6 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import LinkOff from 'vue-material-design-icons/LinkOff.vue'
@@ -177,7 +176,6 @@ export default {
 		TrashCanOutline,
 		FileExportOutline,
 		SitemapOutline,
-		Delete,
 		Plus,
 		EyeOutline,
 		LinkOff,
