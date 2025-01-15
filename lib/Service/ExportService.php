@@ -74,7 +74,7 @@ class ExportService
 
 		$objectArray = $this->prepareObject(objectType: $objectType, mapper: $mapper, object: $object);
 
-		$filename = ucfirst($objectType).'-'.$objectArray['name'] ?? $objectType.'-v'.$objectArray['version'] ?? '0.0.0';
+		$filename = ucfirst($objectType).'-'.($objectArray['name'] ?? $objectType).'-v'.($objectArray['version'] ?? '0.0.0');
 
 		$dataString = $this->encode(objectArray: $objectArray, type: $accept);
 

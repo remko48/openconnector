@@ -62,8 +62,9 @@ export class Event extends ReadonlyBaseClass implements TEvent {
 	}
 
 	/**
-	 * Validates the event data
-	 * @return {SafeParseReturnType<TEvent, unknown>} The validation result
+	 * Validates the event data against a schema
+	 *
+	 * @return {SafeParseReturnType<TEvent, unknown>} SafeParseReturnType containing validation results
 	 */
 	public validate(): SafeParseReturnType<TEvent, unknown> {
 		const schema = z.object({
