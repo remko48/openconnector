@@ -198,7 +198,6 @@ class EndpointsController extends Controller
 	public function handlePath(string $_path): JSONResponse
 	{
 		// @todo: move to a rule service
-		/*
 		try {
 			$token = $this->request->getHeader('Authorization');
 			$this->authorizationService->authorize(authorization: $token);
@@ -208,7 +207,7 @@ class EndpointsController extends Controller
 				statusCode: 401
 			);
 		}
-		*/
+
 
 		// Find matching endpoints for the given path and method
 		$matchingEndpoints = $this->endpointMapper->findByPathRegex(
