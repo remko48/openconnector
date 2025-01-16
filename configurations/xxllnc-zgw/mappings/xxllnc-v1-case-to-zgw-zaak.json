@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "mapping": {
         "originId": "reference",
+        "_sourceId": "reference",
         "identificatie": "reference",
         "omschrijving": "instance.subject",
         "toelichting": "instance.subject_external",

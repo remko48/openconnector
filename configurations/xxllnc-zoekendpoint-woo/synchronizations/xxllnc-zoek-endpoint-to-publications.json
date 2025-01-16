@@ -9,6 +9,7 @@
         "idPosition": "id",
         "resultsPosition": "result",
         "endpoint": "/public_search/x/search",
+        "deleteInvalidObjects": "false",
         "headers": [],
         "query": []
     },
