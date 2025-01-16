@@ -175,7 +175,7 @@ class SynchronizationService
 		}
 
 		if (isset($sourceConfig['deleteInvalidObjects']) === false ||
-		   (isset($sourceConfig['deleteInvalidObjects']) === true && $sourceConfig['deleteInvalidObjects'] === true && $sourceConfig['deleteInvalidObjects'] !== 'true')) {
+		   (isset($sourceConfig['deleteInvalidObjects']) === true && ($sourceConfig['deleteInvalidObjects'] === true || $sourceConfig['deleteInvalidObjects'] === 'true'))) {
 			$this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
 		}
 		// @todo log deleted objects count
