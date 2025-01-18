@@ -99,29 +99,56 @@ class SynchronizationService
 		?bool $force = false
 	): array
 	{
-		if (empty($synchronization->getSourceId()) === true) {
-			$log = [
-				'synchronizationId' => $synchronization->getId(),
-				'synchronizationContractId' => 0,
-				'message' => 'sourceId of synchronization cannot be empty. Canceling synchronization...',
-				'created' => new DateTime(),
-				'expires' => new DateTime('+1 day')
-			];
+		// Create log with synchronization ID and initialize results tracking
+		$log = [
+			'synchronizationId' => $synchronization->getUuid(),
+			'result' => [
+				'objects' => [
+					'found' => 0,
+					'skipped' => 0, 
+					'created' => 0,
+					'updated' => 0,
+					'deleted' => 0,
+					'invalid' => 0
+				],
+				'contracts' => []
+			],
+			'test' => $isTest,
+			'force' => $force
+		];
 
-			$this->synchronizationContractLogMapper->createFromArray($log);
+		// lets always create the log entry first, because we need its uuid later on for contractLogs
+		$log = $this->synchronizationLogMapper->createFromArray($log)->jsonSerialize();
+
+		// check if sourceId is empty
+		if (empty($synchronization->getSourceId()) === true) {
+			$log = ['message' => 'sourceId of synchronization cannot be empty. Canceling synchronization...'];
+
+			$this->SynchronizationLogMapper->updateFromArray($log);
 			throw new Exception('sourceId of synchronization cannot be empty. Canceling synchronization...');
 		}
 
-
+		// get objects from source
 		try {
 			$objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 		} catch (TooManyRequestsHttpException $e) {
 			$rateLimitException = $e;
 		}
 
+		// Update log
+		$log = [
+			'result' => [
+				'objects' => [
+					'found' => count($objectList)
+				]
+			]
+		];
+
 		foreach ($objectList as $key => $object) {
 			// We can only deal with arrays (bassed on the source empty values or string might be returned)
 			if (is_array($object) === false) {
+				$log['result']['objects']['invalid']++;
+				unset($objectList[$key]);
 				continue;
 			}
 
@@ -129,7 +156,8 @@ class SynchronizationService
 			// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
 			if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
 
-				// @todo log that this object is not valid
+				// Increment skipped count in log since object doesn't meet conditions
+				$log['result']['objects']['skipped']++;
 				unset($objectList[$key]);
 				continue;
 			}
@@ -141,17 +169,10 @@ class SynchronizationService
 			$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
 
 			if ($synchronizationContract instanceof SynchronizationContract === false) {
-				// Only persist if not test
-				if ($isTest === false) {
-					$synchronizationContract = $this->synchronizationContractMapper->createFromArray([
-						'synchronizationId' => $synchronization->getId(),
-						'originId' => $originId,
-					]);
-				} else {
-					$synchronizationContract = new SynchronizationContract();
-					$synchronizationContract->setSynchronizationId($synchronization->getId());
-					$synchronizationContract->setOriginId($originId);
-				}
+				// Only persist if not test				
+				$synchronizationContract = new SynchronizationContract();
+				$synchronizationContract->setSynchronizationId($synchronization->getId());
+				$synchronizationContract->setOriginId($originId); 
 
 				$synchronizationContract = $this->synchronizeContract(
 					synchronizationContract: $synchronizationContract, 
@@ -161,15 +182,12 @@ class SynchronizationService
 					force: false
 				);
 
-				if ($isTest === true && is_array($synchronizationContract) === true) {
-					// If this is a log and contract array return for the test endpoint.
-					$logAndContractArray = $synchronizationContract;
-
-					return $logAndContractArray;
-				}
+				$synchronizationContract = $result['contract'];
+				$log['result']['contracts'][] = $result['contract']['uuid'];
+				$log['result']['logs'][] = $result['log']['uuid'];
 			} else {
 				// @todo this is wierd
-				$synchronizationContract = $this->synchronizeContract(
+				$result = $this->synchronizeContract(
 					synchronizationContract: $synchronizationContract, 
 					synchronization: $synchronization, 
 					object: $object, 
@@ -177,40 +195,34 @@ class SynchronizationService
 					force: false
 				);
 
-				if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
-					// If this is a regular synchronizationContract update it to the database.
-					$objectList[$key] = $this->synchronizationContractMapper->update(entity: $synchronizationContract);
-				} elseif ($isTest === true && is_array($synchronizationContract) === true) {
-					// If this is a log and contract array return for the test endpoint.
-					$logAndContractArray = $synchronizationContract;
-					return $logAndContractArray;
-				}
+				$synchronizationContract = $result['contract'];
+				$log['result']['contracts'][] = $result['contract']['uuid'];
+				$log['result']['logs'][] = $result['log']['uuid'];
 			}
-
-			$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
 
 			$synchronizedTargetIds[] = $synchronizationContract->getTargetId();
 		}
 
-		$this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
-		// @todo log deleted objects count
-
-
-		foreach ($synchronization->getFollowUps() as $followUp) {
-			$followUpSynchronization = $this->synchronizationMapper->find($followUp);
-			$this->synchronize($followUpSynchronization, $isTest);
+		// Delete invalid objects		
+		if($isTest === false) {			
+			$log['result']['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
+		}
+		else {
+			// In test mode we don't delete objects, so we guess the deleted count by subtracting the invalid, sjipped, updated and created count form the found count
+			$log['result']['objects']['deleted'] = $log['result']['objects']['found'] - $log['result']['objects']['invalid'] - $log['result']['objects']['skipped'] - $log['result']['objects']['updated'] - $log['result']['objects']['created'];
 		}
 
-		if (isset($rateLimitException) === true) {
-			$log = [
-				'synchronizationId' => $synchronization->getId(),
-				'synchronizationContractId' => isset($synchronizationContract) === true ? $synchronizationContract->getId() : 0,
-				'message' => $rateLimitException->getMessage(),
-				'created' => new DateTime(),
-				'expires' => new DateTime('+1 day')
-			];
+		// @todo: refactor to actions
+		foreach ($synchronization->getFollowUps() as $followUp) {
+			$followUpSynchronization = $this->synchronizationMapper->find($followUp);
+			$this->synchronize(synchronization: $followUpSynchronization, isTest: $isTest, force: $force);
+		}
 
-			$this->synchronizationContractLogMapper->createFromArray($log);
+		// Rate limit exception
+		if (isset($rateLimitException) === true) {
+			$log = ['message' => $rateLimitException->getMessage()];
+
+			$this->synchronizationLogMapper->updateFromArray($log);
 			throw new TooManyRequestsHttpException(
 				message: $rateLimitException->getMessage(),
 				code: 429,
@@ -218,7 +230,9 @@ class SynchronizationService
 			);
 		}
 
-		return $objectList;
+		$log = ['message' => 'Succes'];
+		$this->synchronizationLogMapper->updateFromArray($log);
+		return $log;
 	}
 
 	/**
@@ -502,7 +516,6 @@ class SynchronizationService
 		}
 
 		return $deletedObjectsCount;
-
 	}
 
 	/**
@@ -527,6 +540,17 @@ class SynchronizationService
 		?bool $force = false 
 		): SynchronizationContract|Exception|array
 	{
+		// We are doing something so lets log it
+		$log = $this->synchronizationContractLogMapper->createFromArray(
+			[
+				'synchronizationId' => $synchronization->getId(),
+				'synchronizationContractId' => $synchronizationContract->getId(),
+				'source' => $object,
+				'test' => $isTest,
+				'force' => $force,
+			]
+		);
+
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
 		// Check if extra data needs to be fetched
@@ -563,8 +587,14 @@ class SynchronizationService
             $synchronizationContract->getTargetId() !== null &&
             $synchronizationContract->getTargetHash() !== null
             ) {
+			// We checked the source so let log that			
+			$synchronizationContract->setSourceLastChecked(new DateTime());
 			// The object has not changed and neither config nor mapping have been updated since last check
-			return $synchronizationContract;
+			$log = $this->synchronizationContractLogMapper->update(log);
+			return [
+				'log' => $log->jsonSerialize(),
+				'contract' => $synchronizationContract->jsonSerialize()
+			];
 		}
 
 		// The object has changed, oke let do mappig and set metadata
@@ -578,6 +608,7 @@ class SynchronizationService
         } else {
             $targetObject = $object;
         }
+		$log->setTarget($targetObject);
 
 		// set the target hash
 		$targetHash = md5(serialize($targetObject));
@@ -586,20 +617,14 @@ class SynchronizationService
 		$synchronizationContract->setTargetLastSynced(new DateTime());
 		$synchronizationContract->setSourceLastSynced(new DateTime());
 
-		// prepare log
-		$log = [
-			'synchronizationId' => $synchronizationContract->getSynchronizationId(),
-			'synchronizationContractId' => $synchronizationContract->getId(),
-			'source' => $object,
-			'target' => $targetObject,
-			'expires' => new DateTime('+1 day')
-		];
 
 		// Handle synchronization based on test mode
 		if ($isTest === true) {
 			// Return test data without updating target
+			$log->setTargetResult('test');
+			$log = $this->synchronizationContractLogMapper->update($log);
 			return [
-				'log' => $log,
+				'log' => $log->jsonSerialize(),
 				'contract' => $synchronizationContract->jsonSerialize()
 			];
 		}
@@ -611,10 +636,14 @@ class SynchronizationService
 		);
 
 		// Create log entry for the synchronization
-		$this->synchronizationContractLogMapper->createFromArray($log);
+		$log->setTargetResult($synchronizationContract->getTargetLastAction());
+		$log = $this->synchronizationContractLogMapper->update($log);
+		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
 
-		return $synchronizationContract;
-
+		return [
+			'log' => $log->jsonSerialize(),
+			'contract' => $synchronizationContract->jsonSerialize()
+		];
 	}
 
 	/**
@@ -654,10 +683,13 @@ class SynchronizationService
 				$target = $objectService->saveObject($register, $schema, $targetObject);
 				// Get the id form the target object
 				$synchronizationContract->setTargetId($target->getUuid());
+				// Set target last action based on whether we're creating or updating
+				$synchronizationContract->setTargetLastAction($synchronizationContract->getTargetId() ? 'update' : 'create');
 				break;
 			case 'delete':
 				$objectService->deleteObject(register: $register, schema: $schema, uuid: $synchronizationContract->getTargetId());
 				$synchronizationContract->setTargetId(null);
+				$synchronizationContract->setTargetLastAction('delete');
 				break;
 		}
 
@@ -1116,7 +1148,8 @@ class SynchronizationService
 	public function synchronizeToTarget(
 		ObjectEntity $object, 
 		?SynchronizationContract $synchronizationContract = null,
-		?bool $force = false
+		?bool $force = false,
+		?bool $test = false
 	): array
 	{
 		$objectId = $object->getUuid();
@@ -1136,7 +1169,6 @@ class SynchronizationService
 		$synchronization = $synchronizations[0];
 
 		if ($synchronizationContract instanceof SynchronizationContract === false) {
-
 			$synchronizationContract = $this->synchronizationContractMapper->createFromArray([
 				'synchronizationId' => $synchronization->getId(),
 				'originId' => $objectId,
@@ -1148,8 +1180,10 @@ class SynchronizationService
 			synchronizationContract: $synchronizationContract,
 			synchronization: $synchronization,
 			object: $object->jsonSerialize(),
-			force: false
+			test: $test,
+			force: $force
 		);
+
 		if ($synchronizationContract instanceof SynchronizationContract === true) {
 			// If this is a regular synchronizationContract update it to the database.
 			$synchronizationContract = $this->synchronizationContractMapper->update(entity: $synchronizationContract);

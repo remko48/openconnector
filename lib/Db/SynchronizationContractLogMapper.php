@@ -7,12 +7,22 @@ use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\ISession;
+use OCP\IUserSession;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * Class SynchronizationContractLogMapper
+ * 
+ * Mapper class for handling SynchronizationContractLog entities
+ */
 class SynchronizationContractLogMapper extends QBMapper
 {
-	public function __construct(IDBConnection $db)
-	{
+	public function __construct(
+		IDBConnection $db,
+		private readonly IUserSession $userSession,
+		private readonly ISession $session
+	) {
 		parent::__construct($db, 'openconnector_synchronization_contract_logs');
 	}
 
@@ -79,10 +89,22 @@ class SynchronizationContractLogMapper extends QBMapper
 	{
 		$obj = new SynchronizationContractLog();
 		$obj->hydrate($object);
-		// Set uuid
+		
+		// Set uuid if not provided
 		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
+
+		// Auto-fill userId from current user session
+		if ($obj->getUserId() === null && $this->userSession->getUser() !== null) {
+			$obj->setUserId($this->userSession->getUser()->getUID());
+		}
+
+		// Auto-fill sessionId from current session
+		if ($obj->getSessionId() === null) {
+			$obj->setSessionId($this->session->getId());
+		}
+
 		return $this->insert($obj);
 	}
 

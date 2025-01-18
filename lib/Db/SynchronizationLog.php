@@ -6,43 +6,30 @@ use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
-/**
- * Class SynchronizationContractLog
- * 
- * Entity class representing a synchronization contract log entry
- */
-class SynchronizationContractLog extends Entity implements JsonSerializable
+class SynchronizationLog extends Entity implements JsonSerializable
 {
     protected ?string $uuid = null;
-	protected ?string $message = null;
+    protected ?string $message = null;
     protected ?string $synchronizationId = null;
-    protected ?string $synchronizationContractId = null;
-    protected ?string $synchronizationLogId = null;
-    protected ?array $source = [];
-    protected ?array $target = [];
-    protected ?string $targetResult = null; // CRUD action taken on target (create/read/update/delete)
+    protected ?array $result = [];
     protected ?string $userId = null;
     protected ?string $sessionId = null;
-    protected ?bool $test = false;
-    protected ?bool $forced = false;
-    protected ?DateTime $expires = null;
+    protected bool $test = false;
+    protected bool $force = false;
     protected ?DateTime $created = null;
+    protected ?DateTime $expires = null;
 
     public function __construct() {
         $this->addType('uuid', 'string');
-		$this->addType('message', 'string');
+        $this->addType('message', 'string');
         $this->addType('synchronizationId', 'string');
-        $this->addType('synchronizationContractId', 'string');
-        $this->addType('synchronizationLogId', 'string');
-        $this->addType('source', 'json');
-        $this->addType('target', 'json');
-        $this->addType('targetResult', 'string');
+        $this->addType('result', 'json');
         $this->addType('userId', 'string');
         $this->addType('sessionId', 'string');
         $this->addType('test', 'boolean');
-        $this->addType('forced', 'boolean');
-        $this->addType('expires', 'datetime');
+        $this->addType('force', 'boolean');
         $this->addType('created', 'datetime');
+        $this->addType('expires', 'datetime');
     }
 
     public function getJsonFields(): array
@@ -80,19 +67,15 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
-			'message' => $this->message,
+            'message' => $this->message,
             'synchronizationId' => $this->synchronizationId,
-            'synchronizationContractId' => $this->synchronizationContractId,
-            'synchronizationLogId' => $this->synchronizationLogId,
-            'source' => $this->source,
-            'target' => $this->target,
-            'targetResult' => $this->targetResult,
+            'result' => $this->result,
             'userId' => $this->userId,
             'sessionId' => $this->sessionId,
             'test' => $this->test,
-            'forced' => $this->forced,
-            'expires' => isset($this->expires) ? $this->expires->format('c') : null,
+            'force' => $this->force,
             'created' => isset($this->created) ? $this->created->format('c') : null,
+            'expires' => isset($this->expires) ? $this->expires->format('c') : null,
         ];
     }
 }
