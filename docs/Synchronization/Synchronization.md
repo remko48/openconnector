@@ -38,13 +38,26 @@ Synchronization is a core feature that enables data transfer between different s
 - Logs synchronization events and errors
 
 ## Process Flow
-1. Fetch objects from source system with pagination
-2. Filter objects based on configured conditions
+1. Fetch all objects from source system with pagination
+2. Determing if an object has changed
 3. Create/update synchronization contracts for each object
 4. Transform data according to mapping rules
 5. Write objects to target system (POST/PUT/DELETE)
 6. Update contract status and hashes
 7. Handle any follow-up synchronizations
+
+### Determining if an object has changed
+The synchronization service prevents unnecessary updates and code execution by checking the following conditions:
+
+1. The origin hash matches the stored hash in the synchronization contract (indicating the source object hasn't changed)
+2. The synchronization configuration hasn't been updated since the last check (synchronization.updated < contract.sourceLastChecked)
+3. If a source target mapping exists, verify it hasn't been updated since the last check (mapping.updated < contract.sourceLastChecked)
+4. The target ID and hash exist in the synchronization contract (object hasn't been removed from target system)
+5. The force parameter is false (if true, the update will proceed regardless of other conditions)
+
+If all these conditions are met, the synchronization service will skip updating the object since no changes are needed. This optimization prevents unnecessary API calls and processing.
+
+This procces might be overridden by the user by setting the force option to true. In that case the synchronization service will update the target object regardless of whether it has changed or not.
 
 ## Error Handling
 - Rate limiting detection and backoff

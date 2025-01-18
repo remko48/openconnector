@@ -10,13 +10,42 @@ import { getTheme } from '../../services/getTheme.js'
 		<div class="modalContent runSynchronization">
 			<h2>Run synchronization</h2>
 
-			<div v-if="response === null" class="runButtonContainer">
-				<NcButton type="primary" @click="runSynchronization">
-					<template #icon>
-						<Play :size="20" />
-					</template>
-					Run
-				</NcButton>
+			
+
+			<div v-if="response === null" class="runOptions">
+				<div class="optionsGrid">
+					<NcNoteCard type="info">
+						<p>
+							Test mode will run all the synchronization code and logic without saving or updating the contract or updating the target system. This allows you to verify the mapping and configuration before running a real synchronization by doing a 'dry run'.
+						</p>
+					</NcNoteCard>
+					<NcCheckboxRadioSwitch 
+						:checked="testMode"
+						@update:checked="testMode = $event"
+						type="switch">
+						Test mode
+					</NcCheckboxRadioSwitch>
+					<NcNoteCard type="info">
+						<p>
+							Forcing the synchronization will make the synchronization service update the contract even if no update was deemed necessary (see docs). The resulting updated contract can still be withheld from saving by activating test mode.
+						</p>
+					</NcNoteCard>
+					<NcCheckboxRadioSwitch 
+						:checked="forceSync"
+						@update:checked="forceSync = $event"
+						type="switch">
+						Force synchronization
+					</NcCheckboxRadioSwitch>
+				</div>
+
+				<div class="runButtonContainer">
+					<NcButton type="primary" @click="runSynchronization">
+						<template #icon>
+							<Play :size="20" />
+						</template>
+						{{ testMode ? 'Test' : 'Run' }}
+					</NcButton>
+				</div>
 			</div>
 
 			<div v-if="loading">
@@ -102,6 +131,7 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 	NcButton,
+	NcCheckboxRadioSwitch,
 } from '@nextcloud/vue'
 import CodeMirror from 'vue-codemirror6'
 import { json, jsonParseLinter } from '@codemirror/lang-json'
@@ -116,6 +146,7 @@ export default {
 		NcNoteCard,
 		CodeMirror,
 		NcButton,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
@@ -125,6 +156,8 @@ export default {
 			success: null,
 			loading: false,
 			error: false,
+			testMode: false,
+			forceSync: false,
 		}
 	},
 	methods: {
@@ -137,7 +170,13 @@ export default {
 			this.loading = true
 			this.error = false
 
-			synchronizationStore.runSynchronization(synchronizationStore.synchronizationItem.id)
+			synchronizationStore.runSynchronization(
+				synchronizationStore.synchronizationItem.id,
+				{
+					test: this.testMode,
+					force: this.forceSync,
+				}
+			)
 				.then(({ response, data }) => {
 					this.response = response
 					this.responseBody = data
@@ -241,5 +280,18 @@ div[class='modal-container']:has(.runSynchronization .SuccessMarker) {
 }
 .codeMirrorContainer.dark :deep(.ͼc) {
 	color: #260dd4;
+}
+
+.optionsGrid {
+	display: grid;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.runOptions {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	margin-block-start: 10px;
 }
 </style>
