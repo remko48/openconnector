@@ -83,7 +83,7 @@ class SynchronizationService
 	 *
 	 * @param Synchronization $synchronization
 	 * @param bool|null $isTest False by default, currently added for synchronziation-test endpoint
-	 *
+	 * @param bool|null $force False by default, if true, the object will be updated regardless of changes
 	 * @return array
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
@@ -93,7 +93,11 @@ class SynchronizationService
 	 * @throws MultipleObjectsReturnedException
 	 * @throws \OCP\DB\Exception
 	 */
-	public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
+	public function synchronize(
+		Synchronization $synchronization, 
+		?bool $isTest = false,
+		?bool $force = false
+	): array
 	{
 		if (empty($synchronization->getSourceId()) === true) {
 			$log = [
@@ -149,7 +153,13 @@ class SynchronizationService
 					$synchronizationContract->setOriginId($originId);
 				}
 
-				$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
+				$synchronizationContract = $this->synchronizeContract(
+					synchronizationContract: $synchronizationContract, 
+					synchronization: $synchronization, 
+					object: $object, 
+					isTest: $isTest,
+					force: false
+				);
 
 				if ($isTest === true && is_array($synchronizationContract) === true) {
 					// If this is a log and contract array return for the test endpoint.
@@ -159,7 +169,14 @@ class SynchronizationService
 				}
 			} else {
 				// @todo this is wierd
-				$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object, isTest: $isTest);
+				$synchronizationContract = $this->synchronizeContract(
+					synchronizationContract: $synchronizationContract, 
+					synchronization: $synchronization, 
+					object: $object, 
+					isTest: $isTest,
+					force: false
+				);
+
 				if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
 					// If this is a regular synchronizationContract update it to the database.
 					$objectList[$key] = $this->synchronizationContractMapper->update(entity: $synchronizationContract);
@@ -495,14 +512,20 @@ class SynchronizationService
 	 * @param Synchronization|null $synchronization
 	 * @param array $object
 	 * @param bool|null $isTest False by default, currently added for synchronization-test endpoint
-	 *
+	 * @param bool|null $force False by default, if true, the object will be updated regardless of changes
 	 * @return SynchronizationContract|Exception|array
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
 	 * @throws LoaderError
 	 * @throws SyntaxError
 	 */
-	public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
+	public function synchronizeContract(
+		SynchronizationContract $synchronizationContract, 
+		Synchronization $synchronization = null, 
+		array $object = [], 
+		?bool $isTest = false,
+		?bool $force = false 
+		): SynchronizationContract|Exception|array
 	{
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
@@ -530,7 +553,9 @@ class SynchronizationService
         // 2. If the synchronization config hasn't been updated since last check
         // 3. If source target mapping exists, check it hasn't been updated since last check
         // 4. If target ID and hash exist (object hasn't been removed from target)
+        // 5. Force parameter is false (otherwise always continue with update)
 		if (
+            $force === false &&
             $originHash === $synchronizationContract->getOriginHash() &&
             $synchronization->getUpdated() < $synchronizationContract->getSourceLastChecked() &&
             ($sourceTargetMapping === null ||
@@ -1079,7 +1104,7 @@ class SynchronizationService
 	 *
 	 * @param ObjectEntity $object The object to synchronize
 	 * @param SynchronizationContract|null $synchronizationContract If given: the synchronization contract that should be updated.
-	 *
+	 * @param bool|null $force If true, the object will be updated regardless of changes
 	 * @return array The updated synchronizationContracts
 	 *
 	 * @throws ContainerExceptionInterface
@@ -1088,7 +1113,11 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
-	public function synchronizeToTarget(ObjectEntity $object, ?SynchronizationContract $synchronizationContract = null): array
+	public function synchronizeToTarget(
+		ObjectEntity $object, 
+		?SynchronizationContract $synchronizationContract = null,
+		?bool $force = false
+	): array
 	{
 		$objectId = $object->getUuid();
 
@@ -1115,7 +1144,12 @@ class SynchronizationService
 
 		}
 
-		$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object->jsonSerialize());
+		$synchronizationContract = $this->synchronizeContract(
+			synchronizationContract: $synchronizationContract,
+			synchronization: $synchronization,
+			object: $object->jsonSerialize(),
+			force: false
+		);
 		if ($synchronizationContract instanceof SynchronizationContract === true) {
 			// If this is a regular synchronizationContract update it to the database.
 			$synchronizationContract = $this->synchronizationContractMapper->update(entity: $synchronizationContract);
