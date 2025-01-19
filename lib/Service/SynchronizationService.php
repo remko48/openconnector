@@ -12,6 +12,8 @@ use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\MappignMapper;
 use OCA\OpenConnector\Db\Synchronization;
 use OCA\OpenConnector\Db\SynchronizationMapper;
+use OCA\OpenConnector\Db\SynchronizationLog;
+use OCA\OpenConnector\Db\SynchronizationLogMapper;
 use OCA\OpenConnector\Db\SynchronizationContract;
 use OCA\OpenConnector\Db\SynchronizationContractLog;
 use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
@@ -46,6 +48,7 @@ class SynchronizationService
 	private MappingMapper $mappingMapper;
 	private SynchronizationContractMapper $synchronizationContractMapper;
 	private SynchronizationContractLogMapper $synchronizationContractLogMapper;
+	private SynchronizationLogMapper $synchronizationLogMapper;
 //    private ObjectService $objectService;
 	private Source $source;
 
@@ -64,6 +67,7 @@ class SynchronizationService
 		SourceMapper                     $sourceMapper,
 		MappingMapper                    $mappingMapper,
 		SynchronizationMapper            $synchronizationMapper,
+		SynchronizationLogMapper         $synchronizationLogMapper,
 		SynchronizationContractMapper    $synchronizationContractMapper,
 		SynchronizationContractLogMapper $synchronizationContractLogMapper,
 		private readonly ObjectService   $objectService,
@@ -75,6 +79,7 @@ class SynchronizationService
 		$this->synchronizationMapper = $synchronizationMapper;
 		$this->mappingMapper = $mappingMapper;
 		$this->synchronizationContractMapper = $synchronizationContractMapper;
+		$this->synchronizationLogMapper = $synchronizationLogMapper;
 		$this->synchronizationContractLogMapper = $synchronizationContractLogMapper;
 		$this->sourceMapper = $sourceMapper;
 	}
@@ -119,15 +124,15 @@ class SynchronizationService
 		];
 
 		// lets always create the log entry first, because we need its uuid later on for contractLogs
-		$log = $this->synchronizationLogMapper->createFromArray($log)->jsonSerialize();
+		$log = $this->synchronizationLogMapper->createFromArray($log);
 
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
 		// check if sourceId is empty
 		if (empty($synchronization->getSourceId()) === true) {
-			$log = ['message' => 'sourceId of synchronization cannot be empty. Canceling synchronization...'];
+			$log->setMessage('sourceId of synchronization cannot be empty. Canceling synchronization...');
 
-			$this->SynchronizationLogMapper->updateFromArray($log);
+			$this->synchronizationLogMapper->update($log);
 			throw new Exception('sourceId of synchronization cannot be empty. Canceling synchronization...');
 		}
 
@@ -139,18 +144,15 @@ class SynchronizationService
 		}
 
 		// Update log
-		$log = [
-			'result' => [
-				'objects' => [
-					'found' => count($objectList)
-				]
-			]
-		];
+		// Get existing result array from log
+		$result = $log->getResult();
+		// Update found objects count while preserving other result properties
+		$result['objects']['found'] = count($objectList);
 
 		foreach ($objectList as $key => $object) {
 			// We can only deal with arrays (bassed on the source empty values or string might be returned)
 			if (is_array($object) === false) {
-				$log['result']['objects']['invalid']++;
+				$result['objects']['invalid']++;
 				unset($objectList[$key]);
 				continue;
 			}
@@ -160,7 +162,7 @@ class SynchronizationService
 			if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
 
 				// Increment skipped count in log since object doesn't meet conditions
-				$log['result']['objects']['skipped']++;
+				$result['objects']['skipped']++;
 				unset($objectList[$key]);
 				continue;
 			}
@@ -177,7 +179,7 @@ class SynchronizationService
 				$synchronizationContract->setSynchronizationId($synchronization->getId());
 				$synchronizationContract->setOriginId($originId); 
 
-				$synchronizationContract = $this->synchronizeContract(
+				$synchronizationContractResult = $this->synchronizeContract(
 					synchronizationContract: $synchronizationContract, 
 					synchronization: $synchronization, 
 					object: $object, 
@@ -185,12 +187,12 @@ class SynchronizationService
 					force: false
 				);
 
-				$synchronizationContract = $result['contract'];
-				$log['result']['contracts'][] = $result['contract']['uuid'];
-				$log['result']['logs'][] = $result['log']['uuid'];
+				$synchronizationContract = $synchronizationContractResult['contract'];
+				$result['contracts'][] = $synchronizationContractResult['contract']['uuid'];
+				$result['logs'][] = $synchronizationContractResult['log']['uuid'];
 			} else {
 				// @todo this is wierd
-				$result = $this->synchronizeContract(
+				$synchronizationContractResult = $this->synchronizeContract(
 					synchronizationContract: $synchronizationContract, 
 					synchronization: $synchronization, 
 					object: $object, 
@@ -198,9 +200,9 @@ class SynchronizationService
 					force: false
 				);
 
-				$synchronizationContract = $result['contract'];
-				$log['result']['contracts'][] = $result['contract']['uuid'];
-				$log['result']['logs'][] = $result['log']['uuid'];
+				$synchronizationContract = $synchronizationContractResult['contract'];
+				$result['contracts'][] = $synchronizationContractResult['contract']['uuid'];
+				$result['logs'][] = $synchronizationContractResult['log']['uuid'];
 			}
 
 			$synchronizedTargetIds[] = $synchronizationContract->getTargetId();
@@ -208,11 +210,11 @@ class SynchronizationService
 
 		// Delete invalid objects		
 		if($isTest === false) {			
-			$log['result']['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
+			$result['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
 		}
 		else {
 			// In test mode we don't delete objects, so we guess the deleted count by subtracting the invalid, sjipped, updated and created count form the found count
-			$log['result']['objects']['deleted'] = $log['result']['objects']['found'] - $log['result']['objects']['invalid'] - $log['result']['objects']['skipped'] - $log['result']['objects']['updated'] - $log['result']['objects']['created'];
+			$result['objects']['deleted'] = $log['result']['objects']['found'] - $log['result']['objects']['invalid'] - $log['result']['objects']['skipped'] - $log['result']['objects']['updated'] - $log['result']['objects']['created'];
 		}
 
 		// @todo: refactor to actions
@@ -221,11 +223,12 @@ class SynchronizationService
 			$this->synchronize(synchronization: $followUpSynchronization, isTest: $isTest, force: $force);
 		}
 
+		$log->setResult($result);
 		// Rate limit exception
 		if (isset($rateLimitException) === true) {
-			$log = ['message' => $rateLimitException->getMessage()];
+			$log->setMessage($rateLimitException->getMessage());
 
-			$this->synchronizationLogMapper->updateFromArray($log);
+			$this->synchronizationLogMapper->update( $log);
 			throw new TooManyRequestsHttpException(
 				message: $rateLimitException->getMessage(),
 				code: 429,
@@ -233,9 +236,9 @@ class SynchronizationService
 			);
 		}
 
-		$log = ['message' => 'Succes'];
-		$this->synchronizationLogMapper->updateFromArray($log);
-		return $log;
+		$log->setMessage('Succes');
+		$this->synchronizationLogMapper->update($log);
+		return $log->jsonSerialize();
 	}
 
 	/**
