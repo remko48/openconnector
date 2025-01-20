@@ -184,7 +184,8 @@ class SynchronizationService
 					synchronization: $synchronization, 
 					object: $object, 
 					isTest: $isTest,
-					force: false
+					force: false,
+					log: $log
 				);
 
 				$synchronizationContract = $synchronizationContractResult['contract'];
@@ -197,7 +198,8 @@ class SynchronizationService
 					synchronization: $synchronization, 
 					object: $object, 
 					isTest: $isTest,
-					force: false
+					force: false,
+					log: $log
 				);
 
 				$synchronizationContract = $synchronizationContractResult['contract'];
@@ -552,7 +554,8 @@ class SynchronizationService
 		Synchronization $synchronization = null, 
 		array $object = [], 
 		?bool $isTest = false,
-		?bool $force = false 
+		?bool $force = false,
+		?SynchronizationLog $log = null 
 		): SynchronizationContract|Exception|array
 	{
 		// We are doing something so lets log it
@@ -565,6 +568,10 @@ class SynchronizationService
 				'force' => $force,
 			]
 		);
+
+		if ($log !== null) {
+			$log->setSynchronizationLogId($log->getId());
+		}
 
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
@@ -1355,7 +1362,8 @@ class SynchronizationService
 		ObjectEntity $object, 
 		?SynchronizationContract $synchronizationContract = null,
 		?bool $force = false,
-		?bool $test = false
+		?bool $test = false,
+		?SynchronizationLog $log = null
 	): array
 	{
 		$objectId = $object->getUuid();
@@ -1387,7 +1395,8 @@ class SynchronizationService
 			synchronization: $synchronization,
 			object: $object->jsonSerialize(),
 			test: $test,
-			force: $force
+			force: $force,
+			log: $log
 		);
 
 		if ($synchronizationContract instanceof SynchronizationContract === true) {
