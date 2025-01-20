@@ -105,6 +105,11 @@ class SynchronizationContractLogMapper extends QBMapper
 			$obj->setSessionId($this->session->getId());
 		}
 
+		// If no synchronizationLogId is provided, we assume that the contract is run directly from the synchronization log and set the synchronizationLogId to n.a.
+		if ($obj->getSynchronizationLogId() === null) {
+			$obj->setSynchronizationLogId('n.a.');
+		}
+
 		return $this->insert($obj);
 	}
 

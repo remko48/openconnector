@@ -49,7 +49,6 @@ class SynchronizationService
 	private SynchronizationContractMapper $synchronizationContractMapper;
 	private SynchronizationContractLogMapper $synchronizationContractLogMapper;
 	private SynchronizationLogMapper $synchronizationLogMapper;
-//    private ObjectService $objectService;
 	private Source $source;
 
     const EXTRA_DATA_CONFIGS_LOCATION          = 'extraDataConfigs';
@@ -70,7 +69,6 @@ class SynchronizationService
 		SynchronizationLogMapper         $synchronizationLogMapper,
 		SynchronizationContractMapper    $synchronizationContractMapper,
 		SynchronizationContractLogMapper $synchronizationContractLogMapper,
-		private readonly ObjectService   $objectService,
 	)
 	{
 		$this->callService = $callService;
@@ -543,6 +541,7 @@ class SynchronizationService
 	 * @param array $object
 	 * @param bool|null $isTest False by default, currently added for synchronization-test endpoint
 	 * @param bool|null $force False by default, if true, the object will be updated regardless of changes
+	 * @param SynchronizationLog|null $log The log to update
 	 * @return SynchronizationContract|Exception|array
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
