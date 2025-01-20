@@ -205,7 +205,7 @@ class SynchronizationService
 				$result['logs'][] = $synchronizationContractResult['log']['uuid'];
 			}
 
-			$synchronizedTargetIds[] = $synchronizationContract->getTargetId();
+			$synchronizedTargetIds[] = $synchronizationContract['targetId'];
 		}
 
 		// Delete invalid objects		
@@ -611,7 +611,7 @@ class SynchronizationService
 			// We checked the source so let log that			
 			$synchronizationContract->setSourceLastChecked(new DateTime());
 			// The object has not changed and neither config nor mapping have been updated since last check
-			$log = $this->synchronizationContractLogMapper->update(log);
+			$log = $this->synchronizationContractLogMapper->update($log);
 			return [
 				'log' => $log->jsonSerialize(),
 				'contract' => $synchronizationContract->jsonSerialize()
