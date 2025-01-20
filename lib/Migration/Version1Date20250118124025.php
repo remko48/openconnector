@@ -51,6 +51,7 @@ class Version1Date20250118124025 extends SimpleMigrationStep {
 			$table->addColumn('session_id', Types::STRING, ['notnull' => false, 'length' => 255]);
 			$table->addColumn('test', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
 			$table->addColumn('force', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
+			$table->addColumn('execution_time', Types::INTEGER, ['notnull' => true, 'default' => 3600]);
 			$table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
 			$table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
 

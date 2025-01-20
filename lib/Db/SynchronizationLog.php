@@ -6,6 +6,9 @@ use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
+/**
+ * Entity class representing a synchronization log entry
+ */
 class SynchronizationLog extends Entity implements JsonSerializable
 {
     protected ?string $uuid = null;
@@ -16,6 +19,7 @@ class SynchronizationLog extends Entity implements JsonSerializable
     protected ?string $sessionId = null;
     protected bool $test = false;
     protected bool $force = false;
+    protected int $executionTime = 3600;
     protected ?DateTime $created = null;
     protected ?DateTime $expires = null;
 
@@ -28,6 +32,7 @@ class SynchronizationLog extends Entity implements JsonSerializable
         $this->addType('sessionId', 'string');
         $this->addType('test', 'boolean');
         $this->addType('force', 'boolean');
+        $this->addType('executionTime', 'integer');
         $this->addType('created', 'datetime');
         $this->addType('expires', 'datetime');
     }
@@ -74,6 +79,7 @@ class SynchronizationLog extends Entity implements JsonSerializable
             'sessionId' => $this->sessionId,
             'test' => $this->test,
             'force' => $this->force,
+            'executionTime' => $this->executionTime,
             'created' => isset($this->created) ? $this->created->format('c') : null,
             'expires' => isset($this->expires) ? $this->expires->format('c') : null,
         ];

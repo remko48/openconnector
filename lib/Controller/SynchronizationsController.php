@@ -8,7 +8,7 @@ use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\SynchronizationService;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
-use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
+use OCA\OpenConnector\Db\SynchronizationLogMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
@@ -34,7 +34,7 @@ class SynchronizationsController extends Controller
         private readonly IAppConfig $config,
         private readonly SynchronizationMapper $synchronizationMapper,
         private readonly SynchronizationContractMapper $synchronizationContractMapper,
-        private readonly SynchronizationContractLogMapper $synchronizationContractLogMapper,
+        private readonly SynchronizationLogMapper $synchronizationLogMapper,
         private readonly SynchronizationService $synchronizationService
     )
     {
@@ -203,13 +203,13 @@ class SynchronizationsController extends Controller
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param int $id The ID of the source to retrieve logs for
+     * @param string $uuid The UUID of the synchronization to retrieve logs for
      * @return JSONResponse A JSON response containing the call logs
     */
-    public function logs(int $id): JSONResponse
+    public function logs(string $uuid): JSONResponse
     {
         try {
-            $logs = $this->synchronizationContractLogMapper->findAll(null, null, ['synchronization_id' => $id]);
+            $logs = $this->synchronizationLogMapper->findAll(null, null, ['synchronization_id' => $uuid]);
             return new JSONResponse($logs);
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Logs not found'], 404);

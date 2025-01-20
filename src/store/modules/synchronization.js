@@ -91,7 +91,7 @@ export const useSynchronizationStore = defineStore('synchronization', {
 		/* istanbul ignore next */ // ignore this for Jest until moved into a service
 		async refreshSynchronizationLogs(search = null) {
 			// @todo this might belong in a service?
-			let endpoint = `/index.php/apps/openconnector/api/synchronizations-logs/${this.synchronizationItem.id}`
+			let endpoint = `/index.php/apps/openconnector/api/synchronizations-logs/${this.synchronizationItem.uuid}`
 			if (search !== null && search !== '') {
 				endpoint = endpoint + '?_search=' + search
 			}

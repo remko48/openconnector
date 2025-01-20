@@ -263,7 +263,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							<div v-if="synchronizationStore.synchronizationLogs?.length">
 								<NcListItem v-for="(log, i) in synchronizationStore.synchronizationLogs"
 									:key="log.id + i"
-									:name="log.id.toString()"
+									:name="log.message + (log.result?.objects?.found ? ` (found: ${log.result.objects.found})` : '')"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
