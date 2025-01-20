@@ -68,8 +68,8 @@ class Version1Date20250118124025 extends SimpleMigrationStep {
 
 		if ($schema->hasTable(tableName: 'openconnector_synchronization_contract_logs') === true) {
 			$table = $schema->getTable(tableName: 'openconnector_synchronization_contract_logs'); 
-			$table->addColumn('synchronization_log_id', Types::STRING, ['notnull' => true, 'length' => 36]);
-			$table->addColumn('target_result', Types::STRING, ['notnull' => false, 'length' => 6]); 
+			$table->addColumn('synchronization_log_id', Types::STRING, ['notnull' => false, 'length' => 36]); // synchronization_log_id
+			$table->addColumn('target_result', Types::STRING, ['notnull' => false, 'length' => 6]); // target_result
 			$table->addColumn('test', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
 			$table->addColumn('force', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
 
