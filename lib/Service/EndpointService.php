@@ -66,6 +66,7 @@ class EndpointService
         private readonly EndpointMapper  $endpointMapper,
 		private readonly RuleMapper    $ruleMapper,
 		private readonly IConfig $config,
+        private readonly StorageService $storageService
 	)
 	{
 	}
@@ -101,7 +102,12 @@ class EndpointService
 			];
 
 			// Process rules before handling the request
-			$ruleResult = $this->processRules($endpoint, $request, $data);
+			$ruleResult = $this->processRules(
+                endpoint: $endpoint,
+                request: $request,
+                data: $data,
+                timing: 'before'
+            );
 			if ($ruleResult instanceof JSONResponse) {
 				return $ruleResult;
 			}
@@ -112,7 +118,14 @@ class EndpointService
 			// Check if endpoint connects to a schema
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
-				return $this->handleSchemaRequest($endpoint, $request, $path);
+				$result = $this->handleSchemaRequest($endpoint, $request, $path);
+                $ruleResult = $this->processRules(
+                    endpoint: $endpoint,
+                    request: $request,
+                    data: $data,
+                    timing: 'after',
+                    objectId: $result->getData()['id'] ?? null
+                );
 			}
 
 			// Check if endpoint connects to a source
@@ -539,7 +552,7 @@ class EndpointService
 	 *
 	 * @return array|JSONResponse Returns modified data or error response if rule fails
 	 */
-	private function processRules(Endpoint $endpoint, IRequest $request, array $data): array|JSONResponse
+	private function processRules(Endpoint $endpoint, IRequest $request, array $data, string $timing, ?string $objectId = null): array|JSONResponse
 	{
 		$rules = $endpoint->getRules();
 		if (empty($rules) === true) {
@@ -566,7 +579,7 @@ class EndpointService
 				}
 
 				// Check rule conditions
-				if ($this->checkRuleConditions($rule, $data) === false) {
+				if ($this->checkRuleConditions($rule, $data) === false && $rule->getTiming() === $timing) {
 					continue;
 				}
 
@@ -576,6 +589,7 @@ class EndpointService
 					'mapping' => $this->processMappingRule($rule, $data),
 					'synchronization' => $this->processSyncRule($rule, $data),
 					'javascript' => $this->processJavaScriptRule($rule, $data),
+                    'fileParts' => $this->processFilePartRule($rule, $data, $objectId),
 					default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
 				};
 
@@ -665,6 +679,52 @@ class EndpointService
 		// For now, just return the data unchanged
 		return $data;
 	}
+
+    private function processFilePartRule(Rule $rule, array $data, ?string $objectId = null): array
+    {
+        if($objectId === null) {
+            throw new Exception('Filepart rules can only be applied after the object has been created');
+        }
+
+
+
+        $config = $rule->getConfiguration();
+
+        $sizeLocation     = $config['sizeLocation'];
+        $filenameLocation = $config['filenameLocation'];
+        $schemaId         = $config['schemaId'];
+        $registerId       = $config['registerId'];
+        $mapping          = $this->mappingService->getMapping($config['mappingId']);
+        $filePartLocation = $config['filePartLocation'];
+
+        $openRegister = $this->objectService->getOpenRegisters();
+        $openRegister->setRegister($registerId);
+        $openRegister->setSchema($schemaId);
+
+        $object   = $openRegister->find(id: $objectId);
+        $location = $object->getFolder();
+
+        $dataDot = new Dot($data);
+        $size = $dataDot[$sizeLocation];
+        $filename = $dataDot[$filenameLocation];
+
+        $fileParts = $this->storageService->createUpload($location, $filename, $size);
+
+
+        $fileParts = array_map(function ($filePart) use ($mapping, $registerId, $schemaId) {
+            $formatted = $this->mappingService->executeMapping(mapping: $mapping, input: $filePart);
+            return $this->objectService->getOpenRegisters()->saveObject(
+                register: $registerId,
+                schema: $schemaId,
+                object: $formatted
+            )->jsonSerialize();
+        }, $fileParts);
+
+
+        $dataDot[$filePartLocation] = $fileParts;
+
+        return $dataDot->jsonSerialize();
+    }
 
 	/**
 	 * Processes a JavaScript rule

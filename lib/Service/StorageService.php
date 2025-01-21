@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\openconnector\lib\Service;
+namespace OCA\OpenConnector\Service;
 
 use Exception;
 use OC\Files\ObjectStore\ObjectStoreStorage;
@@ -92,13 +92,13 @@ class StorageService
 		return [$storage, $targetFile->getInternalPath()];
 	}
 
-	public function createUpload(string $path, string $fileName, int $size): int
+	public function createUpload(string $path, string $fileName, int $size): array
 	{
 		$this->uploadFolder = $this->rootFolder->get($path);
 
 		if ($this->checkPreconditions($size) === false
 		) {
-			return 0;
+			return [];
 		}
 		$this->uploadPath = $path.$fileName;
 
@@ -112,7 +112,22 @@ class StorageService
 			self::UPLOAD_TARGET_ID => $targetFile->getId(),
 		], 86400);
 
-		return ceil($size / $this->config->getValueInt('openconnector', 'part-size', 500000));
+        $partSize = $this->config->getValueInt('openconnector', 'part-size', 500000);
+
+		$numParts = ceil($size / $partSize);
+
+        $remainingSize = $size;
+        $parts = [];
+
+        for ($i = 0; $i < $numParts; $i++) {
+            $parts[] = [
+                'size'  => $partSize < $remainingSize ? $partSize : $remainingSize,
+                'order' => $i+1,
+            ];
+            $remainingSize -= $partSize;
+        }
+
+        return $parts;
 	}
 
 	public function writePart(int $partId, string $data, string $path, $numParts): bool
