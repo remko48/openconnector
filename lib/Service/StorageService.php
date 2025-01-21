@@ -92,6 +92,16 @@ class StorageService
 		return [$storage, $targetFile->getInternalPath()];
 	}
 
+    /**
+     * Based upon the webDAV partial files plugin
+     *
+     * @param string $path
+     * @param string $fileName
+     * @param int $size
+     * @return array
+     * @throws NotFoundException
+     * @throws \OCP\Files\InvalidPathException
+     */
 	public function createUpload(string $path, string $fileName, int $size): array
 	{
 		$this->uploadFolder = $this->rootFolder->get($path);
@@ -102,7 +112,7 @@ class StorageService
 		}
 		$this->uploadPath = $path.$fileName;
 
-		$targetFile = $this->getFile(path: $path.$fileName, createIfNotExists: true);
+		$targetFile = $this->getFile(path: $path.'/'.$fileName, createIfNotExists: true);
 		[$storage, $storagePath] = $this->getUploadStorage($this->uploadPath);
 		$this->uploadId = $storage->startChunkedWrite($storagePath);
 
@@ -130,6 +140,27 @@ class StorageService
         return $parts;
 	}
 
+    public function writeFile(string $path, string $fileName, string $content): File
+    {
+        $uploadFolder = $this->rootFolder->get($path);
+
+        $target = $this->getFile(path: $path.'/'.$fileName, createIfNotExists: true);
+        $target->putContent($content);
+
+        return $target;
+    }
+
+    /**
+     * Based upon the webDAV partial files plugin
+     *
+     * @param int $partId
+     * @param string $data
+     * @param string $path
+     * @param $numParts
+     * @return bool
+     * @throws NotFoundException
+     * @throws \OCP\Files\InvalidPathException
+     */
 	public function writePart(int $partId, string $data, string $path, $numParts): bool
 	{
 		try {
