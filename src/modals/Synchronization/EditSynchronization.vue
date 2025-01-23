@@ -552,25 +552,6 @@ export default {
 			console.info('Installing Open Register')
 			const requesttoken = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
 
-			if (window.location.hostname === 'nextcloud.local') {
-				await fetch('http://nextcloud.local/index.php/login/confirm', {
-					headers: {
-						accept: 'application/json, text/plain, */*',
-						'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
-						'cache-control': 'no-cache',
-						'content-type': 'application/json',
-						pragma: 'no-cache',
-						requesttoken,
-						'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
-					},
-					referrerPolicy: 'no-referrer',
-					body: '{"password":"admin"}',
-					method: 'POST',
-					mode: 'cors',
-					credentials: 'include',
-				})
-			}
-
 			const forceResponse = await fetch('/index.php/settings/apps/force', {
 				headers: {
 					accept: 'application/json, text/plain, */*',
