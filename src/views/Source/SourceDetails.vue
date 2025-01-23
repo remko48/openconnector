@@ -146,9 +146,6 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 								No authentications found
 							</div>
 						</BTab>
-						<BTab title="Endpoints" class="tabPanel">
-							No endpoints found
-						</BTab>
 						<BTab title="Synchronizations" class="tabPanel">
 							No synchronizations found
 						</BTab>
