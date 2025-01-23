@@ -18,6 +18,7 @@ use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
+use OCP\IUserSession;
 
 class StorageService
 {
@@ -34,7 +35,8 @@ class StorageService
 	public function __construct(
 		private readonly IRootFolder $rootFolder,
 		private readonly IAppConfig $config,
-		ICacheFactory $cacheFactory
+		ICacheFactory $cacheFactory,
+        private readonly IUserSession $userSession,
 	){
 		$this->cache = $cacheFactory->createDistributed(self::CACHE_KEY);
 	}
@@ -142,10 +144,16 @@ class StorageService
 
     public function writeFile(string $path, string $fileName, string $content): File
     {
-        $uploadFolder = $this->rootFolder->get($path);
+        $currentUser = $this->userSession->getUser();
+        $userFolder = $this->rootFolder->getUserFolder(userId: $currentUser ? $currentUser->getUID() : 'Guest');
 
-        $target = $this->getFile(path: $path.'/'.$fileName, createIfNotExists: true);
-        $target->putContent($content);
+        $uploadFolder = $userFolder->get($path);
+
+        try{
+            $target = $uploadFolder->get($fileName);
+        } catch (NotFoundException $e) {
+            $target = $uploadFolder->newFile($fileName, $content);
+        }
 
         return $target;
     }

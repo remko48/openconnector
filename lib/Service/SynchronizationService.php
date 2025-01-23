@@ -6,7 +6,10 @@ use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use JWadhams\JsonLogic;
 use OCA\OpenConnector\Db\CallLog;
+use OCA\OpenConnector\Db\Endpoint;
 use OCA\OpenConnector\Db\Mapping;
+use OCA\OpenConnector\Db\Rule;
+use OCA\OpenConnector\Db\RuleMapper;
 use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Db\MappignMapper;
@@ -20,6 +23,8 @@ use OCA\OpenConnector\Service\CallService;
 use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use OCP\AppFramework\Http\JSONResponse;
+use OCP\IRequest;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
@@ -66,6 +71,8 @@ class SynchronizationService
 		SynchronizationContractMapper    $synchronizationContractMapper,
 		SynchronizationContractLogMapper $synchronizationContractLogMapper,
 		private readonly ObjectService   $objectService,
+        private readonly StorageService  $storageService,
+        private readonly RuleMapper      $ruleMapper,
 	)
 	{
 		$this->callService = $callService;
@@ -115,6 +122,7 @@ class SynchronizationService
 		}
 
 		$synchronizedTargetIds = [];
+
 		foreach ($objectList as $key => $object) {
 
 			// Check if object adheres to conditions.
@@ -540,9 +548,14 @@ class SynchronizationService
             $targetObject = $object;
         }
 
-		// set the target hash
-		$targetHash = md5(serialize($targetObject));
-		$synchronizationContract->setTargetHash($targetHash);
+        if($synchronization->getActions() !== []) {
+            $targetObject = $this->processRules(synchronization: $synchronization, data: $targetObject, timing: 'before');
+        }
+
+            // set the target hash
+        $targetHash = md5(serialize($targetObject));
+
+        $synchronizationContract->setTargetHash($targetHash);
 		$synchronizationContract->setTargetLastChanged(new DateTime());
 		$synchronizationContract->setTargetLastSynced(new DateTime());
 		$synchronizationContract->setSourceLastSynced(new DateTime());
@@ -570,6 +583,11 @@ class SynchronizationService
 			synchronizationContract: $synchronizationContract,
 			targetObject: $targetObject
 		);
+
+        if($synchronization->getTargetType() === 'register/schema') {
+            [$registerId, $schemaId] = explode(separator: '/', string: $synchronization->getTargetId());
+            $this->processRules(synchronization: $synchronization, data: $targetObject, timing: 'after', objectId: $synchronizationContract->getTargetId(), registerId: $registerId, schemaId: $schemaId);
+        }
 
 		// Create log entry for the synchronization
 		$this->synchronizationContractLogMapper->createFromArray($log);
@@ -1113,4 +1131,206 @@ class SynchronizationService
 		return [$synchronizationContract];
 
 	}
+
+
+
+    /**
+     * Processes rules for an endpoint request
+     *
+     * @param Endpoint $synchronization The endpoint being processed
+     * @param IRequest $request The incoming request
+     * @param array $data Current request data
+     *
+     * @return array|JSONResponse Returns modified data or error response if rule fails
+     */
+    private function processRules(Synchronization $synchronization, array $data, string $timing, ?string $objectId = null, ?int $registerId = null, ?int $schemaId = null): array|JSONResponse
+    {
+        $rules = $synchronization->getActions();
+        if (empty($rules) === true) {
+            return $data;
+        }
+
+        try {
+            // Get all rules at once and sort by order
+            $ruleEntities = array_filter(
+                array_map(
+                    fn($ruleId) => $this->getRuleById($ruleId),
+                    $rules
+                )
+            );
+
+            // Sort rules by order
+            usort($ruleEntities, fn($a, $b) => $a->getOrder() - $b->getOrder());
+
+            // Process each rule in order
+            foreach ($ruleEntities as $rule) {
+                // Check rule conditions
+                if ($this->checkRuleConditions($rule, $data) === false || $rule->getTiming() !== $timing) {
+                    continue;
+                }
+
+                // Process rule based on type
+                $result = match ($rule->getType()) {
+                    'error' => $this->processErrorRule($rule),
+                    'mapping' => $this->processMappingRule($rule, $data),
+                    'synchronization' => $this->processSyncRule($rule, $data),
+                    'fetch_file' => $this->processFetchFileRule($rule, $data),
+                    'write_file' => $this->processWriteFileRule($rule, $data, $objectId, $registerId, $schemaId),
+                    default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
+                };
+
+                // If result is JSONResponse, return error immediately
+                if ($result instanceof JSONResponse) {
+                    return $result;
+                }
+
+                // Update data with rule result
+                $data = $result;
+            }
+
+            return $data;
+        } catch (Exception $e) {
+//            $this->logger->error('Error processing rules: ' . $e->getMessage());
+            return new JSONResponse(['error' => 'Rule processing failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get a rule by its ID using RuleMapper
+     *
+     * @param string $id The unique identifier of the rule
+     *
+     * @return Rule|null The rule object if found, or null if not found
+     */
+    private function getRuleById(string $id): ?Rule
+    {
+        try {
+            return $this->ruleMapper->find((int)$id);
+        } catch (Exception $e) {
+//            $this->logger->error('Error fetching rule: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function processFetchFileRule(Rule $rule, array $data): array
+    {
+        $config = $rule->getConfiguration();
+
+        $source = $this->sourceMapper->find($config['source']);
+        $dataDot = new Dot($data);
+        $endpoint = $dataDot[$config['filePath']];
+        $endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true ? substr(string: $endpoint, offset: strlen(string: $source->getLocation())) : $endpoint;
+
+        $response = $this->callService->call(
+            source: $source,
+            endpoint: $endpoint,
+            method: $config['method'] ?? 'GET',
+            config: $config['sourceConfiguration'] ?? []
+        )->getResponse();
+
+        $dataDot[$config['filePath']] = base64_encode($response['body']);
+
+        return $dataDot->jsonSerialize();
+    }
+
+    private function processWriteFileRule(Rule $rule, array $data, string $objectId, int $registerId, int $schemaId): array
+    {
+        $config  = $rule->getConfiguration();
+        $dataDot = new Dot($data);
+        $content = base64_decode($dataDot[$config['filePath']]);
+        $fileName = $dataDot[$config['fileNamePath']];
+        $openRegisters = $this->objectService->getOpenRegisters();
+        $openRegisters->setRegister($registerId);
+        $openRegisters->setSchema($schemaId);
+
+        $object = $openRegisters->find($objectId);
+
+        try {
+            $file = $this->storageService->writeFile(
+                path: $object->getFolder(),
+                fileName: $fileName,
+                content: $content
+            );
+        } catch (Exception $exception) {
+        }
+
+        $dataDot[$config['filePath']] = $file->getPath();
+
+        return $dataDot->jsonSerialize();
+    }
+
+
+
+    /**
+     * Processes an error rule
+     *
+     * @param Rule $rule The rule object containing error details
+     *
+     * @return JSONResponse Response containing error details and HTTP status code
+     */
+    private function processErrorRule(Rule $rule): JSONResponse
+    {
+        $config = $rule->getConfiguration();
+        return new JSONResponse(
+            [
+                'error' => $config['error']['name'],
+                'message' => $config['error']['message']
+            ],
+            $config['error']['code']
+        );
+    }
+
+    /**
+     * Processes a mapping rule
+     *
+     * @param Rule $rule The rule object containing mapping details
+     * @param array $data The data to be processed through the mapping rule
+     *
+     * @return array The processed data after applying the mapping rule
+     * @throws DoesNotExistException When the mapping configuration does not exist
+     * @throws MultipleObjectsReturnedException When multiple mapping objects are returned unexpectedly
+     * @throws LoaderError When there is an error loading the mapping
+     * @throws SyntaxError When there is a syntax error in the mapping configuration
+     */
+    private function processMappingRule(Rule $rule, array $data): array
+    {
+        $config = $rule->getConfiguration();
+        $mapping = $this->mappingService->getMapping($config['mapping']);
+        return $this->mappingService->executeMapping($mapping, $data);
+    }
+
+    /**
+     * Processes a synchronization rule
+     *
+     * @param Rule $rule The rule object containing synchronization details
+     * @param array $data The data to be synchronized
+     *
+     * @return array The data after synchronization processing
+     */
+    private function processSyncRule(Rule $rule, array $data): array
+    {
+        $config = $rule->getConfiguration();
+        // Here you would implement the synchronization logic
+        // For now, just return the data unchanged
+        return $data;
+    }
+
+    /**
+     * Checks if rule conditions are met
+     *
+     * @param Rule $rule The rule object containing conditions to be checked
+     * @param array $data The input data against which the conditions are evaluated
+     *
+     * @return bool True if conditions are met, false otherwise
+     * @throws Exception
+     */
+    private function checkRuleConditions(Rule $rule, array $data): bool
+    {
+        $conditions = $rule->getConditions();
+        if (empty($conditions) === true) {
+            return true;
+        }
+
+        return JsonLogic::apply($conditions, $data) === true;
+    }
 }
