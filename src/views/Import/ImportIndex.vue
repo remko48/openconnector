@@ -161,6 +161,8 @@ export default {
 
 		importFiles() {
 			this.loading = true
+			this.error = null
+
 			importExportStore.importFiles(files, reset)
 				.then((response) => {
 					this.success = true
