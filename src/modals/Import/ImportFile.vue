@@ -87,7 +87,7 @@ import TrayArrowDown from 'vue-material-design-icons/TrayArrowDown.vue'
 import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 const dropZoneRef = ref()
-const { openFileUpload, files, reset, setFiles } = useFileSelection({ allowMultiple: false, dropzone: dropZoneRef })
+const { openFileUpload, files, reset, setFiles } = useFileSelection({ allowMultiple: false, dropzone: dropZoneRef, allowedFileTypes: ['.json', '.yaml', '.yml'] })
 
 export default {
 	name: 'ImportFile',
