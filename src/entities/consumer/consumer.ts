@@ -38,10 +38,6 @@ export class Consumer extends ReadonlyBaseClass implements TConsumer {
 		return _.cloneDeep(this)
 	}
 
-	public clone(): Consumer {
-		return new Consumer(this.cloneRaw())
-	}
-
 	public validate(): SafeParseReturnType<TConsumer, unknown> {
 		const schema = z.object({
 			id: z.number().or(z.null()),
