@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TConsumer } from './consumer.types'
 import getValidISOstring from '../../services/getValidISOstring'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 export class Consumer extends ReadonlyBaseClass implements TConsumer {
 
@@ -31,6 +32,14 @@ export class Consumer extends ReadonlyBaseClass implements TConsumer {
 		}
 
 		super(processedConsumer)
+	}
+
+	public cloneRaw(): TConsumer {
+		return _.cloneDeep(this)
+	}
+
+	public clone(): Consumer {
+		return new Consumer(this.cloneRaw())
 	}
 
 	public validate(): SafeParseReturnType<TConsumer, unknown> {
