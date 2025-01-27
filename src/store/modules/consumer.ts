@@ -186,8 +186,8 @@ export const useConsumerStore = defineStore('consumer', () => {
 
 		const isNewConsumer = !consumerItem.id
 		const endpoint = isNewConsumer
-			? '/index.php/apps/openconnector/api/consumers'
-			: `/index.php/apps/openconnector/api/consumers/${consumerItem.id}`
+			? apiEndpoint
+			: `${apiEndpoint}/${consumerItem.id}`
 		const method = isNewConsumer ? 'POST' : 'PUT'
 
 		const response = await fetch(
