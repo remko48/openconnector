@@ -169,9 +169,6 @@ export const useConsumerStore = defineStore('consumer', () => {
 			throw new Error('consumerItem is not an instance of Consumer')
 		}
 
-		// convert to an entity
-		consumerItem = new Consumer(consumerItem)
-
 		// verify data with Zod
 		const validationResult = consumerItem.validate()
 		if (!validationResult.success) {
