@@ -770,8 +770,6 @@ class EndpointService
             $mappedData = $this->mappingService->executeMapping(mapping: $mapping, input: $data);
         }
 
-        var_dump(strlen($mappedData['data']));
-
         $this->storageService->writePart(partId: $mappedData['order'], partUuid: $mappedData['id'], data: $mappedData['data']);
 
         return $data;
