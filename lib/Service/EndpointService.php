@@ -121,13 +121,16 @@ class EndpointService
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
 				$result = $this->handleSchemaRequest($endpoint, $request, $path);
-                $ruleResult = $this->processRules(
+
+                $result = $this->processRules(
                     endpoint: $endpoint,
                     request: $request,
-                    data: $data,
+                    data: $result->getData(),
                     timing: 'after',
                     objectId: $result->getData()['id'] ?? null
                 );
+
+                return new JSONResponse($result, 200);
 			}
 
 			// Check if endpoint connects to a source
@@ -142,7 +145,8 @@ class EndpointService
 		} catch (Exception $e) {
 			$this->logger->error('Error handling endpoint request: ' . $e->getMessage());
 			return new JSONResponse(
-				['error' => $e->getMessage()],
+				['error' => $e->getMessage(),
+                     'trace' => $e->getTrace()],
 				400
 			);
 		}
@@ -369,6 +373,7 @@ class EndpointService
 		$status = 200;
 
 		$headers = $request->getHeader('Accept-Crs') === '' ? [] : ['Content-Crs' => $request->getHeader('Accept-Crs')];
+
 
 		// Route to appropriate ObjectService method based on HTTP method
 		return match ($method) {
@@ -733,6 +738,7 @@ class EndpointService
         $filename = $dataDot[$filenameLocation];
 
         $fileParts = $this->storageService->createUpload($location, $filename, $size);
+
         $fileParts = array_map(function ($filePart) use ($mapping, $registerId, $schemaId) {
 
             if ($mapping !== null) {
@@ -764,21 +770,9 @@ class EndpointService
             $mappedData = $this->mappingService->executeMapping(mapping: $mapping, input: $data);
         }
 
-        $schemaId     = $config['schemaId'];
-        $registerId   = $config['registerId'];
-        $sizeLocation = $config['sizeLocation'];
+        var_dump(strlen($mappedData['data']));
 
-        $openRegister = $this->objectService->getOpenRegisters();
-        $openRegister->setRegister($registerId);
-        $openRegister->setSchema($schemaId);
-
-        $object = $openRegister->getRelations($objectId)[0];
-
-
-        $partSize = $this->appConfig->getValueInt('openconnector', 'part-size', 500000);
-        $numParts = ceil($object->getObject()[$sizeLocation] / $partSize);
-
-        $this->storageService->writePart(partId: $mappedData['partId'], data: $mappedData['data'], path: $object->getFolder(), numParts: $numParts);
+        $this->storageService->writePart(partId: $mappedData['order'], partUuid: $mappedData['id'], data: $mappedData['data']);
 
         return $data;
     }
