@@ -51,7 +51,6 @@ import {
 	NcNoteCard,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
-import _ from 'lodash'
 
 export default {
 	name: 'AddEndpointRule',
@@ -108,7 +107,7 @@ export default {
 
 			try {
 				// Create a copy of the current endpoint
-				const updatedEndpoint = _.cloneDeep(endpointStore.endpointItem)
+				const updatedEndpoint = endpointStore.endpointItem.cloneRaw()
 
 				// Initialize rules array if it doesn't exist
 				if (!updatedEndpoint.rules) {

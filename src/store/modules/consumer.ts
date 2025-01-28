@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { Consumer, TConsumer } from '../../entities/index.js'
 import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
 
-const apiEndpoint = '/index.php/apps/openconnector/api/consumers'
+export const apiEndpoint = '/index.php/apps/openconnector/api/consumers'
 
 export const useConsumerStore = defineStore('consumer', () => {
 	// state
@@ -32,7 +32,7 @@ export const useConsumerStore = defineStore('consumer', () => {
 	 * For reactive usage, either:
 	 * 1. Reference the `consumerItem` state directly:
 	 * ```js
-	 * const consumerItem = useConsumerStore().consumerItem
+	 * const consumerItem = useConsumerStore().consumerItem // reactive state
 	 * ```
 	 * 2. Or wrap in a `computed` property:
 	 * ```js
@@ -63,7 +63,7 @@ export const useConsumerStore = defineStore('consumer', () => {
 	 * For reactive usage, either:
 	 * 1. Reference the `consumerList` state directly:
 	 * ```js
-	 * const consumerList = useConsumerStore().consumerList
+	 * const consumerList = useConsumerStore().consumerList // reactive state
 	 * ```
 	 * 2. Or wrap in a `computed` property:
 	 * ```js
