@@ -79,6 +79,62 @@ class SynchronizationService
 		$this->sourceMapper = $sourceMapper;
 	}
 
+	public function findAllBySourceId($register, $schema) {
+		$sourceId = "$register/$schema";
+		return $this->synchronizationMapper->findAll(limit: null, offset: null, filters: ['source_id' => $sourceId]);
+	}
+
+	private function synchronizeInternToExtern($synchronization, $isTest, $object)
+	{
+		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
+
+			// @todo log that this object is not valid
+			return;
+		}
+
+		// If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
+		$originId = $object->getUuid();
+
+		// Get the synchronization contract for this object
+		$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
+
+		if ($synchronizationContract instanceof SynchronizationContract === false) {
+			// Only persist if not test
+			if ($isTest === false) {
+				$synchronizationContract = $this->synchronizationContractMapper->createFromArray([
+					'synchronizationId' => $synchronization->getId(),
+					'originId' => $originId,
+				]);
+			} else {
+				$synchronizationContract = new SynchronizationContract();
+				$synchronizationContract->setSynchronizationId($synchronization->getId());
+				$synchronizationContract->setOriginId($originId);
+			}
+
+			$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object->getObject(), isTest: $isTest);
+
+			if ($isTest === true && is_array($synchronizationContract) === true) {
+				// If this is a log and contract array return for the test endpoint.
+				$logAndContractArray = $synchronizationContract;
+
+				return $logAndContractArray;
+			}
+		} else {
+			// @todo this is wierd
+			$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object->getObject(), isTest: $isTest);
+			if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
+				// If this is a regular synchronizationContract update it to the database.
+				$this->synchronizationContractMapper->update(entity: $synchronizationContract);
+			} elseif ($isTest === true && is_array($synchronizationContract) === true) {
+				// If this is a log and contract array return for the test endpoint.
+				$logAndContractArray = $synchronizationContract;
+				// return $logAndContractArray;
+			}
+		}
+
+		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
+	}
+
 	/**
 	 * Synchronizes a given synchronization (or a complete source).
 	 *
@@ -94,7 +150,7 @@ class SynchronizationService
 	 * @throws MultipleObjectsReturnedException
 	 * @throws \OCP\DB\Exception
 	 */
-	public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
+	public function synchronize(Synchronization $synchronization, ?bool $isTest = false, $object = null): array
 	{
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
@@ -111,6 +167,14 @@ class SynchronizationService
 			throw new Exception('sourceId of synchronization cannot be empty. Canceling synchronization...');
 		}
 
+		if ($synchronization->getSourceType() === 'register/schema' && $object !== null) {
+			return $this->synchronizeInternToExtern($synchronization, $isTest, $object);
+		}
+
+		// @todo put all code below in another function like:
+		// if ($synchronization->getSourceType() === 'api') {
+		// 	$this->synchronizeExternToIntern($synchronization, $isTest, $object);
+		// }
 
 		try {
 			$objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
@@ -302,9 +366,9 @@ class SynchronizationService
 	 * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
 	 */
 	private function fetchExtraDataForObject(
-		Synchronization $synchronization, 
-		array $extraDataConfig, 
-		array $object, ?string 
+		Synchronization $synchronization,
+		array $extraDataConfig,
+		array $object, ?string
 		$originId = null
 	)
 	{
