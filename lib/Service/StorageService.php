@@ -28,17 +28,22 @@ use Symfony\Component\Uid\Uuid;
 class StorageService
 {
 	private ICache $cache;
-	private \OCP\Files\Node $uploadFolder;
 
-	private const TEMP_TARGET = '.target';
 	public const CACHE_KEY = 'openconnector-upload';
 	public const UPLOAD_TARGET_PATH = 'upload-target-path';
 	public const UPLOAD_TARGET_ID = 'upload-target-id';
 
     public const NUMBER_OF_PARTS = 'number-of-parts';
-	public const UPLOAD_ID = 'upload-id';
 
 
+    /**
+     * Class constructor
+     *
+     * @param IRootFolder $rootFolder The Nextcloud rootfolder
+     * @param IAppConfig $config The configuration of the openconnector application.
+     * @param ICacheFactory $cacheFactory The cache factory.
+     * @param IUserSession $userSession The user session.
+     */
 	public function __construct(
 		private readonly IRootFolder $rootFolder,
 		private readonly IAppConfig $config,
@@ -48,66 +53,15 @@ class StorageService
 		$this->cache = $cacheFactory->createDistributed(self::CACHE_KEY);
 	}
 
-	private function checkPreconditions(int $size, bool $checkMetadata = false): bool
-	{
-		if($size < $this->config->getValueInt('openconnector', 'upload-size', 2000000)) {
-			return false;
-		}
-
-		if($this->cache instanceof Redis === false && $this->cache instanceof Memcached === false) {
-			return false;
-		}
-		if($this->uploadFolder->getStorage()->instanceOfStorage(IChunkedFileWrite::class) === false) {
-			return false;
-		}
-		if($this->uploadFolder->getStorage()->instanceOfStorage(ObjectStoreStorage::class) === false
-			&& $this->uploadFolder->getStorage()->getObjectStore() instanceof IObjectStoreMultiPartUpload === false
-		) {
-			return false;
-		}
-		if ($checkMetadata === true && ($this->uploadId === null || $this->uploadPath === null)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	private function getFile(string $path, bool $createIfNotExists = false): File
-	{
-		try{
-			$file = $this->rootFolder->get($path);
-			if($file instanceof File && $this->uploadFolder->getStorage()->getId() === $file->getStorage()->getId()) {
-				return $file;
-			}
-		} catch (NotFoundException $e) {
-
-		}
-
-		if ($createIfNotExists === true
-			&& $this->uploadFolder instanceof Folder === true
-		) {
-			$file = $this->uploadFolder->newFile(self::TEMP_TARGET);
-		}
-
-		return $file;
-	}
-
-	/**
-	 * @return array [IStorage, string]
-	 */
-	private function getUploadStorage(string $targetPath): array {
-		$storage = $this->uploadFolder->getStorage();
-		$targetFile = $this->getFile(path: $targetPath);
-		return [$storage, $targetFile->getInternalPath()];
-	}
-
     /**
-     * Based upon the webDAV partial files plugin
+     * Create partial file upload. This will create the empty target file and a folder for the temporary files.
      *
-     * @param string $path
-     * @param string $fileName
-     * @param int $size
-     * @return array
+     * @param string $path The path the target file will be written in.
+     * @param string $fileName The filename of the target file.
+     * @param int $size The total size of the file once all parts have been uploaded.
+     *
+     * @return array The file part objects containing order number, size and id.
+     *
      * @throws NotFoundException
      * @throws \OCP\Files\InvalidPathException
      */
@@ -125,62 +79,44 @@ class StorageService
         $remainingSize = $size;
         $parts = [];
 
+        $target = $uploadFolder->newFile($fileName);
 
-//		if ($this->checkPreconditions($size) === false && $uploadFolder instanceof Folder === true)
-//        {
-            $target = $uploadFolder->newFile($fileName);
-
-            $escapedFilename = str_replace(search: '.', replace: '_', subject: $fileName);
-            $partsFolder = $uploadFolder->newFolder("{$escapedFilename}_parts");
+        $partsFolder = $uploadFolder->newFolder("{$fileName}_parts");
 
 
-            for ($i = 0; $i < $numParts; $i++) {
-                $partNumber = $i + 1;
-                $partUuid   = Uuid::v4();
+        for ($i = 0; $i < $numParts; $i++) {
+            $partNumber = $i + 1;
+            $partUuid   = Uuid::v4();
 
-                $this->cache->set("upload_$partUuid", [
-                    self::UPLOAD_TARGET_ID => $target->getId(),
-                    self::UPLOAD_TARGET_PATH => $partsFolder->getPath(),
-                    self::NUMBER_OF_PARTS => $numParts,
-                ]);
+            $this->cache->set("upload_$partUuid", [
+                self::UPLOAD_TARGET_ID => $target->getId(),
+                self::UPLOAD_TARGET_PATH => $partsFolder->getPath(),
+                self::NUMBER_OF_PARTS => $numParts,
+            ]);
 
-                $parts[] = [
-                    'id'    => $partUuid,
-                    'size'  => $partSize < $remainingSize ? $partSize : $remainingSize,
-                    'order' => $partNumber,
-                ];
-                $remainingSize -= $partSize;
-            }
+            $parts[] = [
+                'id'    => $partUuid,
+                'size'  => $partSize < $remainingSize ? $partSize : $remainingSize,
+                'order' => $partNumber,
+            ];
+            $remainingSize -= $partSize;
+        }
 
-			return $parts;
-//		}
-
-        //@TODO: use only the part in the if statement if that works until we have the opportunity to test the code below.
-//
-//		$this->uploadPath = $path.$fileName;
-//
-//		$targetFile = $this->getFile(path: $path.'/'.$fileName, createIfNotExists: true);
-//		[$storage, $storagePath] = $this->getUploadStorage($this->uploadPath);
-//		$this->uploadId = $storage->startChunkedWrite($storagePath);
-//
-//		$this->cache->set($this->uploadFolder->getName(), [
-//			self::UPLOAD_ID => $this->uploadId,
-//			self::UPLOAD_TARGET_PATH => $this->uploadPath,
-//			self::UPLOAD_TARGET_ID => $targetFile->getId(),
-//		], 86400);
-//
-//
-//        for ($i = 0; $i < $numParts; $i++) {
-//            $parts[] = [
-//                'size'  => $partSize < $remainingSize ? $partSize : $remainingSize,
-//                'order' => $i+1,
-//            ];
-//            $remainingSize -= $partSize;
-//        }
-//
-//        return $parts;
+        return $parts;
 	}
 
+    /**
+     * Write a file to a specified path.
+     *
+     * @param string $path The path to write the file to.
+     * @param string $fileName The filename of the file to write.
+     * @param string $content The content of the file.
+     * @return File The resulting file.
+     *
+     * @throws NotFoundException
+     * @throws NotPermittedException
+     * @throws \OC\User\NoUserException
+     */
     public function writeFile(string $path, string $fileName, string $content): File
     {
         $currentUser = $this->userSession->getUser();
@@ -198,9 +134,12 @@ class StorageService
     }
 
     /**
-     * @param Node[] $folderContents
-     * @param File $target
-     * @return bool
+     * Reconcile partial files into one file if all parts of a file are present.
+     *
+     * @param Node[] $folderContents The contents of the folder containing the partial files.
+     * @param File $target The file to write the contents to.
+     *
+     * @return bool Whether or not reconciling the file has been successful.
      */
     private function attemptCloseUpload (array $folderContents, File $target, int $numParts): bool
     {
@@ -252,7 +191,7 @@ class StorageService
     }
 
     /**
-     * Based upon the webDAV partial files plugin
+     * Write a partial file to a temporary file and try to reconcile them if all file parts are uploaded.
      *
      * @param int $partId
      * @param string $data
@@ -280,43 +219,12 @@ class StorageService
         $partsFolder->newFile("$partId.part.{$targetFile->getExtension()}", $data);
 
         $this->rootFolder->get($partsFolder->getPath());
+
         $folderContents = $partsFolder->getDirectoryListing();
-
-
 
         if(count($folderContents) >= $numParts) {
             $this->attemptCloseUpload($folderContents, $targetFile, $numParts);
         }
-
-
-        // @TODO: Code below only works in certain setups, should be tested when the opportunity arises.
-//		try {
-//			$this->uploadFolder = $this->rootFolder->get($path);
-//
-//			$uploadMetadata   = $this->cache->get($this->uploadFolder->getName());
-//			$this->uploadId   = $uploadMetadata[self::UPLOAD_ID] ?? null;
-//			$this->uploadPath = $uploadMetadata[self::UPLOAD_TARGET_PATH] ?? null;
-//
-//			[$storage, $storagePath] = $this->getUploadStorage($this->uploadPath);
-//
-//			$file = $this->getFile(path: $this->uploadPath);
-//			if($this->uploadFolder instanceof Folder) {
-//				$tempTarget = $this->uploadFolder->get(self::TEMP_TARGET);
-//			}
-//
-//			$storage->putChunkedWritePart($storagePath, $this->uploadId, (string)$partId, $data, strlen($data));
-//
-//			$storage->getCache()->update($file->getId(), ['size' => $file->getSize() + strlen($data)]);
-//			if ($tempTarget) {
-//				$storage->getPropagator()->propagateChange($tempTarget->getInternalPath(), time(), strlen($data));
-//			}
-//
-//			if(count($storage->getObjectStore()->getMultipartUploads($storage->getUrn($file->getId()), $this->uploadId)) === $numParts) {
-//				$storage->completeChunkedWrite($path, $this->uploadId);
-//			}
-//		} catch(Exception $e) {
-//			throw $e;
-//		}
 
 		return true;
 	}

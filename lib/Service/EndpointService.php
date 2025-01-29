@@ -596,8 +596,8 @@ class EndpointService
 					'mapping' => $this->processMappingRule($rule, $data),
 					'synchronization' => $this->processSyncRule($rule, $data),
 					'javascript' => $this->processJavaScriptRule($rule, $data),
-                    'file_parts_creation' => $this->processFilePartRule($rule, $data, $objectId),
-                    'file_parts_processing' => $this->processFilePartProcessingRule($rule, $data, $objectId),
+                    'fileparts_create' => $this->processFilePartRule($rule, $data, $endpoint, $objectId),
+                    'filepart_upload' => $this->processFilePartUploadRule($rule, $data, $objectId),
 					default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
 				};
 
@@ -689,10 +689,13 @@ class EndpointService
 	}
 
     /**
-     * @param Rule $rule
-     * @param array $data
-     * @param string|null $objectId
-     * @return array
+     * Processes a file part creation rule.
+     *
+     * @param Rule $rule The rule to process.
+     * @param array $data The created object in array form.
+     * @param string|null $objectId The id of the resulting object.
+     *
+     * @return array The updated object data.
      *
      * @throws ContainerExceptionInterface
      * @throws DoesNotExistException
@@ -705,7 +708,7 @@ class EndpointService
      * @throws \OCP\Files\InvalidPathException
      * @throws \OCP\Files\NotFoundException
      */
-    private function processFilePartRule(Rule $rule, array $data, ?string $objectId = null): array
+    private function processFilePartRule(Rule $rule, array $data, Endpoint $endpoint, ?string $objectId = null): array
     {
         if($objectId === null) {
             throw new Exception('Filepart rules can only be applied after the object has been created');
@@ -713,12 +716,15 @@ class EndpointService
 
         $config = $rule->getConfiguration();
 
+        $targetId = explode('/', $endpoint->getTargetId());
+
+        $registerId = $targetId[0];
+        $superSchemaId = $targetId[1];
+
         $sizeLocation     = $config['sizeLocation'];
-        $filenameLocation = $config['fileNameLocation'];
-        $superSchemaId    = $config['superSchemaId'];
         $schemaId         = $config['schemaId'];
-        $registerId       = $config['registerId'];
-        $filePartLocation = $config['filePartLocation'];
+        $filenameLocation = $config['filenameLocation'] ?? 'filename';
+        $filePartLocation = $config['filePartLocation'] ?? 'fileParts';
 
         $mapping = null;
         if(isset($config['mappingId']) === true) {
@@ -756,10 +762,35 @@ class EndpointService
 
         $dataDot[$filePartLocation] = $fileParts;
 
+        $filepartIds = array_map(function($filePart) {
+            return $filePart['id'];
+        }, $fileParts);
+
+        $saveObject = clone $dataDot;
+        $saveObject[$filePartLocation] = $filepartIds;
+
+        $openRegister->saveObject($registerId, $schemaId, $saveObject->jsonSerialize());
+
         return $dataDot->jsonSerialize();
     }
 
-    private function processFilePartProcessingRule(Rule $rule, array $data, ?string $objectId = null): array
+    /**
+     * Processes the upload of a file part.
+     *
+     * @param Rule $rule The rule to process.
+     * @param array $data The data from the object in array form.
+     * @param string|null $objectId The id of the object.
+     *
+     * @return array The updated object data.
+     * 
+     * @throws DoesNotExistException
+     * @throws LoaderError
+     * @throws MultipleObjectsReturnedException
+     * @throws SyntaxError
+     * @throws \OCP\Files\InvalidPathException
+     * @throws \OCP\Files\NotFoundException
+     */
+    private function processFilePartUploadRule(Rule $rule, array $data, ?string $objectId = null): array
     {
         $config = $rule->getConfiguration();
 
@@ -767,12 +798,18 @@ class EndpointService
 
         if(isset($config['mappingId']) === true) {
             $mapping = $this->mappingService->getMapping($config['mappingId']);
-            $mappedData = $this->mappingService->executeMapping(mapping: $mapping, input: $data);
+            $mappedData = $this->mappingService->executeMapping(mapping: $mapping, input: $mappedData);
         }
 
         $this->storageService->writePart(partId: $mappedData['order'], partUuid: $mappedData['id'], data: $mappedData['data']);
 
-        return $data;
+        unset($mappedData['data']);
+
+        $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
+        $object->setObject($mappedData);
+        $this->objectService->getOpenRegisters()->getMapper('objectEntity')->update($object);
+
+        return $mappedData;
     }
 
 	/**
