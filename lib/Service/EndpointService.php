@@ -714,7 +714,7 @@ class EndpointService
             throw new Exception('Filepart rules can only be applied after the object has been created');
         }
 
-        $config = $rule->getConfiguration();
+        $config = $rule->getConfiguration()['fileparts_create'];
 
         $targetId = explode('/', $endpoint->getTargetId());
 
@@ -792,7 +792,7 @@ class EndpointService
      */
     private function processFilePartUploadRule(Rule $rule, array $data, ?string $objectId = null): array
     {
-        $config = $rule->getConfiguration();
+        $config = $rule->getConfiguration()['filepart_upload'];
 
         $mappedData = $data;
 

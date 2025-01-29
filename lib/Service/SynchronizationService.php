@@ -1226,7 +1226,7 @@ class SynchronizationService
      */
     private function processFetchFileRule(Rule $rule, array $data): array
     {
-        $config = $rule->getConfiguration();
+        $config = $rule->getConfiguration()['fetch_file'];
 
         $source = $this->sourceMapper->find($config['source']);
         $dataDot = new Dot($data);
@@ -1259,7 +1259,7 @@ class SynchronizationService
      */
     private function processWriteFileRule(Rule $rule, array $data, string $objectId, int $registerId, int $schemaId): array
     {
-        $config  = $rule->getConfiguration();
+        $config  = $rule->getConfiguration()['write_file'];
         $dataDot = new Dot($data);
         $content = base64_decode($dataDot[$config['filePath']]);
         $fileName = $dataDot[$config['fileNamePath']];
