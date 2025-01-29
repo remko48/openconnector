@@ -1396,7 +1396,7 @@ class SynchronizationService
                     'write_file' => $this->processWriteFileRule($rule, $data, $objectId, $registerId, $schemaId),
                     default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
                 };
-
+                
                 // If result is JSONResponse, return error immediately
                 if ($result instanceof JSONResponse) {
                     return $result;
@@ -1444,7 +1444,7 @@ class SynchronizationService
      */
     private function processFetchFileRule(Rule $rule, array $data): array
     {
-        if (isset($rule->getConfiguration()['fetch_file'])) {
+        if (isset($rule->getConfiguration()['fetch_file']) === false) {
             throw new Exception('No configuration found for fetch_file');
         }
 
@@ -1482,7 +1482,7 @@ class SynchronizationService
     private function processWriteFileRule(Rule $rule, array $data, string $objectId, int $registerId, int $schemaId): array
     {
 
-        if (isset($rule->getConfiguration()['write_file'])) {
+        if (isset($rule->getConfiguration()['write_file']) === false) {
             throw new Exception('No configuration found for write_file');
         }
 
