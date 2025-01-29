@@ -56,12 +56,21 @@ import { getTheme } from '../../services/getTheme.js'
 					</span>
 				</div>
 
+				<div>
+					<NcSelect
+						v-bind="timingOptions"
+						v-model="timingOptions.value"
+						:clearable="false"
+						input-label="Timing" />
+				</div>
+
 				<NcTextField :value.sync="ruleItem.order"
 					label="Order"
 					type="number" />
 
 				<NcSelect v-bind="actionOptions"
 					v-model="actionOptions.value"
+					:clearable="false"
 					input-label="Action" />
 
 				<NcSelect v-bind="typeOptions"
@@ -289,6 +298,7 @@ export default {
 				action: '',
 				type: '',
 				actionConfig: '{}',
+				timing: '',
 				configuration: {
 					mapping: null,
 					synchronization: null,
@@ -318,15 +328,8 @@ export default {
 				},
 			},
 
-			actionOptions: {
-				options: [
-					{ label: 'Post (Create)', id: 'post' },
-					{ label: 'Get (Read)', id: 'get' },
-					{ label: 'Put (Update)', id: 'put' },
-					{ label: 'Delete (Delete)', id: 'delete' },
-				],
-				value: { label: 'Create', id: 'create' },
-			},
+			actionOptions: {},
+			timingOptions: {},
 
 			typeOptions: {
 				options: [
@@ -353,14 +356,12 @@ export default {
 				actionConfig: JSON.stringify(ruleStore.ruleItem.actionConfig),
 			}
 
-			this.actionOptions.value = this.actionOptions.options.find(
-				option => option.id === this.ruleItem.action,
-			)
-
 			this.typeOptions.value = this.typeOptions.options.find(
 				option => option.id === this.ruleItem.type,
 			)
 		}
+		this.setActionOptions()
+		this.setTimingOptions()
 		this.getMappings()
 		this.getSynchronizations()
 	},
@@ -422,6 +423,32 @@ export default {
 				console.error('Failed to fetch synchronizations:', error)
 			} finally {
 				this.syncOptions.loading = false
+			}
+		},
+
+		setActionOptions() {
+			const options = [
+				{ label: 'Post (Create)', id: 'post' },
+				{ label: 'Get (Read)', id: 'get' },
+				{ label: 'Put (Update)', id: 'put' },
+				{ label: 'Delete (Delete)', id: 'delete' },
+			]
+
+			this.actionOptions = {
+				options,
+				value: options.find(option => option.id === this.ruleItem.action) || options[0],
+			}
+		},
+
+		setTimingOptions() {
+			const options = [
+				{ label: 'Before', id: 'before' },
+				{ label: 'After', id: 'after' },
+			]
+
+			this.timingOptions = {
+				options,
+				value: options.find(option => option.id === this.ruleItem.timing) || options[0],
 			}
 		},
 
@@ -507,6 +534,7 @@ export default {
 				...this.ruleItem,
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
+				timing: this.timingOptions.value?.id || null,
 				type: type || null,
 				configuration,
 			})
