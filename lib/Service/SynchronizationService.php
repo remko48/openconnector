@@ -1212,6 +1212,18 @@ class SynchronizationService
         }
     }
 
+    /**
+     * Process a rule to fetch a file from an external source.
+     *
+     * @param Rule $rule The rule to process.
+     * @param array $data The data written to the object.
+     *
+     * @return array The resulting object data.
+     * @throws GuzzleException
+     * @throws LoaderError
+     * @throws SyntaxError
+     * @throws \OCP\DB\Exception
+     */
     private function processFetchFileRule(Rule $rule, array $data): array
     {
         $config = $rule->getConfiguration();
@@ -1233,6 +1245,18 @@ class SynchronizationService
         return $dataDot->jsonSerialize();
     }
 
+    /**
+     * Process a rule to write files.
+     *
+     * @param Rule $rule The rule to process.
+     * @param array $data The data to write.
+     * @param string $objectId The object to write the data to.
+     * @param int $registerId The register the object is in.
+     * @param int $schemaId The schema the object is in.
+     * @return array
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     private function processWriteFileRule(Rule $rule, array $data, string $objectId, int $registerId, int $schemaId): array
     {
         $config  = $rule->getConfiguration();
