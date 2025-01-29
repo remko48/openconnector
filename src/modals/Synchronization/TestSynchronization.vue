@@ -127,6 +127,9 @@ export default {
 					this.response = response
 					this.responseBody = JSON.stringify({ ...data }, null, 2)
 					this.success = response.ok
+
+					synchronizationStore.refreshSynchronizationLogs()
+					synchronizationStore.refreshSynchronizationContracts()
 				}).catch((error) => {
 					this.success = false
 					this.error = error.message || 'An error occurred while testing the synchronization'

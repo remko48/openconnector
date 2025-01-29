@@ -54,11 +54,12 @@ class SynchronizationService
 //    private ObjectService $objectService;
 	private Source $source;
 
-	const EXTRA_DATA_CONFIGS_LOCATION = 'extraDataConfigs';
-	const EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION = 'dynamicEndpointLocation';
-	const EXTRA_DATA_STATIC_ENDPOINT_LOCATION = 'staticEndpoint';
-	const KEY_FOR_EXTRA_DATA_LOCATION = 'keyToSetExtraData';
-	const MERGE_EXTRA_DATA_OBJECT_LOCATION = 'mergeExtraData';
+    const EXTRA_DATA_CONFIGS_LOCATION          = 'extraDataConfigs';
+    const EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION = 'dynamicEndpointLocation';
+    const EXTRA_DATA_STATIC_ENDPOINT_LOCATION  = 'staticEndpoint';
+    const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
+    const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
+    const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
 
 
 	public function __construct(
@@ -102,6 +103,8 @@ class SynchronizationService
 	 */
 	public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
+
 		if (empty($synchronization->getSourceId()) === true) {
 			$log = [
 				'synchronizationId' => $synchronization->getId(),
@@ -115,15 +118,18 @@ class SynchronizationService
 			throw new Exception('sourceId of synchronization cannot be empty. Canceling synchronization...');
 		}
 
+
 		try {
 			$objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 		} catch (TooManyRequestsHttpException $e) {
 			$rateLimitException = $e;
 		}
 
-		$synchronizedTargetIds = [];
-
 		foreach ($objectList as $key => $object) {
+			// We can only deal with arrays (bassed on the source empty values or string might be returned)
+			if (is_array($object) === false) {
+				continue;
+			}
 
 			// Check if object adheres to conditions.
 			// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
@@ -179,7 +185,10 @@ class SynchronizationService
 			$synchronizedTargetIds[] = $synchronizationContract->getTargetId();
 		}
 
-		$this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
+		if (isset($sourceConfig['deleteInvalidObjects']) === false ||
+		   (isset($sourceConfig['deleteInvalidObjects']) === true && ($sourceConfig['deleteInvalidObjects'] === true || $sourceConfig['deleteInvalidObjects'] === 'true'))) {
+			$this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
+		}
 		// @todo log deleted objects count
 
 
@@ -299,7 +308,12 @@ class SynchronizationService
 	 *
 	 * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
 	 */
-	private function fetchExtraDataForObject(Synchronization $synchronization, array $extraDataConfig, array $object, ?string $originId = null)
+	private function fetchExtraDataForObject(
+		Synchronization $synchronization, 
+		array $extraDataConfig, 
+		array $object, ?string 
+		$originId = null
+	)
 	{
 		if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
 			return $object;
@@ -352,7 +366,13 @@ class SynchronizationService
 			);
 		}
 
-		$extraData = $this->getObjectFromSource($synchronization, $endpoint);
+        $sourceConfig = $synchronization->getSourceConfig();
+        if (isset($extraDataConfig[$this::UNSET_CONFIG_KEY_LOCATION]) === true && isset($sourceConfig[$extraDataConfig[$this::UNSET_CONFIG_KEY_LOCATION]]) === true) {
+            unset($sourceConfig[$extraDataConfig[$this::UNSET_CONFIG_KEY_LOCATION]]);
+            $synchronization->setSourceConfig($sourceConfig);
+        }
+
+        $extraData = $this->getObjectFromSource($synchronization, $endpoint);
 
 		// Temporary fix,
 		if (isset($extraDataConfig['extraDataConfigPerResult']) === true) {
@@ -439,13 +459,13 @@ class SynchronizationService
 	 * synchronization contract with the synchronized target IDs and deletes the unmatched ones.
 	 *
 	 * @param Synchronization $synchronization The synchronization entity to process.
-	 * @param array $synchronizedTargetIds An array of target IDs that are still valid in the source.
+	 * @param array|null $synchronizedTargetIds An array of target IDs that are still valid in the source.
 	 *
 	 * @return int The count of objects that were deleted.
 	 *
 	 * @throws Exception If any database or object deletion errors occur during execution.
 	 */
-	public function deleteInvalidObjects(Synchronization $synchronization, array $synchronizedTargetIds): int
+	public function deleteInvalidObjects(Synchronization $synchronization, ?array $synchronizedTargetIds = []): int
 	{
 		$deletedObjectsCount = 0;
 		$type = $synchronization->getTargetType();
@@ -462,12 +482,20 @@ class SynchronizationService
 					}
 				}
 
+				// Initialize $synchronizedTargetIds as empty array if null
+				if ($synchronizedTargetIds === null) {
+					$synchronizedTargetIds = [];
+				}
+
 				// Check if we have contracts that became invalid or do not exist in the source anymore
 				$targetIdsToDelete = array_diff($allContractTargetIds, $synchronizedTargetIds);
 
 				foreach ($targetIdsToDelete as $targetIdToDelete) {
 					try {
 						$synchronizationContract = $this->synchronizationContractMapper->findOnTarget(synchronization: $synchronization->getId(), targetId: $targetIdToDelete);
+						if ($synchronizationContract === null) {
+							continue;
+						}
 						$synchronizationContract = $this->updateTarget(synchronizationContract: $synchronizationContract, targetObject: [], action: 'delete');
 						$this->synchronizationContractMapper->update($synchronizationContract);
 						$deletedObjectsCount++;
@@ -616,10 +644,15 @@ class SynchronizationService
 	{
 		// Setup the object service
 		$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
 		// if we already have an id, we need to get the object and update it
 		if ($synchronizationContract->getTargetId() !== null) {
 			$targetObject['id'] = $synchronizationContract->getTargetId();
+		}
+
+		if (isset($sourceConfig['subObjects']) === true) {
+			$targetObject = $this->updateIdsOnSubObjects(subObjectsConfig: $sourceConfig['subObjects'], synchronizationId: $synchronization->getId(), targetObject: $targetObject);
 		}
 
 		// Extract register and schema from the targetId
@@ -633,6 +666,13 @@ class SynchronizationService
 				$target = $objectService->saveObject($register, $schema, $targetObject);
 				// Get the id form the target object
 				$synchronizationContract->setTargetId($target->getUuid());
+
+				// Handle sub-objects synchronization if sourceConfig is defined
+				if (isset($sourceConfig['subObjects']) === true) {
+					$targetObject = $objectService->extendEntity($target->jsonSerialize(), ['all']);
+					$this->updateContractsForSubObjects(subObjectsConfig: $sourceConfig['subObjects'], synchronizationId: $synchronization->getId(), targetObject: $targetObject);
+				}
+
 				break;
 			case 'delete':
 				$objectService->deleteObject(register: $register, schema: $schema, uuid: $synchronizationContract->getTargetId());
@@ -641,6 +681,185 @@ class SynchronizationService
 		}
 
 		return $synchronizationContract;
+	}
+
+	/**
+	 * Handles the synchronization of subObjects based on source configuration.
+	 *
+	 * @param array  $subObjectsConfig  The configuration for subObjects.
+	 * @param string $synchronizationId The ID of the synchronization.
+	 * @param array  $targetObject      The target object containing subObjects to be processed.
+	 *
+	 * @return void
+	 */
+	private function updateContractsForSubObjects(array $subObjectsConfig, string $synchronizationId,  array $targetObject): void
+	{
+		foreach ($subObjectsConfig as $propertyName => $subObjectConfig) {
+			if (isset($targetObject[$propertyName]) === false) {
+				continue;
+			}
+
+			$propertyData = $targetObject[$propertyName];
+
+			// If property data is an array of subObjects, iterate and process
+			if (is_array($propertyData) && $this->isAssociativeArray($propertyData)) {
+				if (isset($propertyData['originId'])) {
+					$this->processSyncContract($synchronizationId, $propertyData);
+				}
+
+				// Recursively process any nested subObjects within the associative array
+				foreach ($propertyData as $key => $value) {
+					if (is_array($value) === true && isset($subObjectConfig['subObjects']) === true) {
+						$this->updateContractsForSubObjects($subObjectConfig['subObjects'], $synchronizationId, [$key => $value]);
+					}
+				}
+			}
+
+			// Process if it's an indexed array (list) of associative arrays
+			if (is_array($propertyData) === true && !$this->isAssociativeArray($propertyData)) {
+				foreach ($propertyData as $subObjectData) {
+					if (is_array($subObjectData) === true && isset($subObjectData['originId']) === true) {
+						$this->processSyncContract($synchronizationId, $subObjectData);
+					}
+
+					// Recursively process nested sub-objects
+					if (is_array($subObjectData) === true && isset($subObjectConfig['subObjects']) === true) {
+						$this->updateContractsForSubObjects($subObjectConfig['subObjects'], $synchronizationId, $subObjectData);
+					}
+				}
+			}
+		}
+	}
+	/**
+	 * Processes a single synchronization contract for a subObject.
+	 *
+	 * @param string $synchronizationId The ID of the synchronization.
+	 * @param array  $subObjectData     The data of the subObject to process.
+	 *
+	 * @return void
+	 */
+	private function processSyncContract(string $synchronizationId, array $subObjectData): void
+	{
+		$id = $subObjectData['id']['id']['id']['id'] ?? $subObjectData['id']['id']['id'] ?? $subObjectData['id']['id'] ?? $subObjectData['id'];
+		$subContract = $this->synchronizationContractMapper->findByOriginId(
+			originId: $subObjectData['originId']
+		);
+
+		if (!$subContract) {
+			$subContract = new SynchronizationContract();
+			$subContract->setSynchronizationId($synchronizationId);
+			$subContract->setOriginId($subObjectData['originId']);
+			$subContract->setTargetId($id);
+			$subContract->setUuid(Uuid::V4());
+			$subContract->setTargetHash(md5(serialize($subObjectData)));
+			$subContract->setTargetLastChanged(new DateTime());
+			$subContract->setTargetLastSynced(new DateTime());
+			$subContract->setSourceLastSynced(new DateTime());
+
+			$subContract = $this->synchronizationContractMapper->insert($subContract);
+		} else {
+			$subContract = $this->synchronizationContractMapper->updateFromArray(
+				id: $subContract->getId(),
+				object: [
+					'synchronizationId' => $synchronizationId,
+					'originId'   => $subObjectData['originId'],
+					'targetId'   => $id,
+					'targetHash' => md5(serialize($subObjectData)),
+					'targetLastChanged' => new DateTime(),
+					'targetLastSynced' => new DateTime(),
+					'sourceLastSynced' => new DateTime()
+				]
+			);
+		}
+
+		$this->synchronizationContractLogMapper->createFromArray([
+			'synchronizationId' => $subContract->getSynchronizationId(),
+			'synchronizationContractId' => $subContract->getId(),
+			'target' => $subObjectData,
+			'expires' => new DateTime('+1 day')
+		]);
+	}
+
+	/**
+	 * Checks if an array is associative.
+	 *
+	 * @param array $array The array to check.
+	 *
+	 * @return bool True if the array is associative, false otherwise.
+	 */
+	private function isAssociativeArray(array $array): bool
+	{
+		// Check if the array is associative
+		return count(array_filter(array_keys($array), 'is_string')) > 0;
+	}
+
+	/**
+	 * Processes subObjects update their arrays with existing targetId's so OpenRegister can update the objects instead of duplicate them.
+	 *
+	 * @param array     $subObjectsConfig The configuration for subObjects.
+	 * @param string    $synchronizationId The ID of the synchronization.
+	 * @param array     $targetObject The target object containing subObjects to be processed.
+	 * @param bool|null $parentIsNumericArray Whether the parent object is a numeric array (default false).
+	 *
+	 * @return array The updated target object with IDs updated on subObjects.
+	 */
+	private function updateIdsOnSubObjects(array $subObjectsConfig, string $synchronizationId, array $targetObject, ?bool $parentIsNumericArray = false): array
+	{
+		foreach ($subObjectsConfig as $propertyName => $subObjectConfig) {
+			if (isset($targetObject[$propertyName]) === false) {
+				continue;
+			}
+
+			// If property data is an array of sub-objects, iterate and process
+			if (is_array($targetObject[$propertyName]) === true) {
+				if (isset($targetObject[$propertyName]['originId']) === true) {
+					$targetObject[$propertyName] = $this->updateIdOnSubObject($synchronizationId, $targetObject[$propertyName]);
+				}
+
+				// Recursively process any nested sub-objects within the associative array
+				foreach ($targetObject[$propertyName] as $key => $value) {
+					if (is_array($value) === true && isset($subObjectConfig['subObjects'][$key]) === true) {
+						if ($this->isAssociativeArray($value) === true) {
+							$targetObject[$propertyName][$key] = $this->updateIdsOnSubObjects($subObjectConfig['subObjects'], $synchronizationId, [$key => $value]);
+						} elseif (is_array($value) === true && $this->isAssociativeArray(reset($value)) === true) {
+							foreach ($value as $iterativeSubArrayKey => $iterativeSubArray) {
+								$targetObject[$propertyName][$key][$iterativeSubArrayKey] = $this->updateIdsOnSubObjects($subObjectConfig['subObjects'], $synchronizationId, [$key => $iterativeSubArray], true);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if ($parentIsNumericArray === true) {
+			return reset($targetObject);
+		}
+
+		return $targetObject;
+	}
+
+	/**
+	 * Updates the ID of a single subObject based on its synchronization contract so OpenRegister can update the object .
+	 *
+	 * @param string $synchronizationId The ID of the synchronization.
+	 * @param array  $subObject 		The subObject to update.
+	 *
+	 * @return array The updated subObject with the ID set based on the synchronization contract.
+	 */
+	private function updateIdOnSubObject(string $synchronizationId, array $subObject): array
+	{
+		if (isset($subObject['originId']) === true) {
+			$subObjectContract = $this->synchronizationContractMapper->findSyncContractByOriginId(
+				synchronizationId: $synchronizationId,
+				originId: $subObject['originId']
+			);
+
+			if ($subObjectContract !== null) {
+				$subObject['id'] = $subObjectContract->getTargetId();
+			}
+		}
+
+		return $subObject;
 	}
 
 	/**
@@ -705,6 +924,7 @@ class SynchronizationService
 
 		$type = $synchronization->getSourceType();
 
+
 		switch ($type) {
             case 'register/schema':
                 //@todo: implement
@@ -748,10 +968,9 @@ class SynchronizationService
 		$currentPage = 1;
 
 		// Start with the current page
-		if ($source->getRateLimitLimit() !== null) {
-			$currentPage = $synchronization->getCurrentPage() ?? 1;
-		}
-
+        if ($source->getRateLimitLimit() !== null) {
+            $currentPage = $synchronization->getCurrentPage() ?? 1;
+        }
 
 		// Fetch all pages recursively
 		$objects = $this->fetchAllPages(
@@ -968,6 +1187,10 @@ class SynchronizationService
 		// Check if a specific objects position is defined in the source configuration
 		if (empty($sourceConfig['resultsPosition']) === false) {
 			$position = $sourceConfig['resultsPosition'];
+			// if position is root, return the array
+			if ($position === '_root') {
+				return $array;
+			}
 			// Use Dot notation to access nested array elements
 			$dot = new Dot($array);
 			if ($dot->has($position) === true) {
@@ -990,11 +1213,6 @@ class SynchronizationService
 			if (isset($array[$key]) === true) {
 				return $array[$key];
 			}
-		}
-
-		// If 'results' key exists, return its value
-		if (isset($array['results']) === true) {
-			return $array['results'];
 		}
 
 		// If no objects can be found, throw an exception

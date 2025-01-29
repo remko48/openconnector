@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { Rule, TRule } from '../../entities/index.js'
+import { importExportStore } from '../../store/store.js'
 
 export const useRuleStore = defineStore('rule', {
 	state: () => ({
@@ -146,6 +147,27 @@ export const useRuleStore = defineStore('rule', {
 			this.refreshRuleList()
 
 			return { response }
+		},
+		/**
+		 * Exports a rule
+		 * @param {TRule | Rule} ruleItem - Rule data to export
+		 * @throws If no rule item is provided
+		 */
+		exportRule(ruleItem) {
+			if (!ruleItem) {
+				throw new Error('No rule item to export')
+			}
+			importExportStore.exportFile(
+				ruleItem.id,
+				'rule',
+			)
+				.then(({ download }) => {
+					download()
+				})
+				.catch((err) => {
+					console.error('Error exporting mapping:', err)
+					throw err
+				})
 		},
 	},
 })
