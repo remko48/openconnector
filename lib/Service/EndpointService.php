@@ -714,6 +714,10 @@ class EndpointService
             throw new Exception('Filepart rules can only be applied after the object has been created');
         }
 
+        if (isset($rule->getConfiguration()['fileparts_create']) === false) {
+            throw new Exception('No configuration found for fileparts_create');
+        }
+
         $config = $rule->getConfiguration()['fileparts_create'];
 
         $targetId = explode('/', $endpoint->getTargetId());
@@ -782,7 +786,7 @@ class EndpointService
      * @param string|null $objectId The id of the object.
      *
      * @return array The updated object data.
-     * 
+     *
      * @throws DoesNotExistException
      * @throws LoaderError
      * @throws MultipleObjectsReturnedException
@@ -792,6 +796,10 @@ class EndpointService
      */
     private function processFilePartUploadRule(Rule $rule, array $data, ?string $objectId = null): array
     {
+        if (isset($rule->getConfiguration()['filepart_upload']) === false) {
+            throw new Exception('No configuration found for filepart_upload');
+        }
+
         $config = $rule->getConfiguration()['filepart_upload'];
 
         $mappedData = $data;

@@ -309,9 +309,9 @@ class SynchronizationService
 	 * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
 	 */
 	private function fetchExtraDataForObject(
-		Synchronization $synchronization, 
-		array $extraDataConfig, 
-		array $object, ?string 
+		Synchronization $synchronization,
+		array $extraDataConfig,
+		array $object, ?string
 		$originId = null
 	)
 	{
@@ -1444,6 +1444,10 @@ class SynchronizationService
      */
     private function processFetchFileRule(Rule $rule, array $data): array
     {
+        if (isset($rule->getConfiguration()['fetch_file'])) {
+            throw new Exception('No configuration found for fetch_file');
+        }
+
         $config = $rule->getConfiguration()['fetch_file'];
 
         $source = $this->sourceMapper->find($config['source']);
@@ -1477,6 +1481,11 @@ class SynchronizationService
      */
     private function processWriteFileRule(Rule $rule, array $data, string $objectId, int $registerId, int $schemaId): array
     {
+
+        if (isset($rule->getConfiguration()['write_file'])) {
+            throw new Exception('No configuration found for write_file');
+        }
+
         $config  = $rule->getConfiguration()['write_file'];
         $dataDot = new Dot($data);
         $content = base64_decode($dataDot[$config['filePath']]);
