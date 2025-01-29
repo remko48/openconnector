@@ -47,7 +47,7 @@ import { getTheme } from '../../services/getTheme.js'
 						<NcButton class="format-json-button"
 							type="secondary"
 							size="small"
-							@click="formatJson">
+							@click="formatJSONCondictions">
 							Format JSON
 						</NcButton>
 					</div>
@@ -239,12 +239,28 @@ import { getTheme } from '../../services/getTheme.js'
 						v-model="methodOptions.value"
 						input-label="Method" />
 
-					<NcTextArea
-						label="Source Configuration"
-						:value.sync="ruleItem.configuration.fetch_file.sourceConfiguration"
-						class="code-editor"
-						placeholder="Enter your source configuration here..."
-						rows="10" />
+					<div class="json-editor">
+						<label>Source Configuration (JSON)</label>
+						<div :class="`codeMirrorContainer ${getTheme()}`">
+							<CodeMirror v-model="ruleItem.configuration.fetch_file.sourceConfiguration"
+								:basic="true"
+								placeholder="[]"
+								:dark="getTheme() === 'dark'"
+								:linter="jsonParseLinter()"
+								:lang="json()"
+								:tab-size="2" />
+
+							<NcButton class="format-json-button"
+								type="secondary"
+								size="small"
+								@click="formatJSONSourceConfiguration">
+								Format JSON
+							</NcButton>
+						</div>
+						<span v-if="!isValidJson(ruleItem.configuration.fetch_file.sourceConfiguration)" class="error-message">
+							Invalid JSON format
+						</span>
+					</div>
 				</template>
 
 				<!-- Write File Configuration -->
@@ -372,7 +388,7 @@ export default {
 						source: '',
 						filePath: '',
 						method: '',
-						sourceConfiguration: '',
+						sourceConfiguration: '[]',
 					},
 					write_file: {
 						filePath: '',
@@ -441,7 +457,7 @@ export default {
 						source: ruleStore.ruleItem.configuration?.fetch_file?.source ?? '',
 						filePath: ruleStore.ruleItem.configuration?.fetch_file?.filePath ?? '',
 						method: ruleStore.ruleItem.configuration?.fetch_file?.method ?? '',
-						sourceConfiguration: ruleStore.ruleItem.configuration?.fetch_file?.sourceConfiguration ?? '',
+						sourceConfiguration: JSON.stringify(ruleStore.ruleItem.configuration?.fetch_file?.sourceConfiguration, null, 2) ?? '[]',
 					},
 					write_file: {
 						filePath: ruleStore.ruleItem.configuration?.write_file?.filePath ?? '',
@@ -608,12 +624,23 @@ export default {
 			}
 		},
 
-		formatJson() {
+		formatJSONCondictions() {
 			try {
 				if (this.ruleItem.conditions) {
 					// Format the JSON with proper indentation
 					const parsed = JSON.parse(this.ruleItem.conditions)
 					this.ruleItem.conditions = JSON.stringify(parsed, null, 2)
+				}
+			} catch (e) {
+				// Keep invalid JSON as-is to allow user to fix it
+			}
+		},
+
+		formatJSONSourceConfiguration() {
+			try {
+				if (this.ruleItem.configuration.fetch_file.sourceConfiguration) {
+					const parsed = JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration)
+					this.ruleItem.configuration.fetch_file.sourceConfiguration = JSON.stringify(parsed, null, 2)
 				}
 			} catch (e) {
 				// Keep invalid JSON as-is to allow user to fix it
@@ -674,7 +701,7 @@ export default {
 					source: this.sourceOptions.sourceValue?.id,
 					filePath: this.ruleItem.configuration.fetch_file.filePath,
 					method: this.methodOptions.value?.label,
-					sourceConfiguration: this.ruleItem.configuration.fetch_file.sourceConfiguration,
+					sourceConfiguration: this.ruleItem.configuration.fetch_file.sourceConfiguration ? JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration) : [],
 				}
 				break
 			case 'write_file':
