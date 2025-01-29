@@ -23,4 +23,5 @@ export type TSynchronization = {
     created: string
     updated: string
     version: string
+    actions: string[]
 }

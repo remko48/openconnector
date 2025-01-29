@@ -72,6 +72,46 @@ Upload rules manage file upload functionality and restrictions. Configuration in
 - allowedTypes: Comma-separated list of allowed file extensions (e.g., jpg,png,pdf)
 - maxSize: Maximum allowed file size in megabytes
 
+#### Partial upload rules
+
+Partial upload rules manage file uploads in multiple parts, allowing for uploads of larger files.
+Partial uploads require the created object to contain the file size of the file to be created.
+
+The functionality is split into two rule types:
+
+- `fileparts_create`
+- `filepart_upload`
+
+The `fileparts_create` type creates the partial file upload from the endpoint. These partial files will be nested into
+the response object, and will be stored with their ids in the saved object. The fileparts will be stored in objects according to a separate schema.
+
+The default schema of these fileparts is:
+
+```json
+{
+    "id": "baed4312-c6b8-48bc-a1b3-c3536d9653be", // The id of the file part object.
+    "order": 1, // The order number of the file part, starting at 1
+    "size": 297809, // The size in bytes of the file part that is/will be uploaded
+    "data": "..." // The data uploaded. This will only exist after uploading, until the data is written into a partial file.
+}
+```
+
+The `fileparts_create` rule takes the following configuration:
+
+- `sizeLocation` (required): The location in the created object containing the size of the complete file.
+- `schemaId` (required): The schema to store the file part in.
+- `filenameLocation` (optional): The location in the created object that contains the filename of the file to be created. This defaults to `filename` if it is not set.
+- `filePartLocation` (optional): The location in the created object the created fileparts will be written to. Defaults to `fileParts`
+- `mappingId` (optional): If the resulting filePart objects have to be mapped to a specific format, the id of the mapping that will map the file parts to the desired format.
+
+The `filepart_upload` type will upload the data in the file part that is uploaded into a temporary file, and 
+once all fileparts have been uploaded, it will reconcile the partial uploads into one file (deleting the temporary files,
+and if no additional data has been put into the folder where the parts are stored, the folder).
+
+The `filepart_upload` rule takes the following configuration:
+
+- `mappingId` (optional): If the file parts are in a specific format, the mapping to map the fileparts to the default format. (Usually this means that this is the inverse mapping of `mappingId` in the corresponding `fileparts_create` rule).
+
 ### Locking Rules
 
 Locking rules provide exclusive access control for resources. Configuration includes:

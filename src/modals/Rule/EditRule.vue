@@ -1,5 +1,5 @@
 <script setup>
-import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '../../store/store.js'
+import { ruleStore, navigationStore, mappingStore, synchronizationStore, sourceStore } from '../../store/store.js'
 import { getTheme } from '../../services/getTheme.js'
 </script>
 
@@ -47,7 +47,7 @@ import { getTheme } from '../../services/getTheme.js'
 						<NcButton class="format-json-button"
 							type="secondary"
 							size="small"
-							@click="formatJson">
+							@click="formatJSONCondictions">
 							Format JSON
 						</NcButton>
 					</div>
@@ -56,12 +56,21 @@ import { getTheme } from '../../services/getTheme.js'
 					</span>
 				</div>
 
+				<div>
+					<NcSelect
+						v-bind="timingOptions"
+						v-model="timingOptions.value"
+						:clearable="false"
+						input-label="Timing" />
+				</div>
+
 				<NcTextField :value.sync="ruleItem.order"
 					label="Order"
 					type="number" />
 
 				<NcSelect v-bind="actionOptions"
 					v-model="actionOptions.value"
+					:clearable="false"
 					input-label="Action" />
 
 				<NcSelect v-bind="typeOptions"
@@ -209,10 +218,68 @@ import { getTheme } from '../../services/getTheme.js'
 						<p>Lock or unlock resources for exclusive access by the current user.</p>
 					</div>
 				</template>
+
+				<!-- Fetch File Configuration -->
+				<template v-if="typeOptions.value?.id === 'fetch_file'">
+					<NcSelect
+						v-bind="sourceOptions"
+						v-model="sourceOptions.sourceValue"
+						required
+						:loading="sourcesLoading"
+						input-label="Source ID *" />
+
+					<NcTextField
+						label="File Path"
+						required
+						:value.sync="ruleItem.configuration.fetch_file.filePath"
+						placeholder="path.to.fetch.file" />
+
+					<NcSelect
+						v-bind="methodOptions"
+						v-model="methodOptions.value"
+						input-label="Method" />
+
+					<div class="json-editor">
+						<label>Source Configuration (JSON)</label>
+						<div :class="`codeMirrorContainer ${getTheme()}`">
+							<CodeMirror v-model="ruleItem.configuration.fetch_file.sourceConfiguration"
+								:basic="true"
+								placeholder="[]"
+								:dark="getTheme() === 'dark'"
+								:linter="jsonParseLinter()"
+								:lang="json()"
+								:tab-size="2" />
+
+							<NcButton class="format-json-button"
+								type="secondary"
+								size="small"
+								@click="formatJSONSourceConfiguration">
+								Format JSON
+							</NcButton>
+						</div>
+						<span v-if="!isValidJson(ruleItem.configuration.fetch_file.sourceConfiguration)" class="error-message">
+							Invalid JSON format
+						</span>
+					</div>
+				</template>
+
+				<!-- Write File Configuration -->
+				<template v-if="typeOptions.value?.id === 'write_file'">
+					<NcTextField
+						label="File Path"
+						required
+						:value.sync="ruleItem.configuration.write_file.filePath"
+						placeholder="path.to.file.content" />
+					<NcTextField
+						label="File Name Path"
+						required
+						:value.sync="ruleItem.configuration.write_file.fileNamePath"
+						placeholder="path.to.file.name" />
+				</template>
 			</form>
 
 			<NcButton v-if="!success"
-				:disabled="loading || !ruleItem.name || !isValidJson(ruleItem.conditions)"
+				:disabled="loading || !ruleItem.name || !isValidJson(ruleItem.conditions) || typeOptions.value?.id === 'fetch_file' && (!ruleItem.configuration.fetch_file.filePath || !sourceOptions.sourceValue) || typeOptions.value?.id === 'write_file' && (!ruleItem.configuration.write_file.filePath || !ruleItem.configuration.write_file.fileNamePath)"
 				type="primary"
 				@click="editRule()">
 				<template #icon>
@@ -259,6 +326,7 @@ export default {
 			success: null,
 			loading: false,
 			error: false,
+			sourcesLoading: false,
 			mappingOptions: {
 				options: [],
 				value: null,
@@ -289,6 +357,7 @@ export default {
 				action: '',
 				type: '',
 				actionConfig: '{}',
+				timing: '',
 				configuration: {
 					mapping: null,
 					synchronization: null,
@@ -315,18 +384,23 @@ export default {
 						action: 'lock',
 						timeout: 30,
 					},
+					fetch_file: {
+						source: '',
+						filePath: '',
+						method: '',
+						sourceConfiguration: '[]',
+					},
+					write_file: {
+						filePath: '',
+						fileNamePath: '',
+					},
 				},
 			},
 
-			actionOptions: {
-				options: [
-					{ label: 'Post (Create)', id: 'post' },
-					{ label: 'Get (Read)', id: 'get' },
-					{ label: 'Put (Update)', id: 'put' },
-					{ label: 'Delete (Delete)', id: 'delete' },
-				],
-				value: { label: 'Post (Create)', id: 'post' },
-			},
+			actionOptions: {},
+			timingOptions: {},
+
+			methodOptions: {},
 
 			typeOptions: {
 				options: [
@@ -338,9 +412,13 @@ export default {
 					{ label: 'Download', id: 'download' },
 					{ label: 'Upload', id: 'upload' },
 					{ label: 'Locking', id: 'locking' },
+					{ label: 'Fetch File', id: 'fetch_file' },
+					{ label: 'Write File', id: 'write_file' },
 				],
 				value: { label: 'Error', id: 'error' },
 			},
+
+			sourceOptions: {},
 
 			closeTimeoutFunc: null,
 		}
@@ -349,20 +427,57 @@ export default {
 		if (this.IS_EDIT) {
 			this.ruleItem = {
 				...ruleStore.ruleItem,
+				configuration: {
+					mapping: ruleStore.ruleItem.configuration?.mapping ?? null,
+					synchronization: ruleStore.ruleItem.configuration?.synchronization ?? null,
+					error: {
+						code: ruleStore.ruleItem.configuration?.error?.code ?? 500,
+						name: ruleStore.ruleItem.configuration?.error?.name ?? 'Something went wrong',
+						message: ruleStore.ruleItem.configuration?.error?.message ?? 'We encountered an unexpected problem',
+					},
+					javascript: ruleStore.ruleItem.configuration?.javascript ?? '',
+					authentication: {
+						type: ruleStore.ruleItem.configuration?.authentication?.type ?? 'basic',
+						users: ruleStore.ruleItem.configuration?.authentication?.users ?? [],
+						groups: ruleStore.ruleItem.configuration?.authentication?.groups ?? [],
+					},
+					download: {
+						fileIdPosition: ruleStore.ruleItem.configuration?.download?.fileIdPosition ?? 0,
+					},
+					upload: {
+						path: ruleStore.ruleItem.configuration?.upload?.path ?? '',
+						allowedTypes: ruleStore.ruleItem.configuration?.upload?.allowedTypes ?? '',
+						maxSize: ruleStore.ruleItem.configuration?.upload?.maxSize ?? 10,
+					},
+					locking: {
+						action: ruleStore.ruleItem.configuration?.locking?.action ?? 'lock',
+						timeout: ruleStore.ruleItem.configuration?.locking?.timeout ?? 30,
+					},
+					fetch_file: {
+						source: ruleStore.ruleItem.configuration?.fetch_file?.source ?? '',
+						filePath: ruleStore.ruleItem.configuration?.fetch_file?.filePath ?? '',
+						method: ruleStore.ruleItem.configuration?.fetch_file?.method ?? '',
+						sourceConfiguration: JSON.stringify(ruleStore.ruleItem.configuration?.fetch_file?.sourceConfiguration, null, 2) ?? '[]',
+					},
+					write_file: {
+						filePath: ruleStore.ruleItem.configuration?.write_file?.filePath ?? '',
+						fileNamePath: ruleStore.ruleItem.configuration?.write_file?.fileNamePath ?? '',
+					},
+				},
 				conditions: JSON.stringify(ruleStore.ruleItem.conditions, null, 2),
 				actionConfig: JSON.stringify(ruleStore.ruleItem.actionConfig),
 			}
-
-			this.actionOptions.value = this.actionOptions.options.find(
-				option => option.id === this.ruleItem.action,
-			)
 
 			this.typeOptions.value = this.typeOptions.options.find(
 				option => option.id === this.ruleItem.type,
 			)
 		}
+		this.setMethodOptions()
+		this.setActionOptions()
+		this.setTimingOptions()
 		this.getMappings()
 		this.getSynchronizations()
+		this.getSources()
 	},
 	methods: {
 		async getMappings() {
@@ -395,6 +510,34 @@ export default {
 			}
 		},
 
+		getSources() {
+			this.sourcesLoading = true
+
+			sourceStore.refreshSourceList()
+				.then(() => {
+
+					const sources = sourceStore.sourceList
+
+					const activeSourceSource = sources.find(source => source.id.toString() === this.ruleItem.configuration.fetch_file.source.toString() ?? '')
+
+					this.sourceOptions = {
+						options: sources.map(source => ({
+							label: source.name,
+							id: source.id,
+						})),
+						sourceValue: activeSourceSource
+							? {
+								label: activeSourceSource.name,
+								id: activeSourceSource.id,
+							}
+							: null,
+					}
+				})
+				.finally(() => {
+					this.sourcesLoading = false
+				})
+		},
+
 		async getSynchronizations() {
 			try {
 				this.syncOptions.loading = true
@@ -425,6 +568,47 @@ export default {
 			}
 		},
 
+		setMethodOptions() {
+			const options = [
+				{ label: 'GET' },
+				{ label: 'POST' },
+				{ label: 'PUT' },
+				{ label: 'DELETE' },
+				{ label: 'PATCH' },
+			]
+
+			this.methodOptions = {
+				options,
+				value: options.find(option => option.label === this.ruleItem.configuration.fetch_file.method),
+			}
+		},
+
+		setActionOptions() {
+			const options = [
+				{ label: 'Post (Create)', id: 'post' },
+				{ label: 'Get (Read)', id: 'get' },
+				{ label: 'Put (Update)', id: 'put' },
+				{ label: 'Delete (Delete)', id: 'delete' },
+			]
+
+			this.actionOptions = {
+				options,
+				value: options.find(option => option.id === this.ruleItem.action) || options[0],
+			}
+		},
+
+		setTimingOptions() {
+			const options = [
+				{ label: 'Before', id: 'before' },
+				{ label: 'After', id: 'after' },
+			]
+
+			this.timingOptions = {
+				options,
+				value: options.find(option => option.id === this.ruleItem.timing) || options[0],
+			}
+		},
+
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
@@ -440,12 +624,23 @@ export default {
 			}
 		},
 
-		formatJson() {
+		formatJSONCondictions() {
 			try {
 				if (this.ruleItem.conditions) {
 					// Format the JSON with proper indentation
 					const parsed = JSON.parse(this.ruleItem.conditions)
 					this.ruleItem.conditions = JSON.stringify(parsed, null, 2)
+				}
+			} catch (e) {
+				// Keep invalid JSON as-is to allow user to fix it
+			}
+		},
+
+		formatJSONSourceConfiguration() {
+			try {
+				if (this.ruleItem.configuration.fetch_file.sourceConfiguration) {
+					const parsed = JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration)
+					this.ruleItem.configuration.fetch_file.sourceConfiguration = JSON.stringify(parsed, null, 2)
 				}
 			} catch (e) {
 				// Keep invalid JSON as-is to allow user to fix it
@@ -501,12 +696,27 @@ export default {
 					timeout: this.ruleItem.configuration.locking.timeout,
 				}
 				break
+			case 'fetch_file':
+				configuration.fetch_file = {
+					source: this.sourceOptions.sourceValue?.id,
+					filePath: this.ruleItem.configuration.fetch_file.filePath,
+					method: this.methodOptions.value?.label,
+					sourceConfiguration: this.ruleItem.configuration.fetch_file.sourceConfiguration ? JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration) : [],
+				}
+				break
+			case 'write_file':
+				configuration.write_file = {
+					filePath: this.ruleItem.configuration.write_file.filePath,
+					fileNamePath: this.ruleItem.configuration.write_file.fileNamePath,
+				}
+				break
 			}
 
 			ruleStore.saveRule({
 				...this.ruleItem,
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
+				timing: this.timingOptions.value?.id || null,
 				type: type || null,
 				configuration,
 			})
