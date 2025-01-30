@@ -433,6 +433,8 @@ import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
 import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
 
+import openLink from '../../services/openLink.js'
+
 export default {
 	name: 'EditRule',
 	components: {
@@ -634,9 +636,6 @@ export default {
 		this.getSchemas()
 	},
 	methods: {
-		selectable(options) {
-			return options.selectable
-		},
 		async getMappings() {
 			try {
 				this.mappingOptions.loading = true

@@ -216,6 +216,7 @@ import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue
 import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Close from 'vue-material-design-icons/Close.vue'
+import openLink from '../../services/openLink.js'
 
 export default {
 	name: 'EditSynchronization',
