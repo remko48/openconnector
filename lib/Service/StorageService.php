@@ -125,7 +125,7 @@ class StorageService
 
         $uploadFolder = $userFolder->get($path);
 
-        try{
+        try {
             /** @var File $target */
             $target = $uploadFolder->get($fileName);
             $target->putContent($content);

@@ -1478,8 +1478,8 @@ class SynchronizationService
     {
         $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
 
-        try{
-            $file = $this->storageService->writeFile(
+        try {
+            $this->storageService->writeFile(
                 path: $object->getFolder(),
                 fileName: $fileName,
                 content: $content
