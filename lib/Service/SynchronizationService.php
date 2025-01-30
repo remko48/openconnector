@@ -5,6 +5,7 @@ namespace OCA\OpenConnector\Service;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use JWadhams\JsonLogic;
+use OC\User\NoUserException;
 use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\Endpoint;
 use OCA\OpenConnector\Db\Mapping;
@@ -24,6 +25,8 @@ use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\IRequest;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -1392,11 +1395,11 @@ class SynchronizationService
                     'error' => $this->processErrorRule($rule),
                     'mapping' => $this->processMappingRule($rule, $data),
                     'synchronization' => $this->processSyncRule($rule, $data),
-                    'fetch_file' => $this->processFetchFileRule($rule, $data),
+                    'fetch_file' => $this->processFetchFileRule($rule, $data, $objectId),
                     'write_file' => $this->processWriteFileRule($rule, $data, $objectId, $registerId, $schemaId),
                     default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
                 };
-                
+
                 // If result is JSONResponse, return error immediately
                 if ($result instanceof JSONResponse) {
                     return $result;
@@ -1431,6 +1434,96 @@ class SynchronizationService
     }
 
     /**
+     * Write a file to the filesystem
+     *
+     * @param string $fileName The filename
+     * @param string $content The content of the file
+     * @param string $objectId The id of the object the file belongs to.
+     *
+     * @return bool Whether the file write is successful.
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function writeFile(string $fileName, string $content, string $objectId): bool
+    {
+        $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
+
+        try{
+            $file = $this->storageService->writeFile(
+                path: $object->getFolder(),
+                fileName: $fileName,
+                content: $content
+            );
+        } catch (NotFoundException|NotPermittedException|NoUserException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Fetch a file from a source.
+     *
+     * @param Source $source The source to fetch the file from.
+     * @param string $endpoint The endpoint for the file.
+     * @param array $config The configuration of the action.
+     * @param string $objectId The id of the object the file belongs to.
+     *
+     * @return string If write is enabled: the url of the file, if write is disabled: the base64 encoded file.
+     *
+     * @throws GuzzleException
+     * @throws LoaderError
+     * @throws SyntaxError
+     * @throws \OCP\DB\Exception
+     */
+    private function fetchFile (Source $source, string $endpoint, array $config, string $objectId): string
+    {
+        $originalEndpoint = $endpoint;
+        $endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true ? substr(string: $endpoint, offset: strlen(string: $source->getLocation())) : $endpoint;
+
+        $result = $this->callService->call(
+            source: $source,
+            endpoint: $endpoint,
+            method: $config['method'] ?? 'GET',
+            config: $config['sourceConfiguration'] ?? []
+        );
+        $response = $result->getResponse();
+
+        if(isset($config['write']) === true && $config['write'] === false) {
+            return base64_encode($response['body']);
+        }
+
+        // Get a filename from the response. First try to do this using the Content-Disposition header
+        if (isset($response['headers']['Content-Disposition']) === true
+            && str_contains($response['headers']['Content-Disposition'][0], 'filename')) {
+            $explodedContentDisposition = explode('=', $response['headers']['Content-Disposition'][0]);
+
+            $filename = trim(string: $explodedContentDisposition[1], characters: '"');
+        } else {
+            // Otherwise, parse the url and content type header.
+            $parsedUrl = parse_url($result->getRequest()['url']);
+            $path = explode(separator:'/', string: $parsedUrl['path']);
+            $filename = end($path);
+
+            if (count(explode(separator: '.', string: $filename)) === 1
+                && (isset($response['headers']['Content-Type']) === true || isset($response['headers']['content-type']) === true)
+            ) {
+                $explodedMimeType = isset($response['headers']['Content-Type']) === true
+                    ? explode(separator: '/', string: explode(separator: ';', string: $response['headers']['Content-Type'][0])[0])
+                    : explode(separator: '/', string: explode(separator: ';', string: $response['headers']['content-type'][0])[0]);
+
+
+                $filename = $filename.'.'.end($explodedMimeType);
+            }
+        }
+
+        // Write the file
+        $this->writeFile($filename, $response['body'], $objectId);
+
+        return $originalEndpoint;
+    }
+
+    /**
      * Process a rule to fetch a file from an external source.
      *
      * @param Rule $rule The rule to process.
@@ -1442,7 +1535,7 @@ class SynchronizationService
      * @throws SyntaxError
      * @throws \OCP\DB\Exception
      */
-    private function processFetchFileRule(Rule $rule, array $data): array
+    private function processFetchFileRule(Rule $rule, array $data, string $objectId): array
     {
         if (isset($rule->getConfiguration()['fetch_file']) === false) {
             throw new Exception('No configuration found for fetch_file');
@@ -1453,16 +1546,17 @@ class SynchronizationService
         $source = $this->sourceMapper->find($config['source']);
         $dataDot = new Dot($data);
         $endpoint = $dataDot[$config['filePath']];
-        $endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true ? substr(string: $endpoint, offset: strlen(string: $source->getLocation())) : $endpoint;
 
-        $response = $this->callService->call(
-            source: $source,
-            endpoint: $endpoint,
-            method: $config['method'] ?? 'GET',
-            config: $config['sourceConfiguration'] ?? []
-        )->getResponse();
-
-        $dataDot[$config['filePath']] = base64_encode($response['body']);
+        // If we get one endpoint, fetch that file, otherwise fetch all files from endpoint array.
+        if(is_array($endpoint) === true) {
+            $result = [];
+            foreach($endpoint as $key => $value) {
+                $result[$key] = $this->fetchFile($source, $value, $config, $objectId);
+            }
+            $dataDot[$config['filePath']] = $result;
+        } else {
+            $dataDot[$config['filePath']] = $this->fetchFile($source, $endpoint, $config, $objectId);
+        }
 
         return $dataDot->jsonSerialize();
     }

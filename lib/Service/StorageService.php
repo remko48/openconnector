@@ -125,7 +125,9 @@ class StorageService
         $uploadFolder = $userFolder->get($path);
 
         try{
+            /** @var File $target */
             $target = $uploadFolder->get($fileName);
+            $target->putContent($content);
         } catch (NotFoundException $e) {
             $target = $uploadFolder->newFile($fileName, $content);
         }
