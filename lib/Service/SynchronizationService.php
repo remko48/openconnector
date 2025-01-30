@@ -1300,7 +1300,26 @@ class SynchronizationService
 			$object = $this->objectService->getOpenRegisters()->find(
 				id: $contract->getOriginId(),
 			)->jsonSerialize();
-		}
+
+
+            $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+			$object = $objectService->extendEntity($object, ['all']);
+
+            if (empty($synchronization->getTargetSourceMapping()) === true) {
+                $targetSourceMapping = null;
+            } else {
+                try {
+                    $targetSourceMapping = $this->mappingMapper->find(id: $synchronization->getTargetSourceMapping());
+                } catch (DoesNotExistException $exception) {
+                    return new Exception($exception->getMessage());
+                }
+            }
+
+            if ($targetSourceMapping) {
+                $object = $this->mappingService->executeMapping(mapping: $targetSourceMapping, input: $object);
+            }
+
+        }
 
 		$targetConfig = $this->callService->applyConfigDot($synchronization->getTargetConfig());
 
