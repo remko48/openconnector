@@ -1,5 +1,5 @@
 <script setup>
-import { sourceStore, navigationStore, logStore } from '../../store/store.js'
+import { sourceStore, navigationStore, logStore, synchronizationStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -146,8 +146,45 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 								No authentications found
 							</div>
 						</BTab>
-						<BTab title="Synchronizations" class="tabPanel">
-							No synchronizations found
+						<BTab title="Synchronizations">
+							<div v-if="linkedSynchronizations?.length">
+								<NcListItem v-for="(value) in linkedSynchronizations"
+									:key="value.id"
+									:name="value.name"
+									:bold="false"
+									:force-display-actions="true">
+									<template #icon>
+										<VectorPolylinePlus disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value.description }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="synchronizationStore.setSynchronizationItem(value); navigationStore.setSelected('synchronizations')">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationItem(value); navigationStore.setModal('editSynchronization')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationItem(value); navigationStore.setDialog('deleteSynchronization')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-else class="tabPanel">
+								No synchronizations found
+							</div>
 						</BTab>
 						<BTab title="Logs">
 							<div v-if="sourceStore.sourceLogs?.length">
@@ -204,6 +241,7 @@ import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 
 export default {
 	name: 'SourceDetails',
@@ -234,9 +272,16 @@ export default {
 		configurationAuthentication() {
 			return sourceStore.sourceItem?.configuration?.authentication || {}
 		},
+		/**
+		 * returns a filtered list of synchronizations which use this source
+		 */
+		linkedSynchronizations() {
+			return synchronizationStore.synchronizationList?.filter((item) => item.sourceId.toString() === sourceStore.sourceItem?.id?.toString()) || []
+		},
 	},
 	mounted() {
 		this.refreshSourceLogs()
+		synchronizationStore.refreshSynchronizationList()
 	},
 	methods: {
 		deleteSourceConfiguration(key) {
