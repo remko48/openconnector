@@ -43,6 +43,11 @@ class Mapping extends Entity implements JsonSerializable
 		);
 	}
 
+    public function getUpdated(): ?DateTime
+    {
+        return $this->dateModified;
+    }
+
 	public function hydrate(array $object): self
 	{
 		$jsonFields = $this->getJsonFields();

@@ -710,7 +710,7 @@ class EndpointService
      */
     private function processFilePartRule(Rule $rule, array $data, Endpoint $endpoint, ?string $objectId = null): array
     {
-        if($objectId === null) {
+        if ($objectId === null) {
             throw new Exception('Filepart rules can only be applied after the object has been created');
         }
 
@@ -731,7 +731,7 @@ class EndpointService
         $filePartLocation = $config['filePartLocation'] ?? 'fileParts';
 
         $mapping = null;
-        if(isset($config['mappingId']) === true) {
+        if (isset($config['mappingId']) === true) {
             $mapping = $this->mappingService->getMapping($config['mappingId']);
         }
 
@@ -804,7 +804,7 @@ class EndpointService
 
         $mappedData = $data;
 
-        if(isset($config['mappingId']) === true) {
+        if (isset($config['mappingId']) === true) {
             $mapping = $this->mappingService->getMapping($config['mappingId']);
             $mappedData = $this->mappingService->executeMapping(mapping: $mapping, input: $mappedData);
         }
