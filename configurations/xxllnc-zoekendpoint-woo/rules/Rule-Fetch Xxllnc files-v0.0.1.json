@@ -1,0 +1,30 @@
+{
+    "@context": {
+        "schema": "http:\/\/schema.org",
+        "register": "501"
+    },
+    "@type": "rule",
+    "@id": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/rules\/4",
+    "name": "Fetch Xxllnc files",
+    "description": null,
+    "reference": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/rules\/4",
+    "version": "0.0.1",
+    "action": "post",
+    "timing": "after",
+    "conditions": {
+        "==": [
+            1,
+            1
+        ]
+    },
+    "type": "fetch_file",
+    "configuration": {
+        "fetch_file": {
+            "source": 3,
+            "filePath": "attachments",
+            "method": "GET",
+            "sourceConfiguration": []
+        }
+    },
+    "order": 0
+}

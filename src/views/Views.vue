@@ -16,6 +16,7 @@ import { navigationStore } from '../store/store.js'
 			<SynchronizationsIndex v-if="navigationStore.selected === 'synchronizations'" />
 			<EventsIndex v-if="navigationStore.selected === 'events'" />
 			<RulesIndex v-if="navigationStore.selected === 'rules'" />
+			<ImportIndex v-if="navigationStore.selected === 'imports'" />
 		</template>
 	</NcAppContent>
 </template>
@@ -32,6 +33,7 @@ import MappingsIndex from './Mapping/MappingsIndex.vue'
 import SynchronizationsIndex from './Synchronization/SynchronizationsIndex.vue'
 import EventsIndex from './event/EventIndex.vue'
 import RulesIndex from './rule/RuleIndex.vue'
+import ImportIndex from './Import/ImportIndex.vue'
 
 export default {
 	name: 'Views',

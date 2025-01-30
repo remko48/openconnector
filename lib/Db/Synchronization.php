@@ -39,6 +39,7 @@ class Synchronization extends Entity implements JsonSerializable
 
 	protected array $conditions = [];
 	protected array $followUps = [];
+    protected array $actions = [];
 
 
 	public function __construct() {
@@ -69,6 +70,7 @@ class Synchronization extends Entity implements JsonSerializable
 		$this->addType('updated', 'datetime');
 		$this->addType(fieldName:'conditions', type: 'json');
 		$this->addType(fieldName:'followUps', type: 'json');
+        $this->addType(fieldName: 'actions', type: 'json');
 	}
 
     /**
@@ -147,6 +149,7 @@ class Synchronization extends Entity implements JsonSerializable
 			'updated' => isset($this->updated) === true ? $this->updated->format('c') : null,
 			'conditions' => $this->conditions,
 			'followUps' => $this->followUps,
+			'actions' => $this->actions,
 		];
 	}
 }

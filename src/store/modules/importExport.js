@@ -46,16 +46,16 @@ export const useImportExportStore = defineStore(
 				return { response, blob, download }
 			},
 
-			importFile(files, reset) {
-				if (!files) {
-					throw Error('No files to import')
+			importFile(file, reset) {
+				if (!file) {
+					throw Error('No file to import')
 				}
 				if (!reset) {
 					throw Error('No reset function to call')
 				}
 
 				return axios.post('/index.php/apps/openconnector/api/import', {
-					file: files.value ? files.value[0] : '',
+					file: file.value ? file.value[0] : '',
 				}, {
 					headers: {
 						'Content-Type': 'multipart/form-data',
@@ -110,12 +110,40 @@ export const useImportExportStore = defineStore(
 									})
 								)
 							}
+							reset()
 						}
 						return setItem()
 					// Wait for the user to read the feedback then close the model
 					})
 					.catch((err) => {
 						console.error('Error importing file:', err)
+						throw err
+					})
+
+			},
+			importFiles(files, reset) {
+				if (!files) {
+					throw Error('No files to import')
+				}
+				if (!reset) {
+					throw Error('No reset function to call')
+				}
+
+				return axios.post('/index.php/apps/openconnector/api/import', {
+					files: files.value,
+				}, {
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				})
+					.then((response) => {
+
+						console.info('Importing files:', response.data)
+
+					// Wait for the user to read the feedback then close the model
+					})
+					.catch((err) => {
+						console.error('Error importing files:', err)
 						throw err
 					})
 
