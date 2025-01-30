@@ -579,7 +579,7 @@ class SynchronizationService
             $targetObject = $object;
         }
 
-        if($synchronization->getActions() !== []) {
+        if ($synchronization->getActions() !== []) {
             $targetObject = $this->processRules(synchronization: $synchronization, data: $targetObject, timing: 'before');
         }
 
@@ -615,7 +615,7 @@ class SynchronizationService
 			targetObject: $targetObject
 		);
 
-        if($synchronization->getTargetType() === 'register/schema') {
+        if ($synchronization->getTargetType() === 'register/schema') {
             [$registerId, $schemaId] = explode(separator: '/', string: $synchronization->getTargetId());
             $this->processRules(synchronization: $synchronization, data: $targetObject, timing: 'after', objectId: $synchronizationContract->getTargetId(), registerId: $registerId, schemaId: $schemaId);
         }
@@ -1489,7 +1489,7 @@ class SynchronizationService
         );
         $response = $result->getResponse();
 
-        if(isset($config['write']) === true && $config['write'] === false) {
+        if (isset($config['write']) === true && $config['write'] === false) {
             return base64_encode($response['body']);
         }
 
@@ -1548,9 +1548,9 @@ class SynchronizationService
         $endpoint = $dataDot[$config['filePath']];
 
         // If we get one endpoint, fetch that file, otherwise fetch all files from endpoint array.
-        if(is_array($endpoint) === true) {
+        if (is_array($endpoint) === true) {
             $result = [];
-            foreach($endpoint as $key => $value) {
+            foreach ($endpoint as $key => $value) {
                 $result[$key] = $this->fetchFile($source, $value, $config, $objectId);
             }
             $dataDot[$config['filePath']] = $result;
