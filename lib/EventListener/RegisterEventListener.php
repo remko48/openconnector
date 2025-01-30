@@ -39,6 +39,10 @@ class RegisterEventListener implements IEventListener
             return;
         }
 
+        if (method_exists($event, 'getObject') === false) {
+            return;
+        }
+
 
         $object = $event->getObject();
         if ($object === null || $object->getRegister() === null || $object->getSchema() === null) {
