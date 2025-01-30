@@ -28,6 +28,7 @@ use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -66,6 +67,8 @@ class EndpointService
         private readonly EndpointMapper  $endpointMapper,
 		private readonly RuleMapper    $ruleMapper,
 		private readonly IConfig $config,
+        private readonly IAppConfig $appConfig,
+        private readonly StorageService $storageService
 	)
 	{
 	}
@@ -101,7 +104,12 @@ class EndpointService
 			];
 
 			// Process rules before handling the request
-			$ruleResult = $this->processRules($endpoint, $request, $data);
+			$ruleResult = $this->processRules(
+                endpoint: $endpoint,
+                request: $request,
+                data: $data,
+                timing: 'before'
+            );
 			if ($ruleResult instanceof JSONResponse) {
 				return $ruleResult;
 			}
@@ -112,7 +120,17 @@ class EndpointService
 			// Check if endpoint connects to a schema
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
-				return $this->handleSchemaRequest($endpoint, $request, $path);
+				$result = $this->handleSchemaRequest($endpoint, $request, $path);
+
+                $result = $this->processRules(
+                    endpoint: $endpoint,
+                    request: $request,
+                    data: $result->getData(),
+                    timing: 'after',
+                    objectId: $result->getData()['id'] ?? null
+                );
+
+                return new JSONResponse($result, 200);
 			}
 
 			// Check if endpoint connects to a source
@@ -127,7 +145,8 @@ class EndpointService
 		} catch (Exception $e) {
 			$this->logger->error('Error handling endpoint request: ' . $e->getMessage());
 			return new JSONResponse(
-				['error' => $e->getMessage()],
+				['error' => $e->getMessage(),
+                     'trace' => $e->getTrace()],
 				400
 			);
 		}
@@ -355,6 +374,7 @@ class EndpointService
 
 		$headers = $request->getHeader('Accept-Crs') === '' ? [] : ['Content-Crs' => $request->getHeader('Accept-Crs')];
 
+
 		// Route to appropriate ObjectService method based on HTTP method
 		return match ($method) {
 			'GET' => new JSONResponse(
@@ -539,7 +559,7 @@ class EndpointService
 	 *
 	 * @return array|JSONResponse Returns modified data or error response if rule fails
 	 */
-	private function processRules(Endpoint $endpoint, IRequest $request, array $data): array|JSONResponse
+	private function processRules(Endpoint $endpoint, IRequest $request, array $data, string $timing, ?string $objectId = null): array|JSONResponse
 	{
 		$rules = $endpoint->getRules();
 		if (empty($rules) === true) {
@@ -566,7 +586,7 @@ class EndpointService
 				}
 
 				// Check rule conditions
-				if ($this->checkRuleConditions($rule, $data) === false) {
+				if ($this->checkRuleConditions($rule, $data) === false || $rule->getTiming() !== $timing) {
 					continue;
 				}
 
@@ -576,6 +596,8 @@ class EndpointService
 					'mapping' => $this->processMappingRule($rule, $data),
 					'synchronization' => $this->processSyncRule($rule, $data),
 					'javascript' => $this->processJavaScriptRule($rule, $data),
+                    'fileparts_create' => $this->processFilePartRule($rule, $data, $endpoint, $objectId),
+                    'filepart_upload' => $this->processFilePartUploadRule($rule, $data, $objectId),
 					default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
 				};
 
@@ -665,6 +687,138 @@ class EndpointService
 		// For now, just return the data unchanged
 		return $data;
 	}
+
+    /**
+     * Processes a file part creation rule.
+     *
+     * @param Rule $rule The rule to process.
+     * @param array $data The created object in array form.
+     * @param string|null $objectId The id of the resulting object.
+     *
+     * @return array The updated object data.
+     *
+     * @throws ContainerExceptionInterface
+     * @throws DoesNotExistException
+     * @throws GuzzleException
+     * @throws LoaderError
+     * @throws MultipleObjectsReturnedException
+     * @throws NotFoundExceptionInterface
+     * @throws SyntaxError
+     * @throws \OCA\OpenRegister\Exception\ValidationException
+     * @throws \OCP\Files\InvalidPathException
+     * @throws \OCP\Files\NotFoundException
+     */
+    private function processFilePartRule(Rule $rule, array $data, Endpoint $endpoint, ?string $objectId = null): array
+    {
+        if ($objectId === null) {
+            throw new Exception('Filepart rules can only be applied after the object has been created');
+        }
+
+        if (isset($rule->getConfiguration()['fileparts_create']) === false) {
+            throw new Exception('No configuration found for fileparts_create');
+        }
+
+        $config = $rule->getConfiguration()['fileparts_create'];
+
+        $targetId = explode('/', $endpoint->getTargetId());
+
+        $registerId = $targetId[0];
+        $superSchemaId = $targetId[1];
+
+        $sizeLocation     = $config['sizeLocation'];
+        $schemaId         = $config['schemaId'];
+        $filenameLocation = $config['filenameLocation'] ?? 'filename';
+        $filePartLocation = $config['filePartLocation'] ?? 'fileParts';
+
+        $mapping = null;
+        if (isset($config['mappingId']) === true) {
+            $mapping = $this->mappingService->getMapping($config['mappingId']);
+        }
+
+        $openRegister = $this->objectService->getOpenRegisters();
+        $openRegister->setRegister($registerId);
+        $openRegister->setSchema($superSchemaId);
+
+        $object   = $openRegister->find(id: $objectId);
+        $location = $object->getFolder();
+
+
+        $dataDot = new Dot($data);
+        $size = $dataDot[$sizeLocation];
+        $filename = $dataDot[$filenameLocation];
+
+        $fileParts = $this->storageService->createUpload($location, $filename, $size);
+
+        $fileParts = array_map(function ($filePart) use ($mapping, $registerId, $schemaId) {
+
+            if ($mapping !== null) {
+                $formatted = $this->mappingService->executeMapping(mapping: $mapping, input: $filePart);
+            } else {
+                $formatted = $filePart;
+            }
+
+            return $this->objectService->getOpenRegisters()->saveObject(
+                register: $registerId,
+                schema: $schemaId,
+                object: $formatted
+            )->jsonSerialize();
+        }, $fileParts);
+
+        $dataDot[$filePartLocation] = $fileParts;
+
+        $filepartIds = array_map(function($filePart) {
+            return $filePart['id'];
+        }, $fileParts);
+
+        $saveObject = clone $dataDot;
+        $saveObject[$filePartLocation] = $filepartIds;
+
+        $openRegister->saveObject($registerId, $schemaId, $saveObject->jsonSerialize());
+
+        return $dataDot->jsonSerialize();
+    }
+
+    /**
+     * Processes the upload of a file part.
+     *
+     * @param Rule $rule The rule to process.
+     * @param array $data The data from the object in array form.
+     * @param string|null $objectId The id of the object.
+     *
+     * @return array The updated object data.
+     *
+     * @throws DoesNotExistException
+     * @throws LoaderError
+     * @throws MultipleObjectsReturnedException
+     * @throws SyntaxError
+     * @throws \OCP\Files\InvalidPathException
+     * @throws \OCP\Files\NotFoundException
+     */
+    private function processFilePartUploadRule(Rule $rule, array $data, ?string $objectId = null): array
+    {
+        if (isset($rule->getConfiguration()['filepart_upload']) === false) {
+            throw new Exception('No configuration found for filepart_upload');
+        }
+
+        $config = $rule->getConfiguration()['filepart_upload'];
+
+        $mappedData = $data;
+
+        if (isset($config['mappingId']) === true) {
+            $mapping = $this->mappingService->getMapping($config['mappingId']);
+            $mappedData = $this->mappingService->executeMapping(mapping: $mapping, input: $mappedData);
+        }
+
+        $this->storageService->writePart(partId: $mappedData['order'], partUuid: $mappedData['id'], data: $mappedData['data']);
+
+        unset($mappedData['data']);
+
+        $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
+        $object->setObject($mappedData);
+        $this->objectService->getOpenRegisters()->getMapper('objectEntity')->update($object);
+
+        return $mappedData;
+    }
 
 	/**
 	 * Processes a JavaScript rule
