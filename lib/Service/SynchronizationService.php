@@ -25,9 +25,11 @@ use OCA\OpenConnector\Service\MappingService;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\Files\GenericFileException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IRequest;
+use OCP\Lock\LockedException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
@@ -103,6 +105,8 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws MultipleObjectsReturnedException
 	 * @throws \OCP\DB\Exception
+	 * @throws Exception
+	 * @throws TooManyRequestsHttpException
 	 */
 	public function synchronize(Synchronization $synchronization, ?bool $isTest = false): array
 	{
@@ -265,13 +269,15 @@ class SynchronizationService
 	 * @return array The resulting object.
 	 *
 	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
 	public function getObjectFromSource(Synchronization $synchronization, string $endpoint): array
 	{
 		$source = $this->sourceMapper->find(id: $synchronization->getSourceId());
 
-		// Lets get the source config
+		// Let's get the source config
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
@@ -309,14 +315,14 @@ class SynchronizationService
 	 *
 	 * @return array The original object merged with the extra data, or the extra data itself based on the configuration.
 	 *
-	 * @throws Exception If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
+	 * @throws Exception|GuzzleException If both dynamic and static endpoint configurations are missing or the endpoint cannot be determined.
 	 */
 	private function fetchExtraDataForObject(
 		Synchronization $synchronization,
 		array $extraDataConfig,
 		array $object, ?string
 		$originId = null
-	)
+	): array
 	{
 		if (isset($extraDataConfig[$this::EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION]) === false && isset($extraDataConfig[$this::EXTRA_DATA_STATIC_ENDPOINT_LOCATION]) === false) {
 			return $object;
@@ -413,6 +419,7 @@ class SynchronizationService
 	 * @param array $object The original object for which extra data needs to be fetched.
 	 *
 	 * @return array The updated object with all fetched extra data merged into it.
+	 * @throws GuzzleException
 	 */
 	private function fetchMultipleExtraData(Synchronization $synchronization, array $sourceConfig, array $object): array
 	{
@@ -434,9 +441,11 @@ class SynchronizationService
 	 * @param Synchronization $synchronization The synchronization instance containing the hash mapping configuration.
 	 * @param array $object The input object to be mapped.
 	 *
-	 * @return array The mapped object, or the original object if no mapping is found.
+	 * @return array|Exception The mapped object, or the original object if no mapping is found.
+	 * @throws LoaderError
+	 * @throws SyntaxError
 	 */
-	private function mapHashObject(Synchronization $synchronization, array $object): array
+	private function mapHashObject(Synchronization $synchronization, array $object): array|Exception
 	{
 		if (empty($synchronization->getSourceHashMapping()) === false) {
 			try {
@@ -465,8 +474,7 @@ class SynchronizationService
 	 * @param array|null $synchronizedTargetIds An array of target IDs that are still valid in the source.
 	 *
 	 * @return int The count of objects that were deleted.
-	 *
-	 * @throws Exception If any database or object deletion errors occur during execution.
+	 * @throws ContainerExceptionInterface|NotFoundExceptionInterface|\OCP\DB\Exception If any database or object deletion errors occur during execution.
 	 */
 	public function deleteInvalidObjects(Synchronization $synchronization, ?array $synchronizedTargetIds = []): int
 	{
@@ -526,6 +534,7 @@ class SynchronizationService
 	 * @throws NotFoundExceptionInterface
 	 * @throws LoaderError
 	 * @throws SyntaxError
+	 * @throws GuzzleException
 	 */
 	public function synchronizeContract(SynchronizationContract $synchronizationContract, Synchronization $synchronization = null, array $object = [], ?bool $isTest = false): SynchronizationContract|Exception|array
 	{
@@ -640,8 +649,7 @@ class SynchronizationService
 	 * @param string|null $action The action to perform: 'save' (default) to update or 'delete' to remove the target object.
 	 *
 	 * @return SynchronizationContract The updated synchronization contract with the modified target ID.
-	 *
-	 * @throws Exception If an error occurs while interacting with the object service or processing the data.
+	 * @throws ContainerExceptionInterface|NotFoundExceptionInterface If an error occurs while interacting with the object service or processing the data.
 	 */
 	private function updateTargetOpenRegister(SynchronizationContract $synchronizationContract, Synchronization $synchronization, ?array $targetObject = [], ?string $action = 'save'): SynchronizationContract
 	{
@@ -733,13 +741,15 @@ class SynchronizationService
 			}
 		}
 	}
+
 	/**
 	 * Processes a single synchronization contract for a subObject.
 	 *
 	 * @param string $synchronizationId The ID of the synchronization.
-	 * @param array  $subObjectData     The data of the subObject to process.
+	 * @param array $subObjectData The data of the subObject to process.
 	 *
 	 * @return void
+	 * @throws \OCP\DB\Exception
 	 */
 	private function processSyncContract(string $synchronizationId, array $subObjectData): void
 	{
@@ -845,9 +855,11 @@ class SynchronizationService
 	 * Updates the ID of a single subObject based on its synchronization contract so OpenRegister can update the object .
 	 *
 	 * @param string $synchronizationId The ID of the synchronization.
-	 * @param array  $subObject 		The subObject to update.
+	 * @param array $subObject The subObject to update.
 	 *
 	 * @return array The updated subObject with the ID set based on the synchronization contract.
+	 * @throws MultipleObjectsReturnedException
+	 * @throws \OCP\DB\Exception
 	 */
 	private function updateIdOnSubObject(string $synchronizationId, array $subObject): array
 	{
@@ -869,12 +881,17 @@ class SynchronizationService
 	 * Write the data to the target
 	 *
 	 * @param SynchronizationContract $synchronizationContract
-	 * @param array $targetObject
+	 * @param array|null $targetObject
 	 * @param string|null $action Determines what needs to be done with the target object, defaults to 'save'
 	 *
 	 * @return SynchronizationContract
 	 * @throws ContainerExceptionInterface
+	 * @throws GuzzleException
+	 * @throws LoaderError
 	 * @throws NotFoundExceptionInterface
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
+	 * @throws Exception
 	 */
 	public function updateTarget(SynchronizationContract $synchronizationContract, ?array $targetObject = [], ?string $action = 'save'): SynchronizationContract
 	{
@@ -951,7 +968,9 @@ class SynchronizationService
 	 *
 	 * @return array An array of all objects retrieved from the API.
 	 * @throws GuzzleException
-	 * @throws TooManyRequestsHttpException
+	 * @throws LoaderError
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
 	 */
 	public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false): array
 	{
@@ -1008,6 +1027,9 @@ class SynchronizationService
 	 * @return array An array of objects retrieved from the API.
 	 * @throws GuzzleException
 	 * @throws TooManyRequestsHttpException
+	 * @throws LoaderError
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
 	 */
 	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false, ?bool $usesNextEndpoint = false): array
 	{
@@ -1313,6 +1335,7 @@ class SynchronizationService
 	 * @throws NotFoundExceptionInterface
 	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
+	 * @throws GuzzleException
 	 */
 	public function synchronizeToTarget(ObjectEntity $object, ?SynchronizationContract $synchronizationContract = null): array
 	{
@@ -1353,17 +1376,22 @@ class SynchronizationService
 
 	}
 
-
-
-    /**
-     * Processes rules for an endpoint request
-     *
-     * @param Endpoint $synchronization The endpoint being processed
-     * @param IRequest $request The incoming request
-     * @param array $data Current request data
-     *
-     * @return array|JSONResponse Returns modified data or error response if rule fails
-     */
+	/**
+	 * Processes rules for an endpoint request
+	 *
+	 * @param Synchronization $synchronization The endpoint being processed
+	 * @param array $data Current request data
+	 * @param string $timing
+	 * @param string|null $objectId
+	 * @param int|null $registerId
+	 * @param int|null $schemaId
+	 *
+	 * @return array|JSONResponse Returns modified data or error response if rule fails
+	 * @throws ContainerExceptionInterface
+	 * @throws GuzzleException
+	 * @throws NotFoundExceptionInterface
+	 * @throws Exception
+	 */
     private function processRules(Synchronization $synchronization, array $data, string $timing, ?string $objectId = null, ?int $registerId = null, ?int $schemaId = null): array|JSONResponse
     {
         $rules = $synchronization->getActions();
@@ -1433,17 +1461,19 @@ class SynchronizationService
         }
     }
 
-    /**
-     * Write a file to the filesystem
-     *
-     * @param string $fileName The filename
-     * @param string $content The content of the file
-     * @param string $objectId The id of the object the file belongs to.
-     *
-     * @return bool Whether the file write is successful.
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
+	/**
+	 * Write a file to the filesystem
+	 *
+	 * @param string $fileName The filename
+	 * @param string $content The content of the file
+	 * @param string $objectId The id of the object the file belongs to.
+	 *
+	 * @return bool Whether the file write is successful.
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 * @throws GenericFileException
+	 * @throws LockedException
+	 */
     private function writeFile(string $fileName, string $content, string $objectId): bool
     {
         $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
@@ -1461,22 +1491,25 @@ class SynchronizationService
         return true;
     }
 
-    /**
-     * Fetch a file from a source.
-     *
-     * @param Source $source The source to fetch the file from.
-     * @param string $endpoint The endpoint for the file.
-     * @param array $config The configuration of the action.
-     * @param string $objectId The id of the object the file belongs to.
-     *
-     * @return string If write is enabled: the url of the file, if write is disabled: the base64 encoded file.
-     *
-     * @throws GuzzleException
-     * @throws LoaderError
-     * @throws SyntaxError
-     * @throws \OCP\DB\Exception
-     */
-    private function fetchFile (Source $source, string $endpoint, array $config, string $objectId): string
+	/**
+	 * Fetch a file from a source.
+	 *
+	 * @param Source $source The source to fetch the file from.
+	 * @param string $endpoint The endpoint for the file.
+	 * @param array $config The configuration of the action.
+	 * @param string $objectId The id of the object the file belongs to.
+	 *
+	 * @return string If write is enabled: the url of the file, if write is disabled: the base64 encoded file.
+	 * @throws ContainerExceptionInterface
+	 * @throws GenericFileException
+	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws LockedException
+	 * @throws NotFoundExceptionInterface
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
+	 */
+    private function fetchFile(Source $source, string $endpoint, array $config, string $objectId): string
     {
         $originalEndpoint = $endpoint;
         $endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true ? substr(string: $endpoint, offset: strlen(string: $source->getLocation())) : $endpoint;
@@ -1523,18 +1556,24 @@ class SynchronizationService
         return $originalEndpoint;
     }
 
-    /**
-     * Process a rule to fetch a file from an external source.
-     *
-     * @param Rule $rule The rule to process.
-     * @param array $data The data written to the object.
-     *
-     * @return array The resulting object data.
-     * @throws GuzzleException
-     * @throws LoaderError
-     * @throws SyntaxError
-     * @throws \OCP\DB\Exception
-     */
+	/**
+	 * Process a rule to fetch a file from an external source.
+	 *
+	 * @param Rule $rule The rule to process.
+	 * @param array $data The data written to the object.
+	 * @param string $objectId
+	 *
+	 * @return array The resulting object data.
+	 * @throws ContainerExceptionInterface
+	 * @throws GenericFileException
+	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws LockedException
+	 * @throws NotFoundExceptionInterface
+	 * @throws SyntaxError
+	 * @throws \OCP\DB\Exception
+	 * @throws Exception
+	 */
     private function processFetchFileRule(Rule $rule, array $data, string $objectId): array
     {
         if (isset($rule->getConfiguration()['fetch_file']) === false) {
@@ -1561,21 +1600,22 @@ class SynchronizationService
         return $dataDot->jsonSerialize();
     }
 
-    /**
-     * Process a rule to write files.
-     *
-     * @param Rule $rule The rule to process.
-     * @param array $data The data to write.
-     * @param string $objectId The object to write the data to.
-     * @param int $registerId The register the object is in.
-     * @param int $schemaId The schema the object is in.
-     * @return array
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
+	/**
+	 * Process a rule to write files.
+	 *
+	 * @param Rule $rule The rule to process.
+	 * @param array $data The data to write.
+	 * @param string $objectId The object to write the data to.
+	 * @param int $registerId The register the object is in.
+	 * @param int $schemaId The schema the object is in.
+	 *
+	 * @return array
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 * @throws Exception
+	 */
     private function processWriteFileRule(Rule $rule, array $data, string $objectId, int $registerId, int $schemaId): array
     {
-
         if (isset($rule->getConfiguration()['write_file']) === false) {
             throw new Exception('No configuration found for write_file');
         }
