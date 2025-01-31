@@ -428,7 +428,7 @@ export default {
 					description: this.mappingItem.description,
 					mapping: JSON.parse(this.mappingItem.mapping),
 					cast: this.mappingItem.cast ? JSON.parse(this.mappingItem.cast) : null,
-					unset: this.mappingItem.unset.split(/ *, */g),
+					unset: this.mappingItem.unset.split(/ *, */g).filter(Boolean),
 				},
 				inputObject: JSON.parse(this.inputObject.value),
 				schema: this.schemas.value?.id,
@@ -453,7 +453,7 @@ export default {
 				description: this.mappingItem.description,
 				mapping: JSON.parse(this.mappingItem.mapping),
 				cast: JSON.parse(this.mappingItem.cast),
-				unset: this.mappingItem.unset.split(/ *, */g),
+				unset: this.mappingItem.unset.split(/ *, */g).filter(Boolean),
 			})
 
 			mappingStore.saveMapping(newMappingItem)
