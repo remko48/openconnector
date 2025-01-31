@@ -133,6 +133,7 @@ class SynchronizationService
 		}
 
 		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
+        return $synchronizationContract;
 	}
 
 	/**
@@ -169,6 +170,7 @@ class SynchronizationService
 
 		if ($synchronization->getSourceType() === 'register/schema' && $object !== null) {
 			return $this->synchronizeInternToExtern($synchronization, $isTest, $object);
+			return [$this->synchronizeInternToExtern($synchronization, $isTest, $object)];
 		}
 
 		// @todo put all code below in another function like:
