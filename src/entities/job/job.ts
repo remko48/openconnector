@@ -27,6 +27,7 @@ export class Job extends ReadonlyBaseClass implements TJob {
 	public readonly created: string
 	public readonly updated: string
 	public readonly version: string
+
 	constructor(job: TJob) {
 		const processedJob: TJob = {
 			id: job.id || '',

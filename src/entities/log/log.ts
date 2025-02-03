@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TLog } from './log.types'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
 import getValidISOstring from '../../services/getValidISOstring.js'
+import _ from 'lodash'
 
 export class Log extends ReadonlyBaseClass implements TLog {
 
@@ -65,6 +66,10 @@ export class Log extends ReadonlyBaseClass implements TLog {
 		}
 
 		super(processedLog)
+	}
+
+	public cloneRaw(): TLog {
+		return _.cloneDeep(this)
 	}
 
 	public validate(): SafeParseReturnType<TLog, unknown> {
