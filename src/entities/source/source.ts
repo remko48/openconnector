@@ -3,6 +3,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TSource } from './source.types'
 import getValidISOstring from '../../services/getValidISOstring.js'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 export class Source extends ReadonlyBaseClass implements TSource {
 
@@ -88,6 +89,10 @@ export class Source extends ReadonlyBaseClass implements TSource {
 		}
 
 		super(processedSource)
+	}
+
+	public cloneRaw(): TSource {
+		return _.cloneDeep(this)
 	}
 
 	public validate(): SafeParseReturnType<TSource, unknown> {

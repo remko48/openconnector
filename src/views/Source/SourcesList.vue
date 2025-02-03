@@ -58,7 +58,7 @@ import { sourceStore, navigationStore, searchStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
-						<NcActionButton @click="sourceStore.exportSource(source)">
+						<NcActionButton @click="sourceStore.exportSource(source.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
