@@ -12,7 +12,7 @@ import { useEndpointStore } from './modules/endpoints.ts'
 import { useConsumerStore } from './modules/consumer.ts'
 import { useImportExportStore } from './modules/importExport.js'
 import { useEventStore } from './modules/event.ts'
-import { useRuleStore } from './modules/rule.js'
+import { useRuleStore } from './modules/rule.ts'
 
 const navigationStore = useNavigationStore(pinia)
 const searchStore = useSearchStore(pinia)
