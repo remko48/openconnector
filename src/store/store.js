@@ -2,7 +2,7 @@
 import pinia from '../pinia.js'
 import { useNavigationStore } from './modules/navigation.js'
 import { useSearchStore } from './modules/search.js'
-import { useJobStore } from './modules/job.js'
+import { useJobStore } from './modules/job.ts'
 import { useLogStore } from './modules/log.js'
 import { useMappingStore } from './modules/mapping.js'
 import { useSourceStore } from './modules/source.js'
