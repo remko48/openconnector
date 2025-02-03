@@ -8,10 +8,10 @@ import { useMappingStore } from './modules/mapping.js'
 import { useSourceStore } from './modules/source.js'
 import { useSynchronizationStore } from './modules/synchronization.js'
 import { useWebhookStore } from './modules/webhooks.js'
-import { useEndpointStore } from './modules/endpoints.js'
+import { useEndpointStore } from './modules/endpoints.ts'
 import { useConsumerStore } from './modules/consumer.ts'
 import { useImportExportStore } from './modules/importExport.js'
-import { useEventStore } from './modules/event.js'
+import { useEventStore } from './modules/event.ts'
 import { useRuleStore } from './modules/rule.js'
 
 const navigationStore = useNavigationStore(pinia)
