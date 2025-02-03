@@ -44,7 +44,7 @@ export const useMappingStore = defineStore('mapping', () => {
 	 * const mappingItem = computed(() => useMappingStore().getMappingItem())
 	 * ```
 	 *
-	 * @return {Log | null} The active log item
+	 * @return {Mapping | null} The active mapping item
 	 */
 	const getMappingItem = (): Mapping | null => mappingItem.value as Mapping | null
 
@@ -168,7 +168,7 @@ export const useMappingStore = defineStore('mapping', () => {
 	// ||          Actions           ||
 	// ################################
 
-	// Log
+	// Mapping
 	/**
 	 * Refresh the mapping list
 	 * @param search - The search string to filter the list
@@ -233,7 +233,7 @@ export const useMappingStore = defineStore('mapping', () => {
 			throw new MissingParameterError('id')
 		}
 
-		console.info('Deleting log...')
+		console.info('Deleting mapping...')
 
 		const endpoint = `${apiEndpoint}/${id}`
 
