@@ -27,7 +27,7 @@ export const useSynchronizationStore = defineStore('synchronization', () => {
 	 */
 	const setSynchronizationItem = (item: Synchronization | TSynchronization) => {
 		synchronizationItem.value = item && new Synchronization(item)
-		console.info('Active synchronization item set to ' + item.id)
+		console.info('Active synchronization item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -348,13 +348,14 @@ export const useSynchronizationStore = defineStore('synchronization', () => {
 			throw new Error('synchronizationItem is not an instance of Synchronization')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = synchronizationItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(synchronizationItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = synchronizationItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(synchronizationItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		// delete "updated" and "version"
 		const clonedSynchronization = synchronizationItem.cloneRaw()

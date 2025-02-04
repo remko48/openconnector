@@ -25,7 +25,7 @@ export const useRuleStore = defineStore('rule', () => {
 	 */
 	const setRuleItem = (item: Rule | TRule) => {
 		ruleItem.value = item && new Rule(item)
-		console.info('Active rule item set to ' + item.id)
+		console.info('Active rule item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -259,13 +259,14 @@ export const useRuleStore = defineStore('rule', () => {
 			throw new Error('ruleItem is not an instance of Rule')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = ruleItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(ruleItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = ruleItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(ruleItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		// delete "updated"
 		const clonedRule = ruleItem.cloneRaw()

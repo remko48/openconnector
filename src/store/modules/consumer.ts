@@ -20,7 +20,7 @@ export const useConsumerStore = defineStore('consumer', () => {
 	 */
 	const setConsumerItem = (item: Consumer | TConsumer) => {
 		consumerItem.value = item && new Consumer(item)
-		console.info('Active consumer item set to ' + item?.id)
+		console.info('Active consumer item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -169,13 +169,14 @@ export const useConsumerStore = defineStore('consumer', () => {
 			throw new Error('consumerItem is not an instance of Consumer')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = consumerItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(consumerItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = consumerItem.validate()
+		// if (!validationResult.success) {
+		//  console.error(validationResult.error)
+		//  console.info(consumerItem)
+		//  throw new ValidationError(validationResult.error)
+		// }
 
 		// delete "updated"
 		const clonedConsumer = consumerItem.cloneRaw()

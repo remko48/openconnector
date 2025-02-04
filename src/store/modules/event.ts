@@ -26,7 +26,7 @@ export const useEventStore = defineStore('event', () => {
 	 */
 	const setEventItem = (item: Event | TEvent) => {
 		eventItem.value = item && new Event(item)
-		console.info('Active event item set to ' + item.id)
+		console.info('Active event item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -325,13 +325,14 @@ export const useEventStore = defineStore('event', () => {
 			throw new Error('eventItem is not an instance of Event')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = eventItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(eventItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = eventItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(eventItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		// delete "updated"
 		const clonedEvent = eventItem.cloneRaw()

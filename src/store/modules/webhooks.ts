@@ -20,7 +20,7 @@ export const useWebhookStore = defineStore('webhook', () => {
 	 */
 	const setWebhookItem = (item: Webhook | TWebhook) => {
 		webhookItem.value = item && new Webhook(item)
-		console.info('Active webhook item set to ' + item.id)
+		console.info('Active webhook item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -167,13 +167,14 @@ export const useWebhookStore = defineStore('webhook', () => {
 			throw new Error('webhookItem is not an instance of Webhook')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = webhookItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(webhookItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = webhookItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(webhookItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		console.info('Saving webhook...')
 

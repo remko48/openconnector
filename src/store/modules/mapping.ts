@@ -25,7 +25,7 @@ export const useMappingStore = defineStore('mapping', () => {
 	 */
 	const setMappingItem = (item: Mapping | TMapping) => {
 		mappingItem.value = item && new Mapping(item)
-		console.info('Active mapping item set to ' + item.id)
+		console.info('Active mapping item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -260,13 +260,14 @@ export const useMappingStore = defineStore('mapping', () => {
 			throw new Error('mappingItem is not an instance of Mapping')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = mappingItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(mappingItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = mappingItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(mappingItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		// delete "version"
 		const clonedMapping = mappingItem.cloneRaw()

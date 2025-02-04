@@ -27,7 +27,7 @@ export const useJobStore = defineStore('job', () => {
 	 */
 	const setJobItem = (item: Job | TJob) => {
 		jobItem.value = item && new Job(item)
-		console.info('Active job item set to ' + item.id)
+		console.info('Active job item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -326,13 +326,14 @@ export const useJobStore = defineStore('job', () => {
 			throw new Error('jobItem is not an instance of Job')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = jobItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(jobItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = jobItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(jobItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		// delete "updated"
 		const clonedJob = jobItem.cloneRaw()

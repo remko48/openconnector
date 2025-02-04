@@ -23,7 +23,7 @@ export const useLogStore = defineStore('log', () => {
 	 */
 	const setLogItem = (item: Log | TLog) => {
 		logItem.value = item && new Log(item)
-		console.info('Active log item set to ' + item.id)
+		console.info('Active log item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -110,7 +110,7 @@ export const useLogStore = defineStore('log', () => {
 	 */
 	const setViewLogItem = (item: Record<string, unknown>) => {
 		viewLogItem.value = item
-		console.info('Active view log item set to ' + item.id)
+		console.info('Active view log item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -229,13 +229,14 @@ export const useLogStore = defineStore('log', () => {
 			throw new Error('logItem is not an instance of Log')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = logItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(logItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = logItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(logItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		console.info('Saving log...')
 

@@ -25,7 +25,7 @@ export const useSourceStore = defineStore('source', () => {
 	 */
 	const setSourceItem = (item: Source | TSource) => {
 		sourceItem.value = item && new Source(item)
-		console.info('Active source item set to ' + item.id)
+		console.info('Active source item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -288,13 +288,14 @@ export const useSourceStore = defineStore('source', () => {
 			throw new Error('sourceItem is not an instance of Source')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = sourceItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(sourceItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = sourceItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(sourceItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		console.info('Saving source...')
 

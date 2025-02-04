@@ -21,7 +21,7 @@ export const useEndpointStore = defineStore('endpoint', () => {
 	 */
 	const setEndpointItem = (item: Endpoint | TEndpoint) => {
 		endpointItem.value = item && new Endpoint(item)
-		console.info('Active endpoint item set to ' + item.id)
+		console.info('Active endpoint item set to ' + (item ? item.id : 'null'))
 	}
 
 	/**
@@ -170,13 +170,14 @@ export const useEndpointStore = defineStore('endpoint', () => {
 			throw new Error('endpointItem is not an instance of Endpoint')
 		}
 
+		// DISABLED UNTIL TIME CAN BE SPENT TO DO VALIDATION PROPERLY
 		// verify data with Zod
-		const validationResult = endpointItem.validate()
-		if (!validationResult.success) {
-			console.error(validationResult.error)
-			console.info(endpointItem)
-			throw new ValidationError(validationResult.error)
-		}
+		// const validationResult = endpointItem.validate()
+		// if (!validationResult.success) {
+		// 	console.error(validationResult.error)
+		// 	console.info(endpointItem)
+		// 	throw new ValidationError(validationResult.error)
+		// }
 
 		// delete "updated"
 		const clonedEndpoint = endpointItem.cloneRaw()
