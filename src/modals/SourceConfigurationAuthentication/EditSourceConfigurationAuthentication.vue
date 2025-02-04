@@ -1,5 +1,6 @@
 <script setup>
 import { sourceStore, navigationStore } from '../../store/store.js'
+import { Source } from '../../entities/index.js'
 </script>
 
 <template>
@@ -131,13 +132,13 @@ export default {
 				delete newAuth[this.oldKey]
 			}
 
-			const newSourceItem = {
+			const newSourceItem = new Source({
 				...sourceStore.sourceItem,
 				configuration: {
 					...currentConfig,
 					authentication: newAuth,
 				},
-			}
+			})
 
 			try {
 				await sourceStore.saveSource(newSourceItem)

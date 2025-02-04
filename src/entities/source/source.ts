@@ -83,8 +83,8 @@ export class Source extends ReadonlyBaseClass implements TSource {
 			lastCall: source.lastCall || '',
 			lastSync: source.lastSync || '',
 			objectCount: source.objectCount || 0,
-			dateCreated: getValidISOstring(source.dateCreated) ?? '',
-			dateModified: getValidISOstring(source.dateModified) ?? '',
+			dateCreated: getValidISOstring(source.dateCreated) ?? null,
+			dateModified: getValidISOstring(source.dateModified) ?? null,
 			test: source.test || false,
 		}
 
@@ -97,7 +97,7 @@ export class Source extends ReadonlyBaseClass implements TSource {
 
 	public validate(): SafeParseReturnType<TSource, unknown> {
 		const schema = z.object({
-			id: z.string().nullable(),
+			id: z.number().nullable(),
 			uuid: z.string(),
 			name: z.string().max(255),
 			description: z.string(),
@@ -105,7 +105,7 @@ export class Source extends ReadonlyBaseClass implements TSource {
 			version: z.string(),
 			location: z.string().max(255),
 			isEnabled: z.boolean(),
-			type: z.enum(['json', 'xml', 'soap', 'ftp', 'sftp']),
+			type: z.enum(['json', 'xml', 'soap', 'ftp', 'sftp', 'api', 'database', 'file']),
 			authorizationHeader: z.string(),
 			auth: z.enum(['apikey', 'jwt', 'username-password', 'none', 'jwt-HS256', 'vrijbrp-jwt', 'pink-jwt', 'oauth']),
 			authenticationConfig: z.object({}),
@@ -132,8 +132,8 @@ export class Source extends ReadonlyBaseClass implements TSource {
 			lastCall: z.string(),
 			lastSync: z.string(),
 			objectCount: z.number(),
-			dateCreated: z.string().datetime(),
-			dateModified: z.string().datetime(),
+			dateCreated: z.string().datetime().nullable(),
+			dateModified: z.string().datetime().nullable(),
 			test: z.boolean(),
 		})
 
