@@ -2,7 +2,12 @@
 
 namespace OCA\OpenConnector\Db;
 
+use DateInterval;
+use DatePeriod;
+use DateTime;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Symfony\Component\Uid\Uuid;
@@ -79,13 +84,14 @@ class CallLogMapper extends QBMapper
         return $this->update($obj);
     }
 
-    /**
-     * Clear expired logs from the database.
-     *
-     * This method deletes all call logs that have expired (i.e., their 'expired' date is earlier than the current date and time).
-     *
-     * @return bool True if any logs were deleted, false otherwise.
-     */
+	/**
+	 * Clear expired logs from the database.
+	 *
+	 * This method deletes all call logs that have expired (i.e., their 'expired' date is earlier than the current date and time).
+	 *
+	 * @return bool True if any logs were deleted, false otherwise.
+	 * @throws Exception
+	 */
     public function clearLogs(): bool
     {
         // Get the query builder
@@ -102,11 +108,12 @@ class CallLogMapper extends QBMapper
         return $result > 0;
     }
 
-    /**
-     * Get call log counts grouped by creation date.
-     *
-     * @return array An associative array where the key is the creation date and the value is the count of calls created on that date.
-     */
+	/**
+	 * Get call log counts grouped by creation date.
+	 *
+	 * @return array An associative array where the key is the creation date and the value is the count of calls created on that date.
+	 * @throws Exception
+	 */
     public function getCallCountsByDate(): array
     {
         $qb = $this->db->getQueryBuilder();
@@ -128,11 +135,12 @@ class CallLogMapper extends QBMapper
         return $counts;
     }
 
-    /**
-     * Get call log counts grouped by creation time (hour).
-     *
-     * @return array An associative array where the key is the creation time (hour) and the value is the count of calls created at that time.
-     */
+	/**
+	 * Get call log counts grouped by creation time (hour).
+	 *
+	 * @return array An associative array where the key is the creation time (hour) and the value is the count of calls created at that time.
+	 * @throws Exception
+	 */
     public function getCallCountsByTime(): array
     {
         $qb = $this->db->getQueryBuilder();
@@ -154,11 +162,12 @@ class CallLogMapper extends QBMapper
         return $counts;
     }
 
-    /**
-     * Get the total count of all call logs.
-     *
-     * @return int The total number of call logs in the database.
-     */
+	/**
+	 * Get the total count of all call logs.
+	 *
+	 * @return int The total number of call logs in the database.
+	 * @throws Exception
+	 */
     public function getTotalCallCount(): int
     {
         $qb = $this->db->getQueryBuilder();
@@ -174,11 +183,13 @@ class CallLogMapper extends QBMapper
         return (int)$row['count'];
     }
 
-    /**
-     * Get the last call log.
-     *
-     * @return CallLog|null The last call log or null if no logs exist.
-     */
+	/**
+	 * Get the last call log.
+	 *
+	 * @return CallLog|null The last call log or null if no logs exist.
+	 * @throws Exception
+	 * @throws MultipleObjectsReturnedException
+	 */
     public function getLastCallLog(): ?CallLog
     {
         $qb = $this->db->getQueryBuilder();
@@ -195,14 +206,16 @@ class CallLogMapper extends QBMapper
         }
     }
 
-    /**
-     * Get call statistics grouped by date for a specific date range
-     * 
-     * @param \DateTime $from Start date
-     * @param \DateTime $to End date
-     * @return array Array of daily statistics with success and error counts
-     */
-    public function getCallStatsByDateRange(\DateTime $from, \DateTime $to): array 
+	/**
+	 * Get call statistics grouped by date for a specific date range
+	 *
+	 * @param DateTime $from Start date
+	 * @param DateTime $to End date
+	 *
+	 * @return array Array of daily statistics with success and error counts
+	 * @throws Exception
+	 */
+    public function getCallStatsByDateRange(DateTime $from, DateTime $to): array
     {
         $qb = $this->db->getQueryBuilder();
 
@@ -220,11 +233,11 @@ class CallLogMapper extends QBMapper
 
         $result = $qb->execute();
         $stats = [];
-        
+
         // Create DatePeriod to iterate through all dates
-        $period = new \DatePeriod(
+        $period = new DatePeriod(
             $from,
-            new \DateInterval('P1D'),
+            new DateInterval('P1D'),
             $to->modify('+1 day')
         );
 
@@ -248,14 +261,16 @@ class CallLogMapper extends QBMapper
         return $stats;
     }
 
-    /**
-     * Get call statistics grouped by hour for a specific date range
-     * 
-     * @param \DateTime $from Start date
-     * @param \DateTime $to End date
-     * @return array Array of hourly statistics with success and error counts
-     */
-    public function getCallStatsByHourRange(\DateTime $from, \DateTime $to): array 
+	/**
+	 * Get call statistics grouped by hour for a specific date range
+	 *
+	 * @param DateTime $from Start date
+	 * @param DateTime $to End date
+	 *
+	 * @return array Array of hourly statistics with success and error counts
+	 * @throws Exception
+	 */
+    public function getCallStatsByHourRange(DateTime $from, DateTime $to): array
     {
         $qb = $this->db->getQueryBuilder();
 

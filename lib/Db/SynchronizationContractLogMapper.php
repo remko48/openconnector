@@ -2,9 +2,13 @@
 
 namespace OCA\OpenConnector\Db;
 
+use DateInterval;
+use DatePeriod;
+use DateTime;
 use OCA\OpenConnector\Db\SynchronizationContractLog;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Symfony\Component\Uid\Uuid;
@@ -96,12 +100,14 @@ class SynchronizationContractLogMapper extends QBMapper
 
 	/**
 	 * Get synchronization execution counts by date for a specific date range
-	 * 
-	 * @param \DateTime $from Start date
-	 * @param \DateTime $to End date
+	 *
+	 * @param DateTime $from Start date
+	 * @param DateTime $to End date
+	 *
 	 * @return array Array of daily execution counts
+	 * @throws Exception
 	 */
-	public function getSyncStatsByDateRange(\DateTime $from, \DateTime $to): array 
+	public function getSyncStatsByDateRange(DateTime $from, DateTime $to): array
 	{
 		$qb = $this->db->getQueryBuilder();
 
@@ -119,9 +125,9 @@ class SynchronizationContractLogMapper extends QBMapper
 		$stats = [];
 
 		// Create DatePeriod to iterate through all dates
-		$period = new \DatePeriod(
+		$period = new DatePeriod(
 			$from,
-			new \DateInterval('P1D'),
+			new DateInterval('P1D'),
 			$to->modify('+1 day')
 		);
 
@@ -141,12 +147,14 @@ class SynchronizationContractLogMapper extends QBMapper
 
 	/**
 	 * Get synchronization execution counts by hour for a specific date range
+	 *
+	 * @param DateTime $from Start date
+	 * @param DateTime $to End date
 	 * 
-	 * @param \DateTime $from Start date
-	 * @param \DateTime $to End date
 	 * @return array Array of hourly execution counts
+	 * @throws Exception
 	 */
-	public function getSyncStatsByHourRange(\DateTime $from, \DateTime $to): array 
+	public function getSyncStatsByHourRange(DateTime $from, DateTime $to): array
 	{
 		$qb = $this->db->getQueryBuilder();
 

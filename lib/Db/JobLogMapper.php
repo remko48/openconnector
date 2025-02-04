@@ -2,7 +2,12 @@
 
 namespace OCA\OpenConnector\Db;
 
+use DateInterval;
+use DatePeriod;
+use DateTime;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Symfony\Component\Uid\Uuid;
@@ -98,11 +103,13 @@ class JobLogMapper extends QBMapper
         return $this->update($obj);
     }
 
-    /**
-     * Get the last call log.
-     *
-     * @return CallLog|null The last call log or null if no logs exist.
-     */
+	/**
+	 * Get the last call log.
+	 *
+	 * @return CallLog|null The last call log or null if no logs exist.
+	 * @throws MultipleObjectsReturnedException
+	 * @throws Exception
+	 */
     public function getLastCallLog(): ?JobLog
     {
         $qb = $this->db->getQueryBuilder();
@@ -119,14 +126,16 @@ class JobLogMapper extends QBMapper
         }
     }
 
-    /**
-     * Get job statistics grouped by date for a specific date range
-     * 
-     * @param \DateTime $from Start date
-     * @param \DateTime $to End date
-     * @return array Array of daily statistics with counts per log level
-     */
-    public function getJobStatsByDateRange(\DateTime $from, \DateTime $to): array 
+	/**
+	 * Get job statistics grouped by date for a specific date range
+	 *
+	 * @param DateTime $from Start date
+	 * @param DateTime $to End date
+	 *
+	 * @return array Array of daily statistics with counts per log level
+	 * @throws Exception
+	 */
+    public function getJobStatsByDateRange(DateTime $from, DateTime $to): array
     {
         $qb = $this->db->getQueryBuilder();
 
@@ -147,9 +156,9 @@ class JobLogMapper extends QBMapper
         $stats = [];
 
         // Create DatePeriod to iterate through all dates
-        $period = new \DatePeriod(
+        $period = new DatePeriod(
             $from,
-            new \DateInterval('P1D'),
+            new DateInterval('P1D'),
             $to->modify('+1 day')
         );
 
@@ -177,14 +186,16 @@ class JobLogMapper extends QBMapper
         return $stats;
     }
 
-    /**
-     * Get job statistics grouped by hour for a specific date range
-     * 
-     * @param \DateTime $from Start date
-     * @param \DateTime $to End date
-     * @return array Array of hourly statistics with counts per log level
-     */
-    public function getJobStatsByHourRange(\DateTime $from, \DateTime $to): array 
+	/**
+	 * Get job statistics grouped by hour for a specific date range
+	 *
+	 * @param DateTime $from Start date
+	 * @param DateTime $to End date
+	 *
+	 * @return array Array of hourly statistics with counts per log level
+	 * @throws Exception
+	 */
+    public function getJobStatsByHourRange(DateTime $from, DateTime $to): array
     {
         $qb = $this->db->getQueryBuilder();
 

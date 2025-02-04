@@ -44,26 +44,26 @@ class DashboardController extends Controller
      * @NoAdminRequired
      * @NoCSRFRequired
      */
-    public function page(?string $getParameter)
-    {
+    public function page(?string $getParameter): TemplateResponse
+	{
         try {
             $response = new TemplateResponse(
-                $this->appName,
-                'index',
-                []
+				appName: $this->appName,
+				templateName: 'index',
+				params:[]
             );
-            
+
             $csp = new ContentSecurityPolicy();
-            $csp->addAllowedConnectDomain('*');
+            $csp->addAllowedConnectDomain(domain: '*');
             $response->setContentSecurityPolicy($csp);
 
             return $response;
         } catch (\Exception $e) {
             return new TemplateResponse(
-                $this->appName,
-                'error',
-                ['error' => $e->getMessage()],
-                '500'
+                appName: $this->appName,
+                templateName: 'error',
+                params: ['error' => $e->getMessage()],
+                renderAs: '500'
             );
         }
     }
@@ -85,7 +85,7 @@ class DashboardController extends Controller
             ];
             return new JSONResponse($results);
         } catch (\Exception $e) {
-            return new JSONResponse(['error' => $e->getMessage()], 500);
+            return new JSONResponse(data: ['error' => $e->getMessage()], statusCode: 500);
         }
     }
 
