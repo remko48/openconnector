@@ -56,8 +56,28 @@ class JobLogMapper extends QBMapper
         return $this->findEntities($qb);
     }
 
+	public function createForJob(Job $job, array $object): JobLog
+	{
+		$jobObject = [
+			'jobId'         => $job->getId(),
+			'jobClass'      => $job->getJobClass(),
+			'jobListId'     => $job->getJobListId(),
+			'arguments'     => $job->getArguments(),
+			'lastRun'       => $job->getLastRun(),
+			'nextRun'       => $job->getNextRun(),
+		];
+
+		$object = array_merge($jobObject, $object);
+
+		return $this->createFromArray($object);
+	}
+
     public function createFromArray(array $object): JobLog
     {
+		if (isset($object['executionTime']) === false) {
+			$object['executionTime'] = 0;
+		}
+
         $obj = new JobLog();
 		$obj->hydrate($object);
 		// Set uuid

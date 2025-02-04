@@ -46,8 +46,11 @@ import { navigationStore } from '../store/store.js'
 				<!-- This is correct according to the documentation, thats why there is a disable comment -->
 				<!-- eslint-disable-next-line vue/no-lone-template -->
 				<template>
-					<NcAppNavigationItem name="Subscriber List" />
-					<NcAppNavigationItem name="Events" />
+					<NcAppNavigationItem :active="navigationStore.selected === 'events'" name="Events" @click="navigationStore.setSelected('events')">
+						<template #icon>
+							<MessageTextFastOutline :size="20" />
+						</template>
+					</NcAppNavigationItem>
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem :active="navigationStore.selected === 'synchronizations'" name="Synchronization" @click="navigationStore.setSelected('synchronizations')">
@@ -55,7 +58,19 @@ import { navigationStore } from '../store/store.js'
 					<VectorPolylinePlus :size="20" />
 				</template>
 			</NcAppNavigationItem>
+			<NcAppNavigationItem :active="navigationStore.selected === 'rules'" name="Rules" @click="navigationStore.setSelected('rules')">
+				<template #icon>
+					<SitemapOutline :size="20" />
+				</template>
+			</NcAppNavigationItem>
 		</NcAppNavigationList>
+		<NcAppNavigationSettings>
+			<NcAppNavigationItem :active="navigationStore.selected === 'imports'" name="Import" @click="navigationStore.setSelected('imports')">
+				<template #icon>
+					<FileImportOutline :size="20" />
+				</template>
+			</NcAppNavigationItem>
+		</NcAppNavigationSettings>
 	</NcAppNavigation>
 </template>
 
@@ -64,6 +79,7 @@ import {
 	NcAppNavigation,
 	NcAppNavigationList,
 	NcAppNavigationItem,
+	NcAppNavigationSettings,
 } from '@nextcloud/vue'
 
 // Icons
@@ -75,6 +91,9 @@ import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
 import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 import CloudUploadOutline from 'vue-material-design-icons/CloudUploadOutline.vue'
+import MessageTextFastOutline from 'vue-material-design-icons/MessageTextFastOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
+
 export default {
 	name: 'MainMenu',
 	components: {
@@ -91,6 +110,8 @@ export default {
 		Update,
 		VectorPolylinePlus,
 		CloudUploadOutline,
+		MessageTextFastOutline,
+		FileImportOutline,
 	},
 	methods: {
 		openLink(url, type = '') {

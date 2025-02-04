@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { defineStore } from 'pinia'
 
 export const useNavigationStore = defineStore(
@@ -16,19 +15,19 @@ export const useNavigationStore = defineStore(
 		actions: {
 			setSelected(selected) {
 				this.selected = selected
-				console.log('Active menu item set to ' + selected)
+				console.info('Active menu item set to ' + selected)
 			},
 			setSelectedCatalogus(selectedCatalogus) {
 				this.selectedCatalogus = selectedCatalogus
-				console.log('Active catalogus menu set to ' + selectedCatalogus)
+				console.info('Active catalogus menu set to ' + selectedCatalogus)
 			},
 			setModal(modal) {
 				this.modal = modal
-				console.log('Active modal set to ' + modal)
+				console.info('Active modal set to ' + modal)
 			},
 			setDialog(dialog) {
 				this.dialog = dialog
-				console.log('Active dialog set to ' + dialog)
+				console.info('Active dialog set to ' + dialog)
 			},
 			setTransferData(data) {
 				this.transferData = data

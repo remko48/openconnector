@@ -51,10 +51,10 @@ class JobService
         $arguments['jobId'] = $job->getId();
 
         if (!$job->getScheduleAfter()) {
-            $iJob = $this->jobList->add($this->actionTask::class, $arguments);
+            $this->jobList->add($this->actionTask::class, $arguments);
         } else {
             $runAfter = $job->getScheduleAfter()->getTimestamp();
-            $iJob = $this->jobList->scheduleAfter($this->actionTask::class, $runAfter, $arguments);
+            $this->jobList->scheduleAfter($this->actionTask::class, $runAfter, $arguments);
         }
 
         // Set the job list id

@@ -93,7 +93,7 @@ class CallLogMapper extends QBMapper
 
         // Build the delete query
         $qb->delete('openconnector_call_logs')
-           ->where($qb->expr()->lt('expired', $qb->createFunction('NOW()')));
+           ->where($qb->expr()->lt('expires', $qb->createFunction('NOW()')));
 
         // Execute the query and get the number of affected rows
         $result = $qb->execute();

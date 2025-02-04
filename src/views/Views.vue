@@ -14,6 +14,9 @@ import { navigationStore } from '../store/store.js'
 			<JobsIndex v-if="navigationStore.selected === 'jobs'" />
 			<MappingsIndex v-if="navigationStore.selected === 'mappings'" />
 			<SynchronizationsIndex v-if="navigationStore.selected === 'synchronizations'" />
+			<EventsIndex v-if="navigationStore.selected === 'events'" />
+			<RulesIndex v-if="navigationStore.selected === 'rules'" />
+			<ImportIndex v-if="navigationStore.selected === 'imports'" />
 		</template>
 	</NcAppContent>
 </template>
@@ -28,6 +31,9 @@ import WebhooksIndex from './Webhook/WebhooksIndex.vue'
 import JobsIndex from './Job/JobsIndex.vue'
 import MappingsIndex from './Mapping/MappingsIndex.vue'
 import SynchronizationsIndex from './Synchronization/SynchronizationsIndex.vue'
+import EventsIndex from './event/EventIndex.vue'
+import RulesIndex from './rule/RuleIndex.vue'
+import ImportIndex from './Import/ImportIndex.vue'
 
 export default {
 	name: 'Views',
@@ -41,6 +47,8 @@ export default {
 		JobsIndex,
 		MappingsIndex,
 		SynchronizationsIndex,
+		EventsIndex,
+		RulesIndex,
 	},
 }
 </script>

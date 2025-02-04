@@ -10,7 +10,7 @@ class Mapping extends Entity implements JsonSerializable
 {
     protected ?string $uuid = null;
 	protected ?string $reference = null;
-	protected ?string $version = null;
+	protected ?string $version = '0.0.0';
 	protected ?string $name = null;
 	protected ?string $description = null;
 	protected ?array $mapping = null;
@@ -42,6 +42,11 @@ class Mapping extends Entity implements JsonSerializable
 			})
 		);
 	}
+
+    public function getUpdated(): ?DateTime
+    {
+        return $this->dateModified;
+    }
 
 	public function hydrate(array $object): self
 	{

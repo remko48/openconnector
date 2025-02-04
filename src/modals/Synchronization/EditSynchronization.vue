@@ -1,5 +1,5 @@
 <script setup>
-import { synchronizationStore, navigationStore, sourceStore, mappingStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, sourceStore, mappingStore, ruleStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -81,19 +81,57 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 				<NcTextArea :value.sync="synchronizationItem.description"
 					label="Description" />
 
-				<NcSelect v-bind="typeOptions"
-					v-model="typeOptions.value"
-					input-label="Source Type" />
+				<NcTextArea :value.sync="synchronizationItem.conditions"
+					label="Conditions (json logic)" />
 
-				<NcSelect v-bind="sourceOptions"
-					v-model="sourceOptions.sourceValue"
-					:loading="sourcesLoading"
-					input-label="Source ID" />
+				<NcSelect v-bind="ruleOptions"
+					v-model="ruleOptions.value"
+					multiple
+					:loading="rulesLoading"
+					input-label="Rules" />
+				<div>
+					<NcSelect v-bind="typeOptions"
+						v-model="typeOptions.value"
+						:selectable="(option) => {
+							return option.id === 'register/schema' ? openRegisterInstalled : true
+						}"
+						input-label="Source Type" />
+				</div>
+
+				<div>
+					<NcSelect v-if="typeOptions.value?.id !== 'register/schema'"
+						v-bind="sourceOptions"
+						v-model="sourceOptions.sourceValue"
+						required
+						:loading="sourcesLoading"
+						input-label="Source ID" />
+
+					<div v-if="typeOptions.value?.id === 'register/schema'">
+						<p>Source ID</p>
+
+						<div class="css-fix-reg/schema">
+							<NcSelect v-bind="registerOptions"
+								v-model="registerOptions.sourceValue"
+								:disabled="!openRegisterInstalled"
+								input-label="Register" />
+							<p>/</p>
+							<NcSelect v-bind="schemaOptions"
+								v-model="schemaOptions.sourceValue"
+								:disabled="!openRegisterInstalled"
+								input-label="Schema" />
+						</div>
+					</div>
+				</div>
+
+				<NcSelect v-bind="sourceTargetMappingOptions"
+					v-model="sourceTargetMappingOptions.hashValue"
+					:loading="sourceTargetMappingLoading"
+					input-label="Source hash mapping" />
 
 				<NcSelect v-bind="sourceTargetMappingOptions"
 					v-model="sourceTargetMappingOptions.sourceValue"
 					:loading="sourceTargetMappingLoading"
-					input-label="sourceTargetMapping" />
+					input-label="Source target mapping" />
 
 				<NcTextField :value.sync="synchronizationItem.sourceConfig.idPosition"
 					label="(optional) Position of id in source object" />
@@ -120,29 +158,35 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 
 					<div v-if="targetTypeOptions.value?.id === 'register/schema'">
 						<p>Target ID</p>
-						<NcSelect v-bind="registerOptions"
-							v-model="registerOptions.value"
-							:disabled="!openRegisterInstalled"
-							input-label="Register" />
-						/
-						<NcSelect v-bind="schemaOptions"
-							v-model="schemaOptions.value"
-							:disabled="!openRegisterInstalled"
-							input-label="Schema" />
+
+						<div class="css-fix-reg/schema">
+							<NcSelect v-bind="registerOptions"
+								v-model="registerOptions.value"
+								:disabled="!openRegisterInstalled"
+								input-label="Register" />
+							<p>/</p>
+							<NcSelect v-bind="schemaOptions"
+								v-model="schemaOptions.value"
+								:disabled="!openRegisterInstalled"
+								input-label="Schema" />
+						</div>
 					</div>
 				</div>
 
 				<NcSelect v-bind="sourceTargetMappingOptions"
 					v-model="sourceTargetMappingOptions.targetValue"
 					:loading="sourceTargetMappingLoading"
-					input-label="targetSourceMapping" />
+					input-label="Target source mapping" />
 			</form>
 
 			<NcButton v-if="!success"
 				:disabled="loading
 					|| !synchronizationItem.name
+					|| (typeOptions.value?.id !== 'register/schema' && !sourceOptions.sourceValue?.id)
 					// both register and schema need to be selected for register/schema target type
-					|| (targetTypeOptions.value?.id === 'register/schema' && (!registerOptions.value?.id || !schemaOptions.value?.id))"
+					|| (targetTypeOptions.value?.id === 'register/schema' && (!registerOptions.value?.id || !schemaOptions.value?.id))
+					|| (typeOptions.value?.id === 'register/schema' && (!registerOptions.sourceValue?.id || !schemaOptions.sourceValue?.id))
+					|| (targetTypeOptions.value?.id === 'api' && (!sourceOptions.targetValue))"
 				type="primary"
 				@click="editSynchronization()">
 				<template #icon>
@@ -167,11 +211,13 @@ import {
 	NcActions,
 	NcActionButton,
 } from '@nextcloud/vue'
+import openLink from '../../services/openLink.js'
 
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Close from 'vue-material-design-icons/Close.vue'
+import openLink from '../../services/openLink.js'
 
 export default {
 	name: 'EditSynchronization',
@@ -199,6 +245,7 @@ export default {
 			synchronizationItem: { // Initialize with empty fields
 				name: '',
 				description: '',
+				conditions: '',
 				sourceId: '',
 				sourceType: '',
 				sourceConfig: {
@@ -208,6 +255,8 @@ export default {
 					headers: {},
 					query: {},
 				},
+				actions: [],
+				sourceHashMapping: '',
 				sourceTargetMapping: '',
 				targetId: '',
 				targetType: 'register/schema',
@@ -222,6 +271,7 @@ export default {
 					{ label: 'Database', id: 'database' },
 					{ label: 'API', id: 'api' },
 					{ label: 'File', id: 'file' },
+					{ label: 'Register/Schema', id: 'register/schema' },
 				],
 				value: { label: 'API', id: 'api' }, // Default source type
 			},
@@ -234,6 +284,7 @@ export default {
 			sourceTargetMappingLoading: false, // Indicates if the mappings are loading
 			sourceTargetMappingOptions: { // A list of mappings
 				options: [],
+				hashValue: null,
 				sourceValue: null,
 				targetValue: null,
 			},
@@ -253,10 +304,20 @@ export default {
 			registerOptions: {
 				options: [],
 				value: null,
+				sourceValue: null,
 			},
 			// schemaOptions
 			schemaLoading: false, // Indicates if the schemas are loading
 			schemaOptions: {
+				options: [],
+				value: null,
+				sourceValue: null,
+			},
+			// ============================= //
+			// rule options
+			// ============================= //
+			rulesLoading: false, // Indicates if the rules are loading
+			ruleOptions: {
 				options: [],
 				value: null,
 			},
@@ -274,10 +335,14 @@ export default {
 	mounted() {
 		if (this.IS_EDIT) {
 			// If there is a synchronization item in the store, use it
-			this.synchronizationItem = { ...synchronizationStore.synchronizationItem }
+			this.synchronizationItem = {
+				...synchronizationStore.synchronizationItem,
+				conditions: JSON.stringify(synchronizationStore.synchronizationItem.conditions),
+			}
 
 			// update targetTypeOptions with the synchronization item target type
 			this.targetTypeOptions.value = this.targetTypeOptions.options.find(option => option.id === this.synchronizationItem.targetType)
+			this.typeOptions.value = this.typeOptions.options.find(option => option.id === this.synchronizationItem.sourceType)
 		}
 
 		// Fetch sources, mappings, register, and schema
@@ -285,6 +350,7 @@ export default {
 		this.getSourceTargetMappings()
 		this.getRegister()
 		this.getSchema()
+		this.getRules()
 	},
 	methods: {
 		/**
@@ -340,12 +406,19 @@ export default {
 				.then(({ entities }) => {
 					const activeSourceMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.sourceTargetMapping.toString())
 					const activeTargetMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.targetSourceMapping.toString())
+					const sourceHashMapping = entities.find(mapping => mapping.id.toString() === this.synchronizationItem.sourceHashMapping.toString())
 
 					this.sourceTargetMappingOptions = {
 						options: entities.map(mapping => ({
 							label: mapping.name,
 							id: mapping.id,
 						})),
+						hashValue: sourceHashMapping
+							? {
+								label: sourceHashMapping.name,
+								id: sourceHashMapping.id,
+							}
+							: null,
 						sourceValue: activeSourceMapping
 							? {
 								label: activeSourceMapping.name,
@@ -389,6 +462,12 @@ export default {
 						activeRegister = registers.find(object => object.id.toString() === registerId.toString())
 					}
 
+					let activeSourceRegister = null
+					if (this.IS_EDIT && this.synchronizationItem.sourceType === 'register/schema') {
+						const registerId = this.synchronizationItem.sourceId.split('/')[0]
+						activeSourceRegister = registers.find(object => object.id.toString() === registerId.toString())
+					}
+
 					this.registerOptions = {
 						options: registers.map(object => ({
 							label: object.title || object.name,
@@ -398,6 +477,12 @@ export default {
 							? {
 								label: activeRegister.title || activeRegister.name,
 								id: activeRegister.id,
+							}
+							: null,
+						sourceValue: activeSourceRegister
+							? {
+								label: activeSourceRegister.title || activeSourceRegister.name,
+								id: activeSourceRegister.id,
 							}
 							: null,
 					}
@@ -446,6 +531,12 @@ export default {
 				activeSchema = responseData.find(schema => schema.id.toString() === schemaId.toString())
 			}
 
+			let activeSourceSchema = null
+			if (this.IS_EDIT && this.synchronizationItem.sourceType === 'register/schema') {
+				const schemaId = this.synchronizationItem.sourceId.split('/')[1]
+				activeSourceSchema = responseData.find(schema => schema.id.toString() === schemaId.toString())
+			}
+
 			this.schemaOptions = {
 				options: responseData.map((schema) => ({
 					id: schema.id,
@@ -457,9 +548,44 @@ export default {
 						label: activeSchema.title || activeSchema.name,
 					}
 					: null,
+				sourceValue: activeSourceSchema
+					? {
+						id: activeSourceSchema.id,
+						label: activeSourceSchema.title || activeSourceSchema.name,
+					}
+					: null,
 			}
 
 			this.schemaLoading = false
+		},
+		/**
+		 * Fetches the list of available rules from the rules store and updates the rules options.
+		 * Sets the loading state to true while fetching and updates the rules options with the fetched data.
+		 * If a rules is already selected, it sets it as the active rules.
+		 * If the target type is 'api', it sets the active target rules.
+		 */
+		getRules() {
+			this.rulesLoading = true
+
+			ruleStore.refreshRuleList()
+				.then(() => {
+					const rules = ruleStore.ruleList
+					const activeRule = rules.filter(rule => this.synchronizationItem.actions.includes(rule.id))
+
+					this.ruleOptions = {
+						options: rules.map(rule => ({
+							label: rule.name,
+							id: rule.id,
+						})),
+						value: activeRule.map(rule => ({
+							label: rule.name,
+							id: rule.id,
+						})),
+					}
+				})
+				.finally(() => {
+					this.rulesLoading = false
+				})
 		},
 		/**
 		 * Installs OpenRegister by sending a request to the server.
@@ -471,7 +597,31 @@ export default {
 			this.openRegisterLoading = true
 
 			console.info('Installing Open Register')
-			const token = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+			const requesttoken = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+
+			const forceResponse = await fetch('/index.php/settings/apps/force', {
+				headers: {
+					accept: 'application/json, text/plain, */*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					'content-type': 'application/json',
+					pragma: 'no-cache',
+					requesttoken,
+					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: '{"appId":"openregister"}',
+				method: 'POST',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!forceResponse.ok) {
+				console.info('Failed to install Open Register')
+				this.openRegisterIsAvailable = false
+				this.openRegisterLoading = false
+				return
+			}
 
 			const response = await fetch('/index.php/settings/apps/enable', {
 				headers: {
@@ -480,7 +630,7 @@ export default {
 					'cache-control': 'no-cache',
 					'content-type': 'application/json',
 					pragma: 'no-cache',
-					requesttoken: token,
+					requesttoken,
 					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
 				},
 				referrerPolicy: 'no-referrer',
@@ -524,14 +674,24 @@ export default {
 				targetId = this.sourceOptions.targetValue?.id
 			}
 
+			let sourceId = null
+			if (this.typeOptions.value?.id === 'register/schema') {
+				sourceId = `${this.registerOptions.sourceValue?.id}/${this.schemaOptions.sourceValue?.id}`
+			} else {
+				sourceId = this.sourceOptions.sourceValue?.id
+			}
+
 			synchronizationStore.saveSynchronization({
 				...this.synchronizationItem,
-				sourceId: this.sourceOptions.sourceValue?.id || null,
+				sourceId: sourceId || null,
 				sourceType: this.typeOptions.value?.id || null,
+				sourceHashMapping: this.sourceTargetMappingOptions.hashValue?.id || null,
 				sourceTargetMapping: this.sourceTargetMappingOptions.sourceValue?.id || null,
+				conditions: this.synchronizationItem.conditions ? JSON.parse(this.synchronizationItem.conditions) : [],
 				targetType: this.targetTypeOptions.value?.id || null,
 				targetId: targetId || null,
 				targetSourceMapping: this.sourceTargetMappingOptions.targetValue?.id || null,
+				actions: this.ruleOptions.value ? this.ruleOptions.value.map(rule => rule.id) : [],
 			})
 				.then(({ response }) => {
 					this.success = response.ok
@@ -561,5 +721,18 @@ export default {
 }
 .close-button .button-vue--vue-tertiary:hover:not(:disabled) {
     background-color: rgba(var(--color-info-rgb), 0.1);
+}
+
+.css-fix-reg\/schema {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+}
+.css-fix-reg\/schema .v-select {
+    width: 100%;
+}
+.css-fix-reg\/schema p {
+    align-self: end;
+    margin-block-end: 10px;
 }
 </style>

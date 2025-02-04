@@ -1,5 +1,5 @@
 <script setup>
-import { sourceStore, navigationStore, logStore } from '../../store/store.js'
+import { sourceStore, navigationStore, logStore, synchronizationStore } from '../../store/store.js'
 </script>
 
 <template>
@@ -39,6 +39,12 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 							</template>
 							Add Authentication
 						</NcActionButton>
+						<NcActionButton @click="sourceStore.exportSource(sourceStore.sourceItem)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export source
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSource')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -57,6 +63,10 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 					<div class="gridContent">
 						<b>location:</b>
 						<p>{{ sourceStore.sourceItem.location }}</p>
+					</div>
+					<div class="gridContent">
+						<b>version:</b>
+						<p>{{ sourceStore.sourceItem.version }}</p>
 					</div>
 				</div>
 				<div class="tabContainer">
@@ -133,14 +143,48 @@ import { sourceStore, navigationStore, logStore } from '../../store/store.js'
 								</NcListItem>
 							</div>
 							<div v-if="!Object.keys(configurationAuthentication)?.length" class="tabPanel">
-								No configurations found
+								No authentications found
 							</div>
 						</BTab>
-						<BTab title="Endpoints" class="tabPanel">
-							No endpoints found
-						</BTab>
-						<BTab title="Synchronizations" class="tabPanel">
-							No synchronizations found
+						<BTab title="Synchronizations">
+							<div v-if="linkedSynchronizations?.length">
+								<NcListItem v-for="(value) in linkedSynchronizations"
+									:key="value.id"
+									:name="value.name"
+									:bold="false"
+									:force-display-actions="true">
+									<template #icon>
+										<VectorPolylinePlus disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value.description }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="synchronizationStore.setSynchronizationItem(value); navigationStore.setSelected('synchronizations')">
+											<template #icon>
+												<EyeOutline :size="20" />
+											</template>
+											View
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationItem(value); navigationStore.setModal('editSynchronization')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationItem(value); navigationStore.setDialog('deleteSynchronization')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-else class="tabPanel">
+								No synchronizations found
+							</div>
 						</BTab>
 						<BTab title="Logs">
 							<div v-if="sourceStore.sourceLogs?.length">
@@ -196,6 +240,8 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import FileCogOutline from 'vue-material-design-icons/FileCogOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 
 export default {
 	name: 'SourceDetails',
@@ -216,25 +262,26 @@ export default {
 		 * Returns the configuration without the authentication configuration
 		 */
 		configuration() {
-			const filteredObj = Object.fromEntries(
-				Object.entries(sourceStore.sourceItem?.configuration)
-					.filter(([key]) => !key.startsWith('authentication.')),
-			)
-			return filteredObj
+			const config = sourceStore.sourceItem?.configuration || {}
+			const { authentication, ...configWithoutAuth } = config
+			return configWithoutAuth
 		},
 		/**
 		 * Returns the authentication configuration
 		 */
 		configurationAuthentication() {
-			const filteredObj = Object.fromEntries(
-				Object.entries(sourceStore.sourceItem?.configuration)
-					.filter(([key]) => key.startsWith('authentication.')),
-			)
-			return filteredObj
+			return sourceStore.sourceItem?.configuration?.authentication || {}
+		},
+		/**
+		 * returns a filtered list of synchronizations which use this source
+		 */
+		linkedSynchronizations() {
+			return synchronizationStore.synchronizationList?.filter((item) => item.sourceId.toString() === sourceStore.sourceItem?.id?.toString()) || []
 		},
 	},
 	mounted() {
 		this.refreshSourceLogs()
+		synchronizationStore.refreshSynchronizationList()
 	},
 	methods: {
 		deleteSourceConfiguration(key) {

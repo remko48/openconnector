@@ -18,7 +18,7 @@ use OCP\IDBConnection;
 
 /**
  * This migration changes the following:
- * - Adding 3 new columns for the table Source: rateLimitLimit, rateLimitRemaining & rateLimitReset
+ * - Adding 4 new columns for the table Source: rateLimitLimit, rateLimitRemaining, rateLimitReset & rateLimitWindow
  */
 class Version1Date20241121160300 extends SimpleMigrationStep {
 
@@ -41,6 +41,7 @@ class Version1Date20241121160300 extends SimpleMigrationStep {
 		 * @var ISchemaWrapper $schema
 		 */
 		$schema = $schemaClosure();
+		// Sources table
 		$table = $schema->getTable('openconnector_sources');
 
 		if ($table->hasColumn('rate_limit_limit') === false) {

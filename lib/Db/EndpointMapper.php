@@ -9,6 +9,9 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * Mapper class for handling Endpoint database operations
+ */
 class EndpointMapper extends QBMapper
 {
 	public function __construct(IDBConnection $db)
@@ -27,6 +30,19 @@ class EndpointMapper extends QBMapper
 			);
 
 		return $this->findEntity(query: $qb);
+	}
+
+	public function findByRef(string $reference): array
+	{
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from('openconnector_endpoints')
+			->where(
+				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
+			);
+
+		return $this->findEntities(query: $qb);
 	}
 
 	public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $searchConditions = [], ?array $searchParams = []): array
@@ -58,6 +74,15 @@ class EndpointMapper extends QBMapper
 		return $this->findEntities(query: $qb);
 	}
 
+	private function createEndpointRegex(string $endpoint) {
+		$regex = '#'.preg_replace(pattern: ['#\/{{([^}}]+)}}\/#', '#\/{{([^}}]+)}}$#'], replacement: ['/([^/]+)/', '(/([^/]+))?'], subject: $endpoint).'#';
+		if (str_ends_with(haystack: $regex, needle: '?#') === false && str_ends_with(haystack: $regex, needle: '$#') === false) {
+			$regex = substr($regex, 0, -1). '$#';
+		}
+
+		return $regex;
+	}
+
 	public function createFromArray(array $object): Endpoint
 	{
 		$obj = new Endpoint();
@@ -66,6 +91,10 @@ class EndpointMapper extends QBMapper
 		if ($obj->getUuid() === null){
 			$obj->setUuid(Uuid::v4());
 		}
+
+		$obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
+		$obj->setEndpointArray(explode('/', $obj->getEndpoint()));
+
 		return $this->insert(entity: $obj);
 	}
 
@@ -74,10 +103,15 @@ class EndpointMapper extends QBMapper
 		$obj = $this->find($id);
 		$obj->hydrate($object);
 
-		// Set or update the version
-		$version = explode('.', $obj->getVersion());
-		$version[2] = (int)$version[2] + 1;
-		$obj->setVersion(implode('.', $version));
+		if (isset($object['version']) === false) {
+			// Set or update the version
+			$version = explode('.', $obj->getVersion());
+			$version[2] = (int)$version[2] + 1;
+			$obj->setVersion(implode('.', $version));
+		}
+
+		$obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
+		$obj->setEndpointArray(explode('/', $obj->getEndpoint()));
 
 		return $this->update($obj);
 	}
@@ -100,5 +134,33 @@ class EndpointMapper extends QBMapper
 
         // Return the total count
         return (int)$row['count'];
+    }
+
+    /**
+     * Find endpoints that match a given path and method using regex comparison
+     *
+     * @param string $path The path to match against endpoint regex patterns
+     * @param string $method The HTTP method to filter by (GET, POST, etc)
+     * @return array Array of matching Endpoint entities
+     */
+    public function findByPathRegex(string $path, string $method): array
+    {
+        // Get all endpoints first since we need to do regex comparison
+        $endpoints = $this->findAll();
+
+        // Filter endpoints where both path matches regex pattern and method matches
+        return array_filter($endpoints, function(Endpoint $endpoint) use ($path, $method) {
+            // Get the regex pattern from the endpoint
+            $pattern = $endpoint->getEndpointRegex();
+
+            // Skip if no regex pattern is set
+            if (empty($pattern) === true) {
+                return false;
+            }
+
+            // Check if both path matches the regex pattern and method matches
+            return preg_match($pattern, $path) === 1 &&
+                   $endpoint->getMethod() === $method;
+        });
     }
 }

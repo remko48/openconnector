@@ -17,7 +17,7 @@ import { navigationStore, sourceStore } from '../../store/store.js'
 			</NcNoteCard>
 		</div>
 		<p v-if="success === null">
-			Do you want to delete <b>{{ sourceStore.sourceConfigurationKey.replace(/^authentication\./g, '') }}</b> from Source Authentication?
+			Do you want to delete <b>{{ sourceStore.sourceConfigurationKey }}</b> from Source Authentication?
 		</p>
 		<template #actions>
 			<NcButton :disabled="loading" icon="" @click="closeModal">
@@ -77,10 +77,14 @@ export default {
 			this.loading = true
 
 			const sourceItemClone = { ...sourceStore.sourceItem }
-			delete sourceItemClone?.configuration[sourceStore.sourceConfigurationKey]
+			delete sourceItemClone?.configuration?.authentication[sourceStore.sourceConfigurationKey]
 
 			const sourceItem = {
 				...sourceStore.sourceItem,
+				configuration: {
+					...sourceStore.sourceItem.configuration,
+					authentication: sourceItemClone.configuration.authentication,
+				},
 			}
 
 			sourceStore.saveSource(sourceItem)
