@@ -1,5 +1,6 @@
 <script setup>
 import { synchronizationStore, navigationStore, sourceStore, mappingStore, ruleStore } from '../../store/store.js'
+import { Synchronization } from '../../entities/index.js'
 </script>
 
 <template>
@@ -656,7 +657,7 @@ export default {
 				sourceId = this.sourceOptions.sourceValue?.id
 			}
 
-			synchronizationStore.saveSynchronization({
+			const synchronizationItem = new Synchronization({
 				...this.synchronizationItem,
 				sourceId: sourceId || null,
 				sourceType: this.typeOptions.value?.id || null,
@@ -668,6 +669,8 @@ export default {
 				targetSourceMapping: this.sourceTargetMappingOptions.targetValue?.id || null,
 				actions: this.ruleOptions.value ? this.ruleOptions.value.map(rule => rule.id) : [],
 			})
+
+			synchronizationStore.saveSynchronization(synchronizationItem)
 				.then(({ response }) => {
 					this.success = response.ok
 					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
