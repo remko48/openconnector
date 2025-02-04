@@ -1,5 +1,6 @@
 <script setup>
 import { endpointStore, navigationStore, ruleStore } from '../../store/store.js'
+import { Endpoint } from '../../entities/index.js'
 </script>
 
 <template>
@@ -123,13 +124,13 @@ export default {
 				]
 
 				// Prepare endpoint data for saving
-				const endpointToSave = {
+				const endpointToSave = new Endpoint({
 					...updatedEndpoint,
 					endpointArray: Array.isArray(updatedEndpoint.endpointArray)
 						? updatedEndpoint.endpointArray
 						: updatedEndpoint.endpointArray.split(/ *, */g),
 					rules: updatedRules, // Use the array of string IDs
-				}
+				})
 
 				const { response } = await endpointStore.saveEndpoint(endpointToSave)
 
