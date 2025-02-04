@@ -421,12 +421,12 @@ export const useMappingStore = defineStore('mapping', () => {
 	}
 
 	// Export a mapping
-	const exportMapping = async (mappingItem: Mapping) => {
-		if (!mappingItem) {
+	const exportMapping = async (id: string) => {
+		if (!id) {
 			throw new Error('No mapping item to export')
 		}
 		importExportStore.exportFile(
-			mappingItem.id,
+			id,
 			'mapping',
 		)
 			.then(({ download }) => {
