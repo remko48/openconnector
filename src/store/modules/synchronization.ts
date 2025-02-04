@@ -410,7 +410,7 @@ export const useSynchronizationStore = defineStore('synchronization', () => {
 	}
 
 	// logs
-	const refreshSynchronizationLogs = async (id: string, search?: string) => {
+	const refreshSynchronizationLogs = async (id: number, search?: string) => {
 		let endpoint = `/index.php/apps/openconnector/api/synchronizations-logs/${id}`
 
 		if (search !== null && search !== '') {

@@ -1,5 +1,5 @@
 export type TSynchronization = {
-    id: string
+    id: number
     name: string
     description: string
     conditions: string

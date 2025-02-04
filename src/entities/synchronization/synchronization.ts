@@ -6,7 +6,7 @@ import _ from 'lodash'
 
 export class Synchronization extends ReadonlyBaseClass implements TSynchronization {
 
-	public id: string
+	public id: number
 	public name: string
 	public description: string
 	public conditions: string
@@ -70,7 +70,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 
 	public validate(): SafeParseReturnType<TSynchronization, unknown> {
 		const schema = z.object({
-			id: z.string().nullable(),
+			id: z.number().nullable(),
 			name: z.string(),
 			description: z.string(),
 			conditions: z.string(),
