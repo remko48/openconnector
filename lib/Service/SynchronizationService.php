@@ -79,16 +79,32 @@ class SynchronizationService
 		$this->sourceMapper = $sourceMapper;
 	}
 
+	/**
+	 * Finds all synchronizations by the given source ID, which is a combination of register and schema.
+	 *
+	 * @param $register The register id.
+	 * @param $schema The schema id.
+	 *
+	 * @return array The list of records matching the source ID.
+	 */
 	public function findAllBySourceId($register, $schema) {
 		$sourceId = "$register/$schema";
 		return $this->synchronizationMapper->findAll(limit: null, offset: null, filters: ['source_id' => $sourceId]);
 	}
 
-	private function synchronizeInternToExtern($synchronization, $isTest, $object)
+	/**
+	 * Synchronizes internal data to external sources based on synchronization rules.
+	 *
+	 * @param Synchronization $synchronization The synchronization configuration.
+	 * @param bool 		      $isTest Whether this is a test run (does not persist data if true).
+	 * @param                 $object The object to be synchronized.
+	 *
+	 * @return SynchronizationContract|array|null Returns a synchronization contract, an array for test cases, or null if conditions are not met.
+	 */
+	private function synchronizeInternToExtern(Synchronization $synchronization, ?bool $isTest = false, $object)
 	{
 		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
 
-			// @todo log that this object is not valid
 			return;
 		}
 
@@ -128,7 +144,8 @@ class SynchronizationService
 			} elseif ($isTest === true && is_array($synchronizationContract) === true) {
 				// If this is a log and contract array return for the test endpoint.
 				$logAndContractArray = $synchronizationContract;
-				// return $logAndContractArray;
+
+				return $logAndContractArray;
 			}
 		}
 
@@ -168,16 +185,14 @@ class SynchronizationService
 			throw new Exception('sourceId of synchronization cannot be empty. Canceling synchronization...');
 		}
 
+		// Synchronize a object from OpenRegister register and schema to a external source.
 		if ($synchronization->getSourceType() === 'register/schema' && $object !== null) {
-			return $this->synchronizeInternToExtern($synchronization, $isTest, $object);
+
 			return [$this->synchronizeInternToExtern($synchronization, $isTest, $object)];
 		}
 
-		// @todo put all code below in another function like:
-		// if ($synchronization->getSourceType() === 'api') {
-		// 	$this->synchronizeExternToIntern($synchronization, $isTest, $object);
-		// }
 
+		// Synchronize multiple objects from a source to a target (register/schema, api or other methods).
 		try {
 			$objectList = $this->getAllObjectsFromSource(synchronization: $synchronization, isTest: $isTest);
 		} catch (TooManyRequestsHttpException $e) {
