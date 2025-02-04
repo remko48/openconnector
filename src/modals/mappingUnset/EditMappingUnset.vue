@@ -1,5 +1,6 @@
 <script setup>
 import { mappingStore, navigationStore } from '../../store/store.js'
+import { Mapping } from '../../entities/index.js'
 </script>
 
 <template>
@@ -115,10 +116,10 @@ export default {
 			// remove duplicates (if all went well duplicates shouldn't exist anyway)
 			const uniqueMappingUnset = [...new Set(newMappingUnset)]
 
-			const newMappingItem = {
+			const newMappingItem = new Mapping({
 				...mappingStore.mappingItem,
 				unset: uniqueMappingUnset,
-			}
+			})
 
 			mappingStore.saveMapping(newMappingItem)
 				.then(({ response }) => {
