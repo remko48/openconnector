@@ -3,7 +3,7 @@ import { TSynchronization } from './synchronization.types'
 
 export const mockSynchronizationData = (): TSynchronization[] => [
 	{
-		id: 1,
+		id: '1',
 		name: 'Synchronization 1',
 		description: 'Synchronization 1',
 		conditions: '{"!!": { "var": "valid" }}',
@@ -30,7 +30,7 @@ export const mockSynchronizationData = (): TSynchronization[] => [
 		actions: ['action1', 'action2'],
 	},
 	{
-		id: 2,
+		id: '2',
 		name: 'Synchronization 2',
 		description: 'Synchronization 2',
 		conditions: '{"!!": { "var": "valid" }}',
