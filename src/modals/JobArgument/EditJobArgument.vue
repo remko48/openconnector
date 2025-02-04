@@ -1,5 +1,6 @@
 <script setup>
 import { jobStore, navigationStore } from '../../store/store.js'
+import { Job } from '../../entities/index.js'
 </script>
 
 <template>
@@ -131,13 +132,15 @@ export default {
 		async editJobArgument() {
 			this.loading = true
 
-			const scheduleAfter = jobStore.jobItem.scheduleAfter ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
+			const jobItemClone = jobStore.jobItem.cloneRaw()
+
+			const scheduleAfter = jobItemClone.scheduleAfter ? new Date(jobItemClone.scheduleAfter.date) || '' : null
 
 			const newJobItem = {
-				...jobStore.jobItem,
+				...jobItemClone,
 				scheduleAfter,
 				arguments: {
-					...jobStore.jobItem.arguments,
+					...jobItemClone.arguments,
 					[this.argumentItem.key]: this.argumentItem.value,
 				},
 			}
@@ -147,7 +150,9 @@ export default {
 			}
 
 			try {
-				await jobStore.saveJob(newJobItem)
+				const jobItem = new Job(newJobItem)
+
+				await jobStore.saveJob(jobItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
