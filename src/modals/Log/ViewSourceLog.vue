@@ -187,8 +187,12 @@ export default {
 
 <style scoped>
 .responseBodyJson {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    position: relative;
+}
+.responseBodyJsonActions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateY(-50%);
 }
 </style>

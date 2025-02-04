@@ -212,6 +212,7 @@ import {
 	NcActions,
 	NcActionButton,
 } from '@nextcloud/vue'
+import openLink from '../../services/openLink.js'
 
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
@@ -597,7 +598,31 @@ export default {
 			this.openRegisterLoading = true
 
 			console.info('Installing Open Register')
-			const token = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+			const requesttoken = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+
+			const forceResponse = await fetch('/index.php/settings/apps/force', {
+				headers: {
+					accept: 'application/json, text/plain, */*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					'content-type': 'application/json',
+					pragma: 'no-cache',
+					requesttoken,
+					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: '{"appId":"openregister"}',
+				method: 'POST',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!forceResponse.ok) {
+				console.info('Failed to install Open Register')
+				this.openRegisterIsAvailable = false
+				this.openRegisterLoading = false
+				return
+			}
 
 			const response = await fetch('/index.php/settings/apps/enable', {
 				headers: {
@@ -606,7 +631,7 @@ export default {
 					'cache-control': 'no-cache',
 					'content-type': 'application/json',
 					pragma: 'no-cache',
-					requesttoken: token,
+					requesttoken,
 					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
 				},
 				referrerPolicy: 'no-referrer',

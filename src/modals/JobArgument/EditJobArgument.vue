@@ -56,6 +56,7 @@ import {
 	NcNoteCard,
 	NcTextField,
 } from '@nextcloud/vue'
+import _ from 'lodash'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 export default {
@@ -149,19 +150,18 @@ export default {
 				delete newJobItem.arguments[this.oldKey]
 			}
 
-			try {
-				const jobItem = new Job(newJobItem)
-
-				await jobStore.saveJob(jobItem)
-				// Close modal or show success message
-				this.success = true
-				this.loading = false
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			} catch (error) {
-				this.loading = false
-				this.success = false
-				this.error = error.message || 'An error occurred while saving the job argument'
-			}
+			jobStore.saveJob(new Job(newJobItem))
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				})
+				.catch((error) => {
+					this.success = false
+					this.error = error.message || 'An error occurred while saving the job argument'
+				})
+				.finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

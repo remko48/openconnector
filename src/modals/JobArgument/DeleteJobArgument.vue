@@ -47,6 +47,7 @@ import { Job } from '../../entities/index.js'
 
 <script>
 import { NcButton, NcDialog, NcNoteCard, NcLoadingIcon } from '@nextcloud/vue'
+import _ from 'lodash'
 
 import Cancel from 'vue-material-design-icons/Cancel.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
@@ -82,7 +83,7 @@ export default {
 			const jobItemClone = jobStore.jobItem.cloneRaw()
 			delete jobItemClone?.arguments[jobStore.jobArgumentKey]
 
-			const scheduleAfter = jobStore.jobItem.scheduleAfter ? new Date(jobStore.jobItem.scheduleAfter.date) || '' : null
+			const scheduleAfter = jobItemClone.scheduleAfter ? new Date(jobItemClone.scheduleAfter.date) || '' : null
 
 			const jobItem = new Job({
 				...jobItemClone,
