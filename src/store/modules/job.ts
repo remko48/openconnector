@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { Job, TJob } from '../../entities/index.js'
 import { importExportStore } from '../store.js'
 import { ref } from 'vue'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/jobs'
 
@@ -330,9 +330,9 @@ export const useJobStore = defineStore('job', () => {
 		// verify data with Zod
 		// const validationResult = jobItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(jobItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(jobItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		// delete "updated"

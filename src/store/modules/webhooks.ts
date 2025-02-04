@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Webhook, TWebhook } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/webhooks'
 
@@ -171,9 +171,9 @@ export const useWebhookStore = defineStore('webhook', () => {
 		// verify data with Zod
 		// const validationResult = webhookItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(webhookItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(webhookItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		console.info('Saving webhook...')

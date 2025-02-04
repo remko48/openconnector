@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { importExportStore } from '../store.js'
 import { Rule, TRule } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/rules'
 
@@ -263,9 +263,9 @@ export const useRuleStore = defineStore('rule', () => {
 		// verify data with Zod
 		// const validationResult = ruleItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(ruleItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(ruleItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		// delete "updated"

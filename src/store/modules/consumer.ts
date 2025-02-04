@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Consumer, TConsumer } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 export const apiEndpoint = '/index.php/apps/openconnector/api/consumers'
 

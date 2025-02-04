@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Event, TEvent } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/events'
 
@@ -329,9 +329,9 @@ export const useEventStore = defineStore('event', () => {
 		// verify data with Zod
 		// const validationResult = eventItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(eventItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(eventItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		// delete "updated"

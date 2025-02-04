@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { importExportStore } from '../store.js'
 import { Mapping, TMapping } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/mappings'
 
@@ -264,9 +264,9 @@ export const useMappingStore = defineStore('mapping', () => {
 		// verify data with Zod
 		// const validationResult = mappingItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(mappingItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(mappingItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		// delete "version"

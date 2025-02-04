@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Endpoint, TEndpoint } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 import { importExportStore } from '../../store/store.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/endpoints'
@@ -174,9 +174,9 @@ export const useEndpointStore = defineStore('endpoint', () => {
 		// verify data with Zod
 		// const validationResult = endpointItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(endpointItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(endpointItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		// delete "updated"

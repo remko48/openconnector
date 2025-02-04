@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { importExportStore } from '../store.js'
 import { Source, TSource } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/sources'
 
@@ -292,9 +292,9 @@ export const useSourceStore = defineStore('source', () => {
 		// verify data with Zod
 		// const validationResult = sourceItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(sourceItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(sourceItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		console.info('Saving source...')

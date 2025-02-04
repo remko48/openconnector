@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Synchronization, TSynchronization } from '../../entities/index.js'
 import { importExportStore } from '../store.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/synchronizations'
 
@@ -352,9 +352,9 @@ export const useSynchronizationStore = defineStore('synchronization', () => {
 		// verify data with Zod
 		// const validationResult = synchronizationItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(synchronizationItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(synchronizationItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		// delete "updated" and "version"

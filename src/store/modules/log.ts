@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { Log, TLog } from '../../entities/index.js'
-import { MissingParameterError, ValidationError } from '../../services/errors/index.js'
+import { MissingParameterError } from '../../services/errors/index.js'
 
 const apiEndpoint = '/index.php/apps/openconnector/api/logs'
 
@@ -233,9 +233,9 @@ export const useLogStore = defineStore('log', () => {
 		// verify data with Zod
 		// const validationResult = logItem.validate()
 		// if (!validationResult.success) {
-		// 	console.error(validationResult.error)
-		// 	console.info(logItem)
-		// 	throw new ValidationError(validationResult.error)
+		//  console.error(validationResult.error)
+		//  console.info(logItem)
+		//  throw new ValidationError(validationResult.error)
 		// }
 
 		console.info('Saving log...')
