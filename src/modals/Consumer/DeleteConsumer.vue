@@ -80,7 +80,7 @@ export default {
 		async deleteConsumer() {
 			this.loading = true
 
-			await consumerStore.deleteConsumer(consumerStore.getConsumerItem().id)
+			await consumerStore.deleteConsumer(consumerStore.consumerItem.id)
 				.then(({ response }) => {
 					this.success = response.ok
 					this.error = false
