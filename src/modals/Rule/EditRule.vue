@@ -286,6 +286,11 @@ import { Rule } from '../../entities/index.js'
 						v-model="methodOptions.value"
 						input-label="Method" />
 
+					<NcSelect
+						v-model="ruleItem.configuration.fetch_file.tags"
+						:taggable="true"
+						input-label="Tags" />
+
 					<div class="json-editor">
 						<label>Source Configuration (JSON)</label>
 						<div :class="`codeMirrorContainer ${getTheme()}`">
@@ -322,6 +327,11 @@ import { Rule } from '../../entities/index.js'
 						required
 						:value.sync="ruleItem.configuration.write_file.fileNamePath"
 						placeholder="path.to.file.name" />
+
+					<NcSelect
+						v-model="ruleItem.configuration.write_file.tags"
+						:taggable="true"
+						input-label="Tags" />
 				</template>
 
 				<!-- Fileparts Create Configuration -->
@@ -521,10 +531,12 @@ export default {
 						source: '',
 						filePath: '',
 						method: '',
+						tags: [],
 						sourceConfiguration: '[]',
 					},
 					write_file: {
 						filePath: '',
+						tags: [],
 						fileNamePath: '',
 					},
 					fileparts_create: {
@@ -603,11 +615,13 @@ export default {
 						source: ruleStore.ruleItem.configuration?.fetch_file?.source ?? '',
 						filePath: ruleStore.ruleItem.configuration?.fetch_file?.filePath ?? '',
 						method: ruleStore.ruleItem.configuration?.fetch_file?.method ?? '',
+						tags: ruleStore.ruleItem.configuration?.fetch_file?.tags ?? [],
 						sourceConfiguration: JSON.stringify(ruleStore.ruleItem.configuration?.fetch_file?.sourceConfiguration, null, 2) ?? '[]',
 					},
 					write_file: {
 						filePath: ruleStore.ruleItem.configuration?.write_file?.filePath ?? '',
 						fileNamePath: ruleStore.ruleItem.configuration?.write_file?.fileNamePath ?? '',
+						tags: ruleStore.ruleItem.configuration?.write_file?.tags ?? [],
 					},
 					fileparts_create: {
 						sizeLocation: ruleStore.ruleItem.configuration?.fileparts_create?.sizeLocation ?? '',
@@ -973,6 +987,7 @@ export default {
 					source: this.sourceOptions.sourceValue?.id,
 					filePath: this.ruleItem.configuration.fetch_file.filePath,
 					method: this.methodOptions.value?.label,
+					tags: this.ruleItem.configuration.fetch_file.tags,
 					sourceConfiguration: this.ruleItem.configuration.fetch_file.sourceConfiguration ? JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration) : [],
 				}
 				break
@@ -980,6 +995,7 @@ export default {
 				configuration.write_file = {
 					filePath: this.ruleItem.configuration.write_file.filePath,
 					fileNamePath: this.ruleItem.configuration.write_file.fileNamePath,
+					tags: this.ruleItem.configuration.write_file.tags,
 				}
 				break
 			case 'fileparts_create':
@@ -998,14 +1014,16 @@ export default {
 				break
 			}
 
-			ruleStore.saveRule(new Rule({
+			const newRuleItem = new Rule({
 				...this.ruleItem,
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
 				timing: this.timingOptions.value?.id || null,
 				type: type || null,
 				configuration,
-			}))
+			})
+
+			ruleStore.saveRule(newRuleItem)
 				.then(({ response }) => {
 					this.success = response.ok
 					this.error = !response.ok && 'Failed to save rule'
