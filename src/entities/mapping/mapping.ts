@@ -3,6 +3,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TMapping } from './mapping.types'
 import getValidISOstring from '../../services/getValidISOstring.js'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 export class Mapping extends ReadonlyBaseClass implements TMapping {
 
@@ -36,6 +37,10 @@ export class Mapping extends ReadonlyBaseClass implements TMapping {
 		}
 
 		super(processedMapping)
+	}
+
+	public cloneRaw(): TMapping {
+		return _.cloneDeep(this)
 	}
 
 	public validate(): SafeParseReturnType<TMapping, unknown> {

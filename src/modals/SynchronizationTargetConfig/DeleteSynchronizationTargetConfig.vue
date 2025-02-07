@@ -1,5 +1,6 @@
 <script setup>
 import { navigationStore, synchronizationStore } from '../../store/store.js'
+import { Synchronization } from '../../entities/index.js'
 </script>
 
 <template>
@@ -86,10 +87,10 @@ export default {
 				return
 			}
 
-			const synchronizationItem = {
+			const synchronizationItem = new Synchronization({
 				...synchronizationStore.synchronizationItem,
 				targetConfig: targetConfigClone,
-			}
+			})
 
 			synchronizationStore.saveSynchronization(synchronizationItem)
 				.then(({ response }) => {

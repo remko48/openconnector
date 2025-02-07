@@ -1,5 +1,6 @@
 <script setup>
 import { synchronizationStore, navigationStore } from '../../store/store.js'
+import { Synchronization } from '../../entities/index.js'
 </script>
 
 <template>
@@ -130,10 +131,10 @@ export default {
 			// add the new key
 			newSourceConfig[this.sourceConfig.key] = this.sourceConfig.value
 
-			const newSynchronizationItem = {
+			const newSynchronizationItem = new Synchronization({
 				...synchronizationStore.synchronizationItem,
 				sourceConfig: newSourceConfig,
-			}
+			})
 
 			synchronizationStore.saveSynchronization(newSynchronizationItem)
 				.then(({ response }) => {
