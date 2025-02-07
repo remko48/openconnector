@@ -131,10 +131,12 @@ export default {
 						{ label: 'API', id: 'api' },
 						{ label: 'File', id: 'file' },
 					],
-					value: [{
-						label: selectedType.label,
-						id: selectedType.id,
-					}],
+					value: selectedType
+						? {
+							label: selectedType.label,
+							id: selectedType.id,
+						}
+						: null,
 
 				}
 			}

@@ -177,7 +177,7 @@ export const useMappingStore = defineStore('mapping', () => {
 	const refreshMappingList = async (search: string = null): Promise<{ response: Response, data: TMapping[], entities: Mapping[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 

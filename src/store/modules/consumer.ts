@@ -86,7 +86,7 @@ export const useConsumerStore = defineStore('consumer', () => {
 	const refreshConsumerList = async (search: string = null): Promise<{ response: Response, data: TConsumer[], entities: Consumer[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== null && search !== '') {
 			queryParams.append('_search', search)
 		}
 

@@ -265,7 +265,7 @@ export const useSynchronizationStore = defineStore('synchronization', () => {
 	const refreshSynchronizationList = async (search: string = null): Promise<{ response: Response, data: TSynchronization[], entities: Synchronization[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 
@@ -395,7 +395,7 @@ export const useSynchronizationStore = defineStore('synchronization', () => {
 	const refreshSynchronizationContracts = async (id: string, search?: string) => {
 		let endpoint = `/index.php/apps/openconnector/api/synchronizations-contracts/${id}`
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			endpoint = endpoint + '?_search=' + search
 		}
 
@@ -414,7 +414,7 @@ export const useSynchronizationStore = defineStore('synchronization', () => {
 	const refreshSynchronizationLogs = async (id: number, search?: string) => {
 		let endpoint = `/index.php/apps/openconnector/api/synchronizations-logs/${id}`
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			endpoint = endpoint + '?_search=' + search
 		}
 

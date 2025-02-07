@@ -176,7 +176,7 @@ export const useRuleStore = defineStore('rule', () => {
 	const refreshRuleList = async (search: string = null): Promise<{ response: Response, data: TRule[], entities: Rule[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 

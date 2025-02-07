@@ -243,7 +243,7 @@ export const useJobStore = defineStore('job', () => {
 	const refreshJobList = async (search: string = null): Promise<{ response: Response, data: TJob[], entities: Job[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 
