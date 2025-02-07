@@ -36,6 +36,9 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Uid\Uuid;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Adbar\Dot;
+use OCP\SystemTag\ISystemTagManager;
+use OCP\SystemTag\ISystemTagObjectMapper;
+use OCP\Files\File;
 
 use Psr\Container\ContainerInterface;
 use DateInterval;
@@ -68,17 +71,19 @@ class SynchronizationService
 
 
 	public function __construct(
-		CallService                      $callService,
-		MappingService                   $mappingService,
-		ContainerInterface               $containerInterface,
-		SourceMapper                     $sourceMapper,
-		MappingMapper                    $mappingMapper,
-		SynchronizationMapper            $synchronizationMapper,
-		SynchronizationContractMapper    $synchronizationContractMapper,
-		SynchronizationContractLogMapper $synchronizationContractLogMapper,
-		private readonly ObjectService   $objectService,
-        private readonly StorageService  $storageService,
-        private readonly RuleMapper      $ruleMapper,
+		CallService                         	$callService,
+		MappingService                      	$mappingService,
+		ContainerInterface                  	$containerInterface,
+		SourceMapper                        	$sourceMapper,
+		MappingMapper                       	$mappingMapper,
+		SynchronizationMapper               	$synchronizationMapper,
+		SynchronizationContractMapper       	$synchronizationContractMapper,
+		SynchronizationContractLogMapper    	$synchronizationContractLogMapper,
+		private readonly ObjectService          $objectService,
+        private readonly StorageService    		$storageService,
+        private readonly RuleMapper        	    $ruleMapper,
+        private readonly ISystemTagManager      $systemTagManager,
+        private readonly ISystemTagObjectMapper $systemTagMapper,
 	)
 	{
 		$this->callService = $callService;
@@ -1468,18 +1473,18 @@ class SynchronizationService
 	 * @param string $content The content of the file
 	 * @param string $objectId The id of the object the file belongs to.
 	 *
-	 * @return bool Whether the file write is successful.
+	 * @return File|bool File or false.
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
 	 * @throws GenericFileException
 	 * @throws LockedException
 	 */
-    private function writeFile(string $fileName, string $content, string $objectId): bool
+    private function writeFile(string $fileName, string $content, string $objectId): mixed
     {
         $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
 
         try {
-            $this->storageService->writeFile(
+            $file = $this->storageService->writeFile(
                 path: $object->getFolder(),
                 fileName: $fileName,
                 content: $content
@@ -1488,7 +1493,7 @@ class SynchronizationService
             return false;
         }
 
-        return true;
+        return $file;
     }
 
 	/**
@@ -1509,56 +1514,65 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
-    private function fetchFile(Source $source, string $endpoint, array $config, string $objectId): string
-    {
-        $originalEndpoint = $endpoint;
-        $endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true ? substr(string: $endpoint, offset: strlen(string: $source->getLocation())) : $endpoint;
+	private function fetchFile(Source $source, string $endpoint, array $config, string $objectId): string
+	{
+		$originalEndpoint = $endpoint;
+		$endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true
+			? substr(string: $endpoint, offset: strlen(string: $source->getLocation()))
+			: $endpoint;
 
-        $result = $this->callService->call(
-            source: $source,
-            endpoint: $endpoint,
-            method: $config['method'] ?? 'GET',
-            config: $config['sourceConfiguration'] ?? []
-        );
-        $response = $result->getResponse();
+		$result = $this->callService->call(
+			source: $source,
+			endpoint: $endpoint,
+			method: $config['method'] ?? 'GET',
+			config: $config['sourceConfiguration'] ?? []
+		);
+		$response = $result->getResponse();
 
-        if (isset($config['write']) === true && $config['write'] === false) {
+		if (isset($config['write']) === true && $config['write'] === false) {
             return base64_encode($response['body']);
         }
 
-        // Get a filename from the response. First try to do this using the Content-Disposition header
-        if (isset($response['headers']['Content-Disposition']) === true
-            && str_contains($response['headers']['Content-Disposition'][0], 'filename')) {
-            $explodedContentDisposition = explode('=', $response['headers']['Content-Disposition'][0]);
+		// Get a filename from the response. First try to do this using the Content-Disposition header
+		if (isset($response['headers']['Content-Disposition']) === true
+		&& str_contains($response['headers']['Content-Disposition'][0], 'filename')) {
+		$explodedContentDisposition = explode('=', $response['headers']['Content-Disposition'][0]);
 
-            $filename = trim(string: $explodedContentDisposition[1], characters: '"');
-        } else {
-            // Otherwise, parse the url and content type header.
-            $parsedUrl = parse_url($result->getRequest()['url']);
-            $path = explode(separator:'/', string: $parsedUrl['path']);
-            $filename = end($path);
+		 $filename = trim(string: $explodedContentDisposition[1], characters: '"');
+		} else {
+			// Otherwise, parse the url and content type header.
+			$parsedUrl = parse_url($result->getRequest()['url']);
+			$path = explode(separator:'/', string: $parsedUrl['path']);
+			$filename = end($path);
 
-            if (count(explode(separator: '.', string: $filename)) === 1
-                && (isset($response['headers']['Content-Type']) === true || isset($response['headers']['content-type']) === true)
-            ) {
-                $explodedMimeType = isset($response['headers']['Content-Type']) === true
-                    ? explode(separator: '/', string: explode(separator: ';', string: $response['headers']['Content-Type'][0])[0])
-                    : explode(separator: '/', string: explode(separator: ';', string: $response['headers']['content-type'][0])[0]);
+			if (count(explode(separator: '.', string: $filename)) === 1
+				&& (isset($response['headers']['Content-Type']) === true || isset($response['headers']['content-type']) === true)
+			) {
+				$explodedMimeType = isset($response['headers']['Content-Type']) === true
+					? explode(separator: '/', string: explode(separator: ';', string: $response['headers']['Content-Type'][0])[0])
+					: explode(separator: '/', string: explode(separator: ';', string: $response['headers']['content-type'][0])[0]);
 
 
-                $filename = $filename.'.'.end($explodedMimeType);
-            }
-        }
+				$filename = $filename.'.'.end($explodedMimeType);
+			}
+		}
 
-        // Write the file
-        $this->writeFile($filename, $response['body'], $objectId);
+		// Write the file
+		$file = $this->writeFile($filename, $response['body'], $objectId);
 
-        return $originalEndpoint;
-    }
+		// Attach tags to the file
+		if (isset($config['tags']) === true && $file instanceof File === true) {
+			$tagId = $objectId . $filename;
+			$this->attachTagsToFile(objectId: $file->getId(), tags: $config['tags']);
+		}
+
+		return $originalEndpoint;
+	}
+
 
 	/**
 	 * Process a rule to fetch a file from an external source.
-	 *
+	 *0
 	 * @param Rule $rule The rule to process.
 	 * @param array $data The data written to the object.
 	 * @param string $objectId
@@ -1574,31 +1588,44 @@ class SynchronizationService
 	 * @throws \OCP\DB\Exception
 	 * @throws Exception
 	 */
-    private function processFetchFileRule(Rule $rule, array $data, string $objectId): array
-    {
-        if (isset($rule->getConfiguration()['fetch_file']) === false) {
-            throw new Exception('No configuration found for fetch_file');
-        }
+	private function processFetchFileRule(Rule $rule, array $data, string $objectId): array
+	{
+		if (isset($rule->getConfiguration()['fetch_file']) === false) {
+			throw new Exception('No configuration found for fetch_file');
+		}
 
-        $config = $rule->getConfiguration()['fetch_file'];
+		$config = $rule->getConfiguration()['fetch_file'];
 
-        $source = $this->sourceMapper->find($config['source']);
-        $dataDot = new Dot($data);
-        $endpoint = $dataDot[$config['filePath']];
+		$source = $this->sourceMapper->find($config['source']);
+		$dataDot = new Dot($data);
+		$endpoint = $dataDot[$config['filePath']];
 
-        // If we get one endpoint, fetch that file, otherwise fetch all files from endpoint array.
-        if (is_array($endpoint) === true) {
-            $result = [];
-            foreach ($endpoint as $key => $value) {
-                $result[$key] = $this->fetchFile($source, $value, $config, $objectId);
-            }
-            $dataDot[$config['filePath']] = $result;
-        } else {
-            $dataDot[$config['filePath']] = $this->fetchFile($source, $endpoint, $config, $objectId);
-        }
+		// If we get one endpoint, fetch that file, otherwise fetch all files from endpoint array.
+		if (is_array($endpoint) === true) {
+			$result = [];
+			foreach ($endpoint as $key => $value) {
+				$result[$key] = $this->fetchFile($source, $value, $config, $objectId);
+			}
+			$dataDot[$config['filePath']] = $result;
+		} else {
+			$dataDot[$config['filePath']] = $this->fetchFile($source, $endpoint, $config, $objectId);
+		}
 
-        return $dataDot->jsonSerialize();
-    }
+		return $dataDot->jsonSerialize();
+	}
+
+	/**
+	 * Attach tags to a file.
+	 *
+	 * @param string $fileId The fileId.
+	 * @param array $tags Tags to associate with the file.
+	 */
+	private function attachTagsToFile(string $fileId, array $tags): void
+	{
+		foreach ($tags as $key => $tag) {
+			$this->systemTagMapper->assignTags(objId: $fileId, objectType: 'file', tagIds: $tags);
+		}
+	}
 
 	/**
 	 * Process a rule to write files.
