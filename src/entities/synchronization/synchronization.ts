@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TSynchronization } from './synchronization.types'
 import getValidISOstring from '../../services/getValidISOstring.js'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 export class Synchronization extends ReadonlyBaseClass implements TSynchronization {
 
@@ -61,6 +62,10 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 		}
 
 		super(processedSynchronization)
+	}
+
+	public cloneRaw(): TSynchronization {
+		return _.cloneDeep(this)
 	}
 
 	public validate(): SafeParseReturnType<TSynchronization, unknown> {

@@ -1,5 +1,6 @@
 <script setup>
 import { navigationStore, jobStore } from '../../store/store.js'
+import { Job } from '../../entities/index.js'
 </script>
 
 <template>
@@ -46,7 +47,6 @@ import { navigationStore, jobStore } from '../../store/store.js'
 
 <script>
 import { NcButton, NcDialog, NcNoteCard, NcLoadingIcon } from '@nextcloud/vue'
-import _ from 'lodash'
 
 import Cancel from 'vue-material-design-icons/Cancel.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
@@ -79,15 +79,15 @@ export default {
 		deleteJobArgument() {
 			this.loading = true
 
-			const jobItemClone = _.cloneDeep(jobStore.jobItem)
+			const jobItemClone = jobStore.jobItem.cloneRaw()
 			delete jobItemClone?.arguments[jobStore.jobArgumentKey]
 
 			const scheduleAfter = jobItemClone.scheduleAfter ? new Date(jobItemClone.scheduleAfter.date) || '' : null
 
-			const jobItem = {
+			const jobItem = new Job({
 				...jobItemClone,
 				scheduleAfter,
-			}
+			})
 
 			jobStore.saveJob(jobItem)
 				.then(() => {

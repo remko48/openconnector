@@ -1,6 +1,7 @@
 <script setup>
 import { ruleStore, navigationStore, mappingStore, synchronizationStore, sourceStore } from '../../store/store.js'
 import { getTheme } from '../../services/getTheme.js'
+import { Rule } from '../../entities/index.js'
 </script>
 
 <template>
@@ -997,14 +998,14 @@ export default {
 				break
 			}
 
-			ruleStore.saveRule({
+			ruleStore.saveRule(new Rule({
 				...this.ruleItem,
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
 				timing: this.timingOptions.value?.id || null,
 				type: type || null,
 				configuration,
-			})
+			}))
 				.then(({ response }) => {
 					this.success = response.ok
 					this.error = !response.ok && 'Failed to save rule'

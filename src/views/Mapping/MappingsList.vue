@@ -64,7 +64,7 @@ import { mappingStore, navigationStore, searchStore } from '../../store/store.js
 							</template>
 							Test
 						</NcActionButton>
-						<NcActionButton @click="mappingStore.exportMapping(mapping)">
+						<NcActionButton @click="mappingStore.exportMapping(mapping.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

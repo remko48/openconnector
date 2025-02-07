@@ -45,7 +45,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Run
 						</NcActionButton>
-						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronizationStore.synchronizationItem)">
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronizationStore.synchronizationItem.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
@@ -328,7 +328,7 @@ export default {
 	},
 	mounted() {
 		synchronizationStore.refreshSynchronizationLogs()
-		synchronizationStore.refreshSynchronizationContracts()
+		synchronizationStore.refreshSynchronizationContracts(synchronizationStore.synchronizationItem.id)
 	},
 	methods: {
 		viewLog(log) {
