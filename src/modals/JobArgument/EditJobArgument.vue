@@ -56,7 +56,6 @@ import {
 	NcNoteCard,
 	NcTextField,
 } from '@nextcloud/vue'
-import _ from 'lodash'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 export default {

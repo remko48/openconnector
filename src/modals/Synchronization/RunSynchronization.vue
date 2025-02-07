@@ -1,6 +1,5 @@
 <script setup>
 import { synchronizationStore, navigationStore } from '../../store/store.js'
-import { getTheme } from '../../services/getTheme.js'
 </script>
 
 <template>
@@ -10,8 +9,6 @@ import { getTheme } from '../../services/getTheme.js'
 		<div class="modalContent runSynchronization">
 			<h2>Run synchronization</h2>
 
-			
-
 			<div v-if="response === null" class="runOptions">
 				<div class="optionsGrid">
 					<NcNoteCard type="info">
@@ -19,10 +16,10 @@ import { getTheme } from '../../services/getTheme.js'
 							Test mode will run all the synchronization code and logic without saving or updating the contract or updating the target system. This allows you to verify the mapping and configuration before running a real synchronization by doing a 'dry run'.
 						</p>
 					</NcNoteCard>
-					<NcCheckboxRadioSwitch 
+					<NcCheckboxRadioSwitch
 						:checked="testMode"
-						@update:checked="testMode = $event"
-						type="switch">
+						type="switch"
+						@update:checked="testMode = $event">
 						Test mode
 					</NcCheckboxRadioSwitch>
 					<NcNoteCard type="info">
@@ -30,10 +27,10 @@ import { getTheme } from '../../services/getTheme.js'
 							Forcing the synchronization will make the synchronization service update the contract even if no update was deemed necessary (see docs). The resulting updated contract can still be withheld from saving by activating test mode.
 						</p>
 					</NcNoteCard>
-					<NcCheckboxRadioSwitch 
+					<NcCheckboxRadioSwitch
 						:checked="forceSync"
-						@update:checked="forceSync = $event"
-						type="switch">
+						type="switch"
+						@update:checked="forceSync = $event">
 						Force synchronization
 					</NcCheckboxRadioSwitch>
 				</div>
@@ -175,8 +172,6 @@ import {
 	NcButton,
 	NcCheckboxRadioSwitch,
 } from '@nextcloud/vue'
-import CodeMirror from 'vue-codemirror6'
-import { json, jsonParseLinter } from '@codemirror/lang-json'
 
 import Play from 'vue-material-design-icons/Play.vue'
 
@@ -186,7 +181,6 @@ export default {
 		NcModal,
 		NcLoadingIcon,
 		NcNoteCard,
-		CodeMirror,
 		NcButton,
 		NcCheckboxRadioSwitch,
 	},
@@ -217,7 +211,7 @@ export default {
 				{
 					test: this.testMode,
 					force: this.forceSync,
-				}
+				},
 			)
 				.then(({ response, data }) => {
 					this.response = response
