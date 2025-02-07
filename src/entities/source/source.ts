@@ -97,7 +97,7 @@ export class Source extends ReadonlyBaseClass implements TSource {
 
 	public validate(): SafeParseReturnType<TSource, unknown> {
 		const schema = z.object({
-			id: z.number().nullable(),
+			id: z.union([z.string(), z.number()]).nullable(),
 			uuid: z.string(),
 			name: z.string().max(255),
 			description: z.string(),
