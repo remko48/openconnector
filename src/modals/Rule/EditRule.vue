@@ -286,10 +286,14 @@ import { Rule } from '../../entities/index.js'
 						v-model="methodOptions.value"
 						input-label="Method" />
 
-					<NcSelect
-						v-model="ruleItem.configuration.fetch_file.tags"
+					<NcSelect v-model="ruleItem.configuration.fetch_file.tags"
 						:taggable="true"
-						input-label="Tags" />
+						:multiple="true"
+						input-label="Tags">
+						<template #no-options>
+							type to add tags
+						</template>
+					</NcSelect>
 
 					<div class="json-editor">
 						<label>Source Configuration (JSON)</label>
@@ -331,7 +335,12 @@ import { Rule } from '../../entities/index.js'
 					<NcSelect
 						v-model="ruleItem.configuration.write_file.tags"
 						:taggable="true"
-						input-label="Tags" />
+						:multiple="true"
+						input-label="Tags">
+						<template #no-options>
+							type to add tags
+						</template>
+					</NcSelect>
 				</template>
 
 				<!-- Fileparts Create Configuration -->
