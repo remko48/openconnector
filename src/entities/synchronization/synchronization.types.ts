@@ -1,5 +1,6 @@
 export type TSynchronization = {
     id: number
+    uuid: string
     name: string
     description: string
     conditions: string

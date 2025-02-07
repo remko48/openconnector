@@ -32,6 +32,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
 	protected ?DateTime $targetLastChanged = null; // The last changed date of the object in the target
 	protected ?DateTime $targetLastChecked = null; // The last checked date of the object in the target
 	protected ?DateTime $targetLastSynced = null; // The last synced date of the object in the target
+	protected ?string $targetLastAction = null; // The last CRUD action performed on the target (create, read, update, delete)
 	// General
 	protected ?DateTime $created = null; // the date and time the synchronization was created
 	protected ?DateTime $updated = null; // the date and time the synchronization was updated
@@ -51,6 +52,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
 		$this->addType('targetLastChanged', 'datetime');
 		$this->addType('targetLastChecked', 'datetime');
 		$this->addType('targetLastSynced', 'datetime');
+		$this->addType('targetLastAction', 'string');
 		$this->addType('created', 'datetime');
 		$this->addType('updated', 'datetime');
 
@@ -106,6 +108,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
 			'targetLastChanged' => isset($this->targetLastChanged) ? $this->targetLastChanged->format('c') : null,
 			'targetLastChecked' => isset($this->targetLastChecked) ? $this->targetLastChecked->format('c') : null,
 			'targetLastSynced' => isset($this->targetLastSynced) ? $this->targetLastSynced->format('c') : null,
+			'targetLastAction' => $this->lastAction,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
 			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
 			// @todo these 2 can be removed when migrations are merged
