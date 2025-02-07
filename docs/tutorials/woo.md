@@ -1,20 +1,20 @@
-# How to sync data from xxlnc search api to woo publication obejcts
+# How to sync data from xxllnc search api to woo publication objects
 
-## PRereq
-- You have a n nexcltoud setup
+## Prerequisites
+- You have a Nextcloud setup
 
-## Septs
+## Steps
 
-1. Mke sure you have the lates version op Open connector, open Register and Open Catalogi
-2. make sure to remove browser cahse afther updating component (shift F5)
-- Create a source for the api (kan je inladen)
-- test de source (for woo the default get is ok)
-- OPen Register inrichten
-- - Mapping aanmaken (kan je inladen maar dan meot je nog de catalugs id en publicatietype id invullen)
-- synchronysation aanmaken (kan je inladen)
+1. Make sure you have the latest version of Open Connector, Open Register and Open Catalogi
+2. Make sure to remove browser cache after updating component (shift F5)
+- Create a source for the api (can be uploaded)
+- Test de source (for woo the default get is ok)
+- Configure Open Connector
+- - Create mapping (could be uploaded but you would still have to fill in the publicationtype and catalogus id's)
+- - Create synchronisation (could be uploaded)
 
-volgorde
-1 - Open Register inrichten
-2 - Open Catalogi inrichten
-3 - Open Conencties inrichten
+Order
+1 - Configure Open Register
+2 - Configure Open Catalogi
+3 - Configure Open Connector
 

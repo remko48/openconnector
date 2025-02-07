@@ -39,7 +39,7 @@ Synchronization is a core feature that enables data transfer between different s
 
 ## Process Flow
 1. Fetch all objects from source system with pagination
-2. Determing if an object has changed
+2. Determining if an object has changed
 3. Create/update synchronization contracts for each object
 4. Transform data according to mapping rules
 5. Write objects to target system (POST/PUT/DELETE)
