@@ -332,8 +332,7 @@ import { Rule } from '../../entities/index.js'
 						:value.sync="ruleItem.configuration.write_file.fileNamePath"
 						placeholder="path.to.file.name" />
 
-					<NcSelect
-						v-model="ruleItem.configuration.write_file.tags"
+					<NcSelect v-model="ruleItem.configuration.write_file.tags"
 						:taggable="true"
 						:multiple="true"
 						input-label="Tags">
