@@ -242,7 +242,7 @@ export const useEventStore = defineStore('event', () => {
 	const refreshEventList = async (search: string = null): Promise<{ response: Response, data: TEvent[], entities: Event[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 

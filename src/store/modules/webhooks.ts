@@ -84,7 +84,7 @@ export const useWebhookStore = defineStore('webhook', () => {
 	const refreshWebhookList = async (search: string = null): Promise<{ response: Response, data: TWebhook[], entities: Webhook[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 

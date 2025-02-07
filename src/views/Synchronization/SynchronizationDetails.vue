@@ -327,7 +327,7 @@ export default {
 		}
 	},
 	mounted() {
-		synchronizationStore.refreshSynchronizationLogs()
+		synchronizationStore.refreshSynchronizationLogs(synchronizationStore.synchronizationItem.id)
 		synchronizationStore.refreshSynchronizationContracts(synchronizationStore.synchronizationItem.id)
 	},
 	methods: {

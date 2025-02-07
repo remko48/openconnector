@@ -205,7 +205,7 @@ export const useSourceStore = defineStore('source', () => {
 	const refreshSourceList = async (search: string = null): Promise<{ response: Response, data: TSource[], entities: Source[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 

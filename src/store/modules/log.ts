@@ -146,7 +146,7 @@ export const useLogStore = defineStore('log', () => {
 	const refreshLogList = async (search: string = null): Promise<{ response: Response, data: TLog[], entities: Log[] }> => {
 		const queryParams = new URLSearchParams()
 
-		if (search !== null && search !== '') {
+		if (search && search !== '') {
 			queryParams.append('_search', search)
 		}
 
