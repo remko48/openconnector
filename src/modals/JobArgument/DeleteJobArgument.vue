@@ -1,5 +1,6 @@
 <script setup>
 import { navigationStore, jobStore } from '../../store/store.js'
+import { Job } from '../../entities/index.js'
 </script>
 
 <template>
@@ -79,15 +80,15 @@ export default {
 		deleteJobArgument() {
 			this.loading = true
 
-			const jobItemClone = _.cloneDeep(jobStore.jobItem)
+			const jobItemClone = jobStore.jobItem.cloneRaw()
 			delete jobItemClone?.arguments[jobStore.jobArgumentKey]
 
 			const scheduleAfter = jobItemClone.scheduleAfter ? new Date(jobItemClone.scheduleAfter.date) || '' : null
 
-			const jobItem = {
+			const jobItem = new Job({
 				...jobItemClone,
 				scheduleAfter,
-			}
+			})
 
 			jobStore.saveJob(jobItem)
 				.then(() => {

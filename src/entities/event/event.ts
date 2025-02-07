@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TEvent } from './event.types.js'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
 import getValidISOstring from '../../services/getValidISOstring.js'
+import _ from 'lodash'
 
 /**
  * Event entity class representing an event in the system
@@ -59,6 +60,10 @@ export class Event extends ReadonlyBaseClass implements TEvent {
 		}
 
 		super(processedEvent)
+	}
+
+	public cloneRaw(): TEvent {
+		return _.cloneDeep(this)
 	}
 
 	/**

@@ -84,7 +84,7 @@ import { sourceStore, navigationStore, searchStore } from '../../store/store.js'
 							</template>
 							Add Authentication
 						</NcActionButton>
-						<NcActionButton @click="sourceStore.exportSource(source)">
+						<NcActionButton @click="sourceStore.exportSource(source.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

@@ -224,6 +224,9 @@ export default {
 					this.responseBody = data
 					this.responseBodyString = JSON.stringify(data, null, 2)
 					this.success = response.ok
+
+					synchronizationStore.refreshSynchronizationLogs()
+					synchronizationStore.refreshSynchronizationContracts(synchronizationStore.synchronizationItem.id)
 				}).catch((error) => {
 					this.success = false
 					this.error = error.message || 'An error occurred while running the synchronization'

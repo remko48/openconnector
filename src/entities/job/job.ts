@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TJob } from './job.types'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
 import getValidISOstring from '../../services/getValidISOstring.js'
+import _ from 'lodash'
 
 export class Job extends ReadonlyBaseClass implements TJob {
 
@@ -26,6 +27,7 @@ export class Job extends ReadonlyBaseClass implements TJob {
 	public readonly created: string
 	public readonly updated: string
 	public readonly version: string
+
 	constructor(job: TJob) {
 		const processedJob: TJob = {
 			id: job.id || '',
@@ -52,6 +54,10 @@ export class Job extends ReadonlyBaseClass implements TJob {
 		}
 
 		super(processedJob)
+	}
+
+	public cloneRaw(): TJob {
+		return _.cloneDeep(this)
 	}
 
 	public validate(): SafeParseReturnType<TJob, unknown> {

@@ -1,5 +1,6 @@
 <script setup>
 import { jobStore, navigationStore } from '../../store/store.js'
+import { Job } from '../../entities/index.js'
 </script>
 
 <template>
@@ -239,10 +240,12 @@ export default {
 		async editJob() {
 			this.loading = true
 			try {
-				await jobStore.saveJob({
+				const jobItem = new Job({
 					...this.jobItem,
 					jobClass: this.classOptions.value.label,
 				})
+
+				await jobStore.saveJob(jobItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

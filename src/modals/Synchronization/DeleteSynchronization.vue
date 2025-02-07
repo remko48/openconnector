@@ -80,7 +80,7 @@ export default {
 		async deleteSynchronization() {
 			this.loading = true
 			try {
-				await synchronizationStore.deleteSynchronization()
+				await synchronizationStore.deleteSynchronization(synchronizationStore.synchronizationItem.id)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

@@ -206,6 +206,8 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 
 import { Mapping } from '../../../entities/index.js'
 
+import openLink from '../../../services/openLink.js'
+
 export default {
 	name: 'TestMappingMappingSelect',
 	components: {

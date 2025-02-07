@@ -1,5 +1,6 @@
 <script setup>
-import { synchronizationStore, navigationStore, sourceStore, mappingStore } from '../../store/store.js'
+import { synchronizationStore, navigationStore, sourceStore, mappingStore, ruleStore } from '../../store/store.js'
+import { Synchronization } from '../../entities/index.js'
 </script>
 
 <template>
@@ -84,12 +85,19 @@ import { synchronizationStore, navigationStore, sourceStore, mappingStore } from
 				<NcTextArea :value.sync="synchronizationItem.conditions"
 					label="Conditions (json logic)" />
 
-				<NcSelect v-bind="typeOptions"
-					v-model="typeOptions.value"
-					:selectable="(option) => {
-						return option.id === 'register/schema' ? openRegisterInstalled : true
-					}"
-					input-label="Source Type" />
+				<NcSelect v-bind="ruleOptions"
+					v-model="ruleOptions.value"
+					multiple
+					:loading="rulesLoading"
+					input-label="Rules" />
+				<div>
+					<NcSelect v-bind="typeOptions"
+						v-model="typeOptions.value"
+						:selectable="(option) => {
+							return option.id === 'register/schema' ? openRegisterInstalled : true
+						}"
+						input-label="Source Type" />
+				</div>
 
 				<div>
 					<NcSelect v-if="typeOptions.value?.id !== 'register/schema'"
@@ -247,6 +255,7 @@ export default {
 					headers: {},
 					query: {},
 				},
+				actions: [],
 				sourceHashMapping: '',
 				sourceTargetMapping: '',
 				targetId: '',
@@ -305,6 +314,14 @@ export default {
 				sourceValue: null,
 			},
 			// ============================= //
+			// rule options
+			// ============================= //
+			rulesLoading: false, // Indicates if the rules are loading
+			ruleOptions: {
+				options: [],
+				value: null,
+			},
+			// ============================= //
 			// OpenRegister
 			// ============================= //
 			openRegisterInstalled: true, // Indicates if OpenRegister is installed
@@ -333,6 +350,7 @@ export default {
 		this.getSourceTargetMappings()
 		this.getRegister()
 		this.getSchema()
+		this.getRules()
 	},
 	methods: {
 		/**
@@ -541,6 +559,35 @@ export default {
 			this.schemaLoading = false
 		},
 		/**
+		 * Fetches the list of available rules from the rules store and updates the rules options.
+		 * Sets the loading state to true while fetching and updates the rules options with the fetched data.
+		 * If a rules is already selected, it sets it as the active rules.
+		 * If the target type is 'api', it sets the active target rules.
+		 */
+		getRules() {
+			this.rulesLoading = true
+
+			ruleStore.refreshRuleList()
+				.then(() => {
+					const rules = ruleStore.ruleList
+					const activeRule = rules.filter(rule => this.synchronizationItem.actions.includes(rule.id))
+
+					this.ruleOptions = {
+						options: rules.map(rule => ({
+							label: rule.name,
+							id: rule.id,
+						})),
+						value: activeRule.map(rule => ({
+							label: rule.name,
+							id: rule.id,
+						})),
+					}
+				})
+				.finally(() => {
+					this.rulesLoading = false
+				})
+		},
+		/**
 		 * Installs OpenRegister by sending a request to the server.
 		 * Sets the loading state to true while the installation is in progress.
 		 * Updates the state based on the success or failure of the installation.
@@ -551,25 +598,6 @@ export default {
 
 			console.info('Installing Open Register')
 			const requesttoken = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
-
-			if (window.location.hostname === 'nextcloud.local') {
-				await fetch('http://nextcloud.local/index.php/login/confirm', {
-					headers: {
-						accept: 'application/json, text/plain, */*',
-						'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
-						'cache-control': 'no-cache',
-						'content-type': 'application/json',
-						pragma: 'no-cache',
-						requesttoken,
-						'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
-					},
-					referrerPolicy: 'no-referrer',
-					body: '{"password":"admin"}',
-					method: 'POST',
-					mode: 'cors',
-					credentials: 'include',
-				})
-			}
 
 			const forceResponse = await fetch('/index.php/settings/apps/force', {
 				headers: {
@@ -653,7 +681,7 @@ export default {
 				sourceId = this.sourceOptions.sourceValue?.id
 			}
 
-			synchronizationStore.saveSynchronization({
+			const synchronizationItem = new Synchronization({
 				...this.synchronizationItem,
 				sourceId: sourceId || null,
 				sourceType: this.typeOptions.value?.id || null,
@@ -663,7 +691,10 @@ export default {
 				targetType: this.targetTypeOptions.value?.id || null,
 				targetId: targetId || null,
 				targetSourceMapping: this.sourceTargetMappingOptions.targetValue?.id || null,
+				actions: this.ruleOptions.value ? this.ruleOptions.value.map(rule => rule.id) : [],
 			})
+
+			synchronizationStore.saveSynchronization(synchronizationItem)
 				.then(({ response }) => {
 					this.success = response.ok
 					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)

@@ -129,7 +129,7 @@ export default {
 			this.loading = true
 
 			try {
-				await jobStore.testJob()
+				await jobStore.testJob(jobStore.jobItem.id)
 				this.success = true
 				this.loading = false
 				this.error = false

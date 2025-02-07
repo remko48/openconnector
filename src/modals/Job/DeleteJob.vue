@@ -80,7 +80,7 @@ export default {
 		async deleteJob() {
 			this.loading = true
 			try {
-				await jobStore.deleteJob()
+				await jobStore.deleteJob(jobStore.jobItem.id)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

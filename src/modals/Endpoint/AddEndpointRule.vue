@@ -1,5 +1,6 @@
 <script setup>
 import { endpointStore, navigationStore, ruleStore } from '../../store/store.js'
+import { Endpoint } from '../../entities/index.js'
 </script>
 
 <template>
@@ -51,7 +52,6 @@ import {
 	NcNoteCard,
 } from '@nextcloud/vue'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
-import _ from 'lodash'
 
 export default {
 	name: 'AddEndpointRule',
@@ -108,7 +108,7 @@ export default {
 
 			try {
 				// Create a copy of the current endpoint
-				const updatedEndpoint = _.cloneDeep(endpointStore.endpointItem)
+				const updatedEndpoint = endpointStore.endpointItem.cloneRaw()
 
 				// Initialize rules array if it doesn't exist
 				if (!updatedEndpoint.rules) {
@@ -124,13 +124,13 @@ export default {
 				]
 
 				// Prepare endpoint data for saving
-				const endpointToSave = {
+				const endpointToSave = new Endpoint({
 					...updatedEndpoint,
 					endpointArray: Array.isArray(updatedEndpoint.endpointArray)
 						? updatedEndpoint.endpointArray
 						: updatedEndpoint.endpointArray.split(/ *, */g),
 					rules: updatedRules, // Use the array of string IDs
-				}
+				})
 
 				const { response } = await endpointStore.saveEndpoint(endpointToSave)
 

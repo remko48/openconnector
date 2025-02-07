@@ -1,6 +1,7 @@
 <script setup>
-import { ruleStore, navigationStore, mappingStore, synchronizationStore } from '../../store/store.js'
+import { ruleStore, navigationStore, mappingStore, synchronizationStore, sourceStore } from '../../store/store.js'
 import { getTheme } from '../../services/getTheme.js'
+import { Rule } from '../../entities/index.js'
 </script>
 
 <template>
@@ -9,6 +10,51 @@ import { getTheme } from '../../services/getTheme.js'
 		@close="closeModal">
 		<div class="modalContent">
 			<h2>{{ ruleItem.id ? 'Edit' : 'Add' }} Rule</h2>
+
+			<div v-if="!openRegister.isInstalled && !closeAlert" class="openregister-notecard">
+				<NcNoteCard
+					:type="openRegister.isAvailable ? 'info' : 'error'"
+					:heading="openRegister.isAvailable ? 'Open Register is not installed' : 'Failed to install Open Register'">
+					<p>
+						{{ openRegister.isAvailable
+							? 'Some features require Open Register to be installed'
+							: 'This either means that you do not have sufficient rights to install Open Register or that Open Register is not available on this server or you need to confirm your password' }}
+					</p>
+
+					<div class="install-buttons">
+						<NcButton v-if="openRegister.isAvailable"
+							aria-label="Install OpenRegister"
+							size="small"
+							type="primary"
+							@click="installOpenRegister">
+							<template #icon>
+								<CloudDownload :size="20" />
+							</template>
+							Install OpenRegister
+						</NcButton>
+						<NcButton
+							aria-label="Install OpenRegister Manually"
+							size="small"
+							type="secondary"
+							@click="openLink('/index.php/settings/apps/organization/openregister', '_blank')">
+							<template #icon>
+								<OpenInNew :size="20" />
+							</template>
+							Install OpenRegister Manually
+						</NcButton>
+					</div>
+					<div class="close-button">
+						<NcActions>
+							<NcActionButton @click="closeAlert = true">
+								<template #icon>
+									<Close :size="20" />
+								</template>
+								Close
+							</NcActionButton>
+						</NcActions>
+					</div>
+				</NcNoteCard>
+			</div>
 
 			<!-- ====================== -->
 			<!-- Success/Error notecard -->
@@ -47,7 +93,7 @@ import { getTheme } from '../../services/getTheme.js'
 						<NcButton class="format-json-button"
 							type="secondary"
 							size="small"
-							@click="formatJson">
+							@click="formatJSONCondictions">
 							Format JSON
 						</NcButton>
 					</div>
@@ -56,16 +102,26 @@ import { getTheme } from '../../services/getTheme.js'
 					</span>
 				</div>
 
+				<div>
+					<NcSelect
+						v-bind="timingOptions"
+						v-model="timingOptions.value"
+						:clearable="false"
+						input-label="Timing" />
+				</div>
+
 				<NcTextField :value.sync="ruleItem.order"
 					label="Order"
 					type="number" />
 
 				<NcSelect v-bind="actionOptions"
 					v-model="actionOptions.value"
+					:clearable="false"
 					input-label="Action" />
 
 				<NcSelect v-bind="typeOptions"
 					v-model="typeOptions.value"
+					:selectable="(option) => option.label === 'Fileparts Create' || option.label === 'Filepart Upload' ? openRegister?.isInstalled : true"
 					input-label="Type" />
 
 				<!-- Add mapping select -->
@@ -209,10 +265,141 @@ import { getTheme } from '../../services/getTheme.js'
 						<p>Lock or unlock resources for exclusive access by the current user.</p>
 					</div>
 				</template>
+
+				<!-- Fetch File Configuration -->
+				<template v-if="typeOptions.value?.id === 'fetch_file'">
+					<NcSelect
+						v-bind="sourceOptions"
+						v-model="sourceOptions.sourceValue"
+						required
+						:loading="sourcesLoading"
+						input-label="Source ID *" />
+
+					<NcTextField
+						label="File Path"
+						required
+						:value.sync="ruleItem.configuration.fetch_file.filePath"
+						placeholder="path.to.fetch.file" />
+
+					<NcSelect
+						v-bind="methodOptions"
+						v-model="methodOptions.value"
+						input-label="Method" />
+
+					<div class="json-editor">
+						<label>Source Configuration (JSON)</label>
+						<div :class="`codeMirrorContainer ${getTheme()}`">
+							<CodeMirror v-model="ruleItem.configuration.fetch_file.sourceConfiguration"
+								:basic="true"
+								placeholder="[]"
+								:dark="getTheme() === 'dark'"
+								:linter="jsonParseLinter()"
+								:lang="json()"
+								:tab-size="2" />
+
+							<NcButton class="format-json-button"
+								type="secondary"
+								size="small"
+								@click="formatJSONSourceConfiguration">
+								Format JSON
+							</NcButton>
+						</div>
+						<span v-if="!isValidJson(ruleItem.configuration.fetch_file.sourceConfiguration)" class="error-message">
+							Invalid JSON format
+						</span>
+					</div>
+				</template>
+
+				<!-- Write File Configuration -->
+				<template v-if="typeOptions.value?.id === 'write_file'">
+					<NcTextField
+						label="File Path"
+						required
+						:value.sync="ruleItem.configuration.write_file.filePath"
+						placeholder="path.to.file.content" />
+					<NcTextField
+						label="File Name Path"
+						required
+						:value.sync="ruleItem.configuration.write_file.fileNamePath"
+						placeholder="path.to.file.name" />
+				</template>
+
+				<!-- Fileparts Create Configuration -->
+				<template v-if="typeOptions.value?.id === 'fileparts_create'">
+					<NcTextField
+						label="Size Location"
+						required
+						:value.sync="ruleItem.configuration.fileparts_create.sizeLocation"
+						placeholder="path.to.size.location" />
+
+					<NcSelect v-bind="schemaOptions"
+						v-model="schemaOptions.value"
+						input-label="Schema *"
+						:loading="schemasLoading"
+						:disabled="!openRegister.isInstalled"
+						required>
+						<template #no-options="{ loading: schemasTemplateLoading }">
+							<p v-if="schemasTemplateLoading">
+								Loading...
+							</p>
+							<p v-if="!schemasTemplateLoading && !schemaOptions.options?.length">
+								Er zijn geen schemas beschikbaar
+							</p>
+						</template>
+						<template #option="{ id, label, fullSchema, removeStyle }">
+							<div :key="id" :class="removeStyle !== true && 'schema-option'">
+								<!-- custom style is enabled -->
+								<FileTreeOutline v-if="!removeStyle" :size="25" />
+								<span v-if="!removeStyle">
+									<h6 style="margin: 0">
+										{{ label }}
+									</h6>
+									{{ fullSchema.summary }}
+								</span>
+								<!-- custom style is disabled -->
+								<p v-if="removeStyle">
+									{{ label }}
+								</p>
+							</div>
+						</template>
+					</NcSelect>
+
+					<NcTextField
+						label="Filename Location"
+						:value.sync="ruleItem.configuration.fileparts_create.filenameLocation"
+						placeholder="path.to.filename.location" />
+
+					<NcTextField
+						label="Filepart Location"
+						:value.sync="ruleItem.configuration.fileparts_create.filePartLocation"
+						placeholder="path.to.filepart.location" />
+
+					<NcSelect
+						v-bind="filepartsCreateMappingOptions"
+						v-model="filepartsCreateMappingOptions.value"
+						:loading="mappingOptions.loading"
+						input-label="Mapping ID" />
+				</template>
+
+				<!-- Filepart Upload Configuration -->
+				<template v-if="typeOptions.value?.id === 'filepart_upload'">
+					<NcSelect
+						v-bind="filepartUploadMappingOptions"
+						v-model="filepartUploadMappingOptions.value"
+						required
+						:loading="mappingOptions.loading"
+						input-label="Mapping ID*" />
+				</template>
 			</form>
 
 			<NcButton v-if="!success"
-				:disabled="loading || !ruleItem.name || !isValidJson(ruleItem.conditions)"
+				:disabled="loading
+					|| !ruleItem.name
+					|| !isValidJson(ruleItem.conditions)
+					|| typeOptions.value?.id === 'fetch_file' && (!ruleItem.configuration.fetch_file.filePath || !sourceOptions.sourceValue)
+					|| typeOptions.value?.id === 'write_file' && (!ruleItem.configuration.write_file.filePath || !ruleItem.configuration.write_file.fileNamePath)
+					|| typeOptions.value?.id === 'fileparts_create' && (!schemaOptions.value || !ruleItem.configuration.fileparts_create.sizeLocation)
+					|| typeOptions.value?.id === 'filepart_upload' && !filepartUploadMappingOptions.value"
 				type="primary"
 				@click="editRule()">
 				<template #icon>
@@ -235,11 +422,19 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 	NcInputField,
+	NcActions,
+	NcActionButton,
 } from '@nextcloud/vue'
 import { json, jsonParseLinter } from '@codemirror/lang-json'
 import CodeMirror from 'vue-codemirror6'
 
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
+import Close from 'vue-material-design-icons/Close.vue'
+import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
+import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
+
+import openLink from '../../services/openLink.js'
 
 export default {
 	name: 'EditRule',
@@ -252,6 +447,8 @@ export default {
 		NcLoadingIcon,
 		NcNoteCard,
 		NcInputField,
+		NcActions,
+		NcActionButton,
 	},
 	data() {
 		return {
@@ -259,18 +456,22 @@ export default {
 			success: null,
 			loading: false,
 			error: false,
+			closeAlert: false,
+			sourcesLoading: false,
+			openRegister: {
+				isInstalled: true,
+				isAvailable: true,
+			},
 			mappingOptions: {
 				options: [],
 				value: null,
 				loading: false,
 			},
-
 			syncOptions: {
 				options: [],
 				value: null,
 				loading: false,
 			},
-
 			// @todoMock data for users and groups - should be fetched from backend
 			usersList: [
 				{ label: 'User 1', value: 'user1' },
@@ -289,6 +490,7 @@ export default {
 				action: '',
 				type: '',
 				actionConfig: '{}',
+				timing: '',
 				configuration: {
 					mapping: null,
 					synchronization: null,
@@ -315,19 +517,36 @@ export default {
 						action: 'lock',
 						timeout: 30,
 					},
+					fetch_file: {
+						source: '',
+						filePath: '',
+						method: '',
+						sourceConfiguration: '[]',
+					},
+					write_file: {
+						filePath: '',
+						fileNamePath: '',
+					},
+					fileparts_create: {
+						sizeLocation: '',
+						schemaId: '',
+						filenameLocation: '',
+						filePartLocation: '',
+						mappingId: '',
+					},
+					filepart_upload: {
+						mappingId: '',
+					},
 				},
 			},
 
-			actionOptions: {
-				options: [
-					{ label: 'Post (Create)', id: 'post' },
-					{ label: 'Get (Read)', id: 'get' },
-					{ label: 'Put (Update)', id: 'put' },
-					{ label: 'Delete (Delete)', id: 'delete' },
-				],
-				value: { label: 'Post (Create)', id: 'post' },
-			},
-
+			actionOptions: {},
+			timingOptions: {},
+			sourceOptions: {},
+			methodOptions: {},
+			filepartUploadMappingOptions: {},
+			filepartsCreateMappingOptions: {},
+			schemaOptions: {},
 			typeOptions: {
 				options: [
 					{ label: 'Error', id: 'error' },
@@ -338,6 +557,10 @@ export default {
 					{ label: 'Download', id: 'download' },
 					{ label: 'Upload', id: 'upload' },
 					{ label: 'Locking', id: 'locking' },
+					{ label: 'Fetch File', id: 'fetch_file' },
+					{ label: 'Write File', id: 'write_file' },
+					{ label: 'Fileparts Create', id: 'fileparts_create' },
+					{ label: 'Filepart Upload', id: 'filepart_upload' },
 				],
 				value: { label: 'Error', id: 'error' },
 			},
@@ -346,23 +569,72 @@ export default {
 		}
 	},
 	mounted() {
+
 		if (this.IS_EDIT) {
 			this.ruleItem = {
 				...ruleStore.ruleItem,
+				configuration: {
+					mapping: ruleStore.ruleItem.configuration?.mapping ?? null,
+					synchronization: ruleStore.ruleItem.configuration?.synchronization ?? null,
+					error: {
+						code: ruleStore.ruleItem.configuration?.error?.code ?? 500,
+						name: ruleStore.ruleItem.configuration?.error?.name ?? 'Something went wrong',
+						message: ruleStore.ruleItem.configuration?.error?.message ?? 'We encountered an unexpected problem',
+					},
+					javascript: ruleStore.ruleItem.configuration?.javascript ?? '',
+					authentication: {
+						type: ruleStore.ruleItem.configuration?.authentication?.type ?? 'basic',
+						users: ruleStore.ruleItem.configuration?.authentication?.users ?? [],
+						groups: ruleStore.ruleItem.configuration?.authentication?.groups ?? [],
+					},
+					download: {
+						fileIdPosition: ruleStore.ruleItem.configuration?.download?.fileIdPosition ?? 0,
+					},
+					upload: {
+						path: ruleStore.ruleItem.configuration?.upload?.path ?? '',
+						allowedTypes: ruleStore.ruleItem.configuration?.upload?.allowedTypes ?? '',
+						maxSize: ruleStore.ruleItem.configuration?.upload?.maxSize ?? 10,
+					},
+					locking: {
+						action: ruleStore.ruleItem.configuration?.locking?.action ?? 'lock',
+						timeout: ruleStore.ruleItem.configuration?.locking?.timeout ?? 30,
+					},
+					fetch_file: {
+						source: ruleStore.ruleItem.configuration?.fetch_file?.source ?? '',
+						filePath: ruleStore.ruleItem.configuration?.fetch_file?.filePath ?? '',
+						method: ruleStore.ruleItem.configuration?.fetch_file?.method ?? '',
+						sourceConfiguration: JSON.stringify(ruleStore.ruleItem.configuration?.fetch_file?.sourceConfiguration, null, 2) ?? '[]',
+					},
+					write_file: {
+						filePath: ruleStore.ruleItem.configuration?.write_file?.filePath ?? '',
+						fileNamePath: ruleStore.ruleItem.configuration?.write_file?.fileNamePath ?? '',
+					},
+					fileparts_create: {
+						sizeLocation: ruleStore.ruleItem.configuration?.fileparts_create?.sizeLocation ?? '',
+						schemaId: ruleStore.ruleItem.configuration?.fileparts_create?.schemaId ?? '',
+						filenameLocation: ruleStore.ruleItem.configuration?.fileparts_create?.filenameLocation ?? '',
+						filePartLocation: ruleStore.ruleItem.configuration?.fileparts_create?.filePartLocation ?? '',
+						mappingId: ruleStore.ruleItem.configuration?.fileparts_create?.mappingId ?? '',
+					},
+					filepart_upload: {
+						mappingId: ruleStore.ruleItem.configuration?.filepart_upload?.mappingId ?? '',
+					},
+				},
 				conditions: JSON.stringify(ruleStore.ruleItem.conditions, null, 2),
 				actionConfig: JSON.stringify(ruleStore.ruleItem.actionConfig),
 			}
-
-			this.actionOptions.value = this.actionOptions.options.find(
-				option => option.id === this.ruleItem.action,
-			)
 
 			this.typeOptions.value = this.typeOptions.options.find(
 				option => option.id === this.ruleItem.type,
 			)
 		}
+		this.setMethodOptions()
+		this.setActionOptions()
+		this.setTimingOptions()
 		this.getMappings()
 		this.getSynchronizations()
+		this.getSources()
+		this.getSchemas()
 	},
 	methods: {
 		async getMappings() {
@@ -373,6 +645,38 @@ export default {
 				// Use the store's mappingList directly
 				const mappings = mappingStore.mappingList
 				if (mappings?.length) {
+
+					// Set active filepart upload mapping
+					const activeFilepartUploadMapping = mappings.find((mapping) => mapping?.id.toString() === this.ruleItem.configuration.filepart_upload.mappingId?.toString() ?? '')
+					this.filepartUploadMappingOptions = {
+						options: mappings.map(mapping => ({
+							label: mapping.name,
+							value: mapping.id,
+						})),
+						value: activeFilepartUploadMapping
+							? {
+								label: activeFilepartUploadMapping.name,
+								value: activeFilepartUploadMapping.id,
+							}
+							: null,
+					}
+
+					// Set active filepart upload mapping
+					const activeFilepartsCreateMapping = mappings.find((mapping) => mapping?.id.toString() === this.ruleItem.configuration.fileparts_create.mappingId?.toString() ?? '')
+					this.filepartsCreateMappingOptions = {
+						options: mappings.map(mapping => ({
+							label: mapping.name,
+							value: mapping.id,
+						})),
+						value: activeFilepartsCreateMapping
+							? {
+								label: activeFilepartsCreateMapping.name,
+								value: activeFilepartsCreateMapping.id,
+							}
+							: null,
+					}
+
+					// Set mapping options
 					this.mappingOptions.options = mappings.map(mapping => ({
 						label: mapping.name,
 						value: mapping.id,
@@ -393,6 +697,86 @@ export default {
 			} finally {
 				this.mappingOptions.loading = false
 			}
+		},
+
+		getSources() {
+			this.sourcesLoading = true
+
+			sourceStore.refreshSourceList()
+				.then(() => {
+
+					const sources = sourceStore.sourceList
+
+					const activeSourceSource = sources.find(source => source.id.toString() === this.ruleItem.configuration.fetch_file.source.toString() ?? '')
+
+					this.sourceOptions = {
+						options: sources.map(source => ({
+							label: source.name,
+							id: source.id,
+						})),
+						sourceValue: activeSourceSource
+							? {
+								label: activeSourceSource.name,
+								id: activeSourceSource.id,
+							}
+							: null,
+					}
+				})
+				.finally(() => {
+					this.sourcesLoading = false
+				})
+		},
+		async getSchemas() {
+			this.schemasLoading = true
+
+			// checking if OpenRegister is installed
+			console.info('Fetching schemas from Open Register')
+			const response = await fetch('/index.php/apps/openregister/api/schemas', {
+				headers: {
+					accept: '*/*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					pragma: 'no-cache',
+					'x-requested-with': 'XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: null,
+				method: 'GET',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!response.ok) {
+				console.info('Open Register is not installed')
+				this.schemasLoading = false
+				this.openRegister.isInstalled = false
+				return
+			}
+
+			this.typeOptions.options = [
+				...this.typeOptions.options,
+
+			]
+
+			const responseData = (await response.json()).results
+
+			const activeSchema = responseData.find(schema => schema.id.toString() === this.ruleItem.configuration.fileparts_create.schemaId.toString() ?? '')
+
+			this.schemaOptions = {
+				options: responseData.map((schema) => ({
+					id: schema.id,
+					label: schema.title,
+					fullSchema: schema,
+				})),
+				value: activeSchema
+					? {
+						id: activeSchema.id,
+						label: activeSchema.title,
+					}
+					: null,
+			}
+
+			this.schemasLoading = false
 		},
 
 		async getSynchronizations() {
@@ -425,6 +809,47 @@ export default {
 			}
 		},
 
+		setMethodOptions() {
+			const options = [
+				{ label: 'GET' },
+				{ label: 'POST' },
+				{ label: 'PUT' },
+				{ label: 'DELETE' },
+				{ label: 'PATCH' },
+			]
+
+			this.methodOptions = {
+				options,
+				value: options.find(option => option.label === this.ruleItem.configuration.fetch_file.method),
+			}
+		},
+
+		setActionOptions() {
+			const options = [
+				{ label: 'Post (Create)', id: 'post' },
+				{ label: 'Get (Read)', id: 'get' },
+				{ label: 'Put (Update)', id: 'put' },
+				{ label: 'Delete (Delete)', id: 'delete' },
+			]
+
+			this.actionOptions = {
+				options,
+				value: options.find(option => option.id === this.ruleItem.action) || options[0],
+			}
+		},
+
+		setTimingOptions() {
+			const options = [
+				{ label: 'Before', id: 'before' },
+				{ label: 'After', id: 'after' },
+			]
+
+			this.timingOptions = {
+				options,
+				value: options.find(option => option.id === this.ruleItem.timing) || options[0],
+			}
+		},
+
 		closeModal() {
 			navigationStore.setModal(false)
 			clearTimeout(this.closeTimeoutFunc)
@@ -440,7 +865,7 @@ export default {
 			}
 		},
 
-		formatJson() {
+		formatJSONCondictions() {
 			try {
 				if (this.ruleItem.conditions) {
 					// Format the JSON with proper indentation
@@ -449,6 +874,48 @@ export default {
 				}
 			} catch (e) {
 				// Keep invalid JSON as-is to allow user to fix it
+			}
+		},
+
+		formatJSONSourceConfiguration() {
+			try {
+				if (this.ruleItem.configuration.fetch_file.sourceConfiguration) {
+					const parsed = JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration)
+					this.ruleItem.configuration.fetch_file.sourceConfiguration = JSON.stringify(parsed, null, 2)
+				}
+			} catch (e) {
+				// Keep invalid JSON as-is to allow user to fix it
+			}
+		},
+
+		async installOpenRegister() {
+			console.info('Installing Open Register')
+			const token = document.querySelector('head[data-requesttoken]').getAttribute('data-requesttoken')
+
+			const response = await fetch('/index.php/settings/apps/enable', {
+				headers: {
+					accept: '*/*',
+					'accept-language': 'en-US,en;q=0.9,nl;q=0.8',
+					'cache-control': 'no-cache',
+					'content-type': 'application/json',
+					pragma: 'no-cache',
+					requesttoken: token,
+					'x-requested-with': 'XMLHttpRequest, XMLHttpRequest',
+				},
+				referrerPolicy: 'no-referrer',
+				body: '{"appIds":["openregister"],"groups":[]}',
+				method: 'POST',
+				mode: 'cors',
+				credentials: 'include',
+			})
+
+			if (!response.ok) {
+				console.info('Failed to install Open Register')
+				this.openRegister.isAvailable = false
+			} else {
+				console.info('Open Register installed')
+				this.openRegister.isInstalled = true
+				this.getSchemas()
 			}
 		},
 
@@ -501,15 +968,44 @@ export default {
 					timeout: this.ruleItem.configuration.locking.timeout,
 				}
 				break
+			case 'fetch_file':
+				configuration.fetch_file = {
+					source: this.sourceOptions.sourceValue?.id,
+					filePath: this.ruleItem.configuration.fetch_file.filePath,
+					method: this.methodOptions.value?.label,
+					sourceConfiguration: this.ruleItem.configuration.fetch_file.sourceConfiguration ? JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration) : [],
+				}
+				break
+			case 'write_file':
+				configuration.write_file = {
+					filePath: this.ruleItem.configuration.write_file.filePath,
+					fileNamePath: this.ruleItem.configuration.write_file.fileNamePath,
+				}
+				break
+			case 'fileparts_create':
+				configuration.fileparts_create = {
+					sizeLocation: this.ruleItem.configuration.fileparts_create.sizeLocation,
+					schemaId: this.schemaOptions.value?.id,
+					filenameLocation: this.ruleItem.configuration.fileparts_create.filenameLocation,
+					filePartLocation: this.ruleItem.configuration.fileparts_create.filePartLocation,
+					mappingId: this.filepartsCreateMappingOptions.value?.value,
+				}
+				break
+			case 'filepart_upload':
+				configuration.filepart_upload = {
+					mappingId: this.filepartUploadMappingOptions.value?.value,
+				}
+				break
 			}
 
-			ruleStore.saveRule({
+			ruleStore.saveRule(new Rule({
 				...this.ruleItem,
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
+				timing: this.timingOptions.value?.id || null,
 				type: type || null,
 				configuration,
-			})
+			}))
 				.then(({ response }) => {
 					this.success = response.ok
 					this.error = !response.ok && 'Failed to save rule'
@@ -538,6 +1034,21 @@ export default {
 	display: block;
 	margin-bottom: 0.5rem;
 	font-weight: bold;
+}
+
+.install-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-block-start: 1rem;
+}
+
+.close-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+.close-button .button-vue--vue-tertiary:hover:not(:disabled) {
+    background-color: rgba(var(--color-info-rgb), 0.1);
 }
 
 .json-editor .error-message {
@@ -621,4 +1132,23 @@ export default {
 .codeMirrorContainer.dark :deep(.ͼc) {
 	color: #260dd4;
 }
+
+/* close button for notecard */
+.openregister-notecard .notecard {
+    position: relative;
+}
+
+/* Schema option */
+.schema-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.schema-option > .material-design-icon {
+    margin-block-start: 2px;
+}
+.schema-option > h6 {
+    line-height: 0.8;
+}
+
 </style>

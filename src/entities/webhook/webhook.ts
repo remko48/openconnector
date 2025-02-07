@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TWebhook } from './webhook.types'
 import getValidISOstring from '../../services/getValidISOstring.js'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 export class Webhook extends ReadonlyBaseClass implements TWebhook {
 
@@ -49,6 +50,10 @@ export class Webhook extends ReadonlyBaseClass implements TWebhook {
 		}
 
 		super(processedWebhook)
+	}
+
+	public cloneRaw(): TWebhook {
+		return _.cloneDeep(this)
 	}
 
 	public validate(): SafeParseReturnType<TWebhook, unknown> {

@@ -64,6 +64,13 @@ import { navigationStore } from '../store/store.js'
 				</template>
 			</NcAppNavigationItem>
 		</NcAppNavigationList>
+		<NcAppNavigationSettings>
+			<NcAppNavigationItem :active="navigationStore.selected === 'imports'" name="Import" @click="navigationStore.setSelected('imports')">
+				<template #icon>
+					<FileImportOutline :size="20" />
+				</template>
+			</NcAppNavigationItem>
+		</NcAppNavigationSettings>
 	</NcAppNavigation>
 </template>
 
@@ -72,6 +79,7 @@ import {
 	NcAppNavigation,
 	NcAppNavigationList,
 	NcAppNavigationItem,
+	NcAppNavigationSettings,
 } from '@nextcloud/vue'
 
 // Icons
@@ -84,6 +92,7 @@ import Update from 'vue-material-design-icons/Update.vue'
 import VectorPolylinePlus from 'vue-material-design-icons/VectorPolylinePlus.vue'
 import CloudUploadOutline from 'vue-material-design-icons/CloudUploadOutline.vue'
 import MessageTextFastOutline from 'vue-material-design-icons/MessageTextFastOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 export default {
 	name: 'MainMenu',
@@ -102,6 +111,7 @@ export default {
 		VectorPolylinePlus,
 		CloudUploadOutline,
 		MessageTextFastOutline,
+		FileImportOutline,
 	},
 	methods: {
 		openLink(url, type = '') {
