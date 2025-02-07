@@ -261,7 +261,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 						</BTab>
 						<BTab title="Logs">
 							<div v-if="synchronizationStore.synchronizationLogs?.length">
-								<NcListItem v-for="(log, i) in synchronizationStore.synchronizationLogs"
+								<NcListItem v-for="(log, i) in [...synchronizationStore.synchronizationLogs].reverse()"
 									:key="log.id + i"
 									:name="log.message + (log.result?.objects?.found ? ` (found: ${log.result.objects.found})` : '')"
 									:bold="false"
