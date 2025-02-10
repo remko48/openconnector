@@ -63,7 +63,6 @@ class SynchronizationService
 	private SynchronizationContractMapper $synchronizationContractMapper;
 	private SynchronizationContractLogMapper $synchronizationContractLogMapper;
 	private SynchronizationLogMapper $synchronizationLogMapper;
-	private Source $source;
 
     const EXTRA_DATA_CONFIGS_LOCATION          = 'extraDataConfigs';
     const EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION = 'dynamicEndpointLocation';
@@ -71,9 +70,7 @@ class SynchronizationService
     const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
     const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
-
     const FILE_TAG_TYPE                        = 'file';
-
 
 	public function __construct(
 		CallService                      $callService,
@@ -121,7 +118,7 @@ class SynchronizationService
 	 * @throws TooManyRequestsHttpException
 	 */
 	public function synchronize(
-		Synchronization $synchronization, 
+		Synchronization $synchronization,
 		?bool $isTest = false,
 		?bool $force = false
 	): array
@@ -132,7 +129,7 @@ class SynchronizationService
 			'result' => [
 				'objects' => [
 					'found' => 0,
-					'skipped' => 0, 
+					'skipped' => 0,
 					'created' => 0,
 					'updated' => 0,
 					'deleted' => 0,
@@ -195,15 +192,15 @@ class SynchronizationService
 			$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
 
 			if ($synchronizationContract instanceof SynchronizationContract === false) {
-				// Only persist if not test				
+				// Only persist if not test
 				$synchronizationContract = new SynchronizationContract();
 				$synchronizationContract->setSynchronizationId($synchronization->getId());
-				$synchronizationContract->setOriginId($originId); 
+				$synchronizationContract->setOriginId($originId);
 
 				$synchronizationContractResult = $this->synchronizeContract(
-					synchronizationContract: $synchronizationContract, 
-					synchronization: $synchronization, 
-					object: $object, 
+					synchronizationContract: $synchronizationContract,
+					synchronization: $synchronization,
+					object: $object,
 					isTest: $isTest,
 					force: false,
 					log: $log
@@ -215,9 +212,9 @@ class SynchronizationService
 			} else {
 				// @todo this is wierd
 				$synchronizationContractResult = $this->synchronizeContract(
-					synchronizationContract: $synchronizationContract, 
-					synchronization: $synchronization, 
-					object: $object, 
+					synchronizationContract: $synchronizationContract,
+					synchronization: $synchronization,
+					object: $object,
 					isTest: $isTest,
 					force: false,
 					log: $log
@@ -231,8 +228,8 @@ class SynchronizationService
 			$synchronizedTargetIds[] = $synchronizationContract['targetId'];
 		}
 
-		// Delete invalid objects		
-		if($isTest === false) {			
+		// Delete invalid objects
+		if($isTest === false) {
 			$result['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
 		}
 		else {
@@ -577,12 +574,12 @@ class SynchronizationService
 	 * @throws GuzzleException
 	 */
 	public function synchronizeContract(
-		SynchronizationContract $synchronizationContract, 
-		Synchronization $synchronization = null, 
-		array $object = [], 
+		SynchronizationContract $synchronizationContract,
+		Synchronization $synchronization = null,
+		array $object = [],
 		?bool $isTest = false,
 		?bool $force = false,
-		?SynchronizationLog $log = null 
+		?SynchronizationLog $log = null
 		): SynchronizationContract|Exception|array
 	{
 		// We are doing something so lets log it
@@ -638,7 +635,7 @@ class SynchronizationService
             $synchronizationContract->getTargetId() !== null &&
             $synchronizationContract->getTargetHash() !== null
             ) {
-			// We checked the source so let log that			
+			// We checked the source so let log that
 			$synchronizationContract->setSourceLastChecked(new DateTime());
 			// The object has not changed and neither config nor mapping have been updated since last check
 			$contractLog = $this->synchronizationContractLogMapper->update($contractLog);
@@ -1425,7 +1422,7 @@ class SynchronizationService
 	 * @throws GuzzleException
 	 */
 	public function synchronizeToTarget(
-		ObjectEntity $object, 
+		ObjectEntity $object,
 		?SynchronizationContract $synchronizationContract = null,
 		?bool $force = false,
 		?bool $test = false,
@@ -1663,7 +1660,6 @@ class SynchronizationService
 		return $originalEndpoint;
 	}
 
-
 	/**
 	 * Process a rule to fetch a file from an external source.
 	 *0
@@ -1722,7 +1718,7 @@ class SynchronizationService
                 $tag = $this->systemTagManager->getTag(tagName: $tagName, userVisible: true, userAssignable: true);
             } catch (TagNotFoundException $exception) {
                 $tag = $this->systemTagManager->createTag(tagName: $tagName, userVisible: true, userAssignable: true);
-            } 
+            }
 
             $tagIds[] = $tag->getId();
 		}
