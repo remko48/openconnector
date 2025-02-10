@@ -63,7 +63,6 @@ class SynchronizationService
 	private SynchronizationContractMapper $synchronizationContractMapper;
 	private SynchronizationContractLogMapper $synchronizationContractLogMapper;
 	private SynchronizationLogMapper $synchronizationLogMapper;
-	private Source $source;
 
     const EXTRA_DATA_CONFIGS_LOCATION          = 'extraDataConfigs';
     const EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION = 'dynamicEndpointLocation';
@@ -71,9 +70,7 @@ class SynchronizationService
     const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
     const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
-
     const FILE_TAG_TYPE                        = 'file';
-
 
 	public function __construct(
 		CallService                      $callService,
@@ -1662,7 +1659,6 @@ class SynchronizationService
 
 		return $originalEndpoint;
 	}
-
 
 	/**
 	 * Process a rule to fetch a file from an external source.
