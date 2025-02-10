@@ -1,5 +1,6 @@
 <script setup>
 import { consumerStore, navigationStore } from '../../store/store.js'
+import { Consumer } from '../../entities/index.js'
 </script>
 
 <template>
@@ -124,17 +125,17 @@ export default {
 	},
 	methods: {
 		initializeConsumerItem() {
-			if (consumerStore.consumerItem?.id) {
+			if (consumerStore.getConsumerItem()?.id) {
 				this.consumerItem = {
-					...consumerStore.consumerItem,
-					domains: consumerStore.consumerItem.domains.join(', '),
-					ips: consumerStore.consumerItem.ips.join(', '),
+					...consumerStore.getConsumerItem(),
+					domains: consumerStore.getConsumerItem().domains.join(', '),
+					ips: consumerStore.getConsumerItem().ips.join(', '),
 				}
 
 				// If the authorizationType of the consumerItem exists on the authorizationTypeOptions, apply it to the value
 				// this is done for future proofing incase we were to change the authorization Types
-				if (this.authorizationTypeOptions.options.map(i => i.label).indexOf(consumerStore.consumerItem.authorizationType) !== -1) {
-					this.authorizationTypeOptions.value = { label: consumerStore.consumerItem.authorizationType }
+				if (this.authorizationTypeOptions.options.map(i => i.label).indexOf(consumerStore.getConsumerItem().authorizationType) !== -1) {
+					this.authorizationTypeOptions.value = { label: consumerStore.getConsumerItem().authorizationType }
 				}
 			}
 		},
@@ -158,22 +159,25 @@ export default {
 		async editConsumer() {
 			this.loading = true
 
-			await consumerStore.saveConsumer({
+			const newConsumer = new Consumer({
 				...this.consumerItem,
-				domains: this.consumerItem.domains.trim().split(/ *, */g), // split on comma's, also take any spaces into consideration
-				ips: this.consumerItem.ips.trim().split(/ *, */g),
+				domains: this.consumerItem.domains.trim().split(/ *, */g).filter(Boolean), // split on comma's, also take any spaces into consideration
+				ips: this.consumerItem.ips.trim().split(/ *, */g).filter(Boolean),
 				authorizationType: this.authorizationTypeOptions.value.label,
 				authorizationConfiguration: [['']],
 				// authorizationConfiguration is unclear as to what it does and why it exists, but to avoid any issues it'll still make a array array string
-			}).then(({ response }) => {
-				this.success = response.ok
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			}).catch((e) => {
-				this.success = false
-				this.error = e.message || 'An error occurred while saving the consumer'
-			}).finally(() => {
-				this.loading = false
 			})
+
+			consumerStore.saveConsumer(newConsumer)
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				}).catch((e) => {
+					this.success = false
+					this.error = e.message || 'An error occurred while saving the consumer'
+				}).finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

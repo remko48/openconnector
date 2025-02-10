@@ -58,7 +58,7 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 							</template>
 							Bewerken
 						</NcActionButton>
-						<NcActionButton @click="endpointStore.exportEndpoint(endpoint)">
+						<NcActionButton @click="endpointStore.exportEndpoint(endpoint.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
@@ -69,6 +69,12 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 								<TrashCanOutline />
 							</template>
 							Verwijderen
+						</NcActionButton>
+						<NcActionButton @click="endpointStore.setEndpointItem(endpoint); navigationStore.setModal('addEndpointRule')">
+							<template #icon>
+								<Plus :size="20" />
+							</template>
+							Add Rule
 						</NcActionButton>
 					</template>
 				</NcListItem>

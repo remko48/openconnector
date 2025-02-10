@@ -21,7 +21,7 @@ import { endpointStore, navigationStore, ruleStore } from '../../store/store.js'
 							</template>
 							Bewerken
 						</NcActionButton>
-						<NcActionButton @click="endpointStore.exportEndpoint(endpointStore.endpointItem)">
+						<NcActionButton @click="endpointStore.exportEndpoint(endpointStore.endpointItem.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
@@ -226,7 +226,7 @@ export default {
 			const rule = this.rulesList.find(rule => String(rule.id) === String(ruleId))
 			if (rule) {
 				ruleStore.setRuleItem(rule)
-				navigationStore.setView('rule')
+				navigationStore.setSelected('rules')
 			}
 		},
 		async removeRule(ruleId) {

@@ -1,5 +1,6 @@
 <script setup>
 import { endpointStore, navigationStore } from '../../store/store.js'
+import { Endpoint } from '../../entities/index.js'
 </script>
 
 <template>
@@ -177,19 +178,22 @@ export default {
 		async editEndpoint() {
 			this.loading = true
 
-			await endpointStore.saveEndpoint({
+			const endpointItem = new Endpoint({
 				...this.endpointItem,
 				endpointArray: this.endpointItem.endpointArray.split(/ *, */g), // split on comma's, also take any spaces into consideration
 				method: this.methodOptions.value.label,
-			}).then(({ response }) => {
-				this.success = response.ok
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			}).catch((e) => {
-				this.success = false
-				this.error = e.message || 'An error occurred while saving the endpoint'
-			}).finally(() => {
-				this.loading = false
 			})
+
+			await endpointStore.saveEndpoint(endpointItem)
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				}).catch((e) => {
+					this.success = false
+					this.error = e.message || 'An error occurred while saving the endpoint'
+				}).finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

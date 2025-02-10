@@ -2,10 +2,12 @@ import { SafeParseReturnType, z } from 'zod'
 import { TSynchronization } from './synchronization.types'
 import getValidISOstring from '../../services/getValidISOstring.js'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 export class Synchronization extends ReadonlyBaseClass implements TSynchronization {
 
 	public id: number
+	public uuid: string
 	public name: string
 	public description: string
 	public conditions: string
@@ -34,6 +36,7 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 	constructor(synchronization: TSynchronization) {
 		const processedSynchronization: TSynchronization = {
 			id: synchronization.id || null,
+			uuid: synchronization.uuid || '',
 			name: synchronization.name || '',
 			description: synchronization.description || '',
 			conditions: synchronization.conditions || '',
@@ -63,9 +66,14 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 		super(processedSynchronization)
 	}
 
+	public cloneRaw(): TSynchronization {
+		return _.cloneDeep(this)
+	}
+
 	public validate(): SafeParseReturnType<TSynchronization, unknown> {
 		const schema = z.object({
 			id: z.number().nullable(),
+			uuid: z.string(),
 			name: z.string(),
 			description: z.string(),
 			conditions: z.string(),

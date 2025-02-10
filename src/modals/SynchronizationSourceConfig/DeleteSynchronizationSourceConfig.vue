@@ -1,5 +1,6 @@
 <script setup>
 import { navigationStore, synchronizationStore } from '../../store/store.js'
+import { Synchronization } from '../../entities/index.js'
 </script>
 
 <template>
@@ -76,7 +77,9 @@ export default {
 		deleteSourceConfig() {
 			this.loading = true
 
-			const sourceConfigClone = { ...synchronizationStore.synchronizationItem.sourceConfig }
+			const synchronizationItemClone = synchronizationStore.synchronizationItem.cloneRaw()
+
+			const sourceConfigClone = { ...synchronizationItemClone.sourceConfig }
 
 			if (synchronizationStore.synchronizationSourceConfigKey in sourceConfigClone) {
 				delete sourceConfigClone[synchronizationStore.synchronizationSourceConfigKey]
@@ -86,10 +89,10 @@ export default {
 				return
 			}
 
-			const synchronizationItem = {
-				...synchronizationStore.synchronizationItem,
+			const synchronizationItem = new Synchronization({
+				...synchronizationItemClone,
 				sourceConfig: sourceConfigClone,
-			}
+			})
 
 			synchronizationStore.saveSynchronization(synchronizationItem)
 				.then(({ response }) => {

@@ -58,7 +58,7 @@ import { ruleStore, navigationStore, searchStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
-						<NcActionButton @click="ruleStore.exportRule(rule)">
+						<NcActionButton @click="ruleStore.exportRule(rule.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
