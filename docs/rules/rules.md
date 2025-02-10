@@ -29,7 +29,7 @@ The properties work together to define:
 
 1. When the rule executes (action + timing)
 2. Under what conditions it runs (conditions)
-3. What functionality it provides (type + configuration) 
+3. What functionality it provides (type + configuration)
 4. The sequence of execution (order)
 
 Rules are stored in a structured format but referenced by endpoints using their UUID strings in an array format.
@@ -104,7 +104,7 @@ The `fileparts_create` rule takes the following configuration:
 - `filePartLocation` (optional): The location in the created object the created fileparts will be written to. Defaults to `fileParts`
 - `mappingId` (optional): If the resulting filePart objects have to be mapped to a specific format, the id of the mapping that will map the file parts to the desired format.
 
-The `filepart_upload` type will upload the data in the file part that is uploaded into a temporary file, and 
+The `filepart_upload` type will upload the data in the file part that is uploaded into a temporary file, and
 once all fileparts have been uploaded, it will reconcile the partial uploads into one file (deleting the temporary files,
 and if no additional data has been put into the folder where the parts are stored, the folder).
 
@@ -120,6 +120,13 @@ Locking rules provide exclusive access control for resources. Configuration incl
   - lock: Lock a resource for exclusive access
   - unlock: Release a previously locked resource
 - timeout: Duration in minutes before the lock automatically expires
+
+## Tags in Rules
+
+For the type fetch file and write file you can add tags that will be attached to the files. When fetching these files from OpenRegister in any way will result in the tags also being readable.
+
+![Rule tags](rule-tags.png)
+
 
 ## Rule Validation
 
