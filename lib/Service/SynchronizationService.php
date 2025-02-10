@@ -586,18 +586,21 @@ class SynchronizationService
 		): SynchronizationContract|Exception|array
 	{
 		// We are doing something so lets log it
-		$log = $this->synchronizationContractLogMapper->createFromArray(
-			[
-				'synchronizationId' => $synchronization->getId(),
-				'synchronizationContractId' => $synchronizationContract->getId(),
-				'source' => $object,
-				'test' => $isTest,
-				'force' => $force,
-			]
-		);
+        var_dump($synchronizationContract->getId());
+        if ($synchronizationContract->getId() !== null) {
+            $contractLog = $this->synchronizationContractLogMapper->createFromArray(
+                [
+                    'synchronizationId' => $synchronization->getId(),
+                    'synchronizationContractId' => $synchronizationContract->getId(),
+                    'source' => $object,
+                    'test' => $isTest,
+                    'force' => $force,
+                ]
+            );
+        }
 
-		if ($log !== null) {
-			$log->setSynchronizationLogId($log->getId());
+		if ($contractLog  !== null) {
+			$contractLog->setSynchronizationLogId($log->getId());
 		}
 
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
@@ -639,9 +642,9 @@ class SynchronizationService
 			// We checked the source so let log that			
 			$synchronizationContract->setSourceLastChecked(new DateTime());
 			// The object has not changed and neither config nor mapping have been updated since last check
-			$log = $this->synchronizationContractLogMapper->update($log);
+			$contractLog = $this->synchronizationContractLogMapper->update($contractLog);
 			return [
-				'log' => $log->jsonSerialize(),
+				'log' => $contractLog->jsonSerialize(),
 				'contract' => $synchronizationContract->jsonSerialize()
 			];
 		}
@@ -657,7 +660,10 @@ class SynchronizationService
         } else {
             $targetObject = $object;
         }
-		$log->setTarget($targetObject);
+
+        if ($contractLog) {
+		    $contractLog->setTarget($targetObject);
+        }
 
         if ($synchronization->getActions() !== []) {
             $targetObject = $this->processRules(synchronization: $synchronization, data: $targetObject, timing: 'before');
@@ -675,10 +681,10 @@ class SynchronizationService
 		// Handle synchronization based on test mode
 		if ($isTest === true) {
 			// Return test data without updating target
-			$log->setTargetResult('test');
-			$log = $this->synchronizationContractLogMapper->update($log);
+			$contractLog->setTargetResult('test');
+			$contractLog = $this->synchronizationContractLogMapper->update($contractLog);
 			return [
-				'log' => $log->jsonSerialize(),
+				'log' => $contractLog->jsonSerialize(),
 				'contract' => $synchronizationContract->jsonSerialize()
 			];
 		}
@@ -695,12 +701,22 @@ class SynchronizationService
         }
 
 		// Create log entry for the synchronization
-		$log->setTargetResult($synchronizationContract->getTargetLastAction());
-		$log = $this->synchronizationContractLogMapper->update($log);
-		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
+        if ($contractLog) {
+		    $contractLog->setTargetResult($synchronizationContract->getTargetLastAction());
+		    $contractLog = $this->synchronizationContractLogMapper->update($contractLog);
+        }
+
+        if ($synchronizationContract->getId()) {
+            $synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
+        } else {
+            if ($synchronizationContract->getUuid() === null) {
+                $synchronizationContract->setUuid(Uuid::v4());
+            }
+            $synchronizationContract = $this->synchronizationContractMapper->insertOrUpdate($synchronizationContract);
+        }
 
 		return [
-			'log' => $log->jsonSerialize(),
+			'log' => $contractLog ? $contractLog->jsonSerialize() : [],
 			'contract' => $synchronizationContract->jsonSerialize()
 		];
 	}
@@ -857,6 +873,7 @@ class SynchronizationService
 			);
 		}
 
+        var_dump($subContract->getId());
 		$this->synchronizationContractLogMapper->createFromArray([
 			'synchronizationId' => $subContract->getSynchronizationId(),
 			'synchronizationContractId' => $subContract->getId(),
@@ -1445,7 +1462,7 @@ class SynchronizationService
 			synchronizationContract: $synchronizationContract,
 			synchronization: $synchronization,
 			object: $object->jsonSerialize(),
-			test: $test,
+			isTest: $test,
 			force: $force,
 			log: $log
 		);
