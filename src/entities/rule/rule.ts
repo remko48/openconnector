@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TRule } from './rule.types'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
 import getValidISOstring from '../../services/getValidISOstring.js'
+import _ from 'lodash'
 
 /**
  * Rule entity class that represents a system rule
@@ -48,6 +49,10 @@ export class Rule extends ReadonlyBaseClass implements TRule {
 		}
 
 		super(processedRule)
+	}
+
+	public cloneRaw(): TRule {
+		return _.cloneDeep(this)
 	}
 
 	/**

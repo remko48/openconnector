@@ -80,7 +80,7 @@ export default {
 		async deleteEndpoint() {
 			this.loading = true
 
-			await endpointStore.deleteEndpoint(endpointStore.endpointItem)
+			await endpointStore.deleteEndpoint(endpointStore.endpointItem.id)
 				.then(({ response }) => {
 					this.success = response.ok
 					this.error = false

@@ -80,7 +80,7 @@ export default {
 		async deleteSource() {
 			this.loading = true
 			try {
-				await sourceStore.deleteSource()
+				await sourceStore.deleteSource(sourceStore.sourceItem.id)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

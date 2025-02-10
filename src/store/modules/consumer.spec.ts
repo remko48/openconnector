@@ -1,6 +1,6 @@
 import { setActivePinia, createPinia } from 'pinia'
 
-import { useConsumerStore } from './consumer.js'
+import { useConsumerStore } from './consumer'
 import { Consumer, mockConsumer } from '../../entities/index.js'
 
 describe('Consumer Store', () => {
@@ -13,10 +13,10 @@ describe('Consumer Store', () => {
 
 		store.setConsumerItem(mockConsumer()[0])
 
-		expect(store.consumerItem).toBeInstanceOf(Consumer)
-		expect(store.consumerItem).toEqual(mockConsumer()[0])
+		expect(store.getConsumerItem()).toBeInstanceOf(Consumer)
+		expect(store.getConsumerItem()).toEqual(mockConsumer()[0])
 
-		expect(store.consumerItem.validate().success).toBe(true)
+		expect(store.getConsumerItem().validate().success).toBe(true)
 	})
 
 	it('sets consumer list correctly', () => {
@@ -24,9 +24,9 @@ describe('Consumer Store', () => {
 
 		store.setConsumerList(mockConsumer())
 
-		expect(store.consumerList).toHaveLength(mockConsumer().length)
+		expect(store.getConsumerList()).toHaveLength(mockConsumer().length)
 
-		store.consumerList.forEach((item, index) => {
+		store.getConsumerList().forEach((item, index) => {
 			expect(item).toBeInstanceOf(Consumer)
 			expect(item).toEqual(mockConsumer()[index])
 			expect(item.validate().success).toBe(true)

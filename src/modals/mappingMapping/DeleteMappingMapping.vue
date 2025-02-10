@@ -1,5 +1,6 @@
 <script setup>
 import { navigationStore, mappingStore } from '../../store/store.js'
+import { Mapping } from '../../entities/index.js'
 </script>
 
 <template>
@@ -81,9 +82,9 @@ export default {
 			const mappingClone = { ...mappingStore.mappingItem }
 			delete mappingClone?.mapping[mappingStore.mappingMappingKey]
 
-			const mappingItem = {
+			const mappingItem = new Mapping({
 				...mappingStore.mappingItem,
-			}
+			})
 
 			mappingStore.saveMapping(mappingItem)
 				.then(() => {

@@ -1,5 +1,6 @@
 <script setup>
 import { mappingStore, navigationStore } from '../../store/store.js'
+import { Mapping } from '../../entities/index.js'
 </script>
 
 <template>
@@ -132,16 +133,19 @@ export default {
 		async editMapping() {
 			this.loading = true
 
-			mappingStore.saveMapping({
+			const mappingItem = new Mapping({
 				...this.mappingItem,
-			}).then(({ response }) => {
-				this.success = response.ok
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			}).catch((error) => {
-				this.error = error.message || 'An error occurred while saving the mapping'
-			}).finally(() => {
-				this.loading = false
 			})
+
+			await mappingStore.saveMapping(mappingItem)
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				}).catch((error) => {
+					this.error = error.message || 'An error occurred while saving the mapping'
+				}).finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

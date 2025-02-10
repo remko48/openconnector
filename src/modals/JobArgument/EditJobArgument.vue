@@ -1,5 +1,6 @@
 <script setup>
 import { jobStore, navigationStore } from '../../store/store.js'
+import { Job } from '../../entities/index.js'
 </script>
 
 <template>
@@ -55,7 +56,6 @@ import {
 	NcNoteCard,
 	NcTextField,
 } from '@nextcloud/vue'
-import _ from 'lodash'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 
 export default {
@@ -132,7 +132,7 @@ export default {
 		async editJobArgument() {
 			this.loading = true
 
-			const jobItemClone = _.cloneDeep(jobStore.jobItem)
+			const jobItemClone = jobStore.jobItem.cloneRaw()
 
 			const scheduleAfter = jobItemClone.scheduleAfter ? new Date(jobItemClone.scheduleAfter.date) || '' : null
 
@@ -149,7 +149,7 @@ export default {
 				delete newJobItem.arguments[this.oldKey]
 			}
 
-			jobStore.saveJob(newJobItem)
+			jobStore.saveJob(new Job(newJobItem))
 				.then(({ response }) => {
 					this.success = response.ok
 					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)

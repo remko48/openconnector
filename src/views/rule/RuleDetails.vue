@@ -21,7 +21,7 @@ import { ruleStore, navigationStore } from '../../store/store.js'
 							</template>
 							Edit
 						</NcActionButton>
-						<NcActionButton @click="ruleStore.exportRule(ruleStore.ruleItem)">
+						<NcActionButton @click="ruleStore.exportRule(ruleStore.ruleItem.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

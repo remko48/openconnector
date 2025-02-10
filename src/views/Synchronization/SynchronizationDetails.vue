@@ -45,7 +45,7 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Run
 						</NcActionButton>
-						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronizationStore.synchronizationItem)">
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronizationStore.synchronizationItem.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
@@ -261,9 +261,9 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 						</BTab>
 						<BTab title="Logs">
 							<div v-if="synchronizationStore.synchronizationLogs?.length">
-								<NcListItem v-for="(log, i) in synchronizationStore.synchronizationLogs"
+								<NcListItem v-for="(log, i) in [...synchronizationStore.synchronizationLogs].reverse()"
 									:key="log.id + i"
-									:name="log.id.toString()"
+									:name="log.message + (log.result?.objects?.found ? ` (found: ${log.result.objects.found})` : '')"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
@@ -327,8 +327,8 @@ export default {
 		}
 	},
 	mounted() {
-		synchronizationStore.refreshSynchronizationLogs()
-		synchronizationStore.refreshSynchronizationContracts()
+		synchronizationStore.refreshSynchronizationLogs(synchronizationStore.synchronizationItem.id)
+		synchronizationStore.refreshSynchronizationContracts(synchronizationStore.synchronizationItem.id)
 	},
 	methods: {
 		viewLog(log) {

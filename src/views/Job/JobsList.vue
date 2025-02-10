@@ -86,7 +86,7 @@ import { jobStore, navigationStore, searchStore } from '../../store/store.js'
 							</template>
 							Refresh Logs
 						</NcActionButton>
-						<NcActionButton @click="jobStore.exportJob(job)">
+						<NcActionButton @click="jobStore.exportJob(job.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
