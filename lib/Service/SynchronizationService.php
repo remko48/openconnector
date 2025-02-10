@@ -41,6 +41,7 @@ use Adbar\Dot;
 use OCP\SystemTag\ISystemTagManager;
 use OCP\SystemTag\ISystemTagObjectMapper;
 use OCP\Files\File;
+use OCP\SystemTag\TagNotFoundException;
 
 use Psr\Container\ContainerInterface;
 use DateInterval;
@@ -70,6 +71,8 @@ class SynchronizationService
     const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
     const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
+
+    const FILE_TAG_TYPE                        = 'file';
 
 
 	public function __construct(
@@ -1640,7 +1643,7 @@ class SynchronizationService
 		// Attach tags to the file
 		if (isset($config['tags']) === true && $file instanceof File === true) {
 			$tagId = $objectId . $filename;
-			$this->attachTagsToFile(objectId: $file->getId(), tags: $config['tags']);
+			$this->attachTagsToFile(fileId: $file->getId(), tags: $config['tags']);
 		}
 
 		return $originalEndpoint;
@@ -1699,9 +1702,18 @@ class SynchronizationService
 	 */
 	private function attachTagsToFile(string $fileId, array $tags): void
 	{
-		foreach ($tags as $key => $tag) {
-			$this->systemTagMapper->assignTags(objId: $fileId, objectType: 'file', tagIds: $tags);
+        $tagIds = [];
+		foreach ($tags as $key => $tagName) {
+            try {
+                $tag = $this->systemTagManager->getTag(tagName: $tagName, userVisible: true, userAssignable: true);
+            } catch (TagNotFoundException $exception) {
+                $tag = $this->systemTagManager->createTag(tagName: $tagName, userVisible: true, userAssignable: true);
+            } 
+
+            $tagIds[] = $tag->getId();
 		}
+
+        $this->systemTagMapper->assignTags(objId: $fileId, objectType: $this::FILE_TAG_TYPE, tagIds: $tagIds);
 	}
 
 	/**
