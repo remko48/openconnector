@@ -1562,8 +1562,7 @@ class SynchronizationService
 
 		// Attach tags to the file
 		if (isset($config['tags']) === true && $file instanceof File === true) {
-			$tagId = $objectId . $filename;
-			$this->attachTagsToFile(objectId: $file->getId(), tags: $config['tags']);
+			$this->attachTagsToFile(fileId: $file->getId(), tags: $config['tags']);
 		}
 
 		return $originalEndpoint;
@@ -1663,6 +1662,10 @@ class SynchronizationService
                 fileName: $fileName,
                 content: $content
             );
+
+			if (isset($config['tags']) === true && $file instanceof File === true) {
+				$this->attachTagsToFile(fileId: $file->getId(), tags: $config['tags']);
+			}
         } catch (Exception $exception) {
         }
 
