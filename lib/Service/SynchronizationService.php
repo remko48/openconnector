@@ -586,7 +586,6 @@ class SynchronizationService
 		): SynchronizationContract|Exception|array
 	{
 		// We are doing something so lets log it
-        var_dump($synchronizationContract->getId());
         if ($synchronizationContract->getId() !== null) {
             $contractLog = $this->synchronizationContractLogMapper->createFromArray(
                 [
@@ -873,7 +872,6 @@ class SynchronizationService
 			);
 		}
 
-        var_dump($subContract->getId());
 		$this->synchronizationContractLogMapper->createFromArray([
 			'synchronizationId' => $subContract->getSynchronizationId(),
 			'synchronizationContractId' => $subContract->getId(),
