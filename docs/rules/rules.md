@@ -123,7 +123,9 @@ Locking rules provide exclusive access control for resources. Configuration incl
 
 ## Tags in Rules
 
-For the type fetch file and write file you can add tags that will be attached to the files. When fetching these files from OpenRegister in any way will result in the tags also being readable.
+For the type fetch file and write file you can add tags to these files. This can be useful when wanting to make a difference between files for further use.
+
+When using this in combination with OpenRegister, fetching objects that have these files will result in these tags also being readable.
 
 ![Rule tags](rule-tags.png)
 
