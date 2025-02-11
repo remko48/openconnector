@@ -24,9 +24,13 @@
             "filePath": "attachments",
             "method": "GET",
             "sourceConfiguration": [],
-            "tags": {
-                "property": "tag"
-            }
+            "tags": [
+                "woo_informatieverzoek",
+                "woo_besluit",
+                "woo_publicatie",
+                "woo_inventarisatielijst",
+                "woo_convenant"
+            ]
         }
     },
     "order": 0
