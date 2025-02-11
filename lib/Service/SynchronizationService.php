@@ -1595,6 +1595,8 @@ class SynchronizationService
 	 * @param string $endpoint The endpoint for the file.
 	 * @param array $config The configuration of the action.
 	 * @param string $objectId The id of the object the file belongs to.
+     * @param array $tags Tags to assign to the file.
+     * @param string|null $filename Filename to assign to the file.
 	 *
 	 * @return string If write is enabled: the url of the file, if write is disabled: the base64 encoded file.
 	 * @throws ContainerExceptionInterface
@@ -1606,7 +1608,7 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
-	private function fetchFile(Source $source, string $endpoint, array $config, string $objectId): string
+	private function fetchFile(Source $source, string $endpoint, array $config, string $objectId, ?array $tags = [], ?string $filename = null): string
 	{
 		$originalEndpoint = $endpoint;
 		$endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true
@@ -1625,7 +1627,28 @@ class SynchronizationService
             return base64_encode($response['body']);
         }
 
-		// Get a filename from the response. First try to do this using the Content-Disposition header
+		if ($filename === null) {
+            // Get a filename from the response. First try to do this using the Content-Disposition header
+            $filename = $this->getFilenameFromHeaders(response: $response, result: $result);
+        }
+
+		// Write the file
+		$file = $this->writeFile($filename, $response['body'], $objectId);
+
+
+        // Attach passed down tags
+        if ($file instanceof File === true && isset($tags) === true && empty($tags) === false) {
+            $tags[] = "object:$objectId";
+			$this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
+        }
+
+		return $originalEndpoint;
+	}
+
+    private function getFilenameFromHeaders(array $response, CallLog $result): ?string
+    {
+        $filename = null;
+        // Get a filename from the response. First try to do this using the Content-Disposition header
 		if (isset($response['headers']['Content-Disposition']) === true
 		&& str_contains($response['headers']['Content-Disposition'][0], 'filename')) {
 		$explodedContentDisposition = explode('=', $response['headers']['Content-Disposition'][0]);
@@ -1649,16 +1672,8 @@ class SynchronizationService
 			}
 		}
 
-		// Write the file
-		$file = $this->writeFile($filename, $response['body'], $objectId);
-
-		// Attach tags to the file
-		if (isset($config['tags']) === true && $file instanceof File === true) {
-			$this->attachTagsToFile(fileId: $file->getId(), tags: $config['tags']);
-		}
-
-		return $originalEndpoint;
-	}
+        return $filename;
+    }
 
 	/**
 	 * Process a rule to fetch a file from an external source.
@@ -1694,11 +1709,29 @@ class SynchronizationService
 		if (is_array($endpoint) === true) {
 			$result = [];
 			foreach ($endpoint as $key => $value) {
-				$result[$key] = $this->fetchFile($source, $value, $config, $objectId);
+
+                // Check for tags
+                $tags = [];
+                if (is_array($value) === true) {
+                    $endpoint = $value['endpoint'];
+                    if (isset($value['label']) === true && isset($config['tags']) === true &&
+                        in_array(needle: $value['label'], haystack: $config['tags']) === true) {
+                        $tags = [$value['label']];
+                    }
+                    if (isset($value['filename']) === true) {
+                        $filename = $value['filename'];
+                        // var_dump($filename);
+                        // var_dump($value);
+                    }
+                } else {
+                    $endpoint = $value;
+                }
+
+				$result[$key] = $this->fetchFile(source: $source, endpoint: $endpoint, config: $config, objectId: $objectId, tags: $tags, filename: $filename);
 			}
 			$dataDot[$config['filePath']] = $result;
 		} else {
-			$dataDot[$config['filePath']] = $this->fetchFile($source, $endpoint, $config, $objectId);
+			$dataDot[$config['filePath']] = $this->fetchFile(source: $source, endpoint: $endpoint, config: $config, objectId: $objectId);
 		}
 
 		return $dataDot->jsonSerialize();
