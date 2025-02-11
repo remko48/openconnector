@@ -1720,8 +1720,6 @@ class SynchronizationService
                     }
                     if (isset($value['filename']) === true) {
                         $filename = $value['filename'];
-                        // var_dump($filename);
-                        // var_dump($value);
                     }
                 } else {
                     $endpoint = $value;
