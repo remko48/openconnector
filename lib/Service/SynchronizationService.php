@@ -1637,8 +1637,8 @@ class SynchronizationService
 
 
         // Attach passed down tags
+        $tags[] = "object:$objectId";
         if ($file instanceof File === true && isset($tags) === true && empty($tags) === false) {
-            $tags[] = "object:$objectId";
 			$this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
         }
 
