@@ -1632,9 +1632,9 @@ class SynchronizationService
             $filename = $this->getFilenameFromHeaders(response: $response, result: $result);
         }
 
-		// Write the file
-		$file = $this->writeFile($filename, $response['body'], $objectId);
-
+		// Write file with OpenRegister ObjectService.
+		$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+		$file = $objectService->addFile(object: $objectId, fileName: $filename, base64Content: $response['body']);
 
         // Attach passed down tags
         $tags[] = "object:$objectId";
@@ -1788,14 +1788,13 @@ class SynchronizationService
         $object = $openRegisters->find($objectId);
 
         try {
-            $file = $this->storageService->writeFile(
-                path: $object->getFolder(),
-                fileName: $fileName,
-                content: $content
-            );
+			// Write file with OpenRegister ObjectService.
+			$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+			$file = $objectService->addFile(object: $objectId, fileName: $fileName, base64Content: $content);
 
-			if (isset($config['tags']) === true && $file instanceof File === true) {
-				$this->attachTagsToFile(fileId: $file->getId(), tags: $config['tags']);
+			$tags = array_merge($config['tags'] ?? [], ["object:$objectId"]);
+			if ($file instanceof File === true) {
+				$this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
 			}
         } catch (Exception $exception) {
         }
