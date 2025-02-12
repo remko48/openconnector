@@ -11,16 +11,19 @@ class Synchronization extends Entity implements JsonSerializable
     protected ?string $uuid = null;
 	protected ?string $name = null;	// The name of the synchronization
 	protected ?string $description = null;	// The description of the synchronization
-	protected ?string $version = null;	// The version of the synchronization
+	protected ?string $reference = null; // The reference of the endpoint
+	protected ?string $version = '0.0.0';	// The version of the synchronization
 	// Source
 	protected ?string $sourceId = null;	// The id of the source object
 	protected ?string $sourceType = null;	// The type of the source object (e.g. api, database, register/schema.)
 	protected ?string $sourceHash = null;	// The hash of the source object when it was last synced.
+	protected ?string $sourceHashMapping = null;	// The mapping id of the mapping that we map the object to for hashing.
 	protected ?string $sourceTargetMapping = null;	// The mapping of the source object to the target object
 	protected ?array $sourceConfig = null; // The configuration of the object in the source
 	protected ?DateTime $sourceLastChanged = null;	// The last changed date of the source object
 	protected ?DateTime $sourceLastChecked = null;	// The last checked date of the source object
 	protected ?DateTime $sourceLastSynced = null;	// The last synced date of the source object
+	protected ?int $currentPage = 1; // The last page synced. Used for keeping track where to continue syncing after Rate Limit has been exceeded on source with pagination.
 	// Target
 	protected ?string $targetId = null;	// The id of the target object
 	protected ?string $targetType = null;	// The type of the target object (e.g. api, database, register/schema.)
@@ -34,20 +37,27 @@ class Synchronization extends Entity implements JsonSerializable
 	protected ?DateTime $created = null;	// The date and time the synchronization was created
 	protected ?DateTime $updated = null;	// The date and time the synchronization was updated
 
+	protected array $conditions = [];
+	protected array $followUps = [];
+    protected array $actions = [];
+
 
 	public function __construct() {
         $this->addType('uuid', 'string');
 		$this->addType('name', 'string');
 		$this->addType('description', 'string');
+		$this->addType(fieldName:'reference', type: 'string');
 		$this->addType('version', 'string');
 		$this->addType('sourceId', 'string');
 		$this->addType('sourceType', 'string');
 		$this->addType('sourceHash', 'string');
+		$this->addType('sourceHashMapping', 'string');
 		$this->addType('sourceTargetMapping', 'string');
 		$this->addType('sourceConfig', 'json');
 		$this->addType('sourceLastChanged', 'datetime');
 		$this->addType('sourceLastChecked', 'datetime');
 		$this->addType('sourceLastSynced', 'datetime');
+		$this->addType('currentPage', 'integer');
 		$this->addType('targetId', 'string');
 		$this->addType('targetType', 'string');
 		$this->addType('targetHash', 'string');
@@ -58,7 +68,25 @@ class Synchronization extends Entity implements JsonSerializable
 		$this->addType('targetLastSynced', 'datetime');
 		$this->addType('created', 'datetime');
 		$this->addType('updated', 'datetime');
+		$this->addType(fieldName:'conditions', type: 'json');
+		$this->addType(fieldName:'followUps', type: 'json');
+        $this->addType(fieldName: 'actions', type: 'json');
 	}
+
+    /**
+     * Checks through sourceConfig if the source of this sync uses pagination
+     *
+     * @return bool true if its uses pagination
+     */
+    public function usesPagination(): bool
+    {
+        if (isset($this->sourceConfig['usesPagination']) === true && ($this->sourceConfig['usesPagination'] === false || $this->sourceConfig['usesPagination'] === 'false')) {
+            return false;
+        }
+
+        // By default sources use basic pagination.
+        return true;
+    }
 
 	public function getJsonFields(): array
 	{
@@ -97,15 +125,18 @@ class Synchronization extends Entity implements JsonSerializable
 			'uuid' => $this->uuid,
 			'name' => $this->name,
 			'description' => $this->description,
+			'reference' => $this->reference,
 			'version' => $this->version,
 			'sourceId' => $this->sourceId,
 			'sourceType' => $this->sourceType,
 			'sourceHash' => $this->sourceHash,
+			'sourceHashMapping' => $this->sourceHashMapping,
 			'sourceTargetMapping' => $this->sourceTargetMapping,
 			'sourceConfig' => $this->sourceConfig,
 			'sourceLastChanged' => isset($this->sourceLastChanged) === true ? $this->sourceLastChanged->format('c') : null,
 			'sourceLastChecked' => isset($this->sourceLastChecked) === true ? $this->sourceLastChecked->format('c') : null,
 			'sourceLastSynced' => isset($this->sourceLastSynced) === true ? $this->sourceLastSynced->format('c') : null,
+			'currentPage' => $this->currentPage,
 			'targetId' => $this->targetId,
 			'targetType' => $this->targetType,
 			'targetHash' => $this->targetHash,
@@ -115,7 +146,10 @@ class Synchronization extends Entity implements JsonSerializable
 			'targetLastChecked' => isset($this->targetLastChecked) === true ? $this->targetLastChecked->format('c') : null,
 			'targetLastSynced' => isset($this->targetLastSynced) === true ? $this->targetLastSynced->format('c') : null,
 			'created' => isset($this->created) === true ? $this->created->format('c') : null,
-			'updated' => isset($this->updated) === true ? $this->updated->format('c') : null
+			'updated' => isset($this->updated) === true ? $this->updated->format('c') : null,
+			'conditions' => $this->conditions,
+			'followUps' => $this->followUps,
+			'actions' => $this->actions,
 		];
 	}
 }

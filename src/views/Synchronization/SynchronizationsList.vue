@@ -28,6 +28,12 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 						</template>
 						Add synchronization
 					</NcActionButton>
+					<NcActionButton @click="navigationStore.setModal('importFile')">
+						<template #icon>
+							<FileImportOutline :size="20" />
+						</template>
+						Import
+					</NcActionButton>
 				</NcActions>
 			</div>
 			<div v-if="synchronizationStore.synchronizationList && synchronizationStore.synchronizationList.length > 0">
@@ -51,6 +57,44 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 								<Pencil />
 							</template>
 							Edit
+						</NcActionButton>
+						<NcActionButton @click="() => {
+							synchronizationStore.setSynchronizationItem(synchronization)
+							synchronizationStore.setSynchronizationSourceConfigKey(null)
+							navigationStore.setModal('editSynchronizationSourceConfig')
+						}">
+							<template #icon>
+								<DatabaseSettingsOutline :size="20" />
+							</template>
+							Add Source Config
+						</NcActionButton>
+						<NcActionButton @click="() => {
+							synchronizationStore.setSynchronizationItem(synchronization)
+							synchronizationStore.setSynchronizationTargetConfigKey(null)
+							navigationStore.setModal('editSynchronizationTargetConfig')
+						}">
+							<template #icon>
+								<CardBulletedSettingsOutline :size="20" />
+							</template>
+							Add Target Config
+						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setModal('testSynchronization')">
+							<template #icon>
+								<Sync :size="20" />
+							</template>
+							Test
+						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setModal('runSynchronization')">
+							<template #icon>
+								<Play :size="20" />
+							</template>
+							Run
+						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronization.id)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export synchronization
 						</NcActionButton>
 						<NcActionButton @click="synchronizationStore.setSynchronizationItem(synchronization); navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
@@ -83,6 +127,12 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
+import DatabaseSettingsOutline from 'vue-material-design-icons/DatabaseSettingsOutline.vue'
+import CardBulletedSettingsOutline from 'vue-material-design-icons/CardBulletedSettingsOutline.vue'
+import Sync from 'vue-material-design-icons/Sync.vue'
+import Play from 'vue-material-design-icons/Play.vue'
 
 export default {
 	name: 'SynchronizationsList',

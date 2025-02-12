@@ -65,10 +65,24 @@ import { logStore, navigationStore } from '../../store/store.js'
 					</tr>
 				</table>
 
-				<div>
-					<span>body</span>
-					<div class="responseBody">
-						{{ responseItems.body }}
+				<div class="responseBody">
+					<span class="responseBodyLabel">body</span>
+					<div class="responseBodyContent">
+						<div v-if="isValidJson(responseItems.body)" class="responseBodyJson">
+							<NcActions class="responseBodyJsonActions">
+								<NcActionButton @click="copyToClipboard(JSON.stringify(JSON.parse(responseItems.body), null, 2))">
+									<template #icon>
+										<ContentCopy :size="20" />
+									</template>
+									Copy to clipboard
+								</NcActionButton>
+							</NcActions>
+
+							{{ JSON.stringify(JSON.parse(responseItems.body), null, 2) }}
+						</div>
+						<div v-else>
+							{{ responseItems.body }}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -79,12 +93,21 @@ import { logStore, navigationStore } from '../../store/store.js'
 <script>
 import {
 	NcModal,
+	NcActionButton,
+	NcActions,
 } from '@nextcloud/vue'
+
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+
+import isValidJson from '../../services/isValidJson.js'
 
 export default {
 	name: 'ViewSourceLog',
 	components: {
 		NcModal,
+		NcActionButton,
+		NcActions,
+		ContentCopy,
 	},
 	data() {
 		return {
@@ -128,8 +151,10 @@ export default {
 			this.responseItems = {}
 			this.headersItems = {}
 		},
+		copyToClipboard(text) {
+			navigator.clipboard.writeText(text)
+		},
 	},
-
 }
 </script>
 <style>
@@ -158,4 +183,16 @@ export default {
     margin-block-end: 1rem;
 }
 
+</style>
+
+<style scoped>
+.responseBodyJson {
+    position: relative;
+}
+.responseBodyJsonActions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateY(-50%);
+}
 </style>

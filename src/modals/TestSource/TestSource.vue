@@ -59,7 +59,9 @@ import { sourceStore, navigationStore } from '../../store/store.js'
 				<p><b>Size:</b> {{ sourceStore.sourceTest.response.size }} (Bytes)</p>
 				<p><b>Remote IP:</b> {{ sourceStore.sourceTest.response.remoteIp }}</p>
 				<p><b>Headers:</b> {{ sourceStore.sourceTest.response.headers }}</p>
-				<p><b>Body:</b> {{ sourceStore.sourceTest.response.body }}</p>
+				<div class="responseBody">
+					<b>Body:</b> <pre>{{ prettifyJson(sourceStore.sourceTest.response.body) }}</pre>
+				</div>
 			</div>
 		</div>
 	</NcModal>
@@ -153,6 +155,14 @@ export default {
 				sourceStore.setSourceTest(false)
 			}
 		},
+		prettifyJson(json) {
+			if (!json) return ''
+			try {
+				return JSON.stringify(JSON.parse(json), null, 2)
+			} catch (error) {
+				return json
+			}
+		},
 	},
 }
 </script>
@@ -161,5 +171,11 @@ export default {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 5px;
+}
+</style>
+
+<style scoped>
+.responseBody {
+	text-align: left;
 }
 </style>

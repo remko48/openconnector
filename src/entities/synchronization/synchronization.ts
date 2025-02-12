@@ -2,17 +2,21 @@ import { SafeParseReturnType, z } from 'zod'
 import { TSynchronization } from './synchronization.types'
 import getValidISOstring from '../../services/getValidISOstring.js'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 export class Synchronization extends ReadonlyBaseClass implements TSynchronization {
 
 	public id: number
+	public uuid: string
 	public name: string
 	public description: string
+	public conditions: string
 	public sourceId: string
 	public sourceType: string
 	public sourceHash: string
+	public sourceHashMapping: string
 	public sourceTargetMapping: string
-	public sourceConfig: object
+	public sourceConfig: Record<string, string>
 	public sourceLastChanged: string
 	public sourceLastChecked: string
 	public sourceLastSynced: string
@@ -20,21 +24,26 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 	public targetType: string
 	public targetHash: string
 	public targetSourceMapping: string
-	public targetConfig: object
+	public targetConfig: Record<string, string>
 	public targetLastChanged: string
 	public targetLastChecked: string
 	public targetLastSynced: string
 	public created: string
 	public updated: string
+	public version: string
+	public actions: string[]
 
 	constructor(synchronization: TSynchronization) {
 		const processedSynchronization: TSynchronization = {
 			id: synchronization.id || null,
+			uuid: synchronization.uuid || '',
 			name: synchronization.name || '',
 			description: synchronization.description || '',
+			conditions: synchronization.conditions || '',
 			sourceId: synchronization.sourceId || '',
 			sourceType: synchronization.sourceType || '',
 			sourceHash: synchronization.sourceHash || '',
+			sourceHashMapping: synchronization.sourceHashMapping || '',
 			sourceTargetMapping: synchronization.sourceTargetMapping || '',
 			sourceConfig: synchronization.sourceConfig || {},
 			sourceLastChanged: synchronization.sourceLastChanged || '',
@@ -50,21 +59,30 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			targetLastSynced: synchronization.targetLastSynced || '',
 			created: getValidISOstring(synchronization.created) ?? '',
 			updated: getValidISOstring(synchronization.updated) ?? '',
+			version: synchronization.version || '',
+			actions: synchronization.actions || [],
 		}
 
 		super(processedSynchronization)
 	}
 
+	public cloneRaw(): TSynchronization {
+		return _.cloneDeep(this)
+	}
+
 	public validate(): SafeParseReturnType<TSynchronization, unknown> {
 		const schema = z.object({
 			id: z.number().nullable(),
+			uuid: z.string(),
 			name: z.string(),
 			description: z.string(),
+			conditions: z.string(),
 			sourceId: z.string(),
 			sourceType: z.string(),
 			sourceHash: z.string(),
+			sourceHashMapping: z.string(),
 			sourceTargetMapping: z.string(),
-			sourceConfig: z.object({}),
+			sourceConfig: z.record(z.string(), z.string()),
 			sourceLastChanged: z.string(),
 			sourceLastChecked: z.string(),
 			sourceLastSynced: z.string(),
@@ -72,12 +90,14 @@ export class Synchronization extends ReadonlyBaseClass implements TSynchronizati
 			targetType: z.string(),
 			targetHash: z.string(),
 			targetSourceMapping: z.string(),
-			targetConfig: z.object({}),
+			targetConfig: z.record(z.string(), z.string()),
 			targetLastChanged: z.string(),
 			targetLastChecked: z.string(),
 			targetLastSynced: z.string(),
 			created: z.string(),
 			updated: z.string(),
+			version: z.string(),
+			actions: z.array(z.string()),
 		})
 
 		return schema.safeParse({ ...this })

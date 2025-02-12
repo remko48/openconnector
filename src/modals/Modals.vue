@@ -13,6 +13,7 @@ import { navigationStore } from '../store/store.js'
 		<TestSource />
 		<DeleteJob />
 		<TestJob />
+		<RunJob v-if="navigationStore.modal === 'runJob'" />
 		<EditJob />
 		<DeleteLog />
 		<EditLog />
@@ -26,16 +27,27 @@ import { navigationStore } from '../store/store.js'
 		<EditMappingUnset v-if="navigationStore.modal === 'editMappingUnset'" />
 		<DeleteMappingUnset v-if="navigationStore.modal === 'deleteMappingUnset'" />
 		<DeleteSynchronization />
-		<EditSynchronization />
-		<TestSynchronization />
+		<EditSynchronization v-if="navigationStore.modal === 'editSynchronization'" />
+		<TestSynchronization v-if="navigationStore.modal === 'testSynchronization'" />
+		<RunSynchronization v-if="navigationStore.modal === 'runSynchronization'" />
 		<EditJobArgument />
 		<DeleteJobArgument />
 		<EditSourceConfiguration />
 		<DeleteSourceConfiguration />
+		<EditSourceConfigurationAuthentication v-if="navigationStore.modal === 'editSourceConfigurationAuthentication'" />
+		<DeleteSourceConfigurationAuthentication v-if="navigationStore.modal === 'deleteSourceConfigurationAuthentication'" />
 		<ViewSourceLog />
 		<ViewJobLog />
 		<ViewSynchronizationLog />
 		<ViewSynchronizationContract />
+		<EditSynchronizationSourceConfig v-if="navigationStore.modal === 'editSynchronizationSourceConfig'" />
+		<DeleteSynchronizationSourceConfig v-if="navigationStore.modal === 'deleteSynchronizationSourceConfig'" />
+		<EditSynchronizationTargetConfig v-if="navigationStore.modal === 'editSynchronizationTargetConfig'" />
+		<DeleteSynchronizationTargetConfig v-if="navigationStore.modal === 'deleteSynchronizationTargetConfig'" />
+		<ImportFile v-if="navigationStore.modal === 'importFile'" />
+		<EditRule v-if="navigationStore.modal === 'editRule'" />
+		<DeleteRule v-if="navigationStore.dialog === 'deleteRule'" />
+		<AddEndpointRule v-if="navigationStore.modal === 'addEndpointRule'" />
 	</div>
 </template>
 
@@ -48,6 +60,7 @@ import EditSource from './Source/EditSource.vue'
 import TestSource from './TestSource/TestSource.vue'
 import DeleteSource from './Source/DeleteSource.vue'
 import TestJob from './Job/TestJob.vue'
+import RunJob from './Job/RunJob.vue'
 import EditJob from './Job/EditJob.vue'
 import DeleteJob from './Job/DeleteJob.vue'
 import EditLog from './Log/EditLog.vue'
@@ -58,10 +71,13 @@ import TestMapping from './MappingTest/TestMapping.vue'
 import EditSynchronization from './Synchronization/EditSynchronization.vue'
 import DeleteSynchronization from './Synchronization/DeleteSynchronization.vue'
 import TestSynchronization from './Synchronization/TestSynchronization.vue'
+import RunSynchronization from './Synchronization/RunSynchronization.vue'
 import EditJobArgument from './JobArgument/EditJobArgument.vue'
 import DeleteJobArgument from './JobArgument/DeleteJobArgument.vue'
 import EditSourceConfiguration from './SourceConfiguration/EditSourceConfiguration.vue'
 import DeleteSourceConfiguration from './SourceConfiguration/DeleteSourceConfiguration.vue'
+import EditSourceConfigurationAuthentication from './SourceConfigurationAuthentication/EditSourceConfigurationAuthentication.vue'
+import DeleteSourceConfigurationAuthentication from './SourceConfigurationAuthentication/DeleteSourceConfigurationAuthentication.vue'
 import ViewSourceLog from './Log/ViewSourceLog.vue'
 import EditMappingMapping from './mappingMapping/EditMappingMapping.vue'
 import DeleteMappingMapping from './mappingMapping/DeleteMappingMapping.vue'
@@ -72,6 +88,14 @@ import ViewSynchronizationLog from './Log/ViewSynchronizationLog.vue'
 import ViewSynchronizationContract from './Log/ViewSynchronizationContract.vue'
 import EditMappingUnset from './mappingUnset/EditMappingUnset.vue'
 import DeleteMappingUnset from './mappingUnset/DeleteMappingUnset.vue'
+import EditSynchronizationSourceConfig from './SynchronizationSourceConfig/EditSynchronizationSourceConfig.vue'
+import DeleteSynchronizationSourceConfig from './SynchronizationSourceConfig/DeleteSynchronizationSourceConfig.vue'
+import EditSynchronizationTargetConfig from './SynchronizationTargetConfig/EditSynchronizationTargetConfig.vue'
+import DeleteSynchronizationTargetConfig from './SynchronizationTargetConfig/DeleteSynchronizationTargetConfig.vue'
+import ImportFile from './Import/ImportFile.vue'
+import EditRule from './Rule/EditRule.vue'
+import DeleteRule from './Rule/DeleteRule.vue'
+import AddEndpointRule from './Endpoint/AddEndpointRule.vue'
 
 export default {
 	name: 'Modals',
@@ -85,6 +109,7 @@ export default {
 		TestSource,
 		DeleteJob,
 		EditJob,
+		RunJob,
 		TestJob,
 		DeleteLog,
 		EditLog,
@@ -94,10 +119,13 @@ export default {
 		DeleteSynchronization,
 		EditSynchronization,
 		TestSynchronization,
+		RunSynchronization,
 		EditJobArgument,
 		DeleteJobArgument,
 		EditSourceConfiguration,
 		DeleteSourceConfiguration,
+		EditSourceConfigurationAuthentication,
+		DeleteSourceConfigurationAuthentication,
 		ViewSourceLog,
 		EditMappingMapping,
 		DeleteMappingMapping,
@@ -108,6 +136,14 @@ export default {
 		ViewSynchronizationContract,
 		EditMappingUnset,
 		DeleteMappingUnset,
+		EditSynchronizationSourceConfig,
+		DeleteSynchronizationSourceConfig,
+		EditSynchronizationTargetConfig,
+		DeleteSynchronizationTargetConfig,
+		ImportFile,
+		EditRule,
+		DeleteRule,
+		AddEndpointRule,
 	},
 	setup() {
 		return {

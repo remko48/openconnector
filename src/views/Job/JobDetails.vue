@@ -33,12 +33,23 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 							</template>
 							Test
 						</NcActionButton>
-
+						<NcActionButton @click="navigationStore.setModal('runJob')">
+							<template #icon>
+								<Play :size="20" />
+							</template>
+							Run
+						</NcActionButton>
 						<NcActionButton @click="refreshJobLogs()">
 							<template #icon>
 								<Sync :size="20" />
 							</template>
 							Refresh Logs
+						</NcActionButton>
+						<NcActionButton @click="jobStore.exportJob(jobStore.jobItem.id)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export job
 						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteJob')">
 							<template #icon>
@@ -53,11 +64,15 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 				<div class="detailGrid">
 					<div class="gridContent gridFullWidth">
 						<b>id:</b>
-						<p>{{ jobStore.jobItem.uuid }}</p>
+						<p>{{ jobStore.jobItem.id }}</p>
 					</div>
 					<div class="gridContent">
 						<b>Status:</b>
 						<p>{{ jobStore.jobItem.status }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Version:</b>
+						<p>{{ jobStore.jobItem.version }}</p>
 					</div>
 					<div class="gridContent">
 						<b>Enabled:</b>
@@ -90,13 +105,13 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 					<div class="gridContent">
 						<b>Next Run:</b>
 						<p>
-							{{ new Date(jobStore.jobItem.nextRun).toLocaleString() || 'N/A' }}
+							{{ getValidISOstring(jobStore.jobItem.nextRun) ? new Date(jobStore.jobItem.nextRun).toLocaleString() : 'N/A' }}
 						</p>
 					</div>
 					<div class="gridContent">
 						<b>Last Run:</b>
 						<p>
-							{{ new Date(jobStore.jobItem.lastRun).toLocaleString() || 'N/A' }}
+							{{ getValidISOstring(jobStore.jobItem.lastRun) ? new Date(jobStore.jobItem.lastRun).toLocaleString() : 'N/A' }}
 						</p>
 					</div>
 				</div>
@@ -194,6 +209,10 @@ import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Update from 'vue-material-design-icons/Update.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import Play from 'vue-material-design-icons/Play.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+
+import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {
 	name: 'JobDetails',

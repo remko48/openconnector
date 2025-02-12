@@ -1,23 +1,24 @@
 // @ts-check
-// Note: type annotations allow type checking and IDEs autocompletion
+// `@type` JSDoc annotations allow editor autocompletion and type checking
+// (when paired with `@ts-check`).
+// There are various equivalent ways to declare your Docusaurus config.
+// See: https://docusaurus.io/docs/api/docusaurus-config
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Open Register',
-  tagline: 'Flexible object management for Nextcloud',
+  title: 'Open Connector',
+  tagline: 'Synchronize data between Nextcloud and external sources',
   url: 'https://conductionnl.github.io',
-  baseUrl: '/openregister/',
-  
-  // GitHub pages deployment config
+  baseUrl: '/openconnector/',
   organizationName: 'conductionnl',
-  projectName: 'openregister',
-  trailingSlash: false,
-
-  onBrokenLinks: 'throw',
+  projectName: 'openconnector',
+  favicon: 'img/favicon.ico',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
-  // Even if you don't use internalization, you can use this field to set useful
-  // metadata like html lang
+  // Even if you don't use internationalization, you can use this field to set
+  // useful metadata like html lang. For example, if your site is Chinese, you
+  // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -30,8 +31,7 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl:
-            'https://github.com/conductionnl/openregister/tree/main/website/',
+          editUrl: 'https://github.com/conductionnl/openconnector/tree/main/website/',
         },
         blog: false,
         theme: {
@@ -45,9 +45,9 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'Open Register',
+        title: 'Open Connector',
         logo: {
-          alt: 'Open Register Logo',
+          alt: 'Open Connector Logo',
           src: 'img/logo.svg',
         },
         items: [
@@ -58,7 +58,7 @@ const config = {
             label: 'Documentation',
           },
           {
-            href: 'https://github.com/conductionnl/openregister',
+            href: 'https://github.com/conductionnl/openconnector',
             label: 'GitHub',
             position: 'right',
           },
@@ -68,11 +68,15 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Docs',
+            title: 'Documentation',
             items: [
               {
-                label: 'Documentation',
-                to: '/docs/intro',
+                label: 'Getting Started',
+                to: '/docs/getting-started',
+              },
+              {
+                label: 'Tutorial',
+                to: '/docs/tutorial',
               },
             ],
           },
@@ -81,16 +85,28 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/conductionnl/openregister',
+                href: 'https://github.com/conductionnl/openconnector',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Open Register. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Conduction. Built with Docusaurus.`,
       },
       prism: {
-        theme: require('prism-react-renderer/themes/github'),
-        darkTheme: require('prism-react-renderer/themes/dracula'),
+        theme: {
+          plain: {
+            color: "#393A34",
+            backgroundColor: "#f6f8fa"
+          },
+          styles: []
+        },
+        darkTheme: {
+          plain: {
+            color: "#F8F8F2",
+            backgroundColor: "#282A36"
+          },
+          styles: []
+        }
       },
     }),
 };

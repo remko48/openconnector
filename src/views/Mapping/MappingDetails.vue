@@ -45,6 +45,12 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 							</template>
 							Test
 						</NcActionButton>
+						<NcActionButton @click="mappingStore.exportMapping(mappingStore.mappingItem.id)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export mapping
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteMapping')">
 							<template #icon>
 								<TrashCanOutline :size="20" />
@@ -160,9 +166,6 @@ import { mappingStore, navigationStore } from '../../store/store.js'
 											disable-menu
 											:size="44" />
 									</template>
-									<template #subname>
-										{{ value }}
-									</template>
 									<template #actions>
 										<NcActionButton @click="mappingStore.setMappingUnsetKey(value); navigationStore.setModal('editMappingUnset')">
 											<template #icon>
@@ -202,6 +205,7 @@ import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import TestTube from 'vue-material-design-icons/TestTube.vue'
 import Eraser from 'vue-material-design-icons/Eraser.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 
 export default {
 	name: 'MappingDetails',

@@ -19,6 +19,7 @@ use OCA\OpenConnector\Db\CallLog;
 use OCA\OpenConnector\Db\CallLogMapper;
 use OCA\OpenConnector\Twig\AuthenticationExtension;
 use OCA\OpenConnector\Twig\AuthenticationRuntimeLoader;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Uid\Uuid;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -42,11 +43,13 @@ class CallService
 	 * The constructor sets al needed variables.
 	 *
 	 * @param CallLogMapper $callLogMapper
+	 * @param SourceMapper $sourceMapper
 	 * @param ArrayLoader $loader
 	 * @param AuthenticationService $authenticationService
 	 */
 	public function __construct(
 		private readonly CallLogMapper $callLogMapper,
+		private readonly SourceMapper $sourceMapper,
 		ArrayLoader $loader,
 		AuthenticationService $authenticationService
 	)
@@ -98,6 +101,46 @@ class CallService
 		return array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $configuration);
 	}
 
+    /**
+     * Decides method based on configuration and returns that configuration.
+     *
+     * @param string $default The default method, used if no override is set
+     * @param array  $configuration The configuration to find overrides in.
+     * @param bool   $read For GET as default: decides if we are in a list or read (singular) endpoint.
+     *
+     * @return string
+     */
+	private function decideMethod(string $default, array $configuration, bool $read = false): string
+	{
+		switch($default) {
+			case 'POST':
+				if (isset($configuration['createMethod']) === true) {
+					return $configuration['createMethod'];
+				}
+				return $default;
+			case 'PUT':
+			case 'PATCH':
+				if (isset($configuration['updateMethod']) === true) {
+					return $configuration['updateMethod'];
+				}
+				return $default;
+			case 'DELETE':
+				if (isset($configuration['destroyMethod']) === true) {
+					return $configuration['destroyMethod'];
+				}
+				return $default;
+			case 'GET':
+			default:
+				if (isset($configuration['listMethod']) === true && $read === false) {
+					return $configuration['listMethod'];
+				}
+				if (isset($configuration['readMethod']) === true && $read === true) {
+					return $configuration['readMethod'];
+				}
+				return $default;
+		}
+	}
+
 	/**
 	 * Calls a source according to given configuration.
 	 *
@@ -111,6 +154,8 @@ class CallService
 	 *
 	 * @return CallLog
 	 * @throws GuzzleException
+	 * @throws LoaderError
+	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
 	public function call(
@@ -120,10 +165,14 @@ class CallService
 		array $config = [],
 		bool $asynchronous = false,
 		bool $createCertificates = true,
-		bool $overruleAuth = false
+		bool $overruleAuth = false,
+		bool $read = false
 	): CallLog
 	{
 		$this->source = $source;
+
+		$method = $this->decideMethod(default: $method, configuration: $config, read: $read);
+        unset($config['createMethod'], $config['updateMethod'], $config['destroyMethod'], $config['listMethod'], $config['readMethod']);
 
 		if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
 			// Create and save the CallLog
@@ -133,7 +182,7 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source is not enabled");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdated(new \DateTime());
+			$callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
 			$this->callLogMapper->insert($callLog);
 
@@ -148,7 +197,34 @@ class CallService
 			$callLog->setStatusCode(409);
 			$callLog->setStatusMessage("This source has no location");
 			$callLog->setCreated(new \DateTime());
-			$callLog->setUpdated(new \DateTime());
+			$callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
+
+			$this->callLogMapper->insert($callLog);
+
+			return $callLog;
+		}
+
+		// Check if Source has a RateLimit and if we need to reset RateLimit-Reset and RateLimit-Remaining.
+		if ($this->source->getRateLimitReset() !== null
+			&& $this->source->getRateLimitRemaining() !== null
+			&& $this->source->getRateLimitReset() <= time()
+		) {
+			$this->source->setRateLimitReset(null);
+			$this->source->setRateLimitRemaining(null);
+
+			$this->sourceMapper->update($source);
+		}
+
+		// Check if RateLimit-Remaining is set on this source and if limit has been reached.
+		if ($this->source->getRateLimitRemaining() !== null && $this->source->getRateLimitRemaining() <= 0) {
+			// Create and save the CallLog
+			$callLog = new CallLog();
+			$callLog->setUuid(Uuid::v4());
+			$callLog->setSourceId($this->source->getId());
+			$callLog->setStatusCode(429); //
+			$callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
+			$callLog->setCreated(new \DateTime());
+			$callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
 			$this->callLogMapper->insert($callLog);
 
@@ -197,6 +273,11 @@ class CallService
 		// Set authentication if needed. @todo: create  the authentication service
 		//$createCertificates && $this->getCertificate($config);
 
+		// Make sure to filter out all the authentication variables / secrets.
+		$config = array_filter($config, function ($key) {
+			return str_contains(strtolower($key), 'authentication') === false;
+		}, ARRAY_FILTER_USE_KEY);
+
 		// Let's log the call.
 		$this->source->setLastCall(new \DateTime());
 		// @todo: save the source
@@ -206,6 +287,7 @@ class CallService
 			if ($asynchronous === false) {
 			   $response = $this->client->request($method, $url, $config);
 			} else {
+				// @todo: we want to get rate limit headers from async calls as well
 				return $this->client->requestAsync($method, $url, $config);
 			}
 		} catch (GuzzleHttp\Exception\BadResponseException $e) {
@@ -214,7 +296,9 @@ class CallService
 
 		$time_end = microtime(true);
 
-		// Let create the data array
+		$body = $response->getBody()->getContents();
+
+		// Let's create the data array
 		$data = [
 			'request' => [
 				'url' => $url,
@@ -228,9 +312,13 @@ class CallService
 				'size' => $response->getBody()->getSize(),
 				'remoteIp' => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
 				'headers' => $response->getHeaders(),
-				'body' => $response->getBody()->getContents(),
+				'body' => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? $body : base64_encode($body),
+				'encoding' => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? 'UTF-8' : 'base64',
 			]
 		];
+
+		// Update Rate Limit info for the source with the rate limit headers if present or if configured in the source.
+		$data['response']['headers'] = $this->sourceRateLimit($source, $data['response']['headers']);
 
 		// Create and save the CallLog
 		$callLog = new CallLog();
@@ -241,10 +329,74 @@ class CallService
 		$callLog->setRequest($data['request']);
 		$callLog->setResponse($data['response']);
 		$callLog->setCreated(new \DateTime());
+		$callLog->setExpires(new \DateTime('now + '.($data['response']['statusCode'] < 400 ? $source->getLogRetention() : $source->getErrorRetention()).' seconds'));
 
 		$this->callLogMapper->insert($callLog);
 
 		return $callLog;
+	}
+
+	/**
+	 * Update the source with rate limit info if any of the rate limit headers are found. Else checks if config on the
+	 * source has been set for Rate Limit. And update the response headers with this Rate Limit info.
+	 *
+	 * @param Source $source The source to update.
+	 * @param array $headers The response headers to check for Rate Limit headers.
+	 *
+	 * @return array The updated response headers.
+	 * @throws \OCP\DB\Exception
+	 */
+	private function sourceRateLimit(Source $source, array $headers): array
+	{
+		// Check if RateLimit-Reset is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Reset']) === true) {
+			$source->setRateLimitReset($headers['X-RateLimit-Reset']);
+		}
+
+		// If RateLimit-Reset not in headers and source->RateLimit-Reset === null. But source->RateLimit-Window is set.
+		if (isset($headers['X-RateLimit-Reset']) === false
+			&& $source->getRateLimitReset() === null
+			&& $source->getRateLimitWindow() !== null
+		) {
+			// Set new RateLimit-Reset time on the source.
+			$rateLimitReset = time() + $source->getRateLimitWindow();
+			$source->setRateLimitReset($rateLimitReset);
+		}
+
+		// Check if RateLimit-Limit is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Limit']) === true) {
+			$source->setRateLimitLimit($headers['X-RateLimit-Limit']);
+		}
+
+		// Check if RateLimit-Remaining is present in response headers. If so, save it in the source.
+		if (isset($headers['X-RateLimit-Remaining']) === true) {
+			$source->setRateLimitRemaining($headers['X-RateLimit-Remaining']);
+		}
+
+		// If RateLimit-Remaining not in headers and source->RateLimit-Limit is set, update source->RateLimit-Remaining.
+		if (isset($headers['X-RateLimit-Remaining']) === false && $source->getRateLimitLimit() !== null) {
+			$rateLimitRemaining = $source->getRateLimitRemaining();
+			if ($rateLimitRemaining === null) {
+				// Re-set the RateLimit-Remaining on the source.
+				$rateLimitRemaining = $source->getRateLimitLimit();
+			}
+			$source->setRateLimitRemaining($rateLimitRemaining - 1);
+		}
+
+		$this->sourceMapper->update($source);
+
+		if ($source->getRateLimitLimit() !== null || $source->getRateLimitWindow() !== null) {
+			$headers = array_merge($headers, [
+				'X-RateLimit-Limit' => [(string) $source->getRateLimitLimit()],
+				'X-RateLimit-Remaining' => [(string) $source->getRateLimitRemaining()],
+				'X-RateLimit-Reset' => [(string) $source->getRateLimitReset()],
+				'X-RateLimit-Used' => ["1"],
+				'X-RateLimit-Window' => [(string) $source->getRateLimitWindow()],
+			]);
+			ksort($headers);
+		}
+
+		return $headers;
 	}
 
 	/**
@@ -255,7 +407,7 @@ class CallService
 	 *
 	 * @return array The updated config array.
 	 */
-	private function applyConfigDot(array $config): array
+	public function applyConfigDot(array $config): array
 	{
 		$dotConfig = new Dot($config);
 		$unsetKeys = [];

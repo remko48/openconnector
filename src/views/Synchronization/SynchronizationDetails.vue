@@ -21,11 +21,35 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 							</template>
 							Edit
 						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.setSynchronizationSourceConfigKey(null); navigationStore.setModal('editSynchronizationSourceConfig')">
+							<template #icon>
+								<DatabaseSettingsOutline :size="20" />
+							</template>
+							Add Source Config
+						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.setSynchronizationTargetConfigKey(null); navigationStore.setModal('editSynchronizationTargetConfig')">
+							<template #icon>
+								<CardBulletedSettingsOutline :size="20" />
+							</template>
+							Add Target Config
+						</NcActionButton>
 						<NcActionButton @click="navigationStore.setModal('testSynchronization')">
 							<template #icon>
 								<Sync :size="20" />
 							</template>
 							Test
+						</NcActionButton>
+						<NcActionButton @click="navigationStore.setModal('runSynchronization')">
+							<template #icon>
+								<Play :size="20" />
+							</template>
+							Run
+						</NcActionButton>
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronizationStore.synchronizationItem.id)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export synchronization
 						</NcActionButton>
 						<NcActionButton @click="navigationStore.setDialog('deleteSynchronization')">
 							<template #icon>
@@ -41,6 +65,10 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 					<div class="gridContent gridFullWidth">
 						<b>id:</b>
 						<p>{{ synchronizationStore.synchronizationItem.uuid }}</p>
+					</div>
+					<div class="gridContent">
+						<b>Version:</b>
+						<p>{{ synchronizationStore.synchronizationItem.version }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Created:</b>
@@ -73,24 +101,24 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 						<p>{{ synchronizationStore.synchronizationItem.sourceType || 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
-						<b>Source Config:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceConfig || 'N/A' }}</p>
-					</div>
-					<div class="gridContent gridFullWidth">
 						<b>Source Hash:</b>
 						<p>{{ synchronizationStore.synchronizationItem.sourceHash || 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
+						<b>Source Hash mapping id:</b>
+						<p>{{ synchronizationStore.synchronizationItem.sourceHashMapping || 'N/A' }}</p>
+					</div>
+					<div class="gridContent gridFullWidth">
 						<b>Source Last Changed:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceLastChanged || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.sourceLastChanged) ? new Date(synchronizationStore.synchronizationItem.sourceLastChanged).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Source Last Checked:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceLastChecked || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.sourceLastChecked) ? new Date(synchronizationStore.synchronizationItem.sourceLastChecked).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Source Last Synced:</b>
-						<p>{{ synchronizationStore.synchronizationItem.sourceLastSynced || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.sourceLastSynced) ? new Date(synchronizationStore.synchronizationItem.sourceLastSynced).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Source Target Mapping:</b>
@@ -110,15 +138,15 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Last Changed:</b>
-						<p>{{ synchronizationStore.synchronizationItem.targetLastChanged || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.targetLastChanged) ? new Date(synchronizationStore.synchronizationItem.targetLastChanged).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Last Checked:</b>
-						<p>{{ synchronizationStore.synchronizationItem.targetLastChecked || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.targetLastChecked) ? new Date(synchronizationStore.synchronizationItem.targetLastChecked).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Last Synced:</b>
-						<p>{{ synchronizationStore.synchronizationItem.targetLastSynced || 'N/A' }}</p>
+						<p>{{ getValidISOstring(synchronizationStore.synchronizationItem.targetLastSynced) ? new Date(synchronizationStore.synchronizationItem.targetLastSynced).toLocaleString() : 'N/A' }}</p>
 					</div>
 					<div class="gridContent gridFullWidth">
 						<b>Target Source Mapping:</b>
@@ -155,15 +183,87 @@ import { synchronizationStore, navigationStore, logStore } from '../../store/sto
 									</template>
 								</NcListItem>
 							</div>
-							<div v-if="!contracts.length" class="tabPanel">
+							<div v-if="!synchronizationStore.synchronizationContracts.length" class="tabPanel">
 								No contracts found
+							</div>
+						</BTab>
+						<BTab title="Source config">
+							<div v-if="Object.keys(synchronizationStore.synchronizationItem.sourceConfig).length">
+								<NcListItem v-for="(value, key, i) in synchronizationStore.synchronizationItem.sourceConfig"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="false">
+									<template #icon>
+										<DatabaseSettingsOutline
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="synchronizationStore.setSynchronizationSourceConfigKey(key); navigationStore.setModal('editSynchronizationSourceConfig')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationSourceConfigKey(key); navigationStore.setModal('deleteSynchronizationSourceConfig')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!Object.keys(synchronizationStore.synchronizationItem.sourceConfig).length" class="tabPanel">
+								No source configs found
+							</div>
+						</BTab>
+						<BTab title="Target config">
+							<div v-if="Object.keys(synchronizationStore.synchronizationItem.targetConfig).length">
+								<NcListItem v-for="(value, key, i) in synchronizationStore.synchronizationItem.targetConfig"
+									:key="`${key}${i}`"
+									:name="key"
+									:bold="false"
+									:force-display-actions="true"
+									:active="false">
+									<template #icon>
+										<CardBulletedSettingsOutline
+											disable-menu
+											:size="44" />
+									</template>
+									<template #subname>
+										{{ value }}
+									</template>
+									<template #actions>
+										<NcActionButton @click="synchronizationStore.setSynchronizationTargetConfigKey(key); navigationStore.setModal('editSynchronizationTargetConfig')">
+											<template #icon>
+												<Pencil :size="20" />
+											</template>
+											Edit
+										</NcActionButton>
+										<NcActionButton @click="synchronizationStore.setSynchronizationTargetConfigKey(key); navigationStore.setModal('deleteSynchronizationTargetConfig')">
+											<template #icon>
+												<Delete :size="20" />
+											</template>
+											Delete
+										</NcActionButton>
+									</template>
+								</NcListItem>
+							</div>
+							<div v-if="!Object.keys(synchronizationStore.synchronizationItem.targetConfig).length" class="tabPanel">
+								No target configs found
 							</div>
 						</BTab>
 						<BTab title="Logs">
 							<div v-if="synchronizationStore.synchronizationLogs?.length">
-								<NcListItem v-for="(log, i) in synchronizationStore.synchronizationLogs"
+								<NcListItem v-for="(log, i) in [...synchronizationStore.synchronizationLogs].reverse()"
 									:key="log.id + i"
-									:name="log.id.toString()"
+									:name="log.message + (log.result?.objects?.found ? ` (found: ${log.result.objects.found})` : '')"
 									:bold="false"
 									:force-display-actions="true">
 									<template #icon>
@@ -199,11 +299,18 @@ import { NcActions, NcActionButton, NcListItem } from '@nextcloud/vue'
 import { BTabs, BTab } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import TimelineQuestionOutline from 'vue-material-design-icons/TimelineQuestionOutline.vue'
 import Sync from 'vue-material-design-icons/Sync.vue'
 import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
+import DatabaseSettingsOutline from 'vue-material-design-icons/DatabaseSettingsOutline.vue'
+import CardBulletedSettingsOutline from 'vue-material-design-icons/CardBulletedSettingsOutline.vue'
+import Play from 'vue-material-design-icons/Play.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+
+import getValidISOstring from '../../services/getValidISOstring.js'
 
 export default {
 	name: 'SynchronizationDetails',
@@ -220,8 +327,8 @@ export default {
 		}
 	},
 	mounted() {
-		synchronizationStore.refreshSynchronizationLogs()
-		synchronizationStore.refreshSynchronizationContracts()
+		synchronizationStore.refreshSynchronizationLogs(synchronizationStore.synchronizationItem.id)
+		synchronizationStore.refreshSynchronizationContracts(synchronizationStore.synchronizationItem.id)
 	},
 	methods: {
 		viewLog(log) {

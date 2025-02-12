@@ -1,12 +1,15 @@
 export type TSynchronization = {
     id: number
+    uuid: string
     name: string
     description: string
+    conditions: string
     sourceId: string
     sourceType: string
     sourceHash: string
+    sourceHashMapping: string
     sourceTargetMapping: string
-    sourceConfig: object
+    sourceConfig: Record<string, string>
     sourceLastChanged: string
     sourceLastChecked: string
     sourceLastSynced: string
@@ -14,10 +17,12 @@ export type TSynchronization = {
     targetType: string
     targetHash: string
     targetSourceMapping: string
-    targetConfig: object
+    targetConfig: Record<string, string>
     targetLastChanged: string
     targetLastChecked: string
     targetLastSynced: string
     created: string
     updated: string
+    version: string
+    actions: string[]
 }

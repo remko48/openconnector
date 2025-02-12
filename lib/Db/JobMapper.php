@@ -29,6 +29,19 @@ class JobMapper extends QBMapper
 		return $this->findEntity(query: $qb);
 	}
 
+	public function findByRef(string $reference): array
+	{
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from('openconnector_jobs')
+			->where(
+				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
+			);
+
+		return $this->findEntities(query: $qb);
+	}
+
 	public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $searchConditions = [], ?array $searchParams = []): array
 	{
 		$qb = $this->db->getQueryBuilder();
@@ -74,10 +87,12 @@ class JobMapper extends QBMapper
 		$obj = $this->find($id);
 		$obj->hydrate($object);
 
-		// Set or update the version
-		$version = explode('.', $obj->getVersion());
-		$version[2] = (int)$version[2] + 1;
-		$obj->setVersion(implode('.', $version));
+		if (isset($object['version']) === false) {
+			// Set or update the version
+			$version = explode('.', $obj->getVersion());
+			$version[2] = (int)$version[2] + 1;
+			$obj->setVersion(implode('.', $version));
+		}
 
 		return $this->update($obj);
 	}

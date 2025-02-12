@@ -1,5 +1,6 @@
 <script setup>
 import { sourceStore, navigationStore } from '../../store/store.js'
+import { Source } from '../../entities/index.js'
 </script>
 
 <template>
@@ -115,7 +116,7 @@ export default {
 		initializeSourceItem() {
 			if (sourceStore.sourceItem?.id) {
 				this.sourceItem = {
-					...sourceStore.sourceItem,
+					...sourceStore.sourceItem.cloneRaw(),
 					name: sourceStore.sourceItem.name || '',
 					description: sourceStore.sourceItem.description || '',
 					location: sourceStore.sourceItem.location || '',
@@ -130,10 +131,12 @@ export default {
 						{ label: 'API', id: 'api' },
 						{ label: 'File', id: 'file' },
 					],
-					value: [{
-						label: selectedType.label,
-						id: selectedType.id,
-					}],
+					value: selectedType
+						? {
+							label: selectedType.label,
+							id: selectedType.id,
+						}
+						: null,
 
 				}
 			}
@@ -163,7 +166,9 @@ export default {
 		async editSource() {
 			this.loading = true
 			try {
-				await sourceStore.saveSource({ ...this.sourceItem, type: this.typeOptions.value.id })
+				const sourceItem = new Source({ ...this.sourceItem, type: this.typeOptions.value.id })
+
+				await sourceStore.saveSource(sourceItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

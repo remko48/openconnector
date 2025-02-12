@@ -1,5 +1,6 @@
 <script setup>
 import { navigationStore, sourceStore } from '../../store/store.js'
+import { Source } from '../../entities/index.js'
 </script>
 
 <template>
@@ -78,12 +79,10 @@ export default {
 		deleteSourceConfiguration() {
 			this.loading = true
 
-			const sourceItemClone = { ...sourceStore.sourceItem }
+			const sourceItemClone = sourceStore.sourceItem.cloneRaw()
 			delete sourceItemClone?.configuration[sourceStore.sourceConfigurationKey]
 
-			const sourceItem = {
-				...sourceStore.sourceItem,
-			}
+			const sourceItem = new Source(sourceItemClone)
 
 			sourceStore.saveSource(sourceItem)
 				.then(() => {

@@ -1,5 +1,6 @@
 <script setup>
 import { endpointStore, navigationStore } from '../../store/store.js'
+import { Endpoint } from '../../entities/index.js'
 </script>
 
 <template>
@@ -28,14 +29,6 @@ import { endpointStore, navigationStore } from '../../store/store.js'
 					<NcTextArea
 						label="Description"
 						:value.sync="endpointItem.description" />
-
-					<NcTextField
-						label="Reference"
-						:value.sync="endpointItem.reference" />
-
-					<NcTextField
-						label="Version"
-						:value.sync="endpointItem.version" />
 
 					<NcTextField
 						label="Endpoint"
@@ -105,8 +98,6 @@ export default {
 			endpointItem: {
 				name: '',
 				description: '',
-				reference: '',
-				version: '',
 				endpoint: '',
 				endpointArray: '',
 				endpointRegex: '',
@@ -150,8 +141,6 @@ export default {
 					...endpointStore.endpointItem,
 					name: endpointStore.endpointItem.name,
 					description: endpointStore.endpointItem.description,
-					reference: endpointStore.endpointItem.reference,
-					version: endpointStore.endpointItem.version,
 					endpoint: endpointStore.endpointItem.endpoint,
 					endpointArray: endpointStore.endpointItem.endpointArray.join(', '),
 					endpointRegex: endpointStore.endpointItem.endpointRegex,
@@ -177,8 +166,6 @@ export default {
 			this.endpointItem = {
 				name: '',
 				description: '',
-				reference: '',
-				version: '',
 				endpoint: '',
 				endpointArray: '',
 				endpointRegex: '',
@@ -191,19 +178,22 @@ export default {
 		async editEndpoint() {
 			this.loading = true
 
-			await endpointStore.saveEndpoint({
+			const endpointItem = new Endpoint({
 				...this.endpointItem,
 				endpointArray: this.endpointItem.endpointArray.split(/ *, */g), // split on comma's, also take any spaces into consideration
 				method: this.methodOptions.value.label,
-			}).then(({ response }) => {
-				this.success = response.ok
-				this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
-			}).catch((e) => {
-				this.success = false
-				this.error = e.message || 'An error occurred while saving the endpoint'
-			}).finally(() => {
-				this.loading = false
 			})
+
+			await endpointStore.saveEndpoint(endpointItem)
+				.then(({ response }) => {
+					this.success = response.ok
+					this.closeTimeoutFunc = setTimeout(this.closeModal, 2000)
+				}).catch((e) => {
+					this.success = false
+					this.error = e.message || 'An error occurred while saving the endpoint'
+				}).finally(() => {
+					this.loading = false
+				})
 		},
 	},
 }

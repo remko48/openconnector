@@ -20,13 +20,19 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 						<template #icon>
 							<Refresh :size="20" />
 						</template>
-						Ververs
+						Refresh
 					</NcActionButton>
 					<NcActionButton @click="endpointStore.setEndpointItem(null); navigationStore.setModal('editEndpoint')">
 						<template #icon>
 							<Plus :size="20" />
 						</template>
-						Endpoint toevoegen
+						Add endpoint
+					</NcActionButton>
+					<NcActionButton @click="navigationStore.setModal('importFile')">
+						<template #icon>
+							<FileImportOutline :size="20" />
+						</template>
+						Import
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -52,11 +58,23 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 							</template>
 							Bewerken
 						</NcActionButton>
+						<NcActionButton @click="endpointStore.exportEndpoint(endpoint.id)">
+							<template #icon>
+								<FileExportOutline :size="20" />
+							</template>
+							Export endpoint
+						</NcActionButton>
 						<NcActionButton @click="endpointStore.setEndpointItem(endpoint); navigationStore.setDialog('deleteEndpoint')">
 							<template #icon>
 								<TrashCanOutline />
 							</template>
 							Verwijderen
+						</NcActionButton>
+						<NcActionButton @click="endpointStore.setEndpointItem(endpoint); navigationStore.setModal('addEndpointRule')">
+							<template #icon>
+								<Plus :size="20" />
+							</template>
+							Add Rule
 						</NcActionButton>
 					</template>
 				</NcListItem>
@@ -83,6 +101,8 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCanOutline from 'vue-material-design-icons/TrashCanOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import FileImportOutline from 'vue-material-design-icons/FileImportOutline.vue'
 
 export default {
 	name: 'EndpointsList',

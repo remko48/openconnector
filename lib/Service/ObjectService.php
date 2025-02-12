@@ -5,7 +5,15 @@ namespace OCA\OpenConnector\Service;
 use Adbar\Dot;
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
+use InvalidArgumentException;
+use OCA\OpenConnector\Db\EndpointMapper;
+use OCA\OpenConnector\Db\EventSubscriptionMapper;
+use OCA\OpenConnector\Db\JobMapper;
+use OCA\OpenConnector\Db\MappingMapper;
+use OCA\OpenConnector\Db\RuleMapper;
+use OCA\OpenConnector\Db\SourceMapper;
+use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCP\App\IAppManager;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
@@ -23,6 +31,13 @@ class ObjectService
 	public function __construct(
 		private readonly IAppManager $appManager,
 		private readonly ContainerInterface $container,
+		private readonly EndpointMapper     $endpointMapper,
+		private readonly EventSubscriptionMapper $eventSubscriptionMapper,
+		private readonly JobMapper     		$jobMapper,
+		private readonly MappingMapper      $mappingMapper,
+		private readonly RuleMapper			$ruleMapper,
+		private readonly SourceMapper     	$sourceMapper,
+		private readonly SynchronizationMapper $synchronizationMapper,
 	)
 	{
 
@@ -49,7 +64,7 @@ class ObjectService
 	 * @param array $config The configuration that should be used by the call.
 	 *
 	 * @return array The resulting object.
-	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws GuzzleException
 	 */
 	public function saveObject(array $data, array $config): array
 	{
@@ -81,7 +96,7 @@ class ObjectService
 	 *
 	 * @return array The objects found for given filters.
 	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws GuzzleException
 	 */
 	public function findObjects(array $filters, array $config): array
 	{
@@ -115,7 +130,7 @@ class ObjectService
 	 *
 	 * @return array The resulting object.
 	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws GuzzleException
 	 */
 	public function findObject(array $filters, array $config): array
 	{
@@ -149,7 +164,7 @@ class ObjectService
 	 *
 	 * @return array The updated object.
 	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws GuzzleException
 	 */
 	public function updateObject(array $filters, array $update, array $config): array
 	{
@@ -181,7 +196,7 @@ class ObjectService
 	 *
 	 * @return array An empty array.
 	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws GuzzleException
 	 */
 	public function deleteObject(array $filters, array $config): array
 	{
@@ -206,7 +221,7 @@ class ObjectService
 	 * @param array $pipeline The pipeline to use.
 	 * @param array $config   The configuration to use in the call.
 	 * @return array
-	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws GuzzleException
 	 */
 	public function aggregateObjects(array $filters, array $pipeline, array $config):array
 	{
@@ -248,6 +263,41 @@ class ObjectService
 		}
 
 		return null;
+	}
+
+	/**
+	 * Gets the appropriate mapper based on the object type.
+	 * (This can be a objectType for OpenRegister, by using an instantiation of the objectService of OpenRegister).
+	 *
+	 * @param string|null $objectType The objectType as string
+	 * @param int|null $schema The openregister schema
+	 * @param int|null $register The openregister register
+	 *
+	 * @return mixed The appropriate mapper.
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
+	 * @throws InvalidArgumentException If an unknown object type is provided.
+	 */
+	public function getMapper(?string $objectType = null, ?int $schema = null, ?int $register = null): mixed
+	{
+		if ($register !== null && $schema !== null && $objectType === null) {
+			return $this->getOpenRegisters()->getMapper(register: $register, schema: $schema);
+		}
+
+		$objectTypeLower = strtolower($objectType);
+
+		// If the source is internal, return the appropriate mapper based on the object type
+		return match ($objectTypeLower) {
+			'endpoint' 			=> $this->endpointMapper,
+			'eventSubscription'	=> $this->eventSubscriptionMapper,
+			'job' 	   			=> $this->jobMapper,
+			'mapping'  			=> $this->mappingMapper,
+			'rule'     			=> $this->ruleMapper,
+			'source'   			=> $this->sourceMapper,
+			'synchronization' 	=> $this->synchronizationMapper,
+			default => throw new InvalidArgumentException("Unknown object type: $objectType"),
+		};
+
 	}
 
 }

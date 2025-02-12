@@ -193,6 +193,35 @@ class AuthenticationService
 	}
 
 	/**
+	 * Fetch an access token from the DeCOS non-implementation of OAuth 2.0
+	 *
+	 * @param array $configuration The configuration of the source.
+	 *
+	 * @return string The access token
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 */
+	public function fetchDecosToken(array $configuration): string
+	{
+		$url = $configuration['tokenUrl'];
+		$tokenLocation = $configuration['tokenLocation'];
+		unset($configuration['tokenUrl']);
+
+		$callConfig['json'] = $configuration;
+
+		$client = new Client();
+		$response = $client->post(uri: $url, options: $callConfig);
+
+		$result = json_decode(json: $response->getBody()->getContents(), associative: true);
+
+		if (isset($tokenLocation) === true) {
+			return $result[$tokenLocation];
+		}
+
+		return $result['token'];
+	}
+
+	/**
 	 * Get RSA key for RS and PS (asymmetrical) encryption.
 	 *
 	 * @param array $configuration
@@ -201,7 +230,7 @@ class AuthenticationService
 	private function getRSJWK(array $configuration): ?JWK
 	{
 		$stamp = microtime().getmypid();
-		$filename = "privatekey-$stamp";
+		$filename = "/var/tmp/privatekey-$stamp";
 		file_put_contents($filename, base64_decode($configuration['secret']));
 		$jwk = null;
 		try {
@@ -327,6 +356,7 @@ class AuthenticationService
 		}
 
 		$payload = $this->getJWTPayload($configuration);
+
 		$jwk 	 = $this->getJWK($configuration);
 
 		if ($jwk === null) {
