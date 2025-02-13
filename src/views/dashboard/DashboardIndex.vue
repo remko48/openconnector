@@ -13,7 +13,7 @@ import { navigationStore } from '../../store/store.js'
 				<div
 					v-for="(stat, key) in statsConfig"
 					:key="key"
-					:class="{ clickable: true }"
+					class="clickable"
 					@click="navigateTo(key)">
 					<h5>{{ stat.label }}</h5>
 					<div class="content">
@@ -179,7 +179,7 @@ export default {
 						id: 'source-calls',
 						type: 'area',
 						stacked: true,
-						foreColor: '#000000',
+						foreColor: this.oppositeThemeColor(),
 					},
 					dataLabels: {
 						enabled: false,
@@ -197,7 +197,7 @@ export default {
 							},
 							format: 'dd MMM',
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -215,12 +215,12 @@ export default {
 						title: {
 							text: 'Number of Calls',
 							style: {
-								color: '#000000',
+								color: this.oppositeThemeColor(),
 							},
 						},
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -245,7 +245,7 @@ export default {
 						id: 'calls-per-hour',
 						type: 'area',
 						stacked: true,
-						foreColor: '#000000',
+						foreColor: this.oppositeThemeColor(),
 					},
 					dataLabels: {
 						enabled: false,
@@ -257,7 +257,7 @@ export default {
 						categories: Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'),
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -270,18 +270,18 @@ export default {
 						title: {
 							text: 'Average Number of Calls',
 							style: {
-								color: '#000000',
+								color: this.oppositeThemeColor(),
 							},
 						},
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
 					legend: {
 						labels: {
-							colors: '#000000',
+							colors: this.oppositeThemeColor(),
 						},
 					},
 				},
@@ -305,7 +305,7 @@ export default {
 						id: 'job-calls',
 						type: 'area',
 						stacked: true,
-						foreColor: '#000000',
+						foreColor: this.oppositeThemeColor(),
 					},
 					dataLabels: {
 						enabled: false,
@@ -317,7 +317,7 @@ export default {
 						type: 'datetime',
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -330,12 +330,12 @@ export default {
 						title: {
 							text: 'Number of Logs',
 							style: {
-								color: '#000000',
+								color: this.oppositeThemeColor(),
 							},
 						},
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -368,7 +368,7 @@ export default {
 						id: 'job-calls-per-hour',
 						type: 'area',
 						stacked: true,
-						foreColor: '#000000',
+						foreColor: this.oppositeThemeColor(),
 					},
 					dataLabels: {
 						enabled: false,
@@ -380,7 +380,7 @@ export default {
 						categories: Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'),
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -393,18 +393,18 @@ export default {
 						title: {
 							text: 'Average Number of Logs',
 							style: {
-								color: '#000000',
+								color: this.oppositeThemeColor(),
 							},
 						},
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
 					legend: {
 						labels: {
-							colors: '#000000',
+							colors: this.oppositeThemeColor(),
 						},
 					},
 				},
@@ -436,7 +436,7 @@ export default {
 						id: 'sync-calls',
 						type: 'area',
 						stacked: true,
-						foreColor: '#000000',
+						foreColor: this.oppositeThemeColor(),
 					},
 					dataLabels: {
 						enabled: false,
@@ -448,7 +448,7 @@ export default {
 						type: 'datetime',
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -461,12 +461,12 @@ export default {
 						title: {
 							text: 'Number of Executions',
 							style: {
-								color: '#000000',
+								color: this.oppositeThemeColor(),
 							},
 						},
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -487,7 +487,7 @@ export default {
 						id: 'sync-calls-per-hour',
 						type: 'area',
 						stacked: true,
-						foreColor: '#000000',
+						foreColor: this.oppositeThemeColor(),
 					},
 					dataLabels: {
 						enabled: false,
@@ -499,7 +499,7 @@ export default {
 						categories: Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'),
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
@@ -512,18 +512,18 @@ export default {
 						title: {
 							text: 'Average Number of Executions',
 							style: {
-								color: '#000000',
+								color: this.oppositeThemeColor(),
 							},
 						},
 						labels: {
 							style: {
-								colors: '#000000',
+								colors: this.oppositeThemeColor(),
 							},
 						},
 					},
 					legend: {
 						labels: {
-							colors: '#000000',
+							colors: this.oppositeThemeColor(),
 						},
 					},
 				},
@@ -549,6 +549,9 @@ export default {
 		])
 	},
 	methods: {
+		oppositeThemeColor() {
+			return getTheme() === 'light' ? '#000000' : '#ffffff'
+		},
 		/**
 		 * Fetches statistics from the backend
 		 * @return {Promise<void>}
