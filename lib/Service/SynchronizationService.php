@@ -70,7 +70,7 @@ class SynchronizationService
     const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
     const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
-    const FILE_TAG_TYPE                        = 'file';
+    const FILE_TAG_TYPE                        = 'files';
 
 	public function __construct(
 		CallService                      $callService,
