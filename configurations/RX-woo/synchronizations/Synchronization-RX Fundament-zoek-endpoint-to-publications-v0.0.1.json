@@ -1,0 +1,32 @@
+{
+    "name": "RX Fundament zoek endpoint to Publications",
+    "description": "",
+    "version": "0.0.1",
+    "sourceId": "1",
+    "sourceType": "api",
+    "sourceTargetMapping": "2",
+    "sourceConfig": {
+        "idPosition": "uuid",
+        "resultsPosition": "results",
+        "endpoint": "/zaken",
+        "deleteInvalidObjects": "false",
+        "headers": [],
+        "query": []
+    },
+    "currentPage": 1,
+    "targetId": "1/1",
+    "targetType": "register/schema",
+    "conditions": {
+        "and": [
+            {
+                "var": "zaaktype.omschrijving"
+            },
+            {
+                "var": "omschrijving"
+            },
+            {
+                "var": "startdatum"
+            }
+        ]
+    }
+}

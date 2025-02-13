@@ -1,0 +1,15 @@
+{
+    "name": "RX Fundament Tilburg",
+    "version": "0.0.1",
+    "location": "",
+    "isEnabled": true,
+    "type": "api",
+    "auth": "none",
+    "authorizationPassthroughMethod": "header",
+    "configuration": {},
+    "endpointsConfig": [],
+    "logRetention": 3600,
+    "errorRetention": 86400,
+    "objectCount": 0,
+    "test": false
+}
