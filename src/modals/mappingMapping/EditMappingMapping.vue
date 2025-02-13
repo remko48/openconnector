@@ -1,5 +1,6 @@
 <script setup>
 import { mappingStore, navigationStore } from '../../store/store.js'
+import { Mapping } from '../../entities/index.js'
 </script>
 
 <template>
@@ -144,7 +145,9 @@ export default {
 			}
 
 			try {
-				await mappingStore.saveMapping(newMappingItem)
+				const mappingItem = new Mapping(newMappingItem)
+
+				await mappingStore.saveMapping(mappingItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

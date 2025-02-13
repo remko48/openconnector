@@ -58,7 +58,7 @@ import { endpointStore, navigationStore, searchStore } from '../../store/store.j
 							</template>
 							Bewerken
 						</NcActionButton>
-						<NcActionButton @click="endpointStore.exportEndpoint(endpoint)">
+						<NcActionButton @click="endpointStore.exportEndpoint(endpoint.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

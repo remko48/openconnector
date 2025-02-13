@@ -90,7 +90,7 @@ import { synchronizationStore, navigationStore, searchStore } from '../../store/
 							</template>
 							Run
 						</NcActionButton>
-						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronization)">
+						<NcActionButton @click="synchronizationStore.exportSynchronization(synchronization.id)">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>

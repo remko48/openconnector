@@ -23,7 +23,14 @@
             "source": 3,
             "filePath": "attachments",
             "method": "GET",
-            "sourceConfiguration": []
+            "sourceConfiguration": [],
+            "tags": [
+                "woo_informatieverzoek",
+                "woo_besluit",
+                "woo_publicatie",
+                "woo_inventarisatielijst",
+                "woo_convenant"
+            ]
         }
     },
     "order": 0
