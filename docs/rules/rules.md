@@ -29,7 +29,7 @@ The properties work together to define:
 
 1. When the rule executes (action + timing)
 2. Under what conditions it runs (conditions)
-3. What functionality it provides (type + configuration) 
+3. What functionality it provides (type + configuration)
 4. The sequence of execution (order)
 
 Rules are stored in a structured format but referenced by endpoints using their UUID strings in an array format.
@@ -104,7 +104,7 @@ The `fileparts_create` rule takes the following configuration:
 - `filePartLocation` (optional): The location in the created object the created fileparts will be written to. Defaults to `fileParts`
 - `mappingId` (optional): If the resulting filePart objects have to be mapped to a specific format, the id of the mapping that will map the file parts to the desired format.
 
-The `filepart_upload` type will upload the data in the file part that is uploaded into a temporary file, and 
+The `filepart_upload` type will upload the data in the file part that is uploaded into a temporary file, and
 once all fileparts have been uploaded, it will reconcile the partial uploads into one file (deleting the temporary files,
 and if no additional data has been put into the folder where the parts are stored, the folder).
 
@@ -120,6 +120,20 @@ Locking rules provide exclusive access control for resources. Configuration incl
   - lock: Lock a resource for exclusive access
   - unlock: Release a previously locked resource
 - timeout: Duration in minutes before the lock automatically expires
+
+## Tags in Rules
+
+For the fetch file and write file rule you can add tags to these files. This can be useful when wanting to make a difference between files for further use.
+
+When using this in combination with OpenRegister, fetching objects that have these files will result in these tags also being readable.
+
+![Rule tags](rule-tags.png)
+
+If 'add' or 'test' are found in the label of the mapped file, it will use that to tag that file. For example you have a object like
+`{"test": {"filename": "afile.pdf", "endpoint": "/file-endpoint", "label": "test"} } ` and test is configured as a tag, it will use that as a tag for that file.
+
+By default files are tagged with a object:id tag.
+
 
 ## Rule Validation
 
