@@ -9,7 +9,7 @@
         "category": "d.woo_x005f_categorie",
         "published": "{% if d['woo_x005f_publicatiedatum']|default %}{{ d['woo_x005f_publicatiedatum']|date('Y-m-d') }}{% endif %}",
         "modified": "d.vti_x005f_nexttolasttimemodified",
-        "attachments": "[ {% for file in fileUrls %} { {% if file['Name']|default %}\"title\": \"{{ file['Name'] }}\",{% endif %}{% if file['d']['document_x005f_label']|default %}\"labels\": [\"{{ file['d']['document_x005f_label'] }}\"],{% endif %}{% if file['__metadata']['uri']|default %}\"downloadUrl\": {\"accessUrl\": \"{{ file['__metadata']['uri']~'/$value' }}\", \"source\": \"1\"}{% endif %} }{{ loop.last ? '' : ',' }} {% endfor %} ]",
+        "attachments": "[ {% for file in fileUrls %} { {% if file['Name']|default %}\"filename\": \"{{ file['Name'] }}\",{% endif %}{% if file['d']['document_x005f_label']|default %}\"label\": \"{{ file['d']['document_x005f_label'] }}\",{% endif %}{% if file['__metadata']['uri']|default %}\"endpoint\": \"{{ file['__metadata']['uri']~'/$value' }}\"}{% endif %} }{{ loop.last ? '' : ',' }} {% endfor %} ]",
         "status": "Concept",
         "catalog": "",
         "publicationType": ""
