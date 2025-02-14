@@ -1,4 +1,10 @@
 {
+	"@context": {
+		"schema": "http:\/\/schema.org",
+		"register": "501"
+	},
+	"@type": "synchronization",
+	"@id": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/synchronizations\/1",
     "name": "RX Fundament zoek endpoint to Publications",
     "description": "",
     "version": "0.0.1",

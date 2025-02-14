@@ -229,7 +229,7 @@ class SynchronizationService
 		}
 
 		// Delete invalid objects
-		if($isTest === false) {
+		if ($isTest === false) {
 			$result['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
 		}
 		else {
