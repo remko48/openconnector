@@ -20,7 +20,8 @@
         "extraDataConfigs.0.mergeExtraData": "true",
         "extraDataConfigs.0.keyToSetExtraData": "files",
         "extraDataConfigs.0.resultsLocation": "results",
-        "extraDataConfigs.0.extraDataConfigPerResult.staticEndpoint": "/tlb/zaaksysteem/api/v1/informatieobjecten/{{ originId }}"
+        "extraDataConfigs.0.extraDataConfigPerResult.staticEndpoint": "/tlb/zaaksysteem/api/v1/informatieobjecten/{{ subObjectId }}",
+        "extraDataConfigs.0.extraDataConfigPerResult.subObjectId": "identificatie"
     },
 	"targetId": "1/1",
 	"targetType": "register/schema",
