@@ -202,7 +202,7 @@ class SynchronizationService
 					synchronization: $synchronization,
 					object: $object,
 					isTest: $isTest,
-					force: false,
+					force: $force,
 					log: $log
 				);
 
@@ -216,7 +216,7 @@ class SynchronizationService
 					synchronization: $synchronization,
 					object: $object,
 					isTest: $isTest,
-					force: false,
+					force: $force,
 					log: $log
 				);
 
