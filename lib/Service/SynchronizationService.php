@@ -1804,7 +1804,6 @@ class SynchronizationService
                     $content = $value;
                 }
 
-                $content = base64_decode($content);
                 $openRegisters = $this->objectService->getOpenRegisters();
                 $openRegisters->setRegister($registerId);
                 $openRegisters->setSchema($schemaId);
@@ -1826,7 +1825,7 @@ class SynchronizationService
             $result[$key] = $file->getPath();
             $dataDot[$config['filePath']] = $result;
         } else { 
-            $content = base64_decode($files);
+            $content = $files;
             $fileName = $dataDot[$config['fileNamePath']];
             $openRegisters = $this->objectService->getOpenRegisters();
             $openRegisters->setRegister($registerId);
