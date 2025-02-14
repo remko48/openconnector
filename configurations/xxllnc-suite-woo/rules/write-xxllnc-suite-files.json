@@ -19,12 +19,17 @@
     },
     "type": "write_file",
     "configuration": {
-        "fetch_file": {
+        "write_file": {
             "source": 1,
             "filePath": "attachments",
-            "fileNamePath": "attachments.title",
-            "method": "GET",
-            "sourceConfiguration": []
+            "sourceConfiguration": [],
+            "tags": [
+                "woo_informatieverzoek",
+                "woo_besluit",
+                "woo_publicatie",
+                "woo_inventarisatielijst",
+                "woo_convenant"
+            ]
         }
     },
     "order": 0
