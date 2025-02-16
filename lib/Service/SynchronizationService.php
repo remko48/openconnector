@@ -38,6 +38,10 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Uid\Uuid;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Adbar\Dot;
+use OCP\SystemTag\ISystemTagManager;
+use OCP\SystemTag\ISystemTagObjectMapper;
+use OCP\Files\File;
+use OCP\SystemTag\TagNotFoundException;
 
 use Psr\Container\ContainerInterface;
 use DateInterval;
@@ -59,7 +63,6 @@ class SynchronizationService
 	private SynchronizationContractMapper $synchronizationContractMapper;
 	private SynchronizationContractLogMapper $synchronizationContractLogMapper;
 	private SynchronizationLogMapper $synchronizationLogMapper;
-	private Source $source;
 
     const EXTRA_DATA_CONFIGS_LOCATION          = 'extraDataConfigs';
     const EXTRA_DATA_DYNAMIC_ENDPOINT_LOCATION = 'dynamicEndpointLocation';
@@ -67,7 +70,7 @@ class SynchronizationService
     const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
     const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
-
+    const FILE_TAG_TYPE                        = 'files';
 
 	public function __construct(
 		CallService                      $callService,
@@ -82,6 +85,8 @@ class SynchronizationService
 		private readonly ObjectService   $objectService,
         private readonly StorageService  $storageService,
         private readonly RuleMapper      $ruleMapper,
+        private readonly ISystemTagManager      $systemTagManager,
+        private readonly ISystemTagObjectMapper $systemTagMapper,
 	)
 	{
 		$this->callService = $callService;
@@ -113,7 +118,7 @@ class SynchronizationService
 	 * @throws TooManyRequestsHttpException
 	 */
 	public function synchronize(
-		Synchronization $synchronization, 
+		Synchronization $synchronization,
 		?bool $isTest = false,
 		?bool $force = false
 	): array
@@ -124,7 +129,7 @@ class SynchronizationService
 			'result' => [
 				'objects' => [
 					'found' => 0,
-					'skipped' => 0, 
+					'skipped' => 0,
 					'created' => 0,
 					'updated' => 0,
 					'deleted' => 0,
@@ -187,17 +192,17 @@ class SynchronizationService
 			$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
 
 			if ($synchronizationContract instanceof SynchronizationContract === false) {
-				// Only persist if not test				
+				// Only persist if not test
 				$synchronizationContract = new SynchronizationContract();
 				$synchronizationContract->setSynchronizationId($synchronization->getId());
-				$synchronizationContract->setOriginId($originId); 
+				$synchronizationContract->setOriginId($originId);
 
 				$synchronizationContractResult = $this->synchronizeContract(
-					synchronizationContract: $synchronizationContract, 
-					synchronization: $synchronization, 
-					object: $object, 
+					synchronizationContract: $synchronizationContract,
+					synchronization: $synchronization,
+					object: $object,
 					isTest: $isTest,
-					force: false,
+					force: $force,
 					log: $log
 				);
 
@@ -207,11 +212,11 @@ class SynchronizationService
 			} else {
 				// @todo this is wierd
 				$synchronizationContractResult = $this->synchronizeContract(
-					synchronizationContract: $synchronizationContract, 
-					synchronization: $synchronization, 
-					object: $object, 
+					synchronizationContract: $synchronizationContract,
+					synchronization: $synchronization,
+					object: $object,
 					isTest: $isTest,
-					force: false,
+					force: $force,
 					log: $log
 				);
 
@@ -223,8 +228,8 @@ class SynchronizationService
 			$synchronizedTargetIds[] = $synchronizationContract['targetId'];
 		}
 
-		// Delete invalid objects		
-		if($isTest === false) {			
+		// Delete invalid objects
+		if($isTest === false) {
 			$result['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
 		}
 		else {
@@ -569,27 +574,29 @@ class SynchronizationService
 	 * @throws GuzzleException
 	 */
 	public function synchronizeContract(
-		SynchronizationContract $synchronizationContract, 
-		Synchronization $synchronization = null, 
-		array $object = [], 
+		SynchronizationContract $synchronizationContract,
+		Synchronization $synchronization = null,
+		array $object = [],
 		?bool $isTest = false,
 		?bool $force = false,
-		?SynchronizationLog $log = null 
+		?SynchronizationLog $log = null
 		): SynchronizationContract|Exception|array
 	{
 		// We are doing something so lets log it
-		$log = $this->synchronizationContractLogMapper->createFromArray(
-			[
-				'synchronizationId' => $synchronization->getId(),
-				'synchronizationContractId' => $synchronizationContract->getId(),
-				'source' => $object,
-				'test' => $isTest,
-				'force' => $force,
-			]
-		);
+        if ($synchronizationContract->getId() !== null) {
+            $contractLog = $this->synchronizationContractLogMapper->createFromArray(
+                [
+                    'synchronizationId' => $synchronization->getId(),
+                    'synchronizationContractId' => $synchronizationContract->getId(),
+                    'source' => $object,
+                    'test' => $isTest,
+                    'force' => $force,
+                ]
+            );
+        }
 
-		if ($log !== null) {
-			$log->setSynchronizationLogId($log->getId());
+		if (isset($contractLog) === true) {
+			$contractLog->setSynchronizationLogId($log->getId());
 		}
 
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
@@ -628,12 +635,12 @@ class SynchronizationService
             $synchronizationContract->getTargetId() !== null &&
             $synchronizationContract->getTargetHash() !== null
             ) {
-			// We checked the source so let log that			
+			// We checked the source so let log that
 			$synchronizationContract->setSourceLastChecked(new DateTime());
 			// The object has not changed and neither config nor mapping have been updated since last check
-			$log = $this->synchronizationContractLogMapper->update($log);
+			$contractLog = $this->synchronizationContractLogMapper->update($contractLog);
 			return [
-				'log' => $log->jsonSerialize(),
+				'log' => $contractLog->jsonSerialize(),
 				'contract' => $synchronizationContract->jsonSerialize()
 			];
 		}
@@ -649,7 +656,10 @@ class SynchronizationService
         } else {
             $targetObject = $object;
         }
-		$log->setTarget($targetObject);
+
+        if (isset($contractLog) === true) {
+		    $contractLog->setTarget($targetObject);
+        }
 
         if ($synchronization->getActions() !== []) {
             $targetObject = $this->processRules(synchronization: $synchronization, data: $targetObject, timing: 'before');
@@ -667,10 +677,10 @@ class SynchronizationService
 		// Handle synchronization based on test mode
 		if ($isTest === true) {
 			// Return test data without updating target
-			$log->setTargetResult('test');
-			$log = $this->synchronizationContractLogMapper->update($log);
+			$contractLog->setTargetResult('test');
+			$contractLog = $this->synchronizationContractLogMapper->update($contractLog);
 			return [
-				'log' => $log->jsonSerialize(),
+				'log' => $contractLog->jsonSerialize(),
 				'contract' => $synchronizationContract->jsonSerialize()
 			];
 		}
@@ -687,12 +697,22 @@ class SynchronizationService
         }
 
 		// Create log entry for the synchronization
-		$log->setTargetResult($synchronizationContract->getTargetLastAction());
-		$log = $this->synchronizationContractLogMapper->update($log);
-		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
+        if (isset($contractLog) === true) {
+		    $contractLog->setTargetResult($synchronizationContract->getTargetLastAction());
+		    $contractLog = $this->synchronizationContractLogMapper->update($contractLog);
+        }
+
+        if ($synchronizationContract->getId()) {
+            $synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
+        } else {
+            if ($synchronizationContract->getUuid() === null) {
+                $synchronizationContract->setUuid(Uuid::v4());
+            }
+            $synchronizationContract = $this->synchronizationContractMapper->insertOrUpdate($synchronizationContract);
+        }
 
 		return [
-			'log' => $log->jsonSerialize(),
+			'log' => $contractLog ? $contractLog->jsonSerialize() : [],
 			'contract' => $synchronizationContract->jsonSerialize()
 		];
 	}
@@ -1402,7 +1422,7 @@ class SynchronizationService
 	 * @throws GuzzleException
 	 */
 	public function synchronizeToTarget(
-		ObjectEntity $object, 
+		ObjectEntity $object,
 		?SynchronizationContract $synchronizationContract = null,
 		?bool $force = false,
 		?bool $test = false,
@@ -1437,7 +1457,7 @@ class SynchronizationService
 			synchronizationContract: $synchronizationContract,
 			synchronization: $synchronization,
 			object: $object->jsonSerialize(),
-			test: $test,
+			isTest: $test,
 			force: $force,
 			log: $log
 		);
@@ -1545,18 +1565,18 @@ class SynchronizationService
 	 * @param string $content The content of the file
 	 * @param string $objectId The id of the object the file belongs to.
 	 *
-	 * @return bool Whether the file write is successful.
+	 * @return File|bool File or false.
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
 	 * @throws GenericFileException
 	 * @throws LockedException
 	 */
-    private function writeFile(string $fileName, string $content, string $objectId): bool
+    private function writeFile(string $fileName, string $content, string $objectId): mixed
     {
         $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
 
         try {
-            $this->storageService->writeFile(
+            $file = $this->storageService->writeFile(
                 path: $object->getFolder(),
                 fileName: $fileName,
                 content: $content
@@ -1565,7 +1585,7 @@ class SynchronizationService
             return false;
         }
 
-        return true;
+        return $file;
     }
 
 	/**
@@ -1575,6 +1595,8 @@ class SynchronizationService
 	 * @param string $endpoint The endpoint for the file.
 	 * @param array $config The configuration of the action.
 	 * @param string $objectId The id of the object the file belongs to.
+     * @param array $tags Tags to assign to the file.
+     * @param string|null $filename Filename to assign to the file.
 	 *
 	 * @return string If write is enabled: the url of the file, if write is disabled: the base64 encoded file.
 	 * @throws ContainerExceptionInterface
@@ -1586,56 +1608,76 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
-    private function fetchFile(Source $source, string $endpoint, array $config, string $objectId): string
-    {
-        $originalEndpoint = $endpoint;
-        $endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true ? substr(string: $endpoint, offset: strlen(string: $source->getLocation())) : $endpoint;
+	private function fetchFile(Source $source, string $endpoint, array $config, string $objectId, ?array $tags = [], ?string $filename = null): string
+	{
+		$originalEndpoint = $endpoint;
+		$endpoint = str_contains(haystack: $endpoint, needle: $source->getLocation()) === true
+			? substr(string: $endpoint, offset: strlen(string: $source->getLocation()))
+			: $endpoint;
 
-        $result = $this->callService->call(
-            source: $source,
-            endpoint: $endpoint,
-            method: $config['method'] ?? 'GET',
-            config: $config['sourceConfiguration'] ?? []
-        );
-        $response = $result->getResponse();
+		$result = $this->callService->call(
+			source: $source,
+			endpoint: $endpoint,
+			method: $config['method'] ?? 'GET',
+			config: $config['sourceConfiguration'] ?? []
+		);
+		$response = $result->getResponse();
 
-        if (isset($config['write']) === true && $config['write'] === false) {
+		if (isset($config['write']) === true && $config['write'] === false) {
             return base64_encode($response['body']);
         }
 
-        // Get a filename from the response. First try to do this using the Content-Disposition header
-        if (isset($response['headers']['Content-Disposition']) === true
-            && str_contains($response['headers']['Content-Disposition'][0], 'filename')) {
-            $explodedContentDisposition = explode('=', $response['headers']['Content-Disposition'][0]);
-
-            $filename = trim(string: $explodedContentDisposition[1], characters: '"');
-        } else {
-            // Otherwise, parse the url and content type header.
-            $parsedUrl = parse_url($result->getRequest()['url']);
-            $path = explode(separator:'/', string: $parsedUrl['path']);
-            $filename = end($path);
-
-            if (count(explode(separator: '.', string: $filename)) === 1
-                && (isset($response['headers']['Content-Type']) === true || isset($response['headers']['content-type']) === true)
-            ) {
-                $explodedMimeType = isset($response['headers']['Content-Type']) === true
-                    ? explode(separator: '/', string: explode(separator: ';', string: $response['headers']['Content-Type'][0])[0])
-                    : explode(separator: '/', string: explode(separator: ';', string: $response['headers']['content-type'][0])[0]);
-
-
-                $filename = $filename.'.'.end($explodedMimeType);
-            }
+		if ($filename === null) {
+            // Get a filename from the response. First try to do this using the Content-Disposition header
+            $filename = $this->getFilenameFromHeaders(response: $response, result: $result);
         }
 
-        // Write the file
-        $this->writeFile($filename, $response['body'], $objectId);
+		// Write file with OpenRegister ObjectService.
+		$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+		$file = $objectService->addFile(object: $objectId, fileName: $filename, base64Content: $response['body'], share: isset($config['autoShare']) ? $config['autoShare'] : false);
 
-        return $originalEndpoint;
+        // Attach passed down tags
+        $tags[] = "object:$objectId";
+        if ($file instanceof File === true && isset($tags) === true && empty($tags) === false) {
+			$this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
+        }
+
+		return $originalEndpoint;
+	}
+
+    private function getFilenameFromHeaders(array $response, CallLog $result): ?string
+    {
+        $filename = null;
+        // Get a filename from the response. First try to do this using the Content-Disposition header
+		if (isset($response['headers']['Content-Disposition']) === true
+		&& str_contains($response['headers']['Content-Disposition'][0], 'filename')) {
+		$explodedContentDisposition = explode('=', $response['headers']['Content-Disposition'][0]);
+
+		 $filename = trim(string: $explodedContentDisposition[1], characters: '"');
+		} else {
+			// Otherwise, parse the url and content type header.
+			$parsedUrl = parse_url($result->getRequest()['url']);
+			$path = explode(separator:'/', string: $parsedUrl['path']);
+			$filename = end($path);
+
+			if (count(explode(separator: '.', string: $filename)) === 1
+				&& (isset($response['headers']['Content-Type']) === true || isset($response['headers']['content-type']) === true)
+			) {
+				$explodedMimeType = isset($response['headers']['Content-Type']) === true
+					? explode(separator: '/', string: explode(separator: ';', string: $response['headers']['Content-Type'][0])[0])
+					: explode(separator: '/', string: explode(separator: ';', string: $response['headers']['content-type'][0])[0]);
+
+
+				$filename = $filename.'.'.end($explodedMimeType);
+			}
+		}
+
+        return $filename;
     }
 
 	/**
 	 * Process a rule to fetch a file from an external source.
-	 *
+	 *0
 	 * @param Rule $rule The rule to process.
 	 * @param array $data The data written to the object.
 	 * @param string $objectId
@@ -1651,31 +1693,69 @@ class SynchronizationService
 	 * @throws \OCP\DB\Exception
 	 * @throws Exception
 	 */
-    private function processFetchFileRule(Rule $rule, array $data, string $objectId): array
-    {
-        if (isset($rule->getConfiguration()['fetch_file']) === false) {
-            throw new Exception('No configuration found for fetch_file');
-        }
+	private function processFetchFileRule(Rule $rule, array $data, string $objectId): array
+	{
+		if (isset($rule->getConfiguration()['fetch_file']) === false) {
+			throw new Exception('No configuration found for fetch_file');
+		}
 
-        $config = $rule->getConfiguration()['fetch_file'];
+		$config = $rule->getConfiguration()['fetch_file'];
 
-        $source = $this->sourceMapper->find($config['source']);
-        $dataDot = new Dot($data);
-        $endpoint = $dataDot[$config['filePath']];
+		$source = $this->sourceMapper->find($config['source']);
+		$dataDot = new Dot($data);
+		$endpoint = $dataDot[$config['filePath']];
 
-        // If we get one endpoint, fetch that file, otherwise fetch all files from endpoint array.
-        if (is_array($endpoint) === true) {
-            $result = [];
-            foreach ($endpoint as $key => $value) {
-                $result[$key] = $this->fetchFile($source, $value, $config, $objectId);
+		// If we get one endpoint, fetch that file, otherwise fetch all files from endpoint array.
+		if (is_array($endpoint) === true) {
+			$result = [];
+			foreach ($endpoint as $key => $value) {
+
+                // Check for tags
+                $tags = [];
+                if (is_array($value) === true) {
+                    $endpoint = $value['endpoint'];
+                    if (isset($value['label']) === true && isset($config['tags']) === true &&
+                        in_array(needle: $value['label'], haystack: $config['tags']) === true) {
+                        $tags = [$value['label']];
+                    }
+                    if (isset($value['filename']) === true) {
+                        $filename = $value['filename'];
+                    }
+                } else {
+                    $endpoint = $value;
+                }
+
+				$result[$key] = $this->fetchFile(source: $source, endpoint: $endpoint, config: $config, objectId: $objectId, tags: $tags, filename: $filename);
+			}
+			$dataDot[$config['filePath']] = $result;
+		} else {
+			$dataDot[$config['filePath']] = $this->fetchFile(source: $source, endpoint: $endpoint, config: $config, objectId: $objectId);
+		}
+
+		return $dataDot->jsonSerialize();
+	}
+
+	/**
+	 * Attach tags to a file.
+	 *
+	 * @param string $fileId The fileId.
+	 * @param array $tags Tags to associate with the file.
+	 */
+	private function attachTagsToFile(string $fileId, array $tags): void
+	{
+        $tagIds = [];
+		foreach ($tags as $key => $tagName) {
+            try {
+                $tag = $this->systemTagManager->getTag(tagName: $tagName, userVisible: true, userAssignable: true);
+            } catch (TagNotFoundException $exception) {
+                $tag = $this->systemTagManager->createTag(tagName: $tagName, userVisible: true, userAssignable: true);
             }
-            $dataDot[$config['filePath']] = $result;
-        } else {
-            $dataDot[$config['filePath']] = $this->fetchFile($source, $endpoint, $config, $objectId);
-        }
 
-        return $dataDot->jsonSerialize();
-    }
+            $tagIds[] = $tag->getId();
+		}
+
+        $this->systemTagMapper->assignTags(objId: $fileId, objectType: $this::FILE_TAG_TYPE, tagIds: $tagIds);
+	}
 
 	/**
 	 * Process a rule to write files.
@@ -1699,24 +1779,72 @@ class SynchronizationService
 
         $config  = $rule->getConfiguration()['write_file'];
         $dataDot = new Dot($data);
-        $content = base64_decode($dataDot[$config['filePath']]);
-        $fileName = $dataDot[$config['fileNamePath']];
-        $openRegisters = $this->objectService->getOpenRegisters();
-        $openRegisters->setRegister($registerId);
-        $openRegisters->setSchema($schemaId);
-
-        $object = $openRegisters->find($objectId);
-
-        try {
-            $file = $this->storageService->writeFile(
-                path: $object->getFolder(),
-                fileName: $fileName,
-                content: $content
-            );
-        } catch (Exception $exception) {
+        $files = $dataDot[$config['filePath']];
+        if (isset($files) === false || empty($files) === true) {
+            return $dataDot->jsonSerialize();
         }
 
-        $dataDot[$config['filePath']] = $file->getPath();
+        // Check if associative array
+        if (is_array($files) === true && isset($files[0]) === true & array_keys($files[0]) !== range(0, count($files[0]) - 1)) {
+            $result = [];
+			foreach ($files as $key => $value) {
+
+                // Check for tags
+                $tags = [];
+                if (is_array($value) === true) {
+                    $content = $value['content'];
+                    if (isset($value['label']) === true && isset($config['tags']) === true &&
+                        in_array(needle: $value['label'], haystack: $config['tags']) === true) {
+                        $tags = [$value['label']];
+                    }
+                    if (isset($value['filename']) === true) {
+                        $fileName = $value['filename'];
+                    }
+                } else {
+                    $content = $value;
+                }
+
+                $openRegisters = $this->objectService->getOpenRegisters();
+                $openRegisters->setRegister($registerId);
+                $openRegisters->setSchema($schemaId);
+
+                try {
+                    // Write file with OpenRegister ObjectService.
+                    $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+                    $file = $objectService->addFile(object: $objectId, fileName: $fileName, base64Content: $content);
+
+                    $tags = array_merge($config['tags'] ?? [], ["object:$objectId"]);
+                    if ($file instanceof File === true) {
+                        $this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
+                    }
+
+                    $result[$key] = $file->getPath();
+                } catch (Exception $exception) {
+                }
+            }
+            $result[$key] = $file->getPath();
+            $dataDot[$config['filePath']] = $result;
+        } else { 
+            $content = $files;
+            $fileName = $dataDot[$config['fileNamePath']];
+            $openRegisters = $this->objectService->getOpenRegisters();
+            $openRegisters->setRegister($registerId);
+            $openRegisters->setSchema($schemaId);
+
+            try {
+                // Write file with OpenRegister ObjectService.
+                $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+                $file = $objectService->addFile(object: $objectId, fileName: $fileName, base64Content: $content);
+
+                $tags = array_merge($config['tags'] ?? [], ["object:$objectId"]);
+                if ($file instanceof File === true) {
+                    $this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
+                }
+                $dataDot[$config['filePath']] = $file->getPath();
+            } catch (Exception $exception) {
+            }
+        }
+
 
         return $dataDot->jsonSerialize();
     }

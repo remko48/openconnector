@@ -108,7 +108,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
 			'targetLastChanged' => isset($this->targetLastChanged) ? $this->targetLastChanged->format('c') : null,
 			'targetLastChecked' => isset($this->targetLastChecked) ? $this->targetLastChecked->format('c') : null,
 			'targetLastSynced' => isset($this->targetLastSynced) ? $this->targetLastSynced->format('c') : null,
-			'targetLastAction' => $this->lastAction,
+			'targetLastAction' => $this->targetLastAction,
 			'created' => isset($this->created) ? $this->created->format('c') : null,
 			'updated' => isset($this->updated) ? $this->updated->format('c') : null,
 			// @todo these 2 can be removed when migrations are merged
