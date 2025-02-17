@@ -123,6 +123,9 @@ class SynchronizationService
 		?bool $force = false
 	): array
 	{
+		// Start execution time measurement
+		$startTime = microtime(true);
+
 		// Create log with synchronization ID and initialize results tracking
 		$log = [
 			'synchronizationId' => $synchronization->getUuid(),
@@ -135,7 +138,8 @@ class SynchronizationService
 					'deleted' => 0,
 					'invalid' => 0
 				],
-				'contracts' => []
+				'contracts' => [],
+				'logs' => []
 			],
 			'test' => $isTest,
 			'force' => $force
@@ -143,6 +147,7 @@ class SynchronizationService
 
 		// lets always create the log entry first, because we need its uuid later on for contractLogs
 		$log = $this->synchronizationLogMapper->createFromArray($log);
+		
 
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
@@ -202,7 +207,7 @@ class SynchronizationService
 					synchronization: $synchronization,
 					object: $object,
 					isTest: $isTest,
-					force: false,
+					force: $force,
 					log: $log
 				);
 
@@ -216,7 +221,7 @@ class SynchronizationService
 					synchronization: $synchronization,
 					object: $object,
 					isTest: $isTest,
-					force: false,
+					force: $force,
 					log: $log
 				);
 
@@ -248,7 +253,7 @@ class SynchronizationService
 		if (isset($rateLimitException) === true) {
 			$log->setMessage($rateLimitException->getMessage());
 
-			$this->synchronizationLogMapper->update( $log);
+			$this->synchronizationLogMapper->update($log);
 			throw new TooManyRequestsHttpException(
 				message: $rateLimitException->getMessage(),
 				code: 429,
@@ -256,7 +261,10 @@ class SynchronizationService
 			);
 		}
 
-		$log->setMessage('Succes');
+		// Calculate execution time in milliseconds
+		$executionTime = round((microtime(true) - $startTime) * 1000);
+		$log->setExecutionTime($executionTime);
+		$log->setMessage('Success');
 		$this->synchronizationLogMapper->update($log);
 		return $log->jsonSerialize();
 	}
@@ -1065,7 +1073,7 @@ class SynchronizationService
 		$this->checkRateLimit($source);
 
 		// Extract source configuration
-		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig()); // TODO; This is the second time this function is called in the synchonysation flow, needs further refactoring investigation 
 		$endpoint = $sourceConfig['endpoint'] ?? '';
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
@@ -1134,18 +1142,38 @@ class SynchronizationService
 				headers: $this->getRateLimitHeaders($source)
 			);
 		}
+        
+		$body = $response['body'];
 
-		$body = json_decode($response['body'], true);
-		if (empty($body) === true) {
-			return []; // Stop if the response body is empty
+		// Try parsing the response body in different formats, starting with JSON (since its the most common)
+		$result = json_decode($body, true);
+
+		
+		// If JSON parsing failed, try XML
+		if (empty($result) === true) {
+			$xml =  simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
+
+			if ($xml !== false) {				
+				$result = json_decode(json_encode($xml), true);
+			}
+		}
+
+
+		if (empty($result) === true) {
+			return []; // Stop if the response body is empty or unparseable
 		}
 
 		// Process the current page
-		$objects = $this->getAllObjectsFromArray(array: $body, synchronization: $synchronization);
-
+		$objects = $this->getAllObjectsFromArray(array: $result, synchronization: $synchronization);
+		
 		// If test mode is enabled, return only the first object
 		if ($isTest === true) {
 			return [$objects[0]] ?? [];
+		}
+
+		// if the results was xml no pagination is possible
+		if (isset($xml) && $xml !== false) {
+			return $objects;
 		}
 
 
@@ -1155,7 +1183,7 @@ class SynchronizationService
 		$this->synchronizationMapper->update($synchronization);
 
 		$nextEndpoint = null;
-		$newNextEndpoint = $this->getNextEndpoint(body: $body, url: $source->getLocation());
+		$newNextEndpoint = $this->getNextEndpoint(body: $result, url: $source->getLocation());
 		if ($newNextEndpoint !== $endpoint) {
 			$nextEndpoint = $newNextEndpoint;
 		}
@@ -1634,7 +1662,7 @@ class SynchronizationService
 
 		// Write file with OpenRegister ObjectService.
 		$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
-		$file = $objectService->addFile(object: $objectId, fileName: $filename, base64Content: $response['body']);
+		$file = $objectService->addFile(object: $objectId, fileName: $filename, base64Content: $response['body'], share: isset($config['autoShare']) ? $config['autoShare'] : false);
 
         // Attach passed down tags
         $tags[] = "object:$objectId";
@@ -1779,27 +1807,72 @@ class SynchronizationService
 
         $config  = $rule->getConfiguration()['write_file'];
         $dataDot = new Dot($data);
-        $content = base64_decode($dataDot[$config['filePath']]);
-        $fileName = $dataDot[$config['fileNamePath']];
-        $openRegisters = $this->objectService->getOpenRegisters();
-        $openRegisters->setRegister($registerId);
-        $openRegisters->setSchema($schemaId);
-
-        $object = $openRegisters->find($objectId);
-
-        try {
-			// Write file with OpenRegister ObjectService.
-			$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
-			$file = $objectService->addFile(object: $objectId, fileName: $fileName, base64Content: $content);
-
-			$tags = array_merge($config['tags'] ?? [], ["object:$objectId"]);
-			if ($file instanceof File === true) {
-				$this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
-			}
-        } catch (Exception $exception) {
+        $files = $dataDot[$config['filePath']];
+        if (isset($files) === false || empty($files) === true) {
+            return $dataDot->jsonSerialize();
         }
 
-        $dataDot[$config['filePath']] = $file->getPath();
+        // Check if associative array
+        if (is_array($files) === true && isset($files[0]) === true & array_keys($files[0]) !== range(0, count($files[0]) - 1)) {
+            $result = [];
+			foreach ($files as $key => $value) {
+
+                // Check for tags
+                $tags = [];
+                if (is_array($value) === true) {
+                    $content = $value['content'];
+                    if (isset($value['label']) === true && isset($config['tags']) === true &&
+                        in_array(needle: $value['label'], haystack: $config['tags']) === true) {
+                        $tags = [$value['label']];
+                    }
+                    if (isset($value['filename']) === true) {
+                        $fileName = $value['filename'];
+                    }
+                } else {
+                    $content = $value;
+                }
+
+                $openRegisters = $this->objectService->getOpenRegisters();
+                $openRegisters->setRegister($registerId);
+                $openRegisters->setSchema($schemaId);
+
+                try {
+                    // Write file with OpenRegister ObjectService.
+                    $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+                    $file = $objectService->addFile(object: $objectId, fileName: $fileName, base64Content: $content);
+
+                    $tags = array_merge($config['tags'] ?? [], ["object:$objectId"]);
+                    if ($file instanceof File === true) {
+                        $this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
+                    }
+
+                    $result[$key] = $file->getPath();
+                } catch (Exception $exception) {
+                }
+            }
+            $result[$key] = $file->getPath();
+            $dataDot[$config['filePath']] = $result;
+        } else { 
+            $content = $files;
+            $fileName = $dataDot[$config['fileNamePath']];
+            $openRegisters = $this->objectService->getOpenRegisters();
+            $openRegisters->setRegister($registerId);
+            $openRegisters->setSchema($schemaId);
+
+            try {
+                // Write file with OpenRegister ObjectService.
+                $objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
+                $file = $objectService->addFile(object: $objectId, fileName: $fileName, base64Content: $content);
+
+                $tags = array_merge($config['tags'] ?? [], ["object:$objectId"]);
+                if ($file instanceof File === true) {
+                    $this->attachTagsToFile(fileId: $file->getId(), tags: $tags);
+                }
+                $dataDot[$config['filePath']] = $file->getPath();
+            } catch (Exception $exception) {
+            }
+        }
+
 
         return $dataDot->jsonSerialize();
     }
