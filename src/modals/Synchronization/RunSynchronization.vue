@@ -79,7 +79,11 @@ import { synchronizationStore, navigationStore } from '../../store/store.js'
 					<table>
 						<tr>
 							<td><b>Message:</b></td>
-							<td>{{ responseBody?.message }}</td>
+							<td>{{ responseBody?.message }} (ms)</td>
+						</tr>
+						<tr>
+							<td><b>Execution Time:</b></td>
+							<td>{{ responseBody?.executionTime }}</td>
 						</tr>
 						<tr>
 							<td><b>ID:</b></td>
