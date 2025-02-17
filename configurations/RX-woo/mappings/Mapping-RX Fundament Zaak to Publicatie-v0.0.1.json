@@ -22,7 +22,7 @@
         "license": "eupl2",
 		"catalog": "",
 		"publicationType": "",
-        "attachments": "[{% set fileCount = 0 %}{% for zaakinformatieobject in zaakinformatieobjecten %}{% if fileCount > 0 %}, {% endif %}{{'{ \"filename\": \"'~zaakinformatieobject.filename~'\", \"endpoint\": \"'~zaakinformatieobject.informatieobject~'/download\", \"label\": \"woo_publicatie\" }'}}{% set fileCount = fileCount + 1 %}{% endfor %}]"
+        "attachments": "[{% set fileCount = 0 %}{% for informatieobject in zaakinformatieobjecten %}{% if fileCount > 0 %}, {% endif %}{{'{ \"filename\": \"'~informatieobject.bestandsnaam~'\", \"endpoint\": \"'~informatieobject.link~'/download\", \"label\": \"woo_publicatie\" }'}}{% set fileCount = fileCount + 1 %}{% endfor %}]"
     },
     "unset": [
         ""

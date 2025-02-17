@@ -323,7 +323,6 @@ class SynchronizationService
 			'query' => $query,
 		];
 
-
 		if (str_starts_with($endpoint, $source->getLocation()) === true) {
 			$endpoint = str_replace(search: $source->getLocation(), replace: '', subject: $endpoint);
 		}
@@ -1824,7 +1823,7 @@ class SynchronizationService
             }
             $result[$key] = $file->getPath();
             $dataDot[$config['filePath']] = $result;
-        } else { 
+        } else {
             $content = $files;
             $fileName = $dataDot[$config['fileNamePath']];
             $openRegisters = $this->objectService->getOpenRegisters();

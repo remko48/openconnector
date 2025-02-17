@@ -4,10 +4,10 @@
         "register": "501"
     },
     "@type": "rule",
-    "@id": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/rules\/5",
+    "@id": "https://tilburg.accept.commonground.nu/Rule-Fetch RX Fundament files.json",
     "name": "Fetch RX Fundament files",
     "description": null,
-    "reference": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/rules\/5",
+    "reference": "https://tilburg.accept.commonground.nu/Rule-Fetch RX Fundament files.json",
     "version": "0.0.1",
     "action": "post",
     "timing": "after",
@@ -20,7 +20,7 @@
     "type": "fetch_file",
     "configuration": {
         "fetch_file": {
-            "source": 4,
+            "source": 1,
             "filePath": "attachments",
             "method": "GET",
             "sourceConfiguration": [],

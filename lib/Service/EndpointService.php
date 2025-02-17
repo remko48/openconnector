@@ -225,7 +225,7 @@ class EndpointService
                 str_contains(needle: 'localhost', haystack: $use)
                 || str_contains(needle: 'nextcloud.local', haystack: $use)
                 || str_contains(needle: $this->urlGenerator->getBaseUrl(), haystack: $use)
-            ){
+            ) {
                 $explodedUrl = explode(separator: '/', string: $use);
                 $useId = end(array: $explodedUrl);
             } else {

@@ -81,7 +81,7 @@ class JobLogMapper extends QBMapper
         $obj = new JobLog();
 		$obj->hydrate($object);
 		// Set uuid
-		if ($obj->getUuid() === null){
+		if ($obj->getUuid() === null) {
 			$obj->setUuid(Uuid::v4());
 		}
         return $this->insert($obj);
@@ -91,7 +91,7 @@ class JobLogMapper extends QBMapper
     {
         $obj = $this->find($id);
 		$obj->hydrate($object);
-		if ($obj->getUuid() === null){
+		if ($obj->getUuid() === null) {
 			$obj->setUuid(Uuid::v4());
 		}
 

@@ -78,7 +78,7 @@ class CallService
 				&& str_contains(haystack: $value, needle: "}}") === true
 			) {
 				return $this->twig->createTemplate(template: $value, name: "sourceConfig")->render(context: ['source' => $source]);
-			} else if (is_array($value) === true){
+			} else if (is_array($value) === true) {
 				$value = array_map(function($value) use ($source) { return $this->renderValue($value, $source);}, $value);
 			}
 
