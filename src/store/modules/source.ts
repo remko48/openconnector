@@ -20,12 +20,30 @@ export const useSourceStore = defineStore('source', () => {
 	// ################################
 
 	/**
-	 * Set the active source item.
+	 * Set the active source item and fetch its logs.
+	 *
 	 * @param item - The source item to set
+	 * @throws {Error} If there's an error fetching the logs
+	 * @return {void}
 	 */
-	const setSourceItem = (item: Source | TSource) => {
+	const setSourceItem = async (item: Source | TSource) => {
+		// Set the source item
 		sourceItem.value = item && new Source(item)
 		console.info('Active source item set to ' + (item ? item.id : 'null'))
+
+		// If we have a valid source item, fetch its logs
+		if (item?.id) {
+			try {
+				await refreshSourceLogs()
+				console.info('Source logs fetched for source ' + item.id)
+			} catch (error) {
+				console.error('Error fetching source logs:', error)
+				throw error
+			}
+		} else {
+			// Clear the logs if no source item is set
+			setSourceLogs([])
+		}
 	}
 
 	/**
