@@ -1073,7 +1073,7 @@ class SynchronizationService
 		$this->checkRateLimit($source);
 
 		// Extract source configuration
-		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig()); // TODO; Dit is de twee keer dat die word aangeroepen hij 
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig()); // TODO; This is the second time this function is called in the synchonysation flow, needs further refactoring investigation 
 		$endpoint = $sourceConfig['endpoint'] ?? '';
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
