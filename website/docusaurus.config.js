@@ -5,8 +5,8 @@
 const config = {
   title: 'OpenConnector',
   tagline: 'Connect and synchronize your data sources',
-  url: 'https://conductionnl.github.io',
-  baseUrl: '/openconnector/',
+  url: 'https://openconnector.app',
+  baseUrl: '/',
   
   // GitHub pages deployment config
   organizationName: 'conductionnl', 
@@ -86,7 +86,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Conduction. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} for <a href="https://openwebconcept.nl">Open Webconcept</a> by <a href="https://conduction.nl">Conduction B.V.</a>`,
       },
       prism: {
         theme: require('prism-react-renderer/themes/github'),
