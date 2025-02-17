@@ -21,7 +21,7 @@ export const useSourceStore = defineStore('source', () => {
 
 	/**
 	 * Set the active source item and fetch its logs.
-	 * 
+	 *
 	 * @param item - The source item to set
 	 * @throws {Error} If there's an error fetching the logs
 	 * @return {void}
