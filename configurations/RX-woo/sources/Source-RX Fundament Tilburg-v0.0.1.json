@@ -36,7 +36,7 @@
 		"headers.Accept-Crs": "{header-value}",
 		"authentication": [],
 		"headers.Authorization": "Bearer {token}",
-		"Accept": "application\/json"
+		"headers.Accept": "application\/json"
 	},
 	"endpointsConfig": [],
 	"status": "",
