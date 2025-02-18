@@ -1,3 +1,14 @@
+---
+sidebar_position: 1
+title: SharePoint Integration
+description: Learn how to integrate SharePoint with OpenConnector for WOO document publication
+tags:
+  - sharepoint
+  - woo
+  - tutorial
+  - integration
+---
+
 # SharePoint Integration with OpenConnector
 
 SharePoint is Microsoft's document management and collaboration platform that allows organizations to store, organize, share, and access information securely. Many organizations, especially government institutions, use SharePoint to manage their internal documents and workflows.
