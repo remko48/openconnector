@@ -1733,6 +1733,10 @@ class SynchronizationService
 		$dataDot = new Dot($data);
 		$endpoint = $dataDot[$config['filePath']];
 
+		if ($endpoint === null) {
+			return $dataDot->jsonSerialize();
+		}
+
 		// If we get one endpoint, fetch that file, otherwise fetch all files from endpoint array.
 		if (is_array($endpoint) === true) {
 			$result = [];
