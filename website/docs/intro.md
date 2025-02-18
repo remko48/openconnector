@@ -1,63 +1,63 @@
-# DocuDesk Documentation
+# OpenConnector Documentation
 
-DocuDesk provides services for generating and anonymizing PDF, Word, HTML or Excel documents in a GDPR and WCAG compliant manner, all while keeping your data secure within your local Nextcloud instance.
+OpenConnector provides services for connecting and synchronizing data between different sources and systems, enabling seamless data flow while maintaining security and compliance standards.
 
-## The Power of Local Processing
+## The Power of Open Integration
 
-Imagine a world where your sensitive documents never have to leave your premises, yet you still have all the power of modern cloud collaboration. That's DocuDesk. Running on your local Nextcloud instance, it's like having a secure document fortress with a sophisticated diplomatic corps.
+Imagine a world where your data flows seamlessly between systems, yet remains secure and controlled. That's OpenConnector. It acts as a central hub for your data integration needs, connecting various systems and data sources while maintaining complete control over your data flows.
 
-When your organization needs to process sensitive documents - whether it's generating contracts, anonymizing personal data, or ensuring accessibility - everything happens within your walls. Your data stays your data. Yet through Nextcloud's powerful integration capabilities, you maintain seamless connections with your SharePoint, Office 365, or case management systems.
+When your organization needs to synchronize data between systems - whether it's CRM data, user information, or business processes - OpenConnector handles it efficiently and securely. Through its powerful integration capabilities, you can establish seamless connections between various systems like APIs, databases, file systems, and cloud services.
 
 ## Key Features
 
-- 📄 Generate documents in multiple formats (PDF, Word, HTML, Excel)
-- ✍️ Digital document signing and verification
-- 🔒 GDPR-compliant document anonymization
-- ♿ WCAG accessibility standards compliance
-- 🔄 Batch document processing
-- 📱 Responsive document viewing
-- 🏰 100% Local document processing
-- 🤝 Seamless external system integration
-- 📋 Complete audit trail
-- ⚡ High performance local operations
-- 🔍 Document comparison and version tracking
-- 🏷️ AI-powered document classification
-- 🌐 Multi-language support
-- ✅ Document validation & quality control
-- ⚡ Workflow automation & process management
-- 📊 Comprehensive reporting & analytics
+- 🔄 Bi-directional data synchronization
+- 🔌 Pre-built connectors for popular systems
+- 🛠️ Custom connector development tools
+- 🔒 Secure data transfer protocols
+- 📊 Data transformation capabilities
+- 🕒 Real-time and scheduled syncs
+- 📝 Detailed logging and monitoring
+- ⚡ High-performance processing
+- 🔍 Data validation and filtering
+- 🎯 Targeted data mapping
+- 🔄 Error handling and retry mechanisms
+- 📈 Performance monitoring
+- 🔐 Access control and permissions
+- ⚙️ Configurable sync rules
+- 🤖 Automation capabilities
+- 📊 Sync status reporting
 
-## Why Nextcloud?
+## Why OpenConnector?
 
-We chose Nextcloud as our platform for several compelling reasons:
+OpenConnector stands out for several compelling reasons:
 
-### Seamless Integration with Enterprise Systems
-Nextcloud provides robust integration capabilities with Microsoft Office 365 and SharePoint, allowing organizations to maintain their existing workflows while adding powerful document processing capabilities. Users can seamlessly access and process documents across platforms without disrupting their established processes.
+### Flexible Integration Capabilities
+OpenConnector provides robust integration capabilities with various systems and data sources, allowing organizations to connect their data wherever it resides. Users can establish and manage data flows between different platforms without complex coding or infrastructure changes.
 
 ### Enterprise-Grade Security
-By leveraging Nextcloud's secure infrastructure, DocuDesk ensures all document processing happens within your controlled environment. This means sensitive data never leaves your premises while still enabling collaborative features and integrations with external systems.
+OpenConnector ensures all data transfers happen securely with encryption and proper authentication. You maintain complete control over your data flows while enabling seamless integration between systems.
 
-### Easy Installation and Updates
-DocuDesk is available directly through the Nextcloud App Store, making installation as simple as a few clicks:
+### Easy Setup and Configuration
+Getting started with OpenConnector is straightforward:
 
-1. Log in to your Nextcloud instance as an administrator
-2. Navigate to the Apps section
-3. Find DocuDesk in the Office & Text category
-4. Click "Install"
+1. Clone the repository from GitHub
+2. Configure your connections
+3. Set up your sync rules
+4. Start synchronizing
 
-Note: For anonymization functionality, you'll need to provide your own LLM (Language Learning Model) tool. We recommend using Presidio, an open-source solution. You can find detailed installation instructions for Presidio at https://github.com/MWest2020/presidio-nl/tree/main/docs. However, you're free to use other anonymization tools that suit your needs.
+Note: For specific connector configurations, please refer to our detailed connector documentation in the respective sections.
 
-The app will automatically stay up-to-date with your Nextcloud instance, ensuring you always have the latest features and security updates.
+The system is designed to be easily updatable and maintainable, ensuring you always have access to the latest features and security updates.
 
 ### Scalability and Performance
-Nextcloud's architecture allows DocuDesk to handle everything from individual document processing to large-scale batch operations, all while maintaining optimal performance within your local environment.
+OpenConnector's architecture is built to handle everything from simple one-to-one synchronizations to complex many-to-many data flows, all while maintaining optimal performance and reliability.
 
 ## Contributing
 
-We welcome contributions to improve the documentation! If you'd like to contribute, please visit our [GitHub repository](https://github.com/conductionnl/docudesk). There you can:
+We welcome contributions to improve OpenConnector! If you'd like to contribute, please visit our [GitHub repository](https://github.com/conductionnl/openconnector). There you can:
 
 - Report issues or suggest improvements by opening an issue
-- Submit pull requests with documentation changes
+- Submit pull requests with code or documentation changes
 - Engage with the community in discussions
 
 For detailed contribution guidelines, please refer to the CONTRIBUTING.md file in our repository.
