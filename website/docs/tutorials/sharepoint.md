@@ -45,3 +45,74 @@ Let's walk through how OpenConnector can automatically publish WOO documents fro
    - Preserves version history and audit trail
 
 This automated flow ensures that WOO documents are consistently and accurately published while maintaining security and compliance requirements.
+
+## How to configure SharePoint for Woo
+
+SharePoint can be used as a source for publishing Woo requests and decisions. To enable this, a specific folder must be set up where publications are stored. Access to these publications can then be obtained via an endpoint.
+
+### Structure of the Publication Folders
+
+Each publication is represented by a separate folder within the main publication directory. All associated documents and attachments are stored within this folder.
+
+That would result in a API endpoint which can be used retrieve publications: `/_api/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Woo-verzoeken en -besluiten')/folders`
+It is recommended to store all publications in one central folder. (you dont have to make separate folders for each Woo category as in the example, just put them all in one big folder)
+![Overzicht categorie folders](./images/overzicht-categorie-folders.png)
+
+
+One folder in the big parent folder represents one publication.
+
+![Overzicht woo verzoeken](./images/overzicht-woo-verzoeken.png)
+
+Where within you can store the documents belonging to the publication.
+
+![Voorbeeld publicatie](./images/voorbeeld-publicatie.png)
+
+### Configuring Metadata in SharePoint
+
+To properly manage and structure publications, SharePoint must be configured to allow metadata to be added per publication folder. This ensures that publications comply with the requirements of [OpenWOO](https://openwoo.app/Techniek/Configuratie/).
+
+
+Open settings.
+
+![Go to settings](./images/go-to-settings.png)
+
+View library settings.
+
+![Go to library settings](./images/go-to-library-settings.png)
+
+Go to more library settings.
+
+![More library settings](./images/more-library-settings.png)
+
+Navigate to Enterprise Metadata and Keywords settings.
+
+![Go to enterprise settings](./images/go-to-enterprise-settings.png)
+
+Enable the Enterprise Keywords option and press OK.
+
+![Turn on metadata](./images/turn-on-metadata.png)
+
+Create a column for each configuration field from [OpenWOO](https://openwoo.app/Techniek/Configuratie/).
+
+![Create column](./images/create-column.png)
+
+Here you can configure the columns, make sure to enable default view.
+
+![Column config](./images/column-config.png)
+
+Example of minimal configuration.
+
+![Minimum columns](./images/minimum-columns.png)
+
+Example of an extended configuration including all optional fields.
+
+![All columns](./images/all-columns.png)
+
+### Modifying publication metadata
+
+To update the metadata of a publication:
+1. Open the document library and view the publications folder.
+2. Click on Grid edit to enter or modify metadata.
+3. After entering the data, click Exit grid in the upper-left corner to save the changes.
+
+![Edit grid](./images/edit-grid.png)
