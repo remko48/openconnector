@@ -198,15 +198,15 @@ class EndpointsController extends Controller
 	public function handlePath(string $_path): JSONResponse
 	{
 		// @todo: move to a rule service
-		try {
-			$token = $this->request->getHeader('Authorization');
-			$this->authorizationService->authorize(authorization: $token);
-		} catch (AuthenticationException $exception) {
-			return new JSONResponse(
-				data: ['error' => $exception->getMessage(), 'details' => $exception->getDetails()],
-				statusCode: 401
-			);
-		}
+//		try {
+//			$token = $this->request->getHeader('Authorization');
+//			$this->authorizationService->authorize(authorization: $token);
+//		} catch (AuthenticationException $exception) {
+//			return new JSONResponse(
+//				data: ['error' => $exception->getMessage(), 'details' => $exception->getDetails()],
+//				statusCode: 401
+//			);
+//		}
 
 
 		// Find matching endpoints for the given path and method

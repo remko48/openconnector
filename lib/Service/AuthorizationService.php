@@ -25,6 +25,8 @@ use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use OCA\OpenConnector\Db\Consumer;
 use OCA\OpenConnector\Db\ConsumerMapper;
 use OCA\OpenConnector\Exception\AuthenticationException;
+use OCP\IGroup;
+use OCP\IGroupManager;
 use OCP\IUserManager;
 use OCP\IUserSession;
 
@@ -47,6 +49,7 @@ class AuthorizationService
 		private readonly IUserManager   $userManager,
 		private readonly IUserSession   $userSession,
 		private readonly ConsumerMapper $consumerMapper,
+        private readonly IGroupManager  $groupManager
 	)
 	{
 	}
@@ -153,7 +156,7 @@ class AuthorizationService
 	 * @return void
 	 * @throws AuthenticationException
 	 */
-	public function authorize(string $authorization): void
+	public function authorizeJwt(string $authorization): void
 	{
 		$token = substr(string: $authorization, offset: strlen('Bearer '));
 
@@ -198,4 +201,30 @@ class AuthorizationService
 		$this->validatePayload($payload);
 		$this->userSession->setUser($this->userManager->get($issuer->getUserId()));
 	}
+
+    public function authorizeBasic (string $header, array $users, array $groups): void
+    {
+        $decode = base64_decode($header);
+        [$username, $password] = explode(separator: ':', string: $decode);
+
+        $user = $this->userManager->checkPassword(loginName: $username, password: $password);
+
+        if($user === false) {
+            throw new AuthenticationException(message: 'Invalid username or password', details: []);
+        }
+
+        $userInAllowedUsers = array_intersect($users, [$user->getUID(), $user->getEMailAddress()]) !== [];
+
+        $userGroups = array_map(function(IGroup $group) {
+            return $group->getGID();
+        }, $this->groupManager->getUserGroups($user));
+
+        $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];
+
+        if($userInAllowedUsers === false && $userInAllowedGroups === false) {
+            throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The selected user is not allowed to login on this endpoint']);
+        }
+
+        $this->userSession->setUser($user);
+    }
 }
