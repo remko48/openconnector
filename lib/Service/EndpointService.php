@@ -41,6 +41,8 @@ use Symfony\Component\Uid\Uuid;
 use ValueError;
 use OCA\OpenConnector\Db\Rule;
 use OCA\OpenConnector\Db\RuleMapper;
+use SimpleXMLElement;
+use OCP\AppFramework\Http\Response;
 
 /**
  * Service class for handling endpoint requests
@@ -83,10 +85,10 @@ class EndpointService
 	 * @param IRequest $request The incoming request object
 	 * @param string $path The specific path or sub-route being requested
 	 *
-	 * @return JSONResponse Response containing the result
+	 * @return JSONResponse|Response Response containing the result
 	 * @throws Exception When endpoint configuration is invalid
 	 */
-	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
+	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse|Response
 	{
 		$errors = $this->checkConditions($endpoint, $request);
 
@@ -120,17 +122,23 @@ class EndpointService
 			// Check if endpoint connects to a schema
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
-				$result = $this->handleSchemaRequest($endpoint, $request, $path);
+				$response = $this->handleSchemaRequest($endpoint, $request, $path);
+				
+				// If it's an XML response, return it directly
+				if ($response instanceof Response) {
+					return $response;
+				}
 
-                $result = $this->processRules(
-                    endpoint: $endpoint,
-                    request: $request,
-                    data: $result->getData(),
-                    timing: 'after',
-                    objectId: $result->getData()['id'] ?? null
-                );
+				// For JSON responses, process the rules
+				$result = $this->processRules(
+					endpoint: $endpoint,
+					request: $request,
+					data: $response->getData(),
+					timing: 'after',
+					objectId: $response->getData()['id'] ?? null
+				);
 
-                return new JSONResponse($result, 200);
+				return new JSONResponse($result, 200);
 			}
 
 			// Check if endpoint connects to a source
@@ -296,9 +304,9 @@ class EndpointService
 
 		$result = $mapper->findAllPaginated(requestParams: $parameters);
 
-        $result['results'] = array_map(function ($object) use ($mapper) {
-            return $this->replaceInternalReferences(mapper: $mapper, object: $object);
-        }, $result['results']);
+        //$result['results'] = array_map(function ($object) use ($mapper) {
+        //    return $this->replaceInternalReferences(mapper: $mapper, object: $object);
+        //}, $result['results']);
 
 		$returnArray = [
 			'count' => $result['total'],
@@ -339,11 +347,11 @@ class EndpointService
 	 * @param IRequest $request The incoming request
 	 * @param string $path
 	 *
-	 * @return JSONResponse
+	 * @return JSONResponse|Response
 	 * @throws DoesNotExistException|LoaderError|MultipleObjectsReturnedException|SyntaxError
 	 * @throws ContainerExceptionInterface|NotFoundExceptionInterface
 	 */
-	private function handleSchemaRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
+	private function handleSchemaRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse|Response
 	{
 		// Get request method
 		$method = $request->getMethod();
@@ -371,15 +379,16 @@ class EndpointService
 		unset($parameters['_route'], $parameters['_path']);
 
 		$status = 200;
-
+		// Set headers based on Accept header and Accept-CRS
 		$headers = $request->getHeader('Accept-Crs') === '' ? [] : ['Content-Crs' => $request->getHeader('Accept-Crs')];
 
+		// Add content type handling based on Accept header
+		$acceptHeader = $request->getHeader('Accept');
+		$isXmlRequest = strpos($acceptHeader, 'application/xml') !== false;
 
 		// Route to appropriate ObjectService method based on HTTP method
-		return match ($method) {
-			'GET' => new JSONResponse(
-				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
-			),
+		$result = match ($method) {
+			'GET' => $this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status),
 			'POST' => new JSONResponse(
 				$this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->createFromArray(object: $parameters))
 			),
@@ -394,6 +403,47 @@ class EndpointService
 			),
 			default => throw new Exception('Unsupported HTTP method')
 		};
+
+		// Convert response to XML if XML was requested
+		if ($isXmlRequest) {
+			$headers['Content-Type'] = 'application/xml';
+			$xml = new SimpleXMLElement('<?xml version="1.0"?><response></response>');
+			$this->arrayToXml($result, $xml);
+			return new Response(
+				$status,      // First argument: status code
+				$headers,     // Second argument: headers
+				$xml->asXML() // Third argument: content
+			);
+		}
+
+		return new JSONResponse($result, $status, $headers);
+	}
+
+	/**
+	 * Convert array to XML
+	 * 
+	 * @param array|mixed $data The data to convert
+	 * @param SimpleXMLElement $xml The XML element to append to
+	 * @return void
+	 */
+	private function arrayToXml($data, SimpleXMLElement &$xml): void 
+	{
+		// Handle array of ObjectEntities by converting each to array first
+		if (is_array($data) && !empty($data) && $data[0] instanceof ObjectEntity) {
+			$data = array_map(fn($obj) => $obj->jsonSerialize(), $data);
+		}
+
+		foreach ($data as $key => $value) {
+			if (is_array($value)) {
+				if (is_numeric($key)) {
+					$key = 'item' . $key; // Numeric keys need to be prefixed for valid XML
+				}
+				$subnode = $xml->addChild($key);
+				$this->arrayToXml($value, $subnode);
+			} else {
+				$xml->addChild("$key", htmlspecialchars((string)$value));
+			}
+		}
 	}
 
 	/**

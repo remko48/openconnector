@@ -13,6 +13,7 @@ use OCA\OpenConnector\Db\EndpointMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -191,13 +192,14 @@ class EndpointsController extends Controller
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
-	 * @param string $_path
-	 * @return JSONResponse The response from the endpoint service or 404 if no match
+	 * @param string $_path The path to handle
+	 * @return JSONResponse|Response The response
 	 * @throws Exception
 	 */
-	public function handlePath(string $_path): JSONResponse
+	public function handlePath(string $_path): JSONResponse|Response
 	{
 		// @todo: move to a rule service
+		/*
 		try {
 			$token = $this->request->getHeader('Authorization');
 			$this->authorizationService->authorize(authorization: $token);
@@ -207,7 +209,7 @@ class EndpointsController extends Controller
 				statusCode: 401
 			);
 		}
-
+		*/
 
 		// Find matching endpoints for the given path and method
 		$matchingEndpoints = $this->endpointMapper->findByPathRegex(
@@ -227,7 +229,11 @@ class EndpointsController extends Controller
 		$endpoint = reset($matchingEndpoints);
 
 		// Forward the request to the endpoint service
-		return $this->endpointService->handleRequest($endpoint, $this->request, $_path);
+		return $this->endpointService->handleRequest(
+			endpoint: $endpoint,
+			request: $this->request,
+			path: $_path
+		);
 	}
 
 }
