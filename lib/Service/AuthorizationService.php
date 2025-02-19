@@ -202,8 +202,19 @@ class AuthorizationService
 		$this->userSession->setUser($this->userManager->get($issuer->getUserId()));
 	}
 
+    /**
+     * Authorize user based on basic
+     *
+     * @param string $header The authorization header given in the request
+     * @param array $users The users allowed to be authenticated according to the rule
+     * @param array $groups The groups allowed to be authenticated according to the rule
+     * 
+     * @return void
+     * @throws AuthenticationException
+     */
     public function authorizeBasic (string $header, array $users, array $groups): void
     {
+        $header = substr(string: $header, offset: strlen('Basic '));
         $decode = base64_decode($header);
         [$username, $password] = explode(separator: ':', string: $decode);
 

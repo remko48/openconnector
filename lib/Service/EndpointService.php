@@ -638,6 +638,14 @@ class EndpointService
 		}
 	}
 
+    /**
+     * Processes authentication rules
+     *
+     * @param Rule $rule The rule to process
+     * @param array $data The data of the request
+     *
+     * @return array|JSONResponse the unchanged $data array if authentication succeeds, or a JSONResponse containing an error on authentication.
+     */
     private function processAuthenticationRule (Rule $rule, array $data): array|JSONResponse
     {
         $configuration = $rule->getConfiguration();
@@ -650,7 +658,7 @@ class EndpointService
         if(isset($configuration['authentication']) === false) {
             return $data;
         }
-        
+
         switch($configuration['authentication']['type']) {
             case 'jwt':
             case 'jwt-zgw':
