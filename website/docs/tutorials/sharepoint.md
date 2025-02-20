@@ -58,6 +58,7 @@ This automated flow ensures that WOO documents are consistently and accurately p
 
 #### Create an app
 First, we need to register an appcreate an app registration in Microsoft Entra under ‘Identity’ → ‘Applications’ → ‘App registrations’. Give your app registration an appropriate name
+
 ![](images/Entra_AppRegistration.png)
 
 This app registration needs API permissions for Sharepoint. We recommend this to limit this to AllSites.Read and Sites.Read.All.
@@ -65,8 +66,11 @@ This app registration needs API permissions for Sharepoint. We recommend this to
 Permissions are managed under the tab ‘API Permissions’. Click ‘Add’ and in the overlay click ‘Sharepoint’, ‘Application permissions’, and check the checkbox for ‘Sites.Read.All’, and click ‘Delegated permissions’, and check the checkbox ‘AllSites.Read’. Sites.
 
 ![](images/Entra_AddPermission_1.png)
+
 ![](images/Entra_AddPermission_2.png)
+
 ![](images/Entra_AddPermission_3.png)
+
 ![](images/Entra_AddPermission_4.png)
 
 Then, press the button ‘Grant admin consent for {organization}’, or ask an Entra admin to grant this consent.
