@@ -57,7 +57,7 @@ This automated flow ensures that WOO documents are consistently and accurately p
 ### Setting up Microsoft Entra
 
 #### Create an app
-First, we need to register an appcreate an app registration in Microsoft Entra under ‘Identity’ → ‘Applications’ → ‘App registrations’. Give your app registration an appropriate name
+First, we need to create an app registration in Microsoft Entra under ‘Identity’ → ‘Applications’ → ‘App registrations’. Give your app registration an appropriate name
 
 ![](images/Entra_AppRegistration.png)
 
@@ -136,7 +136,7 @@ The resulting string we can enter into the x5d value.
 
 Now that we have the authentication values, we can set the configuration fields.
 We click the tab ‘Configurations’ and in the Actions menu select ‘add configuration’.
-Here we need to fill two fields. The first field to fill is ‘headers.Authorization’, with the value ‘Bearer {{ oauthToken(source) }}’, and the other one is ‘headers.Accept’ with value ‘application\/json;odata=verbose’
+Here we need to fill two fields. The first field to fill is `headers.Authorization`, with the value `Bearer {{ oauthToken(source) }}`, and the other one is `headers.Accept` with value `application\/json;odata=verbose`.
 
 ### Test the source
 Now we should be done setting up the source, we can now click ‘Test’ in the Actions menu. In the field ‘endpoint’ we enter ‘/Web/lists’ and press ‘Test connection’. If the response gives a successful response (Status: OK (200)), the source is configured correctly.
