@@ -2,6 +2,7 @@ import { SafeParseReturnType, z } from 'zod'
 import { TEndpoint } from './endpoint.types'
 import getValidISOstring from '../../services/getValidISOstring'
 import ReadonlyBaseClass from '../ReadonlyBaseClass.js'
+import _ from 'lodash'
 
 /**
  * Endpoint entity class that represents a system endpoint
@@ -49,6 +50,10 @@ export class Endpoint extends ReadonlyBaseClass implements TEndpoint {
 		}
 
 		super(processedEndpoint)
+	}
+
+	public cloneRaw(): TEndpoint {
+		return _.cloneDeep(this)
 	}
 
 	/**

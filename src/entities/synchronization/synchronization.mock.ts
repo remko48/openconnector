@@ -4,6 +4,7 @@ import { TSynchronization } from './synchronization.types'
 export const mockSynchronizationData = (): TSynchronization[] => [
 	{
 		id: 1,
+		uuid: '1234567890',
 		name: 'Synchronization 1',
 		description: 'Synchronization 1',
 		conditions: '{"!!": { "var": "valid" }}',
@@ -31,6 +32,7 @@ export const mockSynchronizationData = (): TSynchronization[] => [
 	},
 	{
 		id: 2,
+		uuid: '1234567891',
 		name: 'Synchronization 2',
 		description: 'Synchronization 2',
 		conditions: '{"!!": { "var": "valid" }}',

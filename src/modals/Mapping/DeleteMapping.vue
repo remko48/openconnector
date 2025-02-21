@@ -80,7 +80,7 @@ export default {
 		async deleteMapping() {
 			this.loading = true
 			try {
-				await mappingStore.deleteMapping()
+				await mappingStore.deleteMapping(mappingStore.mappingItem.id)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false

@@ -1,6 +1,5 @@
 <script setup>
 import { synchronizationStore, navigationStore } from '../../store/store.js'
-import { getTheme } from '../../services/getTheme.js'
 </script>
 
 <template>
@@ -10,13 +9,40 @@ import { getTheme } from '../../services/getTheme.js'
 		<div class="modalContent runSynchronization">
 			<h2>Run synchronization</h2>
 
-			<div v-if="response === null" class="runButtonContainer">
-				<NcButton type="primary" @click="runSynchronization">
-					<template #icon>
-						<Play :size="20" />
-					</template>
-					Run
-				</NcButton>
+			<div v-if="response === null" class="runOptions">
+				<div class="optionsGrid">
+					<NcNoteCard type="info">
+						<p>
+							Test mode will run all the synchronization code and logic without saving or updating the contract or updating the target system. This allows you to verify the mapping and configuration before running a real synchronization by doing a 'dry run'.
+						</p>
+					</NcNoteCard>
+					<NcCheckboxRadioSwitch
+						:checked="testMode"
+						type="switch"
+						@update:checked="testMode = $event">
+						Test mode
+					</NcCheckboxRadioSwitch>
+					<NcNoteCard type="info">
+						<p>
+							Forcing the synchronization will make the synchronization service update the contract even if no update was deemed necessary (see docs). The resulting updated contract can still be withheld from saving by activating test mode.
+						</p>
+					</NcNoteCard>
+					<NcCheckboxRadioSwitch
+						:checked="forceSync"
+						type="switch"
+						@update:checked="forceSync = $event">
+						Force synchronization
+					</NcCheckboxRadioSwitch>
+				</div>
+
+				<div class="runButtonContainer">
+					<NcButton type="primary" @click="runSynchronization">
+						<template #icon>
+							<Play :size="20" />
+						</template>
+						{{ testMode ? 'Test' : 'Run' }}
+					</NcButton>
+				</div>
 			</div>
 
 			<div v-if="loading">
@@ -52,42 +78,88 @@ import { getTheme } from '../../services/getTheme.js'
 				<div v-if="response" class="detailTable">
 					<table>
 						<tr>
-							<td><b>Status:</b></td>
-							<td>{{ response?.statusText }} ({{ response?.status }})</td>
+							<td><b>Message:</b></td>
+							<td>{{ responseBody?.message }} (ms)</td>
 						</tr>
 						<tr>
-							<td><b>Response time:</b></td>
-							<td>{{ response?.responseTime ?? 'Onbekend' }} (Milliseconds)</td>
+							<td><b>Execution Time:</b></td>
+							<td>{{ responseBody?.executionTime }}</td>
 						</tr>
 						<tr>
-							<td><b>Size:</b></td>
-							<td>{{ response?.size ?? 'Onbekend' }} (Bytes)</td>
+							<td><b>ID:</b></td>
+							<td>{{ responseBody?.id }}</td>
 						</tr>
 						<tr>
-							<td><b>Remote IP:</b></td>
-							<td>{{ response?.remoteIp ?? 'Onbekend' }}</td>
+							<td><b>UUID:</b></td>
+							<td>{{ responseBody?.uuid }}</td>
 						</tr>
 						<tr>
-							<td><b>Headers:</b></td>
+							<td><b>Synchronization ID:</b></td>
+							<td>{{ responseBody?.synchronizationId }}</td>
+						</tr>
+						<tr>
+							<td><b>Objects Found:</b></td>
+							<td>{{ responseBody?.result?.objects?.found }}</td>
+						</tr>
+						<tr>
+							<td><b>Objects Skipped:</b></td>
+							<td>{{ responseBody?.result?.objects?.skipped }}</td>
+						</tr>
+						<tr>
+							<td><b>Objects Created:</b></td>
+							<td>{{ responseBody?.result?.objects?.created }}</td>
+						</tr>
+						<tr>
+							<td><b>Objects Updated:</b></td>
+							<td>{{ responseBody?.result?.objects?.updated }}</td>
+						</tr>
+						<tr>
+							<td><b>Objects Deleted:</b></td>
+							<td>{{ responseBody?.result?.objects?.deleted }}</td>
+						</tr>
+						<tr>
+							<td><b>Objects Invalid:</b></td>
+							<td>{{ responseBody?.result?.objects?.invalid }}</td>
+						</tr>
+						<tr>
+							<td><b>Contracts:</b></td>
 							<td>
-								<table>
-									<tr v-for="(header, index) in response?.headers" :key="index">
-										<td><b>{{ header[0] }}:</b></td>
-										<td>{{ header[1] }}</td>
-									</tr>
-								</table>
+								<div v-for="(contract, index) in responseBody?.result?.contracts" :key="index">
+									{{ contract }}
+								</div>
 							</td>
 						</tr>
 						<tr>
-							<td><b>Body:</b></td>
-							<td :class="`codeMirrorContainer ${getTheme()}`">
-								<CodeMirror v-model="responseBodyString"
-									:basic="true"
-									:dark="getTheme() === 'dark'"
-									:linter="jsonParseLinter()"
-									:lang="json()"
-									:readonly="true" />
+							<td><b>Logs:</b></td>
+							<td>
+								<div v-for="(log, index) in responseBody?.result?.logs" :key="index">
+									{{ log }}
+								</div>
 							</td>
+						</tr>
+						<tr>
+							<td><b>User ID:</b></td>
+							<td>{{ responseBody?.userId }}</td>
+						</tr>
+						<tr>
+							<td><b>Session ID:</b></td>
+							<td>{{ responseBody?.sessionId }}</td>
+						</tr>
+						<tr>
+							<td><b>Test Mode:</b></td>
+							<td>{{ responseBody?.test }}</td>
+						</tr>
+						<tr>
+							<td><b>Force Mode:</b></td>
+							<td>{{ responseBody?.force }}</td>
+						</tr>
+						<tr>
+							<td><b>Created:</b></td>
+							<td>{{ responseBody?.created }}</td>
+						</tr>
+						<tr>
+							<td><b>Expires:</b></td>
+							<td>{{ responseBody?.expires }}</td>
 						</tr>
 					</table>
 				</div>
@@ -102,9 +174,8 @@ import {
 	NcLoadingIcon,
 	NcNoteCard,
 	NcButton,
+	NcCheckboxRadioSwitch,
 } from '@nextcloud/vue'
-import CodeMirror from 'vue-codemirror6'
-import { json, jsonParseLinter } from '@codemirror/lang-json'
 
 import Play from 'vue-material-design-icons/Play.vue'
 
@@ -114,8 +185,8 @@ export default {
 		NcModal,
 		NcLoadingIcon,
 		NcNoteCard,
-		CodeMirror,
 		NcButton,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
@@ -125,6 +196,8 @@ export default {
 			success: null,
 			loading: false,
 			error: false,
+			testMode: false,
+			forceSync: false,
 		}
 	},
 	methods: {
@@ -137,7 +210,11 @@ export default {
 			this.loading = true
 			this.error = false
 
-			synchronizationStore.runSynchronization(synchronizationStore.synchronizationItem.id)
+			synchronizationStore.runSynchronization(
+				synchronizationStore.synchronizationItem.id,
+				this.testMode,
+				this.forceSync,
+			)
 				.then(({ response, data }) => {
 					this.response = response
 					this.responseBody = data
@@ -145,7 +222,7 @@ export default {
 					this.success = response.ok
 
 					synchronizationStore.refreshSynchronizationLogs()
-					synchronizationStore.refreshSynchronizationContracts()
+					synchronizationStore.refreshSynchronizationContracts(synchronizationStore.synchronizationItem.id)
 				}).catch((error) => {
 					this.success = false
 					this.error = error.message || 'An error occurred while running the synchronization'
@@ -244,5 +321,18 @@ div[class='modal-container']:has(.runSynchronization .SuccessMarker) {
 }
 .codeMirrorContainer.dark :deep(.ͼc) {
 	color: #260dd4;
+}
+
+.optionsGrid {
+	display: grid;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.runOptions {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	margin-block-start: 10px;
 }
 </style>

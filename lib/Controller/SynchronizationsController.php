@@ -8,7 +8,7 @@ use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\SynchronizationService;
 use OCA\OpenConnector\Db\SynchronizationMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
-use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
+use OCA\OpenConnector\Db\SynchronizationLogMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
@@ -34,7 +34,7 @@ class SynchronizationsController extends Controller
         private readonly IAppConfig $config,
         private readonly SynchronizationMapper $synchronizationMapper,
         private readonly SynchronizationContractMapper $synchronizationContractMapper,
-        private readonly SynchronizationContractLogMapper $synchronizationContractLogMapper,
+        private readonly SynchronizationLogMapper $synchronizationLogMapper,
         private readonly SynchronizationService $synchronizationService
     )
     {
@@ -203,13 +203,13 @@ class SynchronizationsController extends Controller
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param int $id The ID of the source to retrieve logs for
+     * @param string $uuid The UUID of the synchronization to retrieve logs for
      * @return JSONResponse A JSON response containing the call logs
     */
-    public function logs(int $id): JSONResponse
+    public function logs(string $uuid): JSONResponse
     {
         try {
-            $logs = $this->synchronizationContractLogMapper->findAll(null, null, ['synchronization_id' => $id]);
+            $logs = $this->synchronizationLogMapper->findAll(null, null, ['synchronization_id' => $uuid]);
             return new JSONResponse($logs);
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Logs not found'], 404);
@@ -225,6 +225,7 @@ class SynchronizationsController extends Controller
 	 * @NoCSRFRequired
 	 *
 	 * @param int $id The ID of the synchronization
+	 * @param bool|null $force Whether to force synchronization regardless of changes (default: false)
 	 *
 	 * @return JSONResponse A JSON response containing the test results
 	 * @throws GuzzleException
@@ -233,7 +234,7 @@ class SynchronizationsController extends Controller
 	 *
 	 * @example
 	 * Request:
-	 * empty POST
+	 * POST with optional force parameter
 	 *
 	 * Response:
 	 * {
@@ -246,7 +247,7 @@ class SynchronizationsController extends Controller
 	 *     "validationErrors": []
 	 * }
 	 */
-    public function test(int $id): JSONResponse
+    public function test(int $id, ?bool $force = false): JSONResponse
     {
         try {
             $synchronization = $this->synchronizationMapper->find(id: $id);
@@ -257,25 +258,26 @@ class SynchronizationsController extends Controller
         // Try to synchronize
         try {
             $logAndContractArray = $this->synchronizationService->synchronize(
-				synchronization: $synchronization,
-				isTest: true
-			);
+                synchronization: $synchronization,
+                isTest: true,
+                force: $force
+            );
 
             // Return the result as a JSON response
             return new JSONResponse(data: $logAndContractArray, statusCode: 200);
         } catch (Exception $e) {
-			// Check if getHeaders method exists and use it if available
-			$headers = method_exists($e, 'getHeaders') ? $e->getHeaders() : [];
+            // Check if getHeaders method exists and use it if available
+            $headers = method_exists($e, 'getHeaders') ? $e->getHeaders() : [];
 
             // If synchronization fails, return an error response
             return new JSONResponse(
-				data: [
-					'error' => 'Synchronization error',
-					'message' => $e->getMessage()
-				],
-				statusCode: $e->getCode() ?? 400,
-				headers: $headers
-			);
+                data: [
+                    'error' => 'Synchronization error',
+                    'message' => $e->getMessage()
+                ],
+                statusCode: $e->getCode() ?? 400,
+                headers: $headers
+            );
         }
     }
 
@@ -287,14 +289,19 @@ class SynchronizationsController extends Controller
      *
      * Endpoint: /api/synchronizations-run/{id}
      *
-     * @param int $id The ID of the synchronization to test
+     * @param int $id The ID of the synchronization to run
+     *
      * @return JSONResponse A JSON response containing the run results
-	 * @throws GuzzleException
-	 * @throws ContainerExceptionInterface
-	 * @throws NotFoundExceptionInterface
+     * @throws GuzzleException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function run(int $id): JSONResponse
     {
+        $parameters = $this->request->getParams();
+        $test  = filter_var($parameters['test'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $force = filter_var($parameters['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
         try {
             $synchronization = $this->synchronizationMapper->find(id: $id);
         } catch (DoesNotExistException $exception) {
@@ -304,25 +311,26 @@ class SynchronizationsController extends Controller
         // Try to synchronize
         try {
             $logAndContractArray = $this->synchronizationService->synchronize(
-				synchronization: $synchronization,
-				isTest: false
-			);
+                synchronization: $synchronization,
+                isTest: $test,
+                force: $force
+            );
 
             // Return the result as a JSON response
             return new JSONResponse(data: $logAndContractArray, statusCode: 200);
         } catch (Exception $e) {
-			// Check if getHeaders method exists and use it if available
-			$headers = method_exists($e, 'getHeaders') ? $e->getHeaders() : [];
+            // Check if getHeaders method exists and use it if available
+            $headers = method_exists($e, 'getHeaders') ? $e->getHeaders() : [];
 
             // If synchronization fails, return an error response
             return new JSONResponse(
-				data: [
-					'error' => 'Synchronization error',
-					'message' => $e->getMessage()
-				],
-				statusCode: $e->getCode() ?? 400,
-				headers: $headers
-			);
+                data: [
+                    'error' => 'Synchronization error',
+                    'message' => $e->getMessage()
+                ],
+                statusCode: $e->getCode() ?? 400,
+                headers: $headers
+            );
         }
     }
 }

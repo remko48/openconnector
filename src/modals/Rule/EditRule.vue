@@ -1,6 +1,7 @@
 <script setup>
 import { ruleStore, navigationStore, mappingStore, synchronizationStore, sourceStore } from '../../store/store.js'
 import { getTheme } from '../../services/getTheme.js'
+import { Rule } from '../../entities/index.js'
 </script>
 
 <template>
@@ -285,6 +286,22 @@ import { getTheme } from '../../services/getTheme.js'
 						v-model="methodOptions.value"
 						input-label="Method" />
 
+					<NcSelect v-model="ruleItem.configuration.fetch_file.tags"
+						:taggable="true"
+						:multiple="true"
+						input-label="Tags">
+						<template #no-options>
+							type to add tags
+						</template>
+					</NcSelect>
+
+					<NcCheckboxRadioSwitch
+						type="checkbox"
+						label="Auto Share"
+						:checked.sync="ruleItem.configuration.fetch_file.autoShare">
+						Auto share
+					</NcCheckboxRadioSwitch>
+
 					<div class="json-editor">
 						<label>Source Configuration (JSON)</label>
 						<div :class="`codeMirrorContainer ${getTheme()}`">
@@ -321,6 +338,22 @@ import { getTheme } from '../../services/getTheme.js'
 						required
 						:value.sync="ruleItem.configuration.write_file.fileNamePath"
 						placeholder="path.to.file.name" />
+
+					<NcSelect v-model="ruleItem.configuration.write_file.tags"
+						:taggable="true"
+						:multiple="true"
+						input-label="Tags">
+						<template #no-options>
+							type to add tags
+						</template>
+					</NcSelect>
+
+					<NcCheckboxRadioSwitch
+						type="checkbox"
+						label="Auto Share"
+						:checked.sync="ruleItem.configuration.write_file.autoShare">
+						Auto share
+					</NcCheckboxRadioSwitch>
 				</template>
 
 				<!-- Fileparts Create Configuration -->
@@ -423,6 +456,7 @@ import {
 	NcInputField,
 	NcActions,
 	NcActionButton,
+	NcCheckboxRadioSwitch,
 } from '@nextcloud/vue'
 import { json, jsonParseLinter } from '@codemirror/lang-json'
 import CodeMirror from 'vue-codemirror6'
@@ -448,6 +482,7 @@ export default {
 		NcInputField,
 		NcActions,
 		NcActionButton,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
@@ -520,11 +555,15 @@ export default {
 						source: '',
 						filePath: '',
 						method: '',
+						tags: [],
 						sourceConfiguration: '[]',
+						autoShare: false,
 					},
 					write_file: {
 						filePath: '',
+						tags: [],
 						fileNamePath: '',
+						autoShare: false,
 					},
 					fileparts_create: {
 						sizeLocation: '',
@@ -582,7 +621,7 @@ export default {
 					},
 					javascript: ruleStore.ruleItem.configuration?.javascript ?? '',
 					authentication: {
-						type: ruleStore.ruleItem.configuration?.authentication?.type ?? 'basic',
+						type: ruleStore.ruleItem.configuration?.authentication?.type?.value ?? 'basic',
 						users: ruleStore.ruleItem.configuration?.authentication?.users ?? [],
 						groups: ruleStore.ruleItem.configuration?.authentication?.groups ?? [],
 					},
@@ -602,11 +641,15 @@ export default {
 						source: ruleStore.ruleItem.configuration?.fetch_file?.source ?? '',
 						filePath: ruleStore.ruleItem.configuration?.fetch_file?.filePath ?? '',
 						method: ruleStore.ruleItem.configuration?.fetch_file?.method ?? '',
+						tags: ruleStore.ruleItem.configuration?.fetch_file?.tags ?? [],
 						sourceConfiguration: JSON.stringify(ruleStore.ruleItem.configuration?.fetch_file?.sourceConfiguration, null, 2) ?? '[]',
+						autoShare: ruleStore.ruleItem.configuration?.fetch_file?.autoShare ?? false,
 					},
 					write_file: {
 						filePath: ruleStore.ruleItem.configuration?.write_file?.filePath ?? '',
 						fileNamePath: ruleStore.ruleItem.configuration?.write_file?.fileNamePath ?? '',
+						tags: ruleStore.ruleItem.configuration?.write_file?.tags ?? [],
+						autoShare: ruleStore.ruleItem.configuration?.write_file?.autoShare ?? false,
 					},
 					fileparts_create: {
 						sizeLocation: ruleStore.ruleItem.configuration?.fileparts_create?.sizeLocation ?? '',
@@ -944,7 +987,7 @@ export default {
 				break
 			case 'authentication':
 				configuration.authentication = {
-					type: this.ruleItem.configuration.authentication.type,
+					type: this.ruleItem.configuration.authentication.type.value,
 					users: this.ruleItem.configuration.authentication.users,
 					groups: this.ruleItem.configuration.authentication.groups,
 				}
@@ -972,13 +1015,17 @@ export default {
 					source: this.sourceOptions.sourceValue?.id,
 					filePath: this.ruleItem.configuration.fetch_file.filePath,
 					method: this.methodOptions.value?.label,
+					tags: this.ruleItem.configuration.fetch_file.tags,
 					sourceConfiguration: this.ruleItem.configuration.fetch_file.sourceConfiguration ? JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration) : [],
+					autoShare: this.ruleItem.configuration.fetch_file.autoShare,
 				}
 				break
 			case 'write_file':
 				configuration.write_file = {
 					filePath: this.ruleItem.configuration.write_file.filePath,
 					fileNamePath: this.ruleItem.configuration.write_file.fileNamePath,
+					tags: this.ruleItem.configuration.write_file.tags,
+					autoShare: this.ruleItem.configuration.write_file.autoShare,
 				}
 				break
 			case 'fileparts_create':
@@ -997,7 +1044,7 @@ export default {
 				break
 			}
 
-			ruleStore.saveRule({
+			const newRuleItem = new Rule({
 				...this.ruleItem,
 				conditions: this.ruleItem.conditions ? JSON.parse(this.ruleItem.conditions) : [],
 				action: this.actionOptions.value?.id || null,
@@ -1005,6 +1052,8 @@ export default {
 				type: type || null,
 				configuration,
 			})
+
+			ruleStore.saveRule(newRuleItem)
 				.then(({ response }) => {
 					this.success = response.ok
 					this.error = !response.ok && 'Failed to save rule'

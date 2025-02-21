@@ -1,5 +1,6 @@
 <script setup>
 import { sourceStore, navigationStore } from '../../store/store.js'
+import { Source } from '../../entities/index.js'
 </script>
 
 <template>
@@ -144,7 +145,9 @@ export default {
 			}
 
 			try {
-				await sourceStore.saveSource(newSourceItem)
+				const sourceItem = new Source(newSourceItem)
+
+				await sourceStore.saveSource(sourceItem)
 				// Close modal or show success message
 				this.success = true
 				this.loading = false
