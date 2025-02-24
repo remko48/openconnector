@@ -198,6 +198,7 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
     ]
 }
 ```
+
 </TabItem>
 <TabItem value="items" label="Items property" default>
 
@@ -208,6 +209,7 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
     ]
 }
 ```
+
 </TabItem>
 <TabItem value="result" label="Result property" default>
 
@@ -218,8 +220,8 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
     ]
 }
 ```
+
 </TabItem>
-</Tabs>
 <TabItem value="data" label="Data property" default>
 
 ```json
@@ -228,9 +230,9 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
         // ... items ...
     ]
 }
+
 ```
 </TabItem>
-</Tabs>
 <TabItem value="root" label="No property (root data)" default>
 
 > Note: This format only works when 'configuration.results' is set to 'root'
@@ -240,6 +242,7 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
     // ... items ...
 }
 ```
+
 </TabItem>
 </Tabs>
 
@@ -265,8 +268,8 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
     ]
 }
 ```
-</TabItem>
 
+</TabItem>
 <TabItem value="hrLead" label="HR Lead" default>
 
 Configure the paths in your source configuration to match your API's response structure:
@@ -281,6 +284,7 @@ Configure the paths in your source configuration to match your API's response st
     }
 }
 ```
+
 </TabItem>
 </Tabs>
 
