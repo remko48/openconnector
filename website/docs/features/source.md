@@ -36,7 +36,7 @@ Sources can use various authentication methods:
 - Custom Headers
 
 ## Procces 
-Calls to a source are made trought the open conncetor call service, this is essentiall a wrapper around the guzzle http client. But it gives some adtional features like logging, caching and error handling and dealing with pagination ans xml files.
+Calls to a source are made trought the open conncetor call service, this is essentiall a wrapper around the guzzle http client. But it gives some adtional features like logging, caching and error handling and dealing with pagination ans xml files. The call service is a technical service that takes as input a source object (and optionally an endpoint, method and configuration if the default ones need to be overwritten) and returns and array of objects as a result. The call service is used by the synchronysations to get the data from the source.
 
 ## Configuration
 
