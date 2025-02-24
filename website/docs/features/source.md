@@ -116,57 +116,26 @@ Pagination can be configured in the source configuration using the following str
 {
     "pagination": {
         "type": "offset",              // Type of pagination (offset, page, cursor)
-        "paginationQuery": "page",     // Query parameter for pagination
+        "paginationQuery": "page",     // Query parameter for page 
         "limitQuery": "limit",         // Query parameter for items per page
-        "page": 1,                     // Starting page/offset
-        "limit": 100,                  // Items per page
+        "page": 1,                     // Starting page/offset (defaults to 1)
+        "limit": 100,                  // Items per page (defaults to 100)
         "totalPages": "meta.pages",    // Path to total pages in response
         "totalItems": "meta.total",    // Path to total items in response
-        "hasMore": "meta.has_more",    // Path to has_more indicator
-        "cursor": "meta.next_cursor"   // Path to next cursor (for cursor pagination)
+        "cursor": "meta.next_cursor",  // Path to next cursor (for cursor pagination)
+        "maxPages": 1000               // Maximum number of pages to fetch (defaults to 1000)
     }
 }
 ```
 
+None of these are required, the call service will try to detect the pagination type automatically.
+
 #### Supported Pagination Types
 
-1. **Offset-based Pagination**
-   ```json
-   {
-       "pagination": {
-           "type": "offset",
-           "paginationQuery": "offset",
-           "limitQuery": "limit",
-           "page": 0,
-           "limit": 100
-       }
-   }
-   ```
+- Offset
+- Page
+- Cursor
 
-2. **Page-based Pagination**
-   ```json
-   {
-       "pagination": {
-           "type": "page",
-           "paginationQuery": "page",
-           "limitQuery": "per_page",
-           "page": 1,
-           "limit": 50
-       }
-   }
-   ```
-
-3. **Cursor-based Pagination**
-   ```json
-   {
-       "pagination": {
-           "type": "cursor",
-           "paginationQuery": "cursor",
-           "limit": 100,
-           "cursor": "meta.next_cursor"
-       }
-   }
-   ```
 
 #### Response Handling
 APIs typically return data in a wrapped format. The Call Service needs to know where to find the actual result objects. Here are common patterns:
@@ -188,7 +157,7 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
 
 If the call service detects that the result is paginated it will fetch the next page and return the results. It will also update the source with the new page number and total number of pages.
 
-It will continue in this loop until it has fetched all the pages and returned all the results, the configuration.max_pages limit has been reachd (that defaults to 1000) or the source has been stopped responding.
+It will continue in this loop until it has fetched all the pages and returned all the results, the `configuration.pagination.maxPages` limit has been reachd (that defaults to 1000) or the source has been stopped responding.
 
 ![Pagination Detection and Handling](../diagrams/source_pagination.svg)
 
