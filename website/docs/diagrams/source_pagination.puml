@@ -38,33 +38,39 @@ activate PH
 
 note right of PH
   Checks for pagination indicators:
-  1. Configured paths (meta.total, etc.)
-  2. Common patterns (next, _links)
-  3. Result count vs total items
+  1. Looks for common result properties:
+     - results, items, result, data
+  2. Checks pagination paths:
+     - next, next_page, next_cursor
+     - total, totalResults, total_items
+     - totalPages, total_pages, pages
+  3. Analyzes result counts
 endnote
 
-alt Configuration-based Detection
-    PH -> PH: checkConfiguredPaths()
+alt Property Detection
+    PH -> PH: checkResultProperties()
     note right
-      Looks for pagination info at
-      configured paths in response
+      Checks for result wrapper properties:
+      - results
+      - items
+      - result 
+      - data
     endnote
-else Pattern-based Detection
-    PH -> PH: checkCommonPatterns()
+else Next Page Detection
+    PH -> PH: checkNextPageIndicators()
     note right
-      Searches for common pagination
-      patterns like:
-      - next/previous links
-      - _links.next
-      - meta.pagination
+      Checks for next page indicators:
+      - next/next_page/next_cursor URLs
+      - nextPage/nextCursor integers
+      - _links.next paths
     endnote
-else Count-based Detection
-    PH -> PH: analyzeResultCount()
+else Total Count Detection
+    PH -> PH: checkTotalCounts()
     note right
-      Compares:
-      - Result count vs limit
-      - Total items vs received
-      - Collection size patterns
+      Compares counts:
+      - total vs current results
+      - current page vs total pages
+      - Collection size vs limits
     endnote
 end
 
@@ -72,13 +78,13 @@ PH --> CS: PaginationInfo
 deactivate PH
 
 alt Pagination Detected
-    loop Until All Pages Retrieved
+    loop Until All Pages Retrieved or Max Pages Reached
         CS -> API: Request Next Page
         note right
-          Automatically adjusts:
-          - Page/offset parameters
-          - Cursor values
-          - Limit/size settings
+          Follows pagination:
+          - Uses next page URL if available
+          - Increments page counters
+          - Respects max_pages limit (1000)
         endnote
         API --> CS: Page Response
         CS -> CS: mergeResults()
@@ -97,19 +103,16 @@ CS --> App: Complete Result Set
 deactivate CS
 
 note over App, API
-  Automatic Pagination Detection:
-  1. Configured Paths:
-     - meta.total
-     - meta.pages
-     - pagination.next
-  2. Common Patterns:
-     - _links.next
-     - next_page_url
-     - hasMore flag
+  Pagination Detection Details:
+  1. Result Properties:
+     - results, items, result, data
+  2. Next Page Indicators:
+     - next, next_page, next_cursor URLs
+     - nextPage, nextCursor integers
   3. Count Analysis:
-     - results.length vs total
-     - limit/offset patterns
-     - collection size consistency
+     - total vs current results
+     - current page vs total pages
+     - max_pages limit (1000)
 endnote
 
 @enduml

@@ -180,12 +180,17 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
    - Throws error if no valid wrapper property found
    - Can be configured to handle unwrapped responses via `_root` setting
 
-2. Handling pagination through:
-   - Configuration-based detection
-   - Automatic page fetching
-   - Result merging into single response
-   - Rate limit management between requests
-   - Error handling across all requests
+2. Afther the call service has fetched the data it will return an array of objects on the current page. The call service will then try to dermine if the result is paginated. It will assume that it always starts on page 1 of a paginated responce and the look if:
+   - The next cursor (from `next`, `next_page`, `next_cursor`, `nextPage`, `nextCursor`) is pressent and an url. It wil then follow the url and fetch the next page.
+   - The total number of results (from `total`, `totalResults`, `total_results`, `totalResults`, `total_items`, `totalItems`, `total_data`, `totalData`) is greater than the current number of results
+   - The next cursor (from `next`, `next_page`, `next_cursor`, `nextPage`, `nextCursor`) is higher then the current page counter (if tis a integer). 
+   - The current page is less then the total number of pages (from `totalPages`, `total_pages`, `pages`)
+
+If the call service detects that the result is paginated it will fetch the next page and return the results. It will also update the source with the new page number and total number of pages.
+
+It will continue in this loop until it has fetched all the pages and returned all the results, the configuration.max_pages limit has been reachd (that defaults to 1000) or the source has been stopped responding.
+
+![Pagination Detection and Handling](../diagrams/source_pagination.svg)
 
 
 <Tabs>
@@ -246,13 +251,6 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
 </TabItem>
 </Tabs>
 
-Afther the call service has fetched the data it will return an array of objects on the current page. The call service will then try to dermine if the result is paginated. It will assume that it always starts on page 1 of a paginated responce and the look if:
-   - The next cursor (from `next`, `next_page`, `next_cursor`, `nextPage`, `nextCursor`) is pressent and an url. It wil then follow the url and fetch the next page.
-   - The total number of results (from `total`, `totalResults`, `total_results`, `totalResults`, `total_items`, `totalItems`, `total_data`, `totalData`) is greater than the current number of results
-   - The next cursor (from `next`, `next_page`, `next_cursor`, `nextPage`, `nextCursor`) is higher then the current page counter (if tis a integer). 
-   - The current page is less then the total number of pages (from `totalPages`, `total_pages`, `pages`)
-
-If the call service detects that the result is paginated it will fetch the next page and return the results. It will also update the source with the new page number and total number of pages.
 
 
 
