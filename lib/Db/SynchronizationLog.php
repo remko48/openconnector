@@ -19,7 +19,7 @@ class SynchronizationLog extends Entity implements JsonSerializable
     protected ?string $sessionId = null;
     protected bool $test = false;
     protected bool $force = false;
-    protected int $executionTime = 3600;
+    protected int $executionTime = 0;
     protected ?DateTime $created = null;
     protected ?DateTime $expires = null;
 
