@@ -246,47 +246,15 @@ APIs typically return data in a wrapped format. The Call Service needs to know w
 </TabItem>
 </Tabs>
 
-Afther the call service has fetched the data it will return an array of objects on the current page. The call service will then try to dermine if the result is paginated. 
+Afther the call service has fetched the data it will return an array of objects on the current page. The call service will then try to dermine if the result is paginated. It will assume that it always starts on page 1 of a paginated responce and the look if:
+   - The next cursor (from `next`, `next_page`, `next_cursor`, `nextPage`, `nextCursor`) is pressent and an url. It wil then follow the url and fetch the next page.
+   - The total number of results (from `total`, `totalResults`, `total_results`, `totalResults`, `total_items`, `totalItems`, `total_data`, `totalData`) is greater than the current number of results
+   - The next cursor (from `next`, `next_page`, `next_cursor`, `nextPage`, `nextCursor`) is higher then the current page counter (if tis a integer). 
+   - The current page is less then the total number of pages (from `totalPages`, `total_pages`, `pages`)
+
+If the call service detects that the result is paginated it will fetch the next page and return the results. It will also update the source with the new page number and total number of pages.
 
 
-#### Response Structure Examples
-
-APIs typically return data in a wrapped format. The Call Service needs to know where to find the actual result objects. Here are common patterns:
-
-<Tabs>
-<TabItem value="hrLead" label="HR Lead" default>
-
-```json
-{
-    "current_page": 1,
-    "total_pages": 10,
-    "total_items": 495,
-    "has_more": true,
-    "next_cursor": "dXNlcjpXMDdRQ1JQQTQ=",
-    "data": [
-        // ... items ...
-    ]
-}
-```
-
-</TabItem>
-<TabItem value="hrLead" label="HR Lead" default>
-
-Configure the paths in your source configuration to match your API's response structure:
-
-```json
-{
-    "pagination": {
-        "type": "page",
-        "totalPages": "meta.total_pages",
-        "totalItems": "meta.total_items",
-        "currentPage": "meta.current_page"
-    }
-}
-```
-
-</TabItem>
-</Tabs>
 
 #### Best Practices
 
