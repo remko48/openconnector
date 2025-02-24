@@ -1,3 +1,25 @@
+---
+id: source
+title: Sources in Open Connector
+sidebar_label: Sources
+sidebar_position: 1
+description: Learn about Sources in Open Connector - how they enable data exchange between systems through configurable endpoints and authentication methods
+keywords:
+  - data source
+  - API integration
+  - data exchange
+  - endpoints
+  - authentication
+  - data flow
+  - connectivity
+  - integration
+  - synchronization
+  - data transfer
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Source
 
 A Source in Open Connector represents a digital endpoint that can be used for data exchange. Sources can function both as data providers and destinations, enabling bidirectional data flow. The actual data transfer process is managed through Synchronizations.
@@ -82,7 +104,207 @@ Sources are configured using Guzzle HTTP client options. These settings control 
 
 For detailed configuration options, refer to the [Guzzle Documentation](https://docs.guzzlephp.org/en/stable/request-options.html).
 
+### Dealing with pagination
 
+Open Connector provides robust support for handling paginated API responses. The system can automatically detect and handle various pagination patterns commonly used in APIs.
+
+#### Pagination Configuration
+
+Pagination can be configured in the source configuration using the following structure:
+
+```json
+{
+    "pagination": {
+        "type": "offset",              // Type of pagination (offset, page, cursor)
+        "paginationQuery": "page",     // Query parameter for pagination
+        "limitQuery": "limit",         // Query parameter for items per page
+        "page": 1,                     // Starting page/offset
+        "limit": 100,                  // Items per page
+        "totalPages": "meta.pages",    // Path to total pages in response
+        "totalItems": "meta.total",    // Path to total items in response
+        "hasMore": "meta.has_more",    // Path to has_more indicator
+        "cursor": "meta.next_cursor"   // Path to next cursor (for cursor pagination)
+    }
+}
+```
+
+#### Supported Pagination Types
+
+1. **Offset-based Pagination**
+   ```json
+   {
+       "pagination": {
+           "type": "offset",
+           "paginationQuery": "offset",
+           "limitQuery": "limit",
+           "page": 0,
+           "limit": 100
+       }
+   }
+   ```
+
+2. **Page-based Pagination**
+   ```json
+   {
+       "pagination": {
+           "type": "page",
+           "paginationQuery": "page",
+           "limitQuery": "per_page",
+           "page": 1,
+           "limit": 50
+       }
+   }
+   ```
+
+3. **Cursor-based Pagination**
+   ```json
+   {
+       "pagination": {
+           "type": "cursor",
+           "paginationQuery": "cursor",
+           "limit": 100,
+           "cursor": "meta.next_cursor"
+       }
+   }
+   ```
+
+#### Response Handling
+APIs typically return data in a wrapped format. The Call Service needs to know where to find the actual result objects. Here are common patterns:
+
+1. Detecting the response wrapper structure
+   - Looks for common result properties in order:
+     - `results`
+     - `items` 
+     - `result`
+     - `data`
+   - Throws error if no valid wrapper property found
+   - Can be configured to handle unwrapped responses via `_root` setting
+
+2. Handling pagination through:
+   - Configuration-based detection
+   - Automatic page fetching
+   - Result merging into single response
+   - Rate limit management between requests
+   - Error handling across all requests
+
+
+<Tabs>
+<TabItem value="results" label="Results property" default>
+
+```json
+{
+    "results": [
+        // ... items ...
+    ]
+}
+```
+</TabItem>
+<TabItem value="items" label="Items property" default>
+
+```json
+{
+    "items": [
+        // ... items ...
+    ]
+}
+```
+</TabItem>
+<TabItem value="result" label="Result property" default>
+
+```json
+{
+    "result": [
+        // ... items ...
+    ]
+}
+```
+</TabItem>
+</Tabs>
+<TabItem value="data" label="Data property" default>
+
+```json
+{
+    "data": [
+        // ... items ...
+    ]
+}
+```
+</TabItem>
+</Tabs>
+<TabItem value="root" label="No property (root data)" default>
+
+> Note: This format only works when 'configuration.results' is set to 'root'
+
+```json
+{
+    // ... items ...
+}
+```
+</TabItem>
+</Tabs>
+
+Afther the call service has fetched the data it will return an array of objects on the current page. The call service will then try to dermine if the result is paginated. 
+
+
+#### Response Structure Examples
+
+APIs typically return data in a wrapped format. The Call Service needs to know where to find the actual result objects. Here are common patterns:
+
+<Tabs>
+<TabItem value="hrLead" label="HR Lead" default>
+
+```json
+{
+    "current_page": 1,
+    "total_pages": 10,
+    "total_items": 495,
+    "has_more": true,
+    "next_cursor": "dXNlcjpXMDdRQ1JQQTQ=",
+    "data": [
+        // ... items ...
+    ]
+}
+```
+</TabItem>
+
+<TabItem value="hrLead" label="HR Lead" default>
+
+Configure the paths in your source configuration to match your API's response structure:
+
+```json
+{
+    "pagination": {
+        "type": "page",
+        "totalPages": "meta.total_pages",
+        "totalItems": "meta.total_items",
+        "currentPage": "meta.current_page"
+    }
+}
+```
+</TabItem>
+</Tabs>
+
+#### Best Practices
+
+1. **Performance**
+   - Set appropriate page sizes
+   - Use cursor-based pagination when available
+   - Consider implementing caching for paginated results
+
+2. **Error Handling**
+   - Implement proper retry logic between pages
+   - Handle incomplete page fetches gracefully
+   - Log pagination-related errors separately
+
+3. **Rate Limiting**
+   - Account for rate limits across paginated requests
+   - Implement appropriate delays between requests
+   - Monitor API quotas during pagination
+
+4. **Memory Management**
+   - Consider streaming for large datasets
+   - Implement batch processing when needed
+   - Monitor memory usage during pagination
 
 ## Best Practices
 
@@ -106,3 +328,83 @@ For detailed configuration options, refer to the [Guzzle Documentation](https://
 - **Synchronizations**: Define how data flows between sources
 - **Transformations**: Specify how data should be modified during transfer
 - **Mappings**: Define relationships between source and destination data structures
+
+#### Automatic Pagination Detection
+
+Open Connector can automatically detect pagination in API responses through multiple methods:
+
+1. **Configuration-based Detection**
+   - Checks configured paths for pagination information
+   - Uses specified metadata locations
+   - Follows defined pagination patterns
+
+2. **Pattern-based Detection**
+   Common patterns automatically detected:
+   ```json
+   {
+       "_links": {
+           "next": "https://api.example.com/items?page=2",
+           "prev": "https://api.example.com/items?page=1"
+       }
+   }
+   ```
+   ```json
+   {
+       "next_page_url": "https://api.example.com/items?page=2",
+       "prev_page_url": "https://api.example.com/items?page=1"
+   }
+   ```
+   ```json
+   {
+       "pagination": {
+           "more_items": true,
+           "next_cursor": "dXNlcjpXMDdRQ1JQQTQ="
+       }
+   }
+   ```
+
+3. **Count-based Detection**
+   The system analyzes:
+   - Result count versus specified limits
+   - Total items versus received items
+   - Collection size patterns
+   
+   Example:
+   ```json
+   {
+       "meta": {
+           "total": 150,
+           "per_page": 50
+       },
+       "data": [ /* 50 items */ ]
+   }
+   ```
+   Here, the system detects pagination because:
+   - Total (150) > received items (50)
+   - Received items matches per_page limit
+   - Collection size suggests more pages
+
+4. **Response Structure Analysis**
+   - Detects standard REST pagination patterns
+   - Identifies cursor-based pagination markers
+   - Recognizes offset/limit patterns
+
+#### Automatic Handling
+
+When pagination is detected, Open Connector:
+1. Determines the appropriate pagination type
+2. Automatically fetches subsequent pages
+3. Handles rate limiting between requests
+4. Merges results maintaining order
+5. Removes potential duplicates
+6. Provides progress updates
+7. Manages memory efficiently
+
+#### Error Handling During Pagination
+
+The system implements robust error handling:
+1. Retries failed page requests
+2. Maintains partial results on failures
+3. Provides detailed error reporting
+4. Implements backoff strategies
+5. Preserves successfully retrieved data

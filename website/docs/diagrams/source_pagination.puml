@@ -1,0 +1,115 @@
+@startuml
+title Pagination Detection and Handling
+footer: Open Connector
+header: Open Connector
+
+participant "Application" as App
+participant "CallService" as CS
+participant "PaginationHandler" as PH
+participant "Source" as S
+participant "External API" as API
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+note over App, API
+  Open Connector automatically detects pagination through:
+  1. Configuration-based detection
+  2. Response pattern detection
+  3. Result count analysis
+endnote
+
+App -> CS: call(source, endpoint, method, config)
+activate CS
+
+CS -> S: validate()
+note right of S
+  Validates source configuration:
+  - Enabled status
+  - API location
+  - Authentication
+endnote
+
+CS -> API: Initial HTTP Request
+API --> CS: First Page Response
+
+CS -> PH: detectPagination(response)
+activate PH
+
+note right of PH
+  Checks for pagination indicators:
+  1. Configured paths (meta.total, etc.)
+  2. Common patterns (next, _links)
+  3. Result count vs total items
+endnote
+
+alt Configuration-based Detection
+    PH -> PH: checkConfiguredPaths()
+    note right
+      Looks for pagination info at
+      configured paths in response
+    endnote
+else Pattern-based Detection
+    PH -> PH: checkCommonPatterns()
+    note right
+      Searches for common pagination
+      patterns like:
+      - next/previous links
+      - _links.next
+      - meta.pagination
+    endnote
+else Count-based Detection
+    PH -> PH: analyzeResultCount()
+    note right
+      Compares:
+      - Result count vs limit
+      - Total items vs received
+      - Collection size patterns
+    endnote
+end
+
+PH --> CS: PaginationInfo
+deactivate PH
+
+alt Pagination Detected
+    loop Until All Pages Retrieved
+        CS -> API: Request Next Page
+        note right
+          Automatically adjusts:
+          - Page/offset parameters
+          - Cursor values
+          - Limit/size settings
+        endnote
+        API --> CS: Page Response
+        CS -> CS: mergeResults()
+    end
+end
+
+CS -> CS: processResults()
+note right
+  - Combines all pages
+  - Removes duplicates
+  - Orders results
+  - Handles errors
+endnote
+
+CS --> App: Complete Result Set
+deactivate CS
+
+note over App, API
+  Automatic Pagination Detection:
+  1. Configured Paths:
+     - meta.total
+     - meta.pages
+     - pagination.next
+  2. Common Patterns:
+     - _links.next
+     - next_page_url
+     - hasMore flag
+  3. Count Analysis:
+     - results.length vs total
+     - limit/offset patterns
+     - collection size consistency
+endnote
+
+@enduml
