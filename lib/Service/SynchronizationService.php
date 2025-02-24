@@ -1123,13 +1123,8 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
-	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false, ?bool $usesNextEndpoint = false): array
+	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false, ?bool $usesNextEndpoint = null): array
 	{
-		// Update pagination configuration for the current page
-		if ($usesNextEndpoint === false) {
-			$config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
-		}
-
 		// Make the API call
 		$callLog = $this->callService->call(source: $source, endpoint: $endpoint, config: $config);
 		$response = $callLog->getResponse();
@@ -1165,48 +1160,61 @@ class SynchronizationService
 
 		// Process the current page
 		$objects = $this->getAllObjectsFromArray(array: $result, synchronization: $synchronization);
-		
+
 		// If test mode is enabled, return only the first object
 		if ($isTest === true) {
 			return [$objects[0]] ?? [];
 		}
 
-		// if the results was xml no pagination is possible
+		// If the results were XML, no pagination is possible
 		if (isset($xml) && $xml !== false) {
 			return $objects;
 		}
-
 
 		// Increment the current page and update synchronization
 		$currentPage++;
 		$synchronization->setCurrentPage($currentPage);
 		$this->synchronizationMapper->update($synchronization);
 
-		$nextEndpoint = null;
-		$newNextEndpoint = $this->getNextEndpoint(body: $result, url: $source->getLocation());
-		if ($newNextEndpoint !== $endpoint) {
+		$nextEndpoint = $endpoint;
+		$newNextEndpoint = null;
+		if ($usesNextEndpoint !== false) {
+			$newNextEndpoint = $this->getNextEndpoint(body: $result, url: $source->getLocation());
+		}
+		// Check if the new next endpoint is not the same as before
+		// else use pagination
+		if ($newNextEndpoint !== null && $newNextEndpoint !== $endpoint) {
 			$nextEndpoint = $newNextEndpoint;
+			$usesNextEndpoint = true;
+		} elseif ($newNextEndpoint === null) {
+			$usesNextEndpoint = false;
+			$config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
 		}
 
-		// Check if there's a next page
-		if ($nextEndpoint !== null) {
-			// Recursively fetch the next pages
-			$objects = array_merge(
-				$objects,
-				$this->fetchAllPages(
-					source: $source,
-					endpoint: $nextEndpoint,
-					config: $config,
-					synchronization: $synchronization,
-					currentPage: $currentPage,
-					isTest: $isTest,
-					usesNextEndpoint: true
-				)
-			);
+		// If no new next endpoint or its the same as last request, or we dotn use next endpoints and fetched a empty result, return and dont iterate further
+		if (($usesNextEndpoint === true && ($newNextEndpoint === null || $newNextEndpoint === $endpoint)) || ($usesNextEndpoint === false && ($objects === null || empty($objects) === true))) {
+			return $objects;
 		}
+
+
+		// If we have a next endpoint we fetch that page
+		// or if we have had results this iteration, we will try to fetch another page
+		$objects = array_merge(
+			$objects,
+			$this->fetchAllPages(
+				source: $source,
+				endpoint: $nextEndpoint,
+				config: $config,
+				synchronization: $synchronization,
+				currentPage: $currentPage,
+				isTest: $isTest,
+				usesNextEndpoint: $usesNextEndpoint
+			)
+		);
 
 		return $objects;
 	}
+
 
 	/**
 	 * Checks if the source has exceeded its rate limit and throws an exception if true.
