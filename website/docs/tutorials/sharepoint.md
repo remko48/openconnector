@@ -3,10 +3,10 @@ sidebar_position: 1
 title: SharePoint Integration
 description: Learn how to integrate SharePoint with OpenConnector for WOO document publication
 tags:
-  - sharepoint
-  - woo
-  - tutorial
-  - integration
+    - sharepoint
+    - woo
+    - tutorial
+    - integration
 ---
 
 # SharePoint Integration with OpenConnector
@@ -19,34 +19,33 @@ In the context of Open Data and specifically the Dutch WOO (Wet Open Overheid - 
 
 ## Example: WOO Documents Publication Flow
 
-Let's walk through how OpenConnector can automatically publish WOO documents from SharePoint to Open Catalogi:
+OpenConnector automates the publication of WOO documents from SharePoint to Open Catalogi through the following steps:
 
-1. **SharePoint Connection Setup**
-   - Configure OpenConnector with your SharePoint endpoint URL
-   - Set up certificate-based authentication using your organization's certificates
-   - Establish secure connection parameters
+1. **Configuring SharePoint Access (Microsoft Entra Setup)**
+	- Register an application in Microsoft Entra.
+	- Assign API permissions for SharePoint.
+	- Upload and configure certificate-based authentication.
 
-2. **Folder Structure Navigation**
-   - OpenConnector systematically traverses through SharePoint folders
-   - Identifies folders containing WOO documents
-   - Reads metadata from folder labels and properties
+2. **Establishing a Connection in OpenConnector**
+	- Set up SharePoint as a source in OpenConnector.
+	- Define authentication settings and API endpoints.
+	- Validate connection through test requests.
 
-3. **Publication Creation in Open Register**
-   - For each SharePoint folder:
-     - Creates a new publication object in Open Register
-     - Maps SharePoint folder metadata to publication properties
-     - Sets appropriate WOO categories and classifications
-     - Establishes publication dates and visibility settings
+3. **Navigating the Folder Structure in SharePoint**
+	- OpenConnector scans designated SharePoint folders for WOO documents.
+	- Reads metadata and identifies publication-ready content.
 
-4. **Document Synchronization**
-   - Automatically syncs all documents from SharePoint folders
-   - Maintains file integrity and metadata
-   - Updates documents when source files change
-   - Preserves version history and audit trail
+4. **Publishing to Open Register**
+	- Maps SharePoint metadata to Open Register properties.
+	- Assigns WOO classifications, publication dates, and visibility settings.
 
-This automated flow ensures that WOO documents are consistently and accurately published while maintaining security and compliance requirements.
+5. **Synchronizing Documents**
+	- Automatically syncs SharePoint documents with OpenCatalogi.
+	- Maintains version history and updates files upon changes.
 
-## How to configure SharePoint authentication
+This automated workflow ensures consistent, secure, and compliant publication of WOO documents.
+
+## Setting Up SharePoint Authentication
 
 ### Prerequisites
 - A Microsoft SharePoint instance managed with Microsoft Entra.
@@ -54,161 +53,116 @@ This automated flow ensures that WOO documents are consistently and accurately p
 - A valid X.509 certificate and the private key.
 - A Linux command line (or Git Bash on Windows) for generating values later in the process.
 
-### Setting up Microsoft Entra
+### Configuring Microsoft Entra
 
-#### Create an app
-First, we need to create an app registration in Microsoft Entra under ‘Identity’ → ‘Applications’ → ‘App registrations’. Give your app registration an appropriate name
+#### Step 1: Register an Application
+1. Navigate to **Identity → Applications → App registrations**.
+2. Create a new application and assign a name.
 
-![](images/Entra_AppRegistration.png)
+   ![Entra App Registration](images/Entra_AppRegistration.png)
 
-This app registration needs API permissions for Sharepoint. We recommend this to limit this to AllSites.Read and Sites.Read.All.
+#### Step 2: Assign SharePoint API Permissions
+1. Under the **API Permissions** tab, click ‘Add permissions’.
 
-Permissions are managed under the tab ‘API Permissions’. Click ‘Add’ and in the overlay click ‘Sharepoint’, ‘Application permissions’, and check the checkbox for ‘Sites.Read.All’, and click ‘Delegated permissions’, and check the checkbox ‘AllSites.Read’. Sites.
+   ![Entra Add Permission 1](images/Entra_AddPermission_1.png)
 
-![](images/Entra_AddPermission_1.png)
+   ![Entra Add Permission 2](images/Entra_AddPermission_2.png)
 
-![](images/Entra_AddPermission_2.png)
+2. Click **Delegated permissions** and enable:
+	- `AllSites.Read`
 
-![](images/Entra_AddPermission_3.png)
+   ![Entra Add Permission 3](images/Entra_AddPermission_3.png)
 
-![](images/Entra_AddPermission_4.png)
+3. Select **SharePoint → Application permissions** and enable:
+	- `Sites.Read.All`
 
-Then, press the button ‘Grant admin consent for {organization}’, or ask an Entra admin to grant this consent.
+   ![Entra Add Permission 4](images/Entra_AddPermission_4.png)
 
-![](images/Entra_GrantConsent.png)
+4. Click **Grant admin consent** to finalize.
 
-#### Add Certificate
-![](images/Entra_UploadCertificate.png)
+   ![Entra Grant Consent](images/Entra_GrantConsent.png)
 
-Now, click the ‘Certificates & secrets’ tab in your app registration, then go to the ‘Certificates’ tab in the screen that is opened and click ‘Upload certificate’. Upload the public certificate (.crt or .pem) and press ‘add’.
-The certificate will show up in the list now.
+#### Step 3: Upload Certificate for Authentication
+1. Go to the **Certificates & secrets** tab.
+2. Under **Certificates**, click **Upload certificate**.
+3. Upload the public certificate (`.crt` or `.pem`).
 
-![](images/Entra_CertificateThumbprint.png)
+   ![Entra Upload Certificate](images/Entra_UploadCertificate.png)
 
-Later on, we will need the thumbprint of the certificate, so keep this screen open, or copy it and store it for the time being.
+4. Save the certificate thumbprint for later use.
 
-### Setting up a source
-![](images/OpenConnector_AddSource.png)
+   ![Entra Certificate Thumbprint](images/Entra_CertificateThumbprint.png)
 
-Next, we need to set up the source in OpenConnector. Open your Nextcloud instance and go to OpenConnector, click sources and click the ‘Add source’ button.
+### Configuring OpenConnector as a SharePoint Source
 
-In the next modal, add a name, description and the location of SharePoint (usually https://{tenant}.sharepoint.com/_api), and set Type to API.
-Set up the source authentication
-Now, click the ‘Authentication’ tab in the new source, and click ‘add Authentication’ in the ‘Actions’ menu.
-Add the key grant_type with value client_credentials and click ‘Save’. Repeat this step for the following values (grant type is added again for reference, italic values can be copied without editing):
+#### Step 1: Add a Source in OpenConnector
+1. Open Nextcloud and navigate to OpenConnector.
+2. Click **Sources → Add source**.
+3. Provide the name, description, and SharePoint URL (e.g., `https://{tenant}.sharepoint.com/_api`).
+4. Set **Type** to API.
 
-| Key                   | Value                                                                                                                                                                                                                                    | Note                                                                                                                             |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| grant_type            | _client_credentials_                                                                                                                                                                                                                     |                                                                                                                                  |
-| scope                 | `https://{sharepoint url}/.default`                                                                                                                                                                                                      | See above for the default URL                                                                                                    |
-| authentication        | _body_                                                                                                                                                                                                                                   |                                                                                                                                  |
-| client_id             | the client ID of the app registration                                                                                                                                                                                                    | See ‘Obtain client and tenant id’                                                                                                |
-| client_secret         | Empty string, due to OAuth boundaries this is a mandatory key                                                                                                                                                                            |                                                                                                                                  | 
-| client_assertion_type | _urn:ietf:params:oauth:client-assertion-type:jwt-bearer_                                                                                                                                                                                 |                                                                                                                                  |
-| private_key           | The base64 encoded private key of the certificate                                                                                                                                                                                        | Highly recommended using a secret manager for storing the private key.                                                           |
-| x5t                   | The sha1 of the thumbprint                                                                                                                                                                                                               | See ‘Obtain x5t value’                                                                                                           |
-| payload               | ```{"aud": "{tokenUrl}","exp": {{ 'now'\|date_modify('+15 minutes')\|date('U') }},"iss": "{client_id}","jti":"dfdaa67d-d76e-48c4-a349-58861983869e","nbf": {{ 'now'\|date('U') }},"sub": "{client_id}","iat": {{ 'now'\|date('U') }}}``` | Replace `{tokenUrl}` by the same value as ‘tokenUrl’ (see below) and `{client_id}` by the same value as ‘client_id’ (see above)  |
-| tokenUrl              | `https://login.microsoftonline.com/{microsoft tenant id}/oauth2/v2.0/token`                                                                                                                                                              | Replace {microsoft tenant id} by your Microsoft Tenant ID (see ‘Obtain client and tenant id’)                                    |
+   ![Add Source](images/OpenConnector_AddSource.png)
 
+#### Step 2: Set Up Authentication
+1. Navigate to the **Authentication** tab and click **Add Authentication**.
+2. Enter the following key-value pairs (italic values can be copied without editing):
 
-#### Obtain client and tenant ID
-![](images/Entra_ClientId.png)
+| Key                   | Value                                                                                                                                                                                                                                | Note                                                                                                                |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| grant_type            | *client_credentials*                                                                                                                                                                                                                 |                                                                                                                     |
+| scope                 | `https://{sharepoint_url}/.default`                                                                                                                                                                                                  | See above for the default URL                                                                                       |
+| authentication        | *body*                                                                                                                                                                                                                               |                                                                                                                     |
+| client_id             | (The client ID of the app registration)                                                                                                                                                                                              | See ‘Obtain client and tenant ID’                                                                                   |
+| client_secret         | (Empty string)                                                                                                                                                                                                                       | Due to OAuth boundaries, this is a mandatory key but should be left empty                                           |
+| client_assertion_type | *urn:ietf:params:oauth:client-assertion-type:jwt-bearer*                                                                                                                                                                             |                                                                                                                     |
+| private_key           | (Base64 encoded private key of the certificate)                                                                                                                                                                                      | Highly recommended to use a secret manager for storing the private key                                              |
+| x5t                   | (SHA1 thumbprint of the certificate)                                                                                                                                                                                                 | See ‘Obtain x5t value’                                                                                              |
+| payload               | `{"aud": "{tokenUrl}","exp": {{ 'now'\|date_modify('+15 minutes')\|date('U') }},"iss": "{client_id}","jti":"dfdaa67d-d76e-48c4-a349-58861983869e","nbf": {{ 'now'\|date('U') }},"sub": "{client_id}","iat": {{ 'now'\|date('U') }}}` | Replace `{tokenUrl}` with the same value as ‘tokenUrl’ (see below) and `{client_id}` with the client_id (see above) |
+| tokenUrl              | `https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token`                                                                                                                                                                    | Replace `{tenant_id}` with your Microsoft Tenant ID (see ‘Obtain client and tenant ID’)                             |
 
-As seen in the table above, there are two locations where the client ID has to be inserted into the source, and likewise two locations where the Tenant ID must be inserted (both times in the token URL).
+#### Step 3: Configure Headers
+1. In **Configurations**, add:
+	- `headers.Authorization` → `Bearer {{ oauthToken(source) }}`
+	- `headers.Accept` → `application/json;odata=verbose`
 
-The client ID can be obtained from the Microsoft Entra dashboard by clicking on ‘Overview’ in the App registration, and copying the value ‘Application (client) ID’ in essentials.
+#### Step 4: Test the Source
+1. Click **Test** and enter the endpoint `/Web/lists`.
+2. A successful response (`Status:
 
-The Tenant ID can be found in the same list, as ‘Directory (tenant) ID’
+## Configuring SharePoint for WOO Document Storage
 
-#### Obtain x5t value
-The x5t value is an encoded version of the SHA1 thumbprint we obtained in the Add certificate section.
-To encode this value we can use the command line.
+To enable WOO publications, SharePoint must be structured appropriately.
 
-In a linux (or git bash) command line we need the following command:
-```bash
-echo '{thumbprint}' | xxd -r -p | base64
-```
+### Setting Up a Publication Folder
 
-The resulting string we can enter into the x5d value.
+Each publication is stored as a separate folder inside a designated parent directory.
 
-#### Set configuration fields
-![](images/OpenConnector_Configurations.png)
-
-Now that we have the authentication values, we can set the configuration fields.
-We click the tab ‘Configurations’ and in the Actions menu select ‘add configuration’.
-Here we need to fill two fields. The first field to fill is `headers.Authorization`, with the value `Bearer {{ oauthToken(source) }}`, and the other one is `headers.Accept` with value `application\/json;odata=verbose`.
-
-### Test the source
-Now we should be done setting up the source, we can now click ‘Test’ in the Actions menu. In the field ‘endpoint’ we enter ‘/Web/lists’ and press ‘Test connection’. If the response gives a successful response (Status: OK (200)), the source is configured correctly.
-
-
-## How to configure SharePoint for Woo
-
-SharePoint can be used as a source for publishing Woo requests and decisions. To enable this, a specific folder must be set up where publications are stored. Access to these publications can then be obtained via an endpoint.
-
-### Structure of the Publication Folders
-
-Each publication is represented by a separate folder within the main publication directory. All associated documents and attachments are stored within this folder.
-
-That would result in a API endpoint which can be used retrieve publications: `/_api/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Woo-verzoeken en -besluiten')/folders`
-It is recommended to store all publications in one central folder. (you dont have to make separate folders for each Woo category as in the example, just put them all in one big folder)
-![Overzicht categorie folders](./images/overzicht-categorie-folders.png)
+Example API endpoint for retrieving publications: `/_api/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Woo-verzoeken en -besluiten')/folders`
 
 
-One folder in the big parent folder represents one publication.
+**Folder structure:**
 
-![Overzicht woo verzoeken](./images/overzicht-woo-verzoeken.png)
+![Category Folder Structure](images/overzicht-categorie-folders.png)
 
-Where within you can store the documents belonging to the publication.
+Each folder within the parent directory represents a single publication:
 
-![Voorbeeld publicatie](./images/voorbeeld-publicatie.png)
+![Publication Example](images/overzicht-woo-verzoeken.png)
 
 ### Configuring Metadata in SharePoint
 
-To properly manage and structure publications, SharePoint must be configured to allow metadata to be added per publication folder. This ensures that publications comply with the requirements of [OpenWOO](https://openwoo.app/Techniek/Configuratie/).
+To ensure compliance with OpenWOO, metadata fields must be configured in SharePoint.
 
+1. Navigate to **Library settings** → **More settings**.
+2. Enable **Enterprise Metadata and Keywords**.
+3. Create metadata columns matching OpenWOO fields.
 
-Open settings.
+![Enable Metadata](images/turn-on-metadata.png)
 
-![Go to settings](./images/go-to-settings.png)
+#### Updating Metadata
+1. Open the document library and locate the publication folder.
+2. Click **Grid edit** to modify metadata.
+3. Save changes by clicking **Exit grid**.
 
-View library settings.
+![Edit Grid](images/edit-grid.png)
 
-![Go to library settings](./images/go-to-library-settings.png)
-
-Go to more library settings.
-
-![More library settings](./images/more-library-settings.png)
-
-Navigate to Enterprise Metadata and Keywords settings.
-
-![Go to enterprise settings](./images/go-to-enterprise-settings.png)
-
-Enable the Enterprise Keywords option and press OK.
-
-![Turn on metadata](./images/turn-on-metadata.png)
-
-Create a column for each configuration field from [OpenWOO](https://openwoo.app/Techniek/Configuratie/).
-
-![Create column](./images/create-column.png)
-
-Here you can configure the columns, make sure to enable default view.
-
-![Column config](./images/column-config.png)
-
-Example of minimal configuration.
-
-![Minimum columns](./images/minimum-columns.png)
-
-Example of an extended configuration including all optional fields.
-
-![All columns](./images/all-columns.png)
-
-### Modifying publication metadata
-
-To update the metadata of a publication:
-1. Open the document library and view the publications folder.
-2. Click on Grid edit to enter or modify metadata.
-3. After entering the data, click Exit grid in the upper-left corner to save the changes.
-
-![Edit grid](./images/edit-grid.png)
+By correctly setting up SharePoint metadata, OpenConnector can efficiently process and publish WOO documents.
