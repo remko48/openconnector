@@ -236,6 +236,8 @@ class SynchronizationService
 		// Delete invalid objects
 		if ($isTest === false) {
 			$result['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
+		} else {
+			$result['objects']['deleted'] = 0;
 		}
 
 		// @todo: refactor to actions
