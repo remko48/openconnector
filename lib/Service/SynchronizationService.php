@@ -1176,15 +1176,21 @@ class SynchronizationService
 
 		$nextEndpoint = $endpoint;
 		$newNextEndpoint = null;
+
+		if (array_key_exists('next', $result) && $usesNextEndpoint === null) {
+			$usesNextEndpoint = true;
+		}
+
 		if ($usesNextEndpoint !== false) {
 			$newNextEndpoint = $this->getNextEndpoint(body: $result, url: $source->getLocation());
 		}
+
 		// Check if the new next endpoint is not the same as before
 		// else use pagination
 		if ($newNextEndpoint !== null && $newNextEndpoint !== $endpoint) {
 			$nextEndpoint = $newNextEndpoint;
 			$usesNextEndpoint = true;
-		} elseif ($newNextEndpoint === null) {
+		} elseif ($newNextEndpoint === null && $usesNextEndpoint !== true) {
 			$usesNextEndpoint = false;
 			$config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
 		}
