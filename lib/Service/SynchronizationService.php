@@ -172,6 +172,8 @@ class SynchronizationService
 		// Update found objects count while preserving other result properties
 		$result['objects']['found'] = count($objectList);
 
+		$synchronizedTargetIds = [];
+
 		foreach ($objectList as $key => $object) {
 			// We can only deal with arrays (bassed on the source empty values or string might be returned)
 			if (is_array($object) === false) {
