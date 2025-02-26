@@ -234,12 +234,10 @@ class SynchronizationService
 		}
 
 		// Delete invalid objects
-		if($isTest === false) {
+		if ($isTest === false) {
 			$result['objects']['deleted'] = $this->deleteInvalidObjects(synchronization: $synchronization, synchronizedTargetIds: $synchronizedTargetIds);
-		}
-		else {
-			// In test mode we don't delete objects, so we guess the deleted count by subtracting the invalid, sjipped, updated and created count form the found count
-			$result['objects']['deleted'] = $log['result']['objects']['found'] - $log['result']['objects']['invalid'] - $log['result']['objects']['skipped'] - $log['result']['objects']['updated'] - $log['result']['objects']['created'];
+		} else {
+			$result['objects']['deleted'] = 0;
 		}
 
 		// @todo: refactor to actions
@@ -1178,15 +1176,21 @@ class SynchronizationService
 
 		$nextEndpoint = $endpoint;
 		$newNextEndpoint = null;
+
+		if (array_key_exists('next', $result) && $usesNextEndpoint === null) {
+			$usesNextEndpoint = true;
+		}
+
 		if ($usesNextEndpoint !== false) {
 			$newNextEndpoint = $this->getNextEndpoint(body: $result, url: $source->getLocation());
 		}
+
 		// Check if the new next endpoint is not the same as before
 		// else use pagination
 		if ($newNextEndpoint !== null && $newNextEndpoint !== $endpoint) {
 			$nextEndpoint = $newNextEndpoint;
 			$usesNextEndpoint = true;
-		} elseif ($newNextEndpoint === null) {
+		} elseif ($newNextEndpoint === null && $usesNextEndpoint !== true) {
 			$usesNextEndpoint = false;
 			$config = $this->getNextPage(config: $config, sourceConfig: $synchronization->getSourceConfig(), currentPage: $currentPage);
 		}
