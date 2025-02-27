@@ -162,6 +162,19 @@ Now we should be done setting up the source.
 
 SharePoint can be used as a source for publishing Woo requests and decisions. For this to work SharePoint must be structured appropriately.
 
+### Creating a SharePoint Site
+
+In order to store documents and acces them with api calls you first need to create a site in SharePoint. Follow these steps to create your SharePoint site:
+
+1. **Access SharePoint**: Sign in to your Microsoft 365 account, click the App Launcher (grid icon) in the top-left corner, and select "SharePoint."
+2. **Initiate Site Creation**: On the SharePoint homepage, click "+ Create site."
+3. **Select a Template**: Choose a Communication Site with a standard template.
+4. **Configure Site Details & Finalize Creation**: Enter a name, a description and select a language and click on finish.
+
+Now you have configured a SharePoint site where you can add and manage documents.
+
+![Create Site](images/SharePoint_CreateSite.png)
+
 ### Structure of the Publication Folders
 
 Each publication is represented by a separate folder within the main publication directory. All associated documents and attachments are stored within this folder.
@@ -224,3 +237,30 @@ To update the metadata of a publication:
 3. Save changes by clicking **Exit grid** in the upper-left corner.
 
 ![Edit Grid](images/edit-grid.png)
+
+## Configuring a SharePoint Synchronization in OpenConnector
+
+Now we can set up the Synchronization in OpenConnector.
+
+### Step 1: Add Synchronization Mapping in OpenConnector
+
+to do
+
+### Step 2: Add a Synchronization in OpenConnector
+
+...connect mapping...
+
+...Publication Schema should be set up correctly (add link to WOO docu for this)...
+
+to do
+
+### Step 3: Set Up SourceConfig
+
+to do
+
+### Step 4: Test the Synchronization
+
+Now we should be done setting up the Synchronization.
+
+1. Click **Test** in the Actions menu.
+2. to do
