@@ -17,6 +17,12 @@ SharePoint is Microsoft's document management and collaboration platform that al
 
 In the context of Open Data and specifically the Dutch WOO (Wet Open Overheid - Open Government Act), organizations need to make certain documents publicly accessible. However, these documents often reside in internal SharePoint environments. OpenConnector provides a seamless solution to bridge this gap.
 
+## Prerequisites
+- A Microsoft SharePoint instance managed with Microsoft Entra.
+- A Nextcloud instance with OpenConnector installed.
+- A valid X.509 certificate and the private key.
+- A Linux command line (or Git Bash on Windows) for generating values later in the process.
+
 ## Example: WOO Documents Publication Flow
 
 OpenConnector automates the publication of WOO documents from SharePoint to Open Catalogi through the following steps:
@@ -45,13 +51,7 @@ OpenConnector automates the publication of WOO documents from SharePoint to Open
 
 This automated workflow ensures consistent, secure, and compliant publication of WOO documents.
 
-## Setting Up SharePoint Authentication
-
-### Prerequisites
-- A Microsoft SharePoint instance managed with Microsoft Entra.
-- A Nextcloud instance with OpenConnector installed.
-- A valid X.509 certificate and the private key.
-- A Linux command line (or Git Bash on Windows) for generating values later in the process.
+## Configuring SharePoint Access (Microsoft Entra Setup)
 
 ### Configuring Microsoft Entra
 
@@ -93,7 +93,9 @@ This automated workflow ensures consistent, secure, and compliant publication of
 
    ![Entra Certificate Thumbprint](images/Entra_CertificateThumbprint.png)
 
-### Configuring OpenConnector as a SharePoint Source
+### Configuring a SharePoint Source in OpenConnector
+
+Next, we need to set up the source in OpenConnector.
 
 #### Step 1: Add a Source in OpenConnector
 1. Open Nextcloud and navigate to OpenConnector.
@@ -107,38 +109,66 @@ This automated workflow ensures consistent, secure, and compliant publication of
 1. Navigate to the **Authentication** tab and click **Add Authentication**.
 2. Enter the following key-value pairs (italic values can be copied without editing):
 
-| Key                   | Value                                                                                                                                                                                                                                | Note                                                                                                                |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| grant_type            | *client_credentials*                                                                                                                                                                                                                 |                                                                                                                     |
-| scope                 | `https://{sharepoint_url}/.default`                                                                                                                                                                                                  | See above for the default URL                                                                                       |
-| authentication        | *body*                                                                                                                                                                                                                               |                                                                                                                     |
-| client_id             | (The client ID of the app registration)                                                                                                                                                                                              | See ‘Obtain client and tenant ID’                                                                                   |
-| client_secret         | (Empty string)                                                                                                                                                                                                                       | Due to OAuth boundaries, this is a mandatory key but should be left empty                                           |
-| client_assertion_type | *urn:ietf:params:oauth:client-assertion-type:jwt-bearer*                                                                                                                                                                             |                                                                                                                     |
-| private_key           | (Base64 encoded private key of the certificate)                                                                                                                                                                                      | Highly recommended to use a secret manager for storing the private key                                              |
-| x5t                   | (SHA1 thumbprint of the certificate)                                                                                                                                                                                                 | See ‘Obtain x5t value’                                                                                              |
-| payload               | `{"aud": "{tokenUrl}","exp": {{ 'now'\|date_modify('+15 minutes')\|date('U') }},"iss": "{client_id}","jti":"dfdaa67d-d76e-48c4-a349-58861983869e","nbf": {{ 'now'\|date('U') }},"sub": "{client_id}","iat": {{ 'now'\|date('U') }}}` | Replace `{tokenUrl}` with the same value as ‘tokenUrl’ (see below) and `{client_id}` with the client_id (see above) |
-| tokenUrl              | `https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token`                                                                                                                                                                    | Replace `{tenant_id}` with your Microsoft Tenant ID (see ‘Obtain client and tenant ID’)                             |
+| Key                   | Value                                                                                                                                                                                                                                | Note                                                                                                                        |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| grant_type            | *client_credentials*                                                                                                                                                                                                                 |                                                                                                                             |
+| scope                 | `https://{sharepoint_url}/.default`                                                                                                                                                                                                  | See above for the default URL                                                                                               |
+| authentication        | *body*                                                                                                                                                                                                                               |                                                                                                                             |
+| client_id             | (The client ID of the app registration)                                                                                                                                                                                              | See [Obtain client ID and tenant ID](#obtain-client-id-and-tenant-id)                                                       |
+| client_secret         | (Empty string)                                                                                                                                                                                                                       | Due to OAuth boundaries, this is a mandatory key but should be left empty                                                   |
+| client_assertion_type | *urn:ietf:params:oauth:client-assertion-type:jwt-bearer*                                                                                                                                                                             |                                                                                                                             |
+| private_key           | (Base64 encoded private key of the certificate)                                                                                                                                                                                      | Highly recommended to use a secret manager for storing the private key                                                      |
+| x5t                   | (SHA1 thumbprint of the certificate)                                                                                                                                                                                                 | See [Obtain x5t value](#obtain-x5t-value)                                                                                   |
+| payload               | `{"aud": "{tokenUrl}","exp": {{ 'now'\|date_modify('+15 minutes')\|date('U') }},"iss": "{client_id}","jti":"dfdaa67d-d76e-48c4-a349-58861983869e","nbf": {{ 'now'\|date('U') }},"sub": "{client_id}","iat": {{ 'now'\|date('U') }}}` | Replace `{tokenUrl}` with the same value as ‘tokenUrl’ (see below) and `{client_id}` with the client_id (see above)         |
+| tokenUrl              | `https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token`                                                                                                                                                                    | Replace `{tenant_id}` with your Microsoft Tenant ID (see [Obtain client ID and tenant ID](#obtain-client-id-and-tenant-id)) |
+
+##### <h5 style="font-size: 1.1em; color: gray; border-bottom: 2px solid black; padding-bottom: 5px;">Obtain client ID and tenant ID</h5>
+As seen in the table above in step 2 ([Set Up Authentication](#step-2-set-up-authentication)), there are two locations where the client ID has to be inserted into the source, and likewise two locations where the Tenant ID must be inserted (both times in the token URL).
+
+The client ID can be obtained from the Microsoft Entra dashboard by clicking on ‘Overview’ in the App registration, and copying the value ‘Application (client) ID’ in essentials.
+
+The Tenant ID can be found in the same list, as ‘Directory (tenant) ID’.
+
+![Entra_Client_Id](images/Entra_ClientId.png)
+
+##### <h5 style="font-size: 1.1em; color: gray; border-bottom: 2px solid black; padding-bottom: 5px;">Obtain x5t value</h5>
+The x5t value is an encoded version of the SHA1 thumbprint we obtained in the [Upload Certificate for Authentication](#step-3-upload-certificate-for-authentication) section.
+To encode this value we can use the command line.
+
+In a Linux (or Git Bash) command line, use the following command:
+
+```bash
+echo '{thumbprint}' | xxd -r -p | base64
+```
+
+The resulting string can be entered into the x5t value.
 
 #### Step 3: Configure Headers
-1. In **Configurations**, add:
+Now that we have the authentication values, we can set the configuration fields.
+1. Click the tab ‘Configurations’.
+2. In the Actions menu select ‘add configuration’ & add these two:
 	- `headers.Authorization` → `Bearer {{ oauthToken(source) }}`
 	- `headers.Accept` → `application/json;odata=verbose`
 
+![Configurations](images/OpenConnector_Configurations.png)
+
 #### Step 4: Test the Source
-1. Click **Test** and enter the endpoint `/Web/lists`.
-2. A successful response (`Status:
+Now we should be done setting up the source.
+1. Click **Test** in the Actions menu.
+2. Enter the endpoint `/Web/lists` and press 'Test connection'.
+3. A successful response (Status: OK (200)), the source is configured correctly.
 
 ## Configuring SharePoint for WOO Document Storage
 
-To enable WOO publications, SharePoint must be structured appropriately.
+SharePoint can be used as a source for publishing Woo requests and decisions. For this to work SharePoint must be structured appropriately.
 
-### Setting Up a Publication Folder
+### Structure of the Publication Folders
 
-Each publication is stored as a separate folder inside a designated parent directory.
+Each publication is represented by a separate folder within the main publication directory. All associated documents and attachments are stored within this folder.
 
 Example API endpoint for retrieving publications: `/_api/Web/GetFolderByServerRelativePath(decodedurl='/WOO/Woo-verzoeken en -besluiten')/folders`
 
+It is recommended to store all publications in one central folder. (you dont have to make separate folders for each Woo category as in the example, just put them all in one big folder)
 
 **Folder structure:**
 
@@ -148,21 +178,49 @@ Each folder within the parent directory represents a single publication:
 
 ![Publication Example](images/overzicht-woo-verzoeken.png)
 
+Where within you can store the documents that belong to this publication.
+
+![Voorbeeld publicatie](./images/voorbeeld-publicatie.png)
+
 ### Configuring Metadata in SharePoint
 
-To ensure compliance with OpenWOO, metadata fields must be configured in SharePoint.
+To ensure compliance with [OpenWOO](https://openwoo.app/Techniek/Configuratie/), metadata fields must be configured in SharePoint.
 
-1. Navigate to **Library settings** → **More settings**.
-2. Enable **Enterprise Metadata and Keywords**.
-3. Create metadata columns matching OpenWOO fields.
+1. Open settings.
 
-![Enable Metadata](images/turn-on-metadata.png)
+   ![Go to settings](./images/go-to-settings.png)
 
-#### Updating Metadata
+2. Navigate to **Library settings** → **More library settings**.
+
+   ![Go to library settings](./images/go-to-library-settings.png)
+   ![More library settings](./images/more-library-settings.png)
+
+3. Navigate to **Enterprise Metadata and Keywords settings**.
+
+   ![Go to enterprise settings](./images/go-to-enterprise-settings.png)
+
+4. Enable the Enterprise Keywords option and press OK.
+
+	![Turn on metadata](images/turn-on-metadata.png)
+
+5. Create a column for each configuration field from [OpenWOO](https://openwoo.app/Techniek/Configuratie/).
+
+   ![Create column](./images/create-column.png)
+
+6. Here you can configure the columns, make sure to enable default view.
+
+   ![Column config](./images/column-config.png)
+
+#### Example of minimal configuration.
+![Minimum columns](./images/minimum-columns.png)
+
+#### Example of an extended configuration including all optional fields.
+![All columns](./images/all-columns.png)
+
+### Modifying publication metadata
+To update the metadata of a publication:
 1. Open the document library and locate the publication folder.
 2. Click **Grid edit** to modify metadata.
-3. Save changes by clicking **Exit grid**.
+3. Save changes by clicking **Exit grid** in the upper-left corner.
 
 ![Edit Grid](images/edit-grid.png)
-
-By correctly setting up SharePoint metadata, OpenConnector can efficiently process and publish WOO documents.
