@@ -1,0 +1,27 @@
+{
+    "@context": {
+        "schema": "http:\/\/schema.org",
+        "register": "501"
+    },
+    "@type": "endpoint",
+    "@id": "https://tilburg.accept.commonground.nu/Endpoint-Robots txt.json",
+    "name": "Robots txt",
+    "description": "",
+    "reference": "https://tilburg.accept.commonground.nu/Endpoint-Robots txt.json",
+    "version": "0.0.1",
+    "endpoint": "sitemaps/robots.txt",
+    "endpointArray": [
+		"sitemaps",
+        "robots.txt"
+    ],
+    "endpointRegex": "#^sitemaps/robots.txt$#",
+    "method": "GET",
+	"targetType": "register\/schema",
+	"targetId": "1\/7",
+    "conditions": [],
+    "inputMapping": null,
+    "outputMapping": null,
+    "rules": [
+        "3"
+    ]
+}

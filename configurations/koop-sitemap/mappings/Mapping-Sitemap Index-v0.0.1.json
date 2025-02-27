@@ -1,0 +1,16 @@
+{
+    "@context": {
+        "schema": "http:\/\/schema.org",
+        "register": "501"
+    },
+    "@type": "mapping",
+    "@id": "https://tilburg.accept.commonground.nu/Mapping-Sitemap Index.json",
+    "name": "Sitemap Index",
+    "description": "",
+    "version": "",
+    "reference": "https://tilburg.accept.commonground.nu/Mapping-Sitemap Index.json",
+    "mapping": [],
+    "unset": [],
+    "cast": [],
+    "passThrough": false
+}

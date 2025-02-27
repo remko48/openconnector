@@ -1,0 +1,25 @@
+{
+    "@context": {
+        "schema": "http:\/\/schema.org",
+        "register": "501"
+    },
+    "@type": "rule",
+    "@id": "https://tilburg.accept.commonground.nu/Rule-Sitemap.json",
+    "name": "Sitemap",
+    "description": "",
+    "reference": "https://tilburg.accept.commonground.nu/Rule-Sitemap.json",
+    "version": "0.0.1",
+    "action": "post",
+    "timing": "before",
+    "conditions": {
+        "==": [
+            1,
+            1
+        ]
+    },
+    "type": "mapping",
+    "configuration": {
+        "mapping": 15
+    },
+    "order": 0
+}

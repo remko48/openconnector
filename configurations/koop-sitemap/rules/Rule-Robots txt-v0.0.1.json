@@ -1,0 +1,25 @@
+{
+    "@context": {
+        "schema": "http:\/\/schema.org",
+        "register": "501"
+    },
+    "@type": "rule",
+    "@id": "https://tilburg.accept.commonground.nu/Rule-Robots txt.json",
+    "name": "Robots txt",
+    "description": "",
+    "reference": "https://tilburg.accept.commonground.nu/Rule-Robots txt.json",
+    "version": "0.0.1",
+    "action": "get",
+    "timing": "before",
+    "conditions": {
+        "==": [
+            1,
+            1
+        ]
+    },
+    "type": "mapping",
+    "configuration": {
+        "mapping": 16
+    },
+    "order": 0
+}

@@ -1,0 +1,27 @@
+{
+    "@context": {
+        "schema": "http:\/\/schema.org",
+        "register": "501"
+    },
+    "@type": "endpoint",
+    "@id": "https://tilburg.accept.commonground.nu/Endpoint-Sitemap Index.json",
+    "name": "Sitemap Index",
+    "description": "",
+    "reference": "https://tilburg.accept.commonground.nu/Endpoint-Sitemap Index.json",
+    "version": "0.0.1",
+    "endpoint": "sitemaps/sitemapindex",
+    "endpointArray": [
+		"sitemaps",
+        "sitemapindex"
+    ],
+    "endpointRegex": "#^sitemaps/sitemapindex-diwoo-infocat-?([0-9]{3})?.xml$#",
+    "method": "GET",
+    "targetType": "register\/schema",
+    "targetId": "1\/7",
+    "conditions": [],
+    "inputMapping": null,
+    "outputMapping": null,
+    "rules": [
+        "4"
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "@context": {
+        "schema": "http:\/\/schema.org",
+        "register": "501"
+    },
+    "@type": "endpoint",
+    "@id": "https://tilburg.accept.commonground.nu/Endpoint-Sitemap.json",
+    "name": "Sitemap",
+    "description": "",
+    "reference": "https://tilburg.accept.commonground.nu/Endpoint-Sitemap.json",
+    "version": "0.0.1",
+    "endpoint": "sitemaps/sitemap",
+    "endpointArray": [
+		"sitemaps",
+        "sitemap"
+    ],
+    "endpointRegex": "#^sitemaps/sitemap/?([a-z0-9-]+)?$#",
+    "method": "GET",
+    "targetType": "register\/schema",
+    "targetId": "1\/1",
+    "conditions": [],
+    "inputMapping": null,
+    "outputMapping": null,
+    "rules": [
+        "5"
+    ]
+}
