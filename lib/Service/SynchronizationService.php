@@ -1077,6 +1077,7 @@ class SynchronizationService
 		$endpoint = $sourceConfig['endpoint'] ?? '';
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
+        $usesPagination = $sourceConfig['usesPagination'] ? filter_var($sourceConfig['usesPagination'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : true;
 		$config = ['headers' => $headers, 'query' => $query];
 
 		$currentPage = 1;
@@ -1093,7 +1094,8 @@ class SynchronizationService
 			config: $config,
 			synchronization: $synchronization,
 			currentPage: $currentPage,
-			isTest: $isTest
+			isTest: $isTest,
+            usesPagination: $usesPagination
 		);
 
 		// Reset the current page after synchronization if not a test
@@ -1123,7 +1125,7 @@ class SynchronizationService
 	 * @throws SyntaxError
 	 * @throws \OCP\DB\Exception
 	 */
-	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false, ?bool $usesNextEndpoint = null): array
+	private function fetchAllPages(Source $source, string $endpoint, array $config, Synchronization $synchronization, int $currentPage, bool $isTest = false, ?bool $usesNextEndpoint = null, ?bool $usesPagination = true): array
 	{
 		// Make the API call
 		$callLog = $this->callService->call(source: $source, endpoint: $endpoint, config: $config);
@@ -1160,6 +1162,11 @@ class SynchronizationService
 
 		// Process the current page
 		$objects = $this->getAllObjectsFromArray(array: $result, synchronization: $synchronization);
+
+        // Return objects if we dont paginate (also means we dont use next endpoint).
+        if ($usesPagination === false) {
+            return $objects;
+        }
 
 		// If test mode is enabled, return only the first object
 		if ($isTest === true) {
