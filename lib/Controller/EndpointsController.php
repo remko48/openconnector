@@ -3,12 +3,10 @@
 namespace OCA\OpenConnector\Controller;
 
 use Exception;
-use OCA\OpenConnector\Exception\AuthenticationException;
 use OCA\OpenConnector\Service\AuthorizationService;
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\EndpointService;
-use OCA\OpenConnector\Db\Endpoint;
 use OCA\OpenConnector\Db\EndpointMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -16,6 +14,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\AppFramework\Db\DoesNotExistException;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Controller for handling endpoint related operations
@@ -192,10 +191,10 @@ class EndpointsController extends Controller
 	 * @PublicPage
 	 *
 	 * @param string $_path
-	 * @return JSONResponse The response from the endpoint service or 404 if no match
+	 * @return Response The response from the endpoint service or 404 if no match
 	 * @throws Exception
 	 */
-	public function handlePath(string $_path): JSONResponse
+	public function handlePath(string $_path): JSONResponse|Response
 	{
 		// Find matching endpoints for the given path and method
 		$matchingEndpoints = $this->endpointMapper->findByPathRegex(

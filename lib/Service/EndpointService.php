@@ -11,19 +11,9 @@ use OC\AppFramework\Http\RequestId;
 use OC\Config;
 use OC\Security\SecureRandom;
 use OCA\OpenConnector\Db\EndpointMapper;
-use OCA\OpenConnector\Db\SourceMapper;
 use OCA\OpenConnector\Exception\AuthenticationException;
-use OCA\OpenConnector\Service\AuthenticationService;
-use OCA\OpenConnector\Service\MappingService;
-use OCA\OpenConnector\Service\ObjectService;
-use OCA\OpenConnector\Service\CallService;
-use OCA\OpenConnector\Db\Source;
 use OCA\OpenConnector\Db\Endpoint;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\ServerException;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\AppFramework\Db\Entity;
@@ -37,6 +27,8 @@ use OCP\IURLGenerator;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
 use Symfony\Component\Uid\Uuid;
@@ -86,11 +78,17 @@ class EndpointService
 	 * @param IRequest $request The incoming request object
 	 * @param string $path The specific path or sub-route being requested
 	 *
-	 * @return JSONResponse Response containing the result
+	 * @return JSONResponse|Response Response containing the result
 	 * @throws Exception When endpoint configuration is invalid
+	 * @throws ContainerExceptionInterface
+	 * @throws GuzzleException
+	 * @throws NotFoundExceptionInterface
 	 */
-	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
+	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse|Response
 	{
+		// Get the "Accept" header
+		$acceptHeader = $request->getHeader('Accept');
+
 		$errors = $this->checkConditions($endpoint, $request);
 
 		if ($errors !== []) {
@@ -132,6 +130,26 @@ class EndpointService
                     timing: 'after',
                     objectId: $result->getData()['id'] ?? null
                 );
+
+				// Check if the client explicitly requests XML
+				if ($acceptHeader === 'application/xml') {
+					$xmlEncoder = new XmlEncoder(['xml_root_node_name' => 'sitemapindex']);
+					$xml        = ['@xmlns' => 'http://www.sitemaps.org/schemas/sitemap/0.9'];
+
+					$content = array_merge($xml, $result);
+
+					$contentString = $xmlEncoder->encode($content, 'xml', ['xml_encoding' => 'utf-8', 'remove_empty_tags' => true]);
+
+					// Remove CDATA
+					$contentString = str_replace(["<![CDATA[", "]]>"], "", $contentString);
+
+					$contentType = "application/xml";
+					if (isset($this->data['headers']['Accept']) === true) {
+						$contentType = $this->data['headers']['Accept'];
+					}
+var_dump($contentString);
+					return new Response($contentString, 200, ['Content-Type' => $contentType]);
+				}
 
                 return new JSONResponse($result, 200);
 			}

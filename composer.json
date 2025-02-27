@@ -36,6 +36,7 @@
 		"guzzlehttp/guzzle": "^7.0",
 		"jwadhams/json-logic-php": "^1.5",
 		"symfony/console": "^5.4",
+		"symfony/serializer": "^6.4",
 		"symfony/uid": "^6.4",
 		"symfony/yaml": "^6.4",
 		"twig/twig": "^3.14",
