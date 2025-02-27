@@ -1077,8 +1077,11 @@ class SynchronizationService
 		$endpoint = $sourceConfig['endpoint'] ?? '';
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
-        $usesPagination = $sourceConfig['usesPagination'] ? filter_var($sourceConfig['usesPagination'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : true;
-		$config = ['headers' => $headers, 'query' => $query];
+        $usesPagination = true;
+        if (isset($sourceConfig['usesPagination']) === true) {
+            $usesPagination = filter_var($sourceConfig['usesPagination'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        }
+        $config = ['headers' => $headers, 'query' => $query];
 
 		$currentPage = 1;
 
