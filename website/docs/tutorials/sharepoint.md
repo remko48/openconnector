@@ -244,21 +244,51 @@ Now we can set up the Synchronization in OpenConnector.
 
 ### Step 1: Add Synchronization Mapping in OpenConnector
 
-to do
+Go to [this link](https://github.com/ConductionNL/openconnector/blob/main/configurations/sharepoint-woo/mappings/sharepoint-woo-verzoek-to-publications.json) and download the file.
+![Download mapping](images/download-mapping.png)
+
+Go to the mappings page. 
+![Go to mappings page](images/go-to-mappings-page.png)
+
+Upload the downloaded file.
+![Small add mapping menu](images/small-add-mapping-menu.png)
+
+Choose the just download mapping file here and press import.
+![Add file](images/add-file.png)
+
 
 ### Step 2: Add a Synchronization in OpenConnector
 
-...connect mapping...
+Go to [this link](https://github.com/ConductionNL/openconnector/blob/main/configurations/sharepoint-woo/synchronizations/sharepoint-publications.json) and download the file.
+![Download synchronization](images/download-synchronization.png)
 
-...Publication Schema should be set up correctly (add link to WOO docu for this)...
+Go to the synchronizations page and choose the import option.
+![Import sync menu](images/import-sync-menu.png)
 
-to do
+Import the just downloaded file.
+![import-synchronization](images/import-synchronization.png)
 
-### Step 3: Set Up SourceConfig
+Check in the sourceConfig tab of the just added synchronization if the following configuration is added:
+| Key                                                   | Value                                                              |
+|-------------------------------------------------------|--------------------------------------------------------------------|
+| idPosition                                           | UniqueId                                                          |
+| resultsPosition                                      | d.results                                                         |
+| endpoint                                            | /Web/GetFolderByServerRelativePath(decodedurl='/WOO/Publications')/folders |
+| extraDataConfigs.0.dynamicEndpointLocation         | Properties.__deferred.uri                                         |
+| extraDataConfigs.0.mergeExtraData                   | true                                                              |
+| extraDataConfigs.1.dynamicEndpointLocation         | Files.__deferred.uri                                              |
+| extraDataConfigs.1.mergeExtraData                   | true                                                              |
+| extraDataConfigs.1.keyToSetExtraData               | fileUrls                                                          |
+| extraDataConfigs.1.resultsLocation                 | d.results                                                         |
+| extraDataConfigs.1.extraDataConfigPerResult.dynamicEndpointLocation | Properties.__deferred.uri                          |
+| extraDataConfigs.1.extraDataConfigPerResult.mergeExtraData | true                                              |
+| usesPagination                                      | false                                                             |
 
-to do
+![Source config](images/source-config.png)
 
-### Step 4: Test the Synchronization
+
+
+### Step 3: Test the Synchronization
 
 Now we should be done setting up the Synchronization.
 
