@@ -256,8 +256,10 @@ Upload the downloaded file.
 Choose the just download mapping file here and press import.
 ![Add file](images/add-file.png)
 
+Make sure to add or edit the publicationType and catalog keys to the rights id's from OpenCatalogi
+![Edit catalog and publicationType](images/edit-catalog-and-publication-type.png)
 
-### Step 2: Add a Synchronization in OpenConnector
+### Step 2: Add Synchronization config in OpenConnector
 
 Go to [this link](https://github.com/ConductionNL/openconnector/blob/main/configurations/sharepoint-woo/synchronizations/sharepoint-publications.json) and download the file.
 ![Download synchronization](images/download-synchronization.png)
@@ -288,9 +290,24 @@ Check in the sourceConfig tab of the just added synchronization if the following
 
 
 
-### Step 3: Test the Synchronization
+### Step 3: Add Synchronization file rule 
 
-Now we should be done setting up the Synchronization.
+Download this file so we can upload the configuration.
+![Download rule](images/download-rule.png)
 
-1. Click **Test** in the Actions menu.
-2. to do
+Import the just downloaded rule file
+![Import rule](images/import-rule.png)
+
+Make sure the auto share is enabled so the publication documents are publically available
+![Enable share url](images/enable-share-url.png)
+
+### Step 4: Check and correct the synchronization
+
+View the sharepoint synchronization we created earlier and check if we attached all other Sharepoint config objects.
+If some are not connected to sharepoint objects you can correct them.
+![Check synchronization](images/check-synchronization.png)
+
+Then we can test the synchronization
+![Test synchronization](images/test-synchronization.png)
+
+You will see a result table with how many successful objects were synchronized. If you see a error some config might still be wrong or there could be something else going on.
