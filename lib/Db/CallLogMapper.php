@@ -66,7 +66,7 @@ class CallLogMapper extends QBMapper
         $obj = new CallLog();
 		$obj->hydrate($object);
 		// Set uuid
-		if ($obj->getUuid() === null){
+		if ($obj->getUuid() === null) {
 			$obj->setUuid(Uuid::v4());
 		}
         return $this->insert($obj);
@@ -77,7 +77,7 @@ class CallLogMapper extends QBMapper
         $obj = $this->find($id);
 		$obj->hydrate($object);;
 		// Set uuid
-		if ($obj->getUuid() === null){
+		if ($obj->getUuid() === null) {
 			$obj->setUuid(Uuid::v4());
 		}
 

@@ -147,7 +147,7 @@ class SynchronizationService
 
 		// lets always create the log entry first, because we need its uuid later on for contractLogs
 		$log = $this->synchronizationLogMapper->createFromArray($log);
-		
+
 
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
@@ -216,6 +216,7 @@ class SynchronizationService
 				$synchronizationContract = $synchronizationContractResult['contract'];
 				$result['contracts'][] = $synchronizationContractResult['contract']['uuid'];
 				$result['logs'][] = $synchronizationContractResult['log']['uuid'];
+				$result['objects']['created']++;
 			} else {
 				// @todo this is wierd
 				$synchronizationContractResult = $this->synchronizeContract(
@@ -230,6 +231,7 @@ class SynchronizationService
 				$synchronizationContract = $synchronizationContractResult['contract'];
 				$result['contracts'][] = $synchronizationContractResult['contract']['uuid'];
 				$result['logs'][] = $synchronizationContractResult['log']['uuid'];
+				$result['objects']['updated']++;
 			}
 
 			$synchronizedTargetIds[] = $synchronizationContract['targetId'];
@@ -324,13 +326,14 @@ class SynchronizationService
 
 		// Let's get the source config
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
-		$headers = $sourceConfig['headers'] ?? [];
-		$query = $sourceConfig['query'] ?? [];
-		$config = [
-			'headers' => $headers,
-			'query' => $query,
-		];
 
+		$config = [];
+		if (empty($sourceConfig['headers']) === false) {
+			$config['headers'] = $sourceConfig['headers'];
+		}
+		if (empty($sourceConfig['query']) === false) {
+			$config['query'] = $sourceConfig['query'];
+		}
 
 		if (str_starts_with($endpoint, $source->getLocation()) === true) {
 			$endpoint = str_replace(search: $source->getLocation(), replace: '', subject: $endpoint);
@@ -1066,19 +1069,28 @@ class SynchronizationService
 	 */
 	public function getAllObjectsFromApi(Synchronization $synchronization, ?bool $isTest = false): array
 	{
-		$objects = [];
 		$source = $this->sourceMapper->find($synchronization->getSourceId());
 
 		// Check rate limit before proceeding
 		$this->checkRateLimit($source);
 
 		// Extract source configuration
-		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig()); // TODO; This is the second time this function is called in the synchonysation flow, needs further refactoring investigation 
+		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig()); // TODO; This is the second time this function is called in the synchonysation flow, needs further refactoring investigation
 		$endpoint = $sourceConfig['endpoint'] ?? '';
 		$headers = $sourceConfig['headers'] ?? [];
 		$query = $sourceConfig['query'] ?? [];
-        $usesPagination = $sourceConfig['usesPagination'] ? filter_var($sourceConfig['usesPagination'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : true;
-		$config = ['headers' => $headers, 'query' => $query];
+        $usesPagination = true;
+        if (isset($sourceConfig['usesPagination']) === true) {
+            $usesPagination = filter_var($sourceConfig['usesPagination'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        }
+
+		$config = [];
+		if (empty($headers) === false) {
+			$config['headers'] = $headers;
+		}
+		if (empty($query) === false) {
+			$config['query'] = $query;
+		}
 
 		$currentPage = 1;
 
@@ -1139,18 +1151,18 @@ class SynchronizationService
 				headers: $this->getRateLimitHeaders($source)
 			);
 		}
-        
+
 		$body = $response['body'];
 
 		// Try parsing the response body in different formats, starting with JSON (since its the most common)
 		$result = json_decode($body, true);
 
-		
+
 		// If JSON parsing failed, try XML
 		if (empty($result) === true) {
 			$xml =  simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
 
-			if ($xml !== false) {				
+			if ($xml !== false) {
 				$result = json_decode(json_encode($xml), true);
 			}
 		}
@@ -1877,7 +1889,7 @@ class SynchronizationService
             }
             $result[$key] = $file->getPath();
             $dataDot[$config['filePath']] = $result;
-        } else { 
+        } else {
             $content = $files;
             $fileName = $dataDot[$config['fileNamePath']];
             $openRegisters = $this->objectService->getOpenRegisters();
