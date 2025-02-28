@@ -216,6 +216,7 @@ class SynchronizationService
 				$synchronizationContract = $synchronizationContractResult['contract'];
 				$result['contracts'][] = $synchronizationContractResult['contract']['uuid'];
 				$result['logs'][] = $synchronizationContractResult['log']['uuid'];
+				$result['objects']['created']++;
 			} else {
 				// @todo this is wierd
 				$synchronizationContractResult = $this->synchronizeContract(
@@ -230,6 +231,7 @@ class SynchronizationService
 				$synchronizationContract = $synchronizationContractResult['contract'];
 				$result['contracts'][] = $synchronizationContractResult['contract']['uuid'];
 				$result['logs'][] = $synchronizationContractResult['log']['uuid'];
+				$result['objects']['updated']++;
 			}
 
 			$synchronizedTargetIds[] = $synchronizationContract['targetId'];
