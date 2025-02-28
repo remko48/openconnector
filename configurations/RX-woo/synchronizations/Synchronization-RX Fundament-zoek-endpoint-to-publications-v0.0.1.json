@@ -19,10 +19,11 @@
 	"sourceConfig": {
 		"idPosition": "uuid",
 		"resultsPosition": "results",
-		"endpoint": "\/zaken\/api\/v1\/zaken?zaaktype=https:\/\/secure1.acc.enable-u.cloud\/tlb\/fundament\/catalogi\/api\/v1\/zaaktypen\/{{uuid}}",
+		"endpoint": "\/zaken\/api\/v1\/zaken",
 		"deleteInvalidObjects": "false",
 		"headers": [],
-		"query": [],
+		"query.zaaktype": "zaaktype=https://secure1.acc.enable-u.cloud/tlb/fundament/catalogi/api/v1/zaaktypen/{{uuid}}",
+		"query.ordering": "-registratiedatum",
 		"extraDataConfigs.0.dynamicEndpointLocation": "zaaktype",
 		"extraDataConfigs.0.mergeExtraData": "true",
 		"extraDataConfigs.0.keyToSetExtraData": "zaaktype",

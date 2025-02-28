@@ -15,14 +15,12 @@
         "description": "toelichting",
         "category": "zaaktype.omschrijving",
         "featured": false,
-        "status": "Published",
-        "attachmentCount": 0,
         "published": "startdatum",
         "modified": "{{ \"now\"|date(\"Y-m-d\\\\TH:i:s.v\\\\Z\") }}",
         "license": "eupl2",
 		"catalog": "",
 		"publicationType": "",
-        "attachments": "[{% set fileCount = 0 %}{% for informatieobject in zaakinformatieobjecten %}{% if fileCount > 0 %}, {% endif %}{{'{ \"filename\": \"'~informatieobject.bestandsnaam~'\", \"endpoint\": \"'~informatieobject.link~'/download\", \"label\": \"woo_publicatie\" }'}}{% set fileCount = fileCount + 1 %}{% endfor %}]"
+        "attachments": "[{% set fileCount = 0 %}{% for informatieobject in zaakinformatieobjecten %}{% if informatieobject.bestandsnaam|default and informatieobject.inhoud|default %}{% if fileCount > 0 %}, {% endif %}{{'{ \\\"filename\\\": \\\"'~informatieobject.bestandsnaam~'\\\", \\\"endpoint\\\": \\\"'~informatieobject.inhoud~'\\\", \\\"label\\\": \\\"woo_publicatie\\\" }'}}{% set fileCount = fileCount + 1 %}{% endif %}{% endfor %}]"
     },
     "unset": [
         ""
