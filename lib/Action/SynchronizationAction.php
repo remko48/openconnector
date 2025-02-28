@@ -61,7 +61,7 @@ class SynchronizationAction
         // Let's find a synchronysation
         $response['stackTrace'][] = 'Getting synchronization: '.$argument['synchronizationId'];
         $synchronization = $this->synchronizationMapper->find((int) $argument['synchronizationId']);
-        if ($synchronization === null){
+        if ($synchronization === null) {
             $response['level'] = 'WARNING';
 			$response['stackTrace'][] = $response['message'] = 'Synchronization not found: '.$argument['synchronizationId'];
             return $response;
