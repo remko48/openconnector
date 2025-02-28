@@ -14,6 +14,7 @@ use OCP\IDBConnection;
 use OCP\ISession;
 use OCP\IUserSession;
 use Symfony\Component\Uid\Uuid;
+use OCP\Session\Exceptions\SessionNotAvailableException;
 
 /**
  * Class SynchronizationContractLogMapper
@@ -106,7 +107,12 @@ class SynchronizationContractLogMapper extends QBMapper
 
 		// Auto-fill sessionId from current session
 		if ($obj->getSessionId() === null) {
-			$obj->setSessionId($this->session->getId());
+			// Try catch because we could run this from a Job and in that case have no session.
+			try {
+				$obj->setSessionId($this->session->getId());
+			} catch (SessionNotAvailableException $exception) {
+				$obj->setSessionId(null);
+			}
 		}
 
 		// If no synchronizationLogId is provided, we assume that the contract is run directly from the synchronization log and set the synchronizationLogId to n.a.

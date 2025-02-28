@@ -86,7 +86,12 @@ class SynchronizationAction
         }
 
         $response['level'] = 'INFO';
-		$response['stackTrace'][] = $response['message'] = 'Synchronized '.count($objects).' successfully';
+
+        $objectCount = 0;
+        if (is_array($objects) === true) {
+            $objectCount = $objects['result']['contracts'] ? count($objects['result']['contracts']) : $objects['result']['objects']['found'];
+        }
+		$response['stackTrace'][] = $response['message'] = 'Synchronized '. $objectCount .' successfully';
 
         // Let's report back about what we have just done
         return $response;
