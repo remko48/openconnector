@@ -307,7 +307,7 @@ View the sharepoint synchronization we created earlier and check if we attached 
 If some are not connected to sharepoint objects you can correct them.
 ![Check synchronization](images/check-synchronization.png)
 
-Then we can test the synchronization
+Then we can run the synchronization
 ![Test synchronization](images/test-synchronization.png)
 
 You will see a result table with how many successful objects were synchronized. If you see a error some config might still be wrong or there could be something else going on.
