@@ -94,9 +94,9 @@ class SynchronizationContractLogMapper extends QBMapper
 	{
 		$obj = new SynchronizationContractLog();
 		$obj->hydrate($object);
-		
+
 		// Set uuid if not provided
-		if ($obj->getUuid() === null){
+		if ($obj->getUuid() === null) {
 			$obj->setUuid(Uuid::v4());
 		}
 
