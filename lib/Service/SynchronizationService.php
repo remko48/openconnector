@@ -1321,8 +1321,13 @@ class SynchronizationService
 	{
 		$nextLink = $this->getNextlinkFromCall($body);
 
+		if (str_starts_with($nextLink, $url)) {
+			return substr($nextLink, strlen($url));
+		}
+
+		// Fallback for when $nextLink doesn't start with $url
 		if ($nextLink !== null) {
-			return str_replace($url, '', $nextLink);
+			return $nextLink;
 		}
 
 		return null;
