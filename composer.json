@@ -40,8 +40,10 @@
 		"symfony/yaml": "^6.4",
 		"twig/twig": "^3.14",
 		"web-token/jwt-framework": "^3",
-      "ext-simplexml": "*"
-    },
+      	"ext-simplexml": "*",
+		"ext-libxml": "*",
+		"ext-dom": "*"
+	},
 	"require-dev": {
 		"nextcloud/ocp": "dev-stable29",
 		"roave/security-advisories": "dev-latest"
