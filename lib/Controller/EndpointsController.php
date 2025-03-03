@@ -3,12 +3,11 @@
 namespace OCA\OpenConnector\Controller;
 
 use Exception;
-use OCA\OpenConnector\Exception\AuthenticationException;
+use OCA\OpenConnector\Http\XMLResponse;
 use OCA\OpenConnector\Service\AuthorizationService;
 use OCA\OpenConnector\Service\ObjectService;
 use OCA\OpenConnector\Service\SearchService;
 use OCA\OpenConnector\Service\EndpointService;
-use OCA\OpenConnector\Db\Endpoint;
 use OCA\OpenConnector\Db\EndpointMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -196,16 +195,16 @@ class EndpointsController extends Controller
 	 * This method checks if the current path matches any registered endpoint patterns
 	 * and forwards the request to the appropriate endpoint service if found
 	 *
-     * @CORS
+	 * @CORS
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
 	 * @param string $_path
-	 * @return JSONResponse The response from the endpoint service or 404 if no match
+	 * @return JSONResponse|XMLResponse The response from the endpoint service or 404 if no match
 	 * @throws Exception
 	 */
-	public function handlePath(string $_path): JSONResponse
+	public function handlePath(string $_path): JSONResponse|XMLResponse
 	{
 		// Find matching endpoints for the given path and method
 		$matchingEndpoints = $this->endpointMapper->findByPathRegex(
@@ -225,7 +224,16 @@ class EndpointsController extends Controller
 		$endpoint = reset($matchingEndpoints);
 
 		// Forward the request to the endpoint service
-		return $this->endpointService->handleRequest($endpoint, $this->request, $_path);
+		$response = $this->endpointService->handleRequest($endpoint, $this->request, $_path);
+
+		// Controleer of de Accept-header op XML staat
+		$acceptHeader = $this->request->getHeader('Accept');
+		if (stripos($acceptHeader, 'application/xml') !== false) {
+			return new XMLResponse($response->getData(), $response->getStatus());
+		}
+
+		return $response;
+
 	}
 
     /**
