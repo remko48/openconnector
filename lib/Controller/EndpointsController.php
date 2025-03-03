@@ -11,6 +11,9 @@ use OCA\OpenConnector\Service\EndpointService;
 use OCA\OpenConnector\Db\Endpoint;
 use OCA\OpenConnector\Db\EndpointMapper;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
@@ -37,10 +40,16 @@ class EndpointsController extends Controller
 		private IAppConfig $config,
 		private EndpointMapper $endpointMapper,
 		private EndpointService $endpointService,
-		private AuthorizationService $authorizationService
+		private AuthorizationService $authorizationService,
+		$corsMethods = 'PUT, POST, GET, DELETE, PATCH',
+		$corsAllowedHeaders = 'Authorization, Content-Type, Accept',
+		$corsMaxAge = 1728000
 	)
 	{
 		parent::__construct($appName, $request);
+        $this->corsMethods = $corsMethods;
+        $this->corsAllowedHeaders = $corsAllowedHeaders;
+        $this->corsMaxAge = $corsMaxAge;
 	}
 
 	/**
@@ -187,6 +196,7 @@ class EndpointsController extends Controller
 	 * This method checks if the current path matches any registered endpoint patterns
 	 * and forwards the request to the appropriate endpoint service if found
 	 *
+     * @CORS
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
@@ -217,5 +227,32 @@ class EndpointsController extends Controller
 		// Forward the request to the endpoint service
 		return $this->endpointService->handleRequest($endpoint, $this->request, $_path);
 	}
+
+    /**
+     * Implements a preflighted CORS response for OPTIONS requests.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @PublicPage
+     * @since 7.0.0
+     *
+     * @return Response The CORS response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function preflightedCors(): Response {
+        // Determine the origin
+        $origin = isset($this->request->server['HTTP_ORIGIN']) ? $this->request->server['HTTP_ORIGIN'] : '*';
+
+        // Create and configure the response
+        $response = new Response();
+        $response->addHeader('Access-Control-Allow-Origin', $origin);
+        $response->addHeader('Access-Control-Allow-Methods', $this->corsMethods);
+        $response->addHeader('Access-Control-Max-Age', (string)$this->corsMaxAge);
+        $response->addHeader('Access-Control-Allow-Headers', $this->corsAllowedHeaders);
+        $response->addHeader('Access-Control-Allow-Credentials', 'false');
+
+        return $response;
+    }
 
 }

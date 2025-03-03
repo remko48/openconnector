@@ -210,6 +210,8 @@ class EndpointService
         array $serializedObject = []
     ): array
     {
+
+
         if ($serializedObject === [] && $object !== null) {
             $serializedObject = $object->jsonSerialize();
         } else if ($serializedObject === null) {
@@ -236,13 +238,17 @@ class EndpointService
                 continue;
             }
 
-            $useUrls[] = $this->generateEndpointUrl(id: $useId, parentIds: [$object->getUuid()]);
+            try {
+                $useUrls[] = $this->generateEndpointUrl(id: $useId, parentIds: [$object->getUuid()]);
+            } catch (Exception $exception) {
+                continue;
+            }
         }
 
 		$uses[]    = $object->getUri();
 		$useUrls[] = $this->generateEndpointUrl(id: $object->getUuid());
 
-        $serializedObject = str_replace($uses, $useUrls, $serializedObject);
+        $serializedObject = json_decode(str_replace($uses, $useUrls, json_encode($serializedObject)), true);
 
         return $serializedObject;
     }
