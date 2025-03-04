@@ -181,10 +181,11 @@ class SynchronizationService
 				unset($objectList[$key]);
 				continue;
 			}
+			$conditionsObject = $this->encodeArrayKeys($object, '.', '&#46;');
 
 			// Check if object adheres to conditions.
 			// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
-			if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
+			if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $conditionsObject)) {
 
 				// Increment skipped count in log since object doesn't meet conditions
 				$result['objects']['skipped']++;
@@ -1321,8 +1322,13 @@ class SynchronizationService
 	{
 		$nextLink = $this->getNextlinkFromCall($body);
 
+		if (str_starts_with($nextLink, $url)) {
+			return substr($nextLink, strlen($url));
+		}
+
+		// Fallback for when $nextLink doesn't start with $url
 		if ($nextLink !== null) {
-			return str_replace($url, '', $nextLink);
+			return $nextLink;
 		}
 
 		return null;
@@ -1988,4 +1994,32 @@ class SynchronizationService
 
         return JsonLogic::apply($conditions, $data) === true;
     }
+
+    /**
+     * Replaces strings in array keys, helpful for characters like . in array keys.
+     *
+     * @param array  $array       The array to encode the array keys for.
+     * @param string $toReplace   The character to encode.
+     * @param string $replacement The encoded character.
+     *
+     * @return array The array with encoded array keys
+     */
+    public function encodeArrayKeys(array $array, string $toReplace, string $replacement): array
+    {
+        $result = [];
+        foreach ($array as $key => $value) {
+            $newKey = str_replace($toReplace, $replacement, $key);
+
+            if (is_array($value) === true && $value !== []) {
+                $result[$newKey] = $this->encodeArrayKeys($value, $toReplace, $replacement);
+                continue;
+            }
+
+            $result[$newKey] = $value;
+        }
+
+        return $result;
+
+    }//end encodeArrayKeys()
+
 }
