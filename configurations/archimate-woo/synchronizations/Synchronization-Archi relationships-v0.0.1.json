@@ -10,7 +10,7 @@
     "name": "Archi relationships",
     "description": "",
     "reference": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/synchronizations\/8",
-    "version": "",
+    "version": "0.0.1",
     "sourceId": "2",
     "sourceType": "api",
     "sourceHash": "",

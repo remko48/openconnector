@@ -9,7 +9,7 @@
     "uuid": "c08916b5-070d-492f-9ae1-91e0813de819",
     "name": "Gemma Large",
     "description": "",
-    "version": "",
+    "version": "0.0.1",
     "reference": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/sources\/4",
     "location": "https:\/\/raw.githubusercontent.com\/VNG-Realisatie\/Softwarecatalogus\/refs\/heads\/main\/docs\/examples\/GEMMA_release.xml",
     "isEnabled": true,

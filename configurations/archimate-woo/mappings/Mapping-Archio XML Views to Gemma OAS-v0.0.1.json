@@ -9,7 +9,7 @@
     "uuid": "76ebeaa7-81d1-44e6-9b36-50fd0788ca10",
     "name": "Archio XML Views to Gemma OAS",
     "description": "",
-    "version": "",
+    "version": "0.0.1",
     "reference": "http:\/\/nextcloud.local\/",
     "mapping": {
         "identifier": "@attributes.identifier",

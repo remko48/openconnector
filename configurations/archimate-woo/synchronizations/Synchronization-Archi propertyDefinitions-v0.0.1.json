@@ -10,7 +10,7 @@
     "name": "Archi propertyDefinitions",
     "description": "",
     "reference": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/synchronizations\/6",
-    "version": "",
+    "version": "0.0.1",
     "sourceId": "4",
     "sourceType": "api",
     "sourceHash": "",

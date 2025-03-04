@@ -10,7 +10,7 @@
     "name": "Archi views",
     "description": "",
     "reference": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/synchronizations\/11",
-    "version": "",
+    "version": "0.0.1",
     "sourceId": "3",
     "sourceType": "api",
     "sourceHash": "",

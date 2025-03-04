@@ -9,7 +9,7 @@
     "uuid": "bfede918-caf4-4620-a3c0-57b8ba81bed2",
     "name": "Archio XML Elements to Gemma OAS",
     "description": "",
-    "version": "",
+    "version": "0.0.1",
     "reference": "http:\/\/nextcloud.local\/index.php\/apps\/openconnector\/api\/mappings\/1",
     "mapping": {
         "identifier": "@attributes.identifier",
