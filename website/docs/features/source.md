@@ -279,6 +279,7 @@ Open Connector can automatically detect pagination in API responses through mult
 
 2. **Pattern-based Detection**
    Common patterns automatically detected:
+   
    ```json
    {
        "_links": {

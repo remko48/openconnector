@@ -76,12 +76,7 @@ const config = {
             sidebarId: 'tutorialSidebar',
             position: 'left',
             label: 'Documentation',
-          },
-          {
-            to: '/api',
-            label: 'API Specificatie',
-            position: 'right',
-          },
+          }
           {
             href: 'https://github.com/conductionnl/openconnector',
             label: 'GitHub',
