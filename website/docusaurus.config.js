@@ -43,11 +43,6 @@ const config = {
     ],
   ],
   
-  themes: [
-    // ... existing themes
-    'redocusaurus/dist/theme',
-  ],
-
   presets: [
     [
       'classic',
