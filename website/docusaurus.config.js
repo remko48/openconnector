@@ -3,7 +3,7 @@
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'OpenConnector',
+  title: 'Open Connector',
   tagline: 'Connect and synchronize your data sources',
   url: 'https://openconnector.app',
   baseUrl: '/',
