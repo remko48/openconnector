@@ -147,22 +147,31 @@ class SynchronizationContractMapper extends QBMapper
     }
 
     /**
-     * Find all target IDs of synchronization contracts by synchronization ID
+     * Find all synchronization contracts by synchronization ID and where target have the given schema id
      *
      * @param string $synchronization The synchronization ID
      *
      * @return array An array of target IDs or an empty array if none found
      */
-    public function findAllBySynchronization(string $synchronizationId): array
+    public function findAllBySynchronizationAndSchema(string $synchronizationId, string $schemaId): array
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
 
-        // Build select query with synchronization ID filter
-        $qb->select('*')
-            ->from('openconnector_synchronization_contracts')
+        // Build select query with synchronization ID and schema filter
+        $qb->select('c.*')
+            ->from('openconnector_synchronization_contracts', 'c')
+            ->innerJoin(
+                'c',
+                'oc_openregister_objects',
+                'o',
+                $qb->expr()->eq('c.target_id', 'o.uuid')
+            )
             ->where(
-                $qb->expr()->eq('synchronization_id', $qb->createNamedParameter($synchronizationId))
+                $qb->expr()->andX(
+                    $qb->expr()->eq('c.synchronization_id', $qb->createNamedParameter($synchronizationId)),
+                    $qb->expr()->eq('o.schema', $qb->createNamedParameter($schemaId))
+                )
             );
 
         try {
@@ -171,7 +180,6 @@ class SynchronizationContractMapper extends QBMapper
             return [];
         }
     }
-
     /**
      * Find all synchronization contracts with optional filtering and pagination
      *
