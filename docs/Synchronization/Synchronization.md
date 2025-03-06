@@ -27,7 +27,7 @@ Synchronization is a core feature that enables data transfer between different s
 
 #### Related or sub objects
 
-If you don't want mapped related- or sub- objects to duplicate and have their own contracts you need to let the synchronization know.
+If you don't want mapped related- or sub- objects to duplicate and do want sub objects to have their own contracts you need to let the synchronization know.
 You can configure this under the source configuration of a synchronization.
 
 ![Sub objects](sub-objects.png)
