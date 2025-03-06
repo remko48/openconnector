@@ -31,7 +31,7 @@ const config = {
         specs: [
           {
             spec: 'static/oas/open-connector.json',
-            route: '/api/reference',
+            route: '/api',
           },
         ],
         // Theme options for Redocusaurus
