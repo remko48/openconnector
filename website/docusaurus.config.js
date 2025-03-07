@@ -65,7 +65,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'OpenConnector',
+        title: 'Open Connector',
         logo: {
           alt: 'OpenConnector Logo',
           src: 'img/logo.svg',
