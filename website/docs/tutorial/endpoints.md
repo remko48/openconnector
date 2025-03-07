@@ -1,45 +1,74 @@
-# Endpoints
+# Endpoints in OpenConnector
 
-Endpoints are used to fetch data from a source (api or OpenRegister register etc). You can apply mapping and rules on a endpoint
+Endpoints in OpenConnector allow you to retrieve data from a source, such as an API or an OpenRegister instance. You can apply **mappings** and **rules** to process and manipulate the retrieved data as needed.
 
-## Creating a endpoint
+---
 
-Endpoints only need a `endpoint` (path), `targetType` and `targetId`.
+## Creating an Endpoint
 
-Endpoint array and regex are automatically generated based on input of `endpoint`.
+An endpoint requires three key attributes:
+- **`endpoint`** – The API path (e.g., `api/v1/zaken`).
+- **`targetType`** – Defines the type of data source (`api` or `register/schema`).
+- **`targetId`** – The specific source identifier (e.g., `registerId/schemaId`).
 
-`endpoint` may not start with an / but just the first path as text. Like `api/v1/zaken`. 
+### Path Formatting Guidelines
+- The `endpoint` **must not start with `/`**, but should begin with the first path segment as text (e.g., `api/v1/zaken`).
+- If your endpoint needs to support fetching **a single item**, append `{{id}}` at the end:
+  ```plaintext
+  api/v1/zaken/{{id}}
+  ```
+- Each HTTP method (GET, POST, etc.) requires a separate endpoint definition. While the path remains the same, you must create individual entries for each method and clearly label them.
 
-If you want your endpoint to also be useed to fetch single item you need to add `{{id}}` as the last path. `api/v1/zaken/{{id}}`. 
+### Using OpenRegister as a Data Source
+If the endpoint retrieves data from **OpenRegister**, set:
+- **`targetType`** to `register/schema`
+- **`targetId`** to the corresponding `registerId/schemaId`.
 
-For each method you want your endpoint to be accessed with you need to create a separate one with a separate method, everything else can be the same. Make sure to clarify the method in your title.
-
-If your endpoint needs to fetch data from OpenRegister the `targetType` needs to be register/schema and the `targetId` registerId/schemaId 
-
-For example ZGW zaken endpoint:
+#### Example: ZGW Zaken Endpoint
 ![Endpoint example](endpoint-example.png)
 
-## Sub endpoints
+---
 
-If you have for example a endpoint that looks like `v1/zaken/{zaak_uuid}/zaakeigenschappen/{eigenschap_uuid}` your path of endpoint needs to be like: v1/zaken/{{id}}/zaakeigenschappen/{{schematitlelowercaps_id}} for example: `v1/zaken/{{id}}/zaakeigenschappen/{{zaakeigenschap_id}}` where zaakeigenschap is the title of a configured schema in OpenRegister called ZaakEigenschap.
+## Sub Endpoints
+
+For nested API paths, such as:
+```plaintext
+v1/zaken/{zaak_uuid}/zaakeigenschappen/{eigenschap_uuid}
+```
+
+The corresponding endpoint should be defined using placeholders:
+```plaintext
+v1/zaken/{{id}}/zaakeigenschappen/{{zaakeigenschap_id}}
+```
+
+Here, `zaakeigenschap` refers to the **configured schema name** in OpenRegister (converted to lowercase with `_id` appended).
+
+---
 
 ## Authorization
 
-Endpoints can be publically accessed or if viable authorised with jwt. 
+Endpoints can either be **publicly accessible** or **secured via JWT authentication**.
 
-For public access you would have to do nothing, this is currently by default.
+### Public Access
+By default, endpoints are publicly accessible unless authentication is explicitly enabled.
 
-For jwt auth you need to create a consumer in OpenConnector where its name will be your clientId and the publicKey in the authorization configuration will be your secret.
-The userId in authorization configuration needs to be the username of the admin user.
+### JWT Authentication
+To enable **JWT-based authentication**, follow these steps:
+1. **Create a consumer** in OpenConnector.
+2. **Use the consumer name as `clientId`**.
+3. **Set the public key as the secret** in the authorization configuration.
+4. **Specify the admin username** as the `userId` in the authorization settings.
 
-See the following example:
+#### Example: Consumer Configuration
 ![Example consumer](example-consumer.png)
 
-This will be automatically be attached to every created endpoint and currently cannot be more specifically configured.
+⚠️ **Note:** Authentication settings are automatically applied to all created endpoints and cannot be adjusted per endpoint at this time.
 
-This is how authorization would look like in Postman:
-
+### JWT Authorization in Postman
 ![Postman example](postman-example.png)
 
+---
 
+## Conclusion
 
+Endpoints in OpenConnector provide **flexible API integration**, allowing data retrieval from various sources. With **mapping**, **rules**, and **JWT authentication**, you can structure and secure API access as needed. 🚀
