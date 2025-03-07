@@ -124,7 +124,6 @@ class MappingService
             $dotArray = new Dot();
             // @todo: error logging
         }
-//var_dump($dotArray->all());
         $dotInput = new Dot($input);
 
         // Let's do the actual mapping.
@@ -138,7 +137,6 @@ class MappingService
             // Render the value from twig.
 			$dotArray->set($key, $this->twig->createTemplate($value)->render($originalInput));
         }
-//var_dump($dotArray->all());
 
         // Unset unwanted key's.
         $unsets = ($mapping->getUnset() ?? []);
