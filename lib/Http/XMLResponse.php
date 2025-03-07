@@ -9,26 +9,43 @@ use DOMDocument;
 /**
  * Class XMLResponse
  * Handles conversion of array data to XML response
+ *
+ * @psalm-immutable
+ * @phpstan-immutable
  */
 class XMLResponse extends Response
 {
 	/**
 	 * The XML data as a string
+	 * 
+	 * @var string
+	 * @readonly
 	 */
-	private string $xmlData;
+	private readonly string $xmlData;
 
 	/**
 	 * Constructor
 	 *
-	 * @param array $data The data to convert to XML
-	 * @param int $status HTTP status code
+	 * @param array<string, mixed> $data The data to convert to XML
+	 * @param int $status HTTP status code, defaults to 200
+	 * 
+	 * @phpstan-param 100|200|201|202|203|204|205|206|207|208|226|300|301|302|303|304|305|306|307|308|400|401|402|403|404|405|406|407|408|409|410|411|412|413|414|415|416|417|418|421|422|423|424|425|426|428|429|431|451|500|501|502|503|504|505|506|507|508|510|511 $status
 	 */
 	public function __construct(array $data, int $status = 200)
 	{
 		parent::__construct();
 		$this->addHeader('Content-Type', 'application/xml; charset=UTF-8');
 		$this->setStatus($status);
-		$this->xmlData = $this->arrayToXml($data);
+		
+		// Extract root tag if specified in the data
+		$rootTag = 'response';
+		if (isset($data['@root'])) {
+			$rootTag = $data['@root'];
+			unset($data['@root']);
+		}
+		
+		// Convert array to XML using SimpleXMLElement
+		$this->xmlData = $this->arrayToXml($data, null, $rootTag);
 	}
 
 	/**
@@ -40,20 +57,21 @@ class XMLResponse extends Response
 	{
 		return $this->xmlData;
 	}
-
+	
 	/**
 	 * Convert an array to XML
-	 *
-	 * @param array $data The array to convert
-	 * @param SimpleXMLElement|null $xml The XML element to add to
-	 * @param string $rootTag The root tag name
+	 * 
+	 * @param array<string, mixed> $data The data to convert to XML
+	 * @param SimpleXMLElement|null $xml The SimpleXMLElement to add to, or null to create a new one
+	 * @param string $rootTag The root tag name when creating a new SimpleXMLElement
+	 * 
 	 * @return string The XML string
 	 */
 	private function arrayToXml(array $data, ?SimpleXMLElement $xml = null, string $rootTag = 'response'): string
 	{
 		// Determine the root tag from $data or default to 'response'
 		if ($xml === null) {
-			$rootTag = $data['@root'] ?? 'response';
+			$rootTag = $data['@root'] ?? $rootTag;
 			unset($data['@root']); // Ensure @root does not appear in the XML itself
 			$xml = new SimpleXMLElement("<?xml version=\"1.0\" encoding=\"UTF-8\"?><$rootTag/>");
 		}
@@ -98,10 +116,10 @@ class XMLResponse extends Response
 			}
 		}
 
-		// Convert SimpleXMLElement to formatted XML with declaration
+		// Format the XML for readability using DOMDocument
 		$dom = new DOMDocument('1.0', 'UTF-8');
 		$dom->preserveWhiteSpace = false;
-		$dom->formatOutput = true; // Enable formatting for readability
+		$dom->formatOutput = true;
 		$dom->loadXML($xml->asXML());
 
 		return $dom->saveXML();
