@@ -23,8 +23,22 @@ Synchronization is a core feature that enables data transfer between different s
 - Source ID mapping allows specifying position of IDs in source objects
 - Optional endpoint configuration for fetching data
 - usesPagination: configure this field if you know this source **does not** uses pagination or next endpoint. Use value "false". If this source uses next endpoint it will auto detect.
+- Optional configuration of sub objects.
 
-### Target Configuration 
+#### Related or sub objects
+
+If you don't want mapped related- or sub- objects to duplicate and do want sub objects to have their own contracts you need to let the synchronization know.
+You can configure this under the source configuration of a synchronization.
+
+![Sub objects](sub-objects.png)
+
+The synchronization know knows we need to find and update a existing contract for zaaktype and the zaaktype its own sub object statustype. The contract can find the related object and update that object instead of duplicating objects each time the synchronization has ran.
+
+Also make sure you first map a `originId` in the mapping of a sub object so the code can find this object and update it instead of duplicate it.
+
+![Origin id](origin-id.png)
+
+### Target Configuration
 - Defines where to send synchronized data
 - Specifies how to map target data to source format (outgoing data)
 - Handles create/update/delete operations
