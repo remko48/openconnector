@@ -368,6 +368,13 @@ export default {
 		filteredRuleList() {
 			return ruleStore.ruleList.filter((rule) => synchronizationStore.synchronizationItem?.actions?.includes(rule.id))
 		},
+		synchronizationId: () => synchronizationStore.synchronizationItem.id,
+	},
+	watch: {
+		synchronizationId() {
+			synchronizationStore.refreshSynchronizationLogs(synchronizationStore.synchronizationItem.id)
+			synchronizationStore.refreshSynchronizationContracts(synchronizationStore.synchronizationItem.id)
+		},
 	},
 	mounted() {
 		synchronizationStore.refreshSynchronizationLogs(synchronizationStore.synchronizationItem.id)
