@@ -39,10 +39,7 @@
 		"symfony/uid": "^6.4",
 		"symfony/yaml": "^6.4",
 		"twig/twig": "^3.14",
-		"web-token/jwt-framework": "^3",
-      	"ext-simplexml": "*",
-		"ext-libxml": "*",
-		"ext-dom": "*"
+		"web-token/jwt-framework": "^3"
 	},
 	"require-dev": {
 		"nextcloud/ocp": "dev-stable29",
