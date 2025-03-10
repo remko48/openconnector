@@ -822,6 +822,15 @@ class EndpointService
 	{
 		$config = $rule->getConfiguration();
 		$mapping = $this->mappingService->getMapping($config['mapping']);
+
+		if (isset($data['results']) === true && strtolower($rule->getAction()) === 'get') {
+			foreach ($data['results'] as $key => $result) {
+				$data['results'][$key] = $this->mappingService->executeMapping($mapping, $result);
+			}
+
+			return $data;
+		}
+
 		return $this->mappingService->executeMapping($mapping, $data);
 	}
 
