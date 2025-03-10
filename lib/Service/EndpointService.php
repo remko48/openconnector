@@ -831,7 +831,6 @@ class EndpointService
 			return $data;
 		}
 
-		// var_dump($rule->getName(), $mapping);
 		return $this->mappingService->executeMapping($mapping, $data);
 	}
 
