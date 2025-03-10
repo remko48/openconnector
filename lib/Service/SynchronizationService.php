@@ -534,7 +534,8 @@ class SynchronizationService
 			case 'register/schema':
 
 				$targetIdsToDelete = [];
-				$allContracts = $this->synchronizationContractMapper->findAllBySynchronization($synchronization->getId());
+				[$registerId, $schemaId] = explode(separator: '/', string: $synchronization->getTargetId());
+				$allContracts = $this->synchronizationContractMapper->findAllBySynchronizationAndSchema(synchronizationId: $synchronization->getId(), schemaId: $schemaId);
 				$allContractTargetIds = [];
 				foreach ($allContracts as $contract) {
 					if ($contract->getTargetId() !== null) {

@@ -43,6 +43,7 @@ use Symfony\Component\Uid\Uuid;
 use ValueError;
 use OCA\OpenConnector\Db\Rule;
 use OCA\OpenConnector\Db\RuleMapper;
+use Psr\Container\ContainerInterface;
 
 /**
  * Service class for handling endpoint requests
@@ -67,11 +68,12 @@ class EndpointService
 		private readonly IURLGenerator   $urlGenerator,
 		private readonly MappingService  $mappingService,
         private readonly EndpointMapper  $endpointMapper,
-		private readonly RuleMapper    $ruleMapper,
+		private readonly RuleMapper      $ruleMapper,
 		private readonly IConfig $config,
         private readonly IAppConfig $appConfig,
         private readonly StorageService $storageService,
-        private readonly AuthorizationService $authorizationService
+        private readonly AuthorizationService $authorizationService,
+        private readonly ContainerInterface $containerInterface
 	)
 	{
 	}
@@ -219,38 +221,89 @@ class EndpointService
         } else {
             $object = $mapper->find($serializedObject['id']);
         }
-
+    
         $uses = $object->getRelations();
-
         $useUrls = [];
-        foreach ($uses as $key=>$use) {
-            if (Uuid::isValid($use)) {
+    
+        $uuidToUrlMap = [];
+        // Initiate schemaMapper here once for performance
+        $schemaMapper = $this->containerInterface->get('OCA\OpenRegister\Db\SchemaMapper');
+        $schema        = $schemaMapper->find($object->getSchema());
+
+        // Find property names that are uris
+        $validUriProperties = [];
+        foreach ($schema->getProperties() as $propertyName => $property) {
+            if (isset($property['objectConfiguration']['handling']) === true && $property['objectConfiguration']['handling'] === 'uri') {
+                $validUriProperties[] = $propertyName;
+            }
+        }
+    
+        foreach ($uses as $key => $use) {
+            $baseKey = explode('.', $key, 2)[0];
+            // Skip if the key (or its base form) is not in the valid URI properties
+            if (in_array(needle: $baseKey, haystack: $validUriProperties) === false) {
+                continue;
+            }
+
+            if (Uuid::isValid(uuid: $use)) {
                 $useId = $use;
             } else if (
-                str_contains(needle: 'localhost', haystack: $use)
-                || str_contains(needle: 'nextcloud.local', haystack: $use)
-                || str_contains(needle: $this->urlGenerator->getBaseUrl(), haystack: $use)
+                str_contains(haystack: $use, needle: 'localhost') 
+                || str_contains(haystack: $use, needle: 'nextcloud.local') 
+                || str_contains(haystack: $use, needle: $this->urlGenerator->getBaseUrl())
             ) {
                 $explodedUrl = explode(separator: '/', string: $use);
-                $useId = end(array: $explodedUrl);
+                $useId = end($explodedUrl);
             } else {
                 unset($uses[$key]);
                 continue;
             }
-
+    
             try {
-                $useUrls[] = $this->generateEndpointUrl(id: $useId, parentIds: [$object->getUuid()]);
+                $generatedUrl = $this->generateEndpointUrl(id: $useId, parentIds: [$object->getUuid()], schemaMapper: $schemaMapper);
+                $uuidToUrlMap[$useId] = $generatedUrl;
+                $useUrls[] = $generatedUrl;
             } catch (Exception $exception) {
                 continue;
             }
         }
 
-		$uses[]    = $object->getUri();
-		$useUrls[] = $this->generateEndpointUrl(id: $object->getUuid());
-
-        $serializedObject = json_decode(str_replace($uses, $useUrls, json_encode($serializedObject)), true);
-
+    
+        // Add self object URI mapping
+        $uuidToUrlMap[$object->getUuid()] = $this->generateEndpointUrl(id: $object->getUuid(), schemaMapper: $schemaMapper);
+    
+        // Replace UUIDs in serializedObject recursively
+        $serializedObject = $this->replaceUuidsInArray($serializedObject, $uuidToUrlMap);
+    
         return $serializedObject;
+    }
+    
+    /**   
+     * Recursively replaces UUIDs in an array with their corresponding URLs.
+     *
+     * This function traverses the given array and replaces any UUID values found in the 
+     * mapping array ($uuidToUrlMap) with their associated URLs. It ensures that 'id' and 'uuid' 
+     * fields remain unchanged.
+     *
+     * @param array $data The input array that may contain UUIDs.
+     * @param array $uuidToUrlMap An associative array mapping UUIDs to URLs.
+     * 
+     * @return array The modified array with UUIDs replaced by URLs.
+     */
+    private function replaceUuidsInArray(array $data, array $uuidToUrlMap): array {
+        foreach ($data as $key => $value) {
+            // Never replace 'id' or 'uuid' fields
+            if ($key === 'id' || $key === 'uuid') {
+                continue;
+            }
+
+            if (is_array($value) === true) {
+                $data[$key] = $this->replaceUuidsInArray(data: $value, uuidToUrlMap: $uuidToUrlMap);
+            } elseif (is_string($value) === true && isset($uuidToUrlMap[$value]) === true) {
+                $data[$key] = $uuidToUrlMap[$value];
+            }
+        }
+        return $data;
     }
 
 	/**
@@ -514,6 +567,7 @@ class EndpointService
      * Generates url based on available endpoints for the object type.
      *
      * @param string $id The id of the object to generate an url for.
+     * @param OCA\OpenRegister\Db\SchemaMapper $schemaMapper The mapper to get schemas
      * @param int|null $register The register of the object (aids performance).
      * @param int|null $schema The schema of the object (aids performance).
      * @param array $parentIds The ids of the main object on subobjects.
@@ -522,7 +576,7 @@ class EndpointService
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function generateEndpointUrl(string $id, ?int $register = null, ?int $schema = null, array $parentIds = []): string
+    public function generateEndpointUrl(string $id, \OCA\OpenRegister\Db\SchemaMapper $schemaMapper, ?int $register = null, ?int $schema = null, array $parentIds = []): string
     {
         if ($register === null) {
             $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($id);
@@ -531,7 +585,6 @@ class EndpointService
         }
 
         $target = "$register/$schema";
-
         $endpoints = $this->endpointMapper->findAll(filters: ['target_id' => $target, 'method' => 'GET']);
 
         if (count($endpoints) === 0) {
@@ -539,23 +592,32 @@ class EndpointService
         }
 
         $endpoint = $endpoints[0];
-
         $location = $endpoint->getEndpointArray();
 
-        $iterator = 0;
-        foreach ($location as $key=>$part) {
-            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) !== 'id') {
-                $location[$key] = $parentIds[$iterator];
-                $iterator++;
-            }
+        // Determine schema title (lowercased)
+        $schemaTitle = strtolower($schemaMapper->find($schema)->getTitle());
 
-            if (preg_match(pattern: '#{{([^}}]+)}}$#', subject: $part, matches: $matches) !== 0 && trim($matches[1]) === 'id') {
-                $location[$key] = $id;
+        // Use first parentId if available
+        $parentId = $parentIds[0] ?? null;
+        
+        foreach ($location as $key => $part) {
+            if (preg_match('#{{([^}]+)}}#', $part, $matches)) {
+                $placeholder = trim($matches[1]);
+
+                if ($placeholder === 'id' && $parentId !== null) {
+                    // Replace {{id}} with parent id if set
+                    $location[$key] = $parentId;
+                } elseif ($placeholder === 'id') {
+                    // Otherwise, replace {{id}} with current object id
+                    $location[$key] = $id;
+                } elseif ($placeholder === "{$schemaTitle}_id") {
+                    // Replace {{schematitle_id}} with object id
+                    $location[$key] = $id;
+                }
             }
         }
 
         $path = implode(separator: '/', array: $location);
-
         return $this->urlGenerator->getBaseUrl().'/apps/openconnector/api/endpoint/'.$path;
     }
 
