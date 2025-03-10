@@ -126,6 +126,15 @@ class EndpointService
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
 				$result = $this->handleSchemaRequest($endpoint, $request, $path);
+				
+				// Process initial data
+				$data = [
+					'parameters' => $request->getParams(),
+					'requestHeaders' => $this->getHeaders($request->server, true),
+					'headers' => $result->getHeaders(),
+					'path' => $path,
+					'method' => $request->getMethod(),
+				];
 
                 $result = $this->processRules(
                     endpoint: $endpoint,
