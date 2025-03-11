@@ -119,6 +119,7 @@ class EndpointService
                 data: $data,
                 timing: 'before'
             );
+
 			if ($ruleResult instanceof JSONResponse) {
 				return $ruleResult;
 			}
@@ -141,7 +142,7 @@ class EndpointService
 					'body' => $result->getData(),
 				];
 
-                $result = $this->processRules(
+                $ruleResult = $this->processRules(
                     endpoint: $endpoint,
                     request: $request,
                     data: $data,
@@ -149,7 +150,11 @@ class EndpointService
                     objectId: $result->getData()['id'] ?? null
                 );
 
-                return new JSONResponse($result, 200);
+				if ($ruleResult instanceof JSONResponse) {
+					return $ruleResult;
+				}
+
+                return new JSONResponse($ruleResult['body'], 200, $ruleResult['headers']);
 			}
 
 			// Check if endpoint connects to a source
@@ -757,7 +762,7 @@ class EndpointService
      *
      * @return array|JSONResponse the unchanged $data array if authentication succeeds, or a JSONResponse containing an error on authentication.
      */
-    private function processAuthenticationRule (Rule $rule, array $data): array|JSONResponse
+    private function processAuthenticationRule(Rule $rule, array $data): array|JSONResponse
     {
         $configuration = $rule->getConfiguration();
         $header = $data['headers']['Authorization'] ?? $data['headers']['authorization'];
@@ -844,8 +849,10 @@ class EndpointService
 			
 			return $data;
 		}
+
+		$data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
 		
-		return $this->mappingService->executeMapping($mapping, $data['body']);
+		return $data;
 	}
 
 	/**
