@@ -235,9 +235,14 @@ class SynchronizationContractMapper extends QBMapper
         $obj = new SynchronizationContract();
         $obj->hydrate(object: $object);
 
-        // Generate UUID if not provided
+        // Set uuid
         if ($obj->getUuid() === null) {
             $obj->setUuid(Uuid::v4());
+        }
+
+        // Set version
+        if (empty($obj->getVersion()) === true) {
+            $obj->setVersion('0.0.1');
         }
 
         return $this->insert(entity: $obj);
@@ -256,10 +261,19 @@ class SynchronizationContractMapper extends QBMapper
         $obj = $this->find($id);
         $obj->hydrate($object);
 
-        // Increment version number
-        $version = explode('.', $obj->getVersion());
-        $version[2] = (int)$version[2] + 1;
-        $obj->setVersion(implode('.', $version));
+        // Set version
+        if (empty($obj->getVersion()) === true) {
+            $obj->setVersion('0.0.1');
+        }
+
+        // Update version
+        if (empty($object['version']) === true) {
+            $version = explode('.', $obj->getVersion());
+            if (isset($version[2]) === true) {
+                $version[2] = (int) $version[2] + 1;
+                $obj->setVersion(implode('.', $version));
+            }
+        }
 
         return $this->update($obj);
     }
