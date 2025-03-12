@@ -91,7 +91,7 @@ class EndpointMapper extends QBMapper
 			1 // Limit to only one replacement
 		);
 
-		if (!str_ends_with($regex, '?#') && !str_ends_with($regex, '$#')) {
+		if (str_ends_with($regex, '?#') === false && str_ends_with($regex, '$#') === false) {
 			$regex = substr($regex, 0, -1) . '$#';
 		}
 
