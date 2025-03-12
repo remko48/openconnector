@@ -74,10 +74,25 @@ class EndpointMapper extends QBMapper
 		return $this->findEntities(query: $qb);
 	}
 
-	private function createEndpointRegex(string $endpoint) {
-		$regex = '#'.preg_replace(pattern: ['#\/{{([^}}]+)}}\/#', '#\/{{([^}}]+)}}$#'], replacement: ['/([^/]+)/', '(/([^/]+))?'], subject: $endpoint).'#';
-		if (str_ends_with(haystack: $regex, needle: '?#') === false && str_ends_with(haystack: $regex, needle: '$#') === false) {
-			$regex = substr($regex, 0, -1). '$#';
+	private function createEndpointRegex(string $endpoint): string {
+		$regex = '#' . preg_replace(
+			['#\/{{([^}}]+)}}\/#', '#\/{{([^}}]+)}}$#'],
+			['/([^/]+)/', '(/([^/]+))?'],
+			$endpoint
+		) . '#';
+
+		// Replace only the LAST occurrence of "(/([^/]+))?#" with "(?:/([^/]+))?$#"
+		$regex = preg_replace_callback(
+			'/\(\/\(\[\^\/\]\+\)\)\?#/',
+			function ($matches) {
+				return '(?:/([^/]+))?$#';
+			},
+			$regex,
+			1 // Limit to only one replacement
+		);
+
+		if (!str_ends_with($regex, '?#') && !str_ends_with($regex, '$#')) {
+			$regex = substr($regex, 0, -1) . '$#';
 		}
 
 		return $regex;
