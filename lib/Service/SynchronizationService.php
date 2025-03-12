@@ -1161,13 +1161,15 @@ class SynchronizationService
 		// Try parsing the response body in different formats, starting with JSON (since its the most common)
 		$result = json_decode($body, true);
 
-
 		// If JSON parsing failed, try XML
 		if (empty($result) === true) {
-			$xml =  simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
+			libxml_use_internal_errors(true);
+			$xml = simplexml_load_string($body, "SimpleXMLElement", LIBXML_NOCDATA);
 
 			if ($xml !== false) {
-				$result = json_decode(json_encode($xml), true);
+				// Instead of using json_encode/decode which loses namespaced attributes
+				// Use a custom XML to array conversion that preserves namespaced attributes
+				$result = $this->xmlToArray($xml);
 			}
 		}
 
@@ -2024,5 +2026,67 @@ class SynchronizationService
         return $result;
 
     }//end encodeArrayKeys()
+
+	/**
+	 * Convert SimpleXMLElement to array while preserving namespaced attributes
+	 * 
+	 * @param \SimpleXMLElement $xml The XML element to convert
+	 * @return array The array representation with preserved namespaced attributes
+	 */
+	private function xmlToArray(\SimpleXMLElement $xml): array
+	{
+		$result = [];
+		
+		// Handle attributes - this preserves namespaced attributes with colons
+		$attributes = $xml->attributes();
+		if (count($attributes) > 0) {
+			$result['@attributes'] = [];
+			foreach ($attributes as $attrName => $attrValue) {
+				$result['@attributes'][(string)$attrName] = (string)$attrValue;
+			}
+		}
+		
+		// Handle namespaced attributes
+		$namespaces = $xml->getNamespaces(true);
+		foreach ($namespaces as $prefix => $namespace) {
+			$nsAttributes = $xml->attributes($namespace);
+			if (count($nsAttributes) > 0) {
+				if (!isset($result['@attributes'])) {
+					$result['@attributes'] = [];
+				}
+				
+				foreach ($nsAttributes as $attrName => $attrValue) {
+					// Preserve the namespace prefix in the attribute name (with colon)
+					$nsAttrName = $prefix ? "$prefix:$attrName" : $attrName;
+					$result['@attributes'][$nsAttrName] = (string)$attrValue;
+				}
+			}
+		}
+		
+		// Handle child elements
+		foreach ($xml->children() as $childName => $child) {
+			$childArray = $this->xmlToArray($child);
+			
+			if (isset($result[$childName])) {
+				// If this child name already exists, convert to or add to array
+				if (!is_array($result[$childName]) || !isset($result[$childName][0])) {
+					$result[$childName] = [$result[$childName]];
+				}
+				$result[$childName][] = $childArray;
+			} else {
+				$result[$childName] = $childArray;
+			}
+		}
+		
+		// Handle text content
+		$text = trim((string)$xml);
+		if (count($result) === 0 && $text !== '') {
+			return ['#text' => $text];
+		} elseif ($text !== '') {
+			$result['#text'] = $text;
+		}
+		
+		return $result;
+	}
 
 }

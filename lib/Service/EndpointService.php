@@ -106,6 +106,10 @@ class EndpointService
 				'headers' => $this->getHeaders($request->server, true),
 				'path' => $path,
 				'method' => $request->getMethod(),
+				'body' => $this->parseContent(
+					$this->getRawContent(), 
+					$request->getHeader('Content-Type')
+				),
 			];
 
 			// Process rules before handling the request
@@ -115,6 +119,7 @@ class EndpointService
                 data: $data,
                 timing: 'before'
             );
+
 			if ($ruleResult instanceof JSONResponse) {
 				return $ruleResult;
 			}
@@ -126,16 +131,30 @@ class EndpointService
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
 				$result = $this->handleSchemaRequest($endpoint, $request, $path);
+				
+				// Process initial data
+				$data = [
+					'parameters' => $request->getParams(),
+					'requestHeaders' => $this->getHeaders($request->server, true),
+					'headers' => $result->getHeaders(),
+					'path' => $path,
+					'method' => $request->getMethod(),
+					'body' => $result->getData(),
+				];
 
-                $result = $this->processRules(
+                $ruleResult = $this->processRules(
                     endpoint: $endpoint,
                     request: $request,
-                    data: $result->getData(),
+                    data: $data,
                     timing: 'after',
                     objectId: $result->getData()['id'] ?? null
                 );
 
-                return new JSONResponse($result, 200);
+				if ($ruleResult instanceof JSONResponse) {
+					return $ruleResult;
+				}
+
+                return new JSONResponse($ruleResult['body'], 200, $ruleResult['headers']);
 			}
 
 			// Check if endpoint connects to a source
@@ -743,7 +762,7 @@ class EndpointService
      *
      * @return array|JSONResponse the unchanged $data array if authentication succeeds, or a JSONResponse containing an error on authentication.
      */
-    private function processAuthenticationRule (Rule $rule, array $data): array|JSONResponse
+    private function processAuthenticationRule(Rule $rule, array $data): array|JSONResponse
     {
         $configuration = $rule->getConfiguration();
         $header = $data['headers']['Authorization'] ?? $data['headers']['authorization'];
@@ -822,16 +841,18 @@ class EndpointService
 	{
 		$config = $rule->getConfiguration();
 		$mapping = $this->mappingService->getMapping($config['mapping']);
-
-		if (isset($data['results']) === true && strtolower($rule->getAction()) === 'get') {
-			foreach ($data['results'] as $key => $result) {
-				$data['results'][$key] = $this->mappingService->executeMapping($mapping, $result);
+		
+		if (isset($data['body']['results']) === true && strtolower($rule->getAction()) === 'get') {
+			foreach (($data['body']['results']) as $key => $result) {
+				$data['body']['results'][$key] = $this->mappingService->executeMapping($mapping, $result);
 			}
-
+			
 			return $data;
 		}
 
-		return $this->mappingService->executeMapping($mapping, $data);
+		$data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
+		
+		return $data;
 	}
 
 	/**
@@ -1051,5 +1072,56 @@ class EndpointService
 		);
 
 		return $request; // Return the overridden request
+	}
+
+	/**
+	 * Parse raw content into structured data based on content type
+	 *
+	 * @param string $content The raw content to parse
+	 * @param string|null $contentType Optional content type hint
+	 * @return mixed Parsed data (array for JSON/XML) or original string
+	 */
+	private function parseContent(string $content, ?string $contentType = null): mixed
+	{
+		// Try JSON decode first
+		$json = json_decode($content, true);
+		if ($json !== null) {
+			return $json;
+		}
+		
+		// Try XML decode if content type suggests XML or content looks like XML
+		if ($contentType === 'application/xml' || $contentType === 'text/xml' || 
+			($contentType === null && $this->looksLikeXml($content) === true)) {
+			libxml_use_internal_errors(true);
+			$xml = simplexml_load_string($content);
+			libxml_clear_errors();
+			
+			if ($xml !== false) {
+				return json_decode(json_encode($xml), true);
+			}
+		}
+		
+		// Return original content as fallback
+		return $content;
+	}
+
+	/**
+	 * Check if content appears to be XML
+	 *
+	 * @param string $content Content to check
+	 * @return bool True if content is valid XML
+	 */
+	private function looksLikeXml(string $content): bool
+	{
+		// Suppress XML errors
+		libxml_use_internal_errors(true);
+		
+		// Attempt to parse the content as XML
+		$result = simplexml_load_string($content) !== false;
+		
+		// Clear any XML errors
+		libxml_clear_errors();
+		
+		return $result;
 	}
 }
