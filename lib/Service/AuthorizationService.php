@@ -22,9 +22,12 @@ use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
+use OCA\OAuth2\Db\AccessTokenMapper;
+use OCA\OAuth2\Db\Client;
 use OCA\OpenConnector\Db\Consumer;
 use OCA\OpenConnector\Db\ConsumerMapper;
 use OCA\OpenConnector\Exception\AuthenticationException;
+use OCP\Authentication\Token\IProvider;
 use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUserManager;
@@ -49,7 +52,8 @@ class AuthorizationService
 		private readonly IUserManager   $userManager,
 		private readonly IUserSession   $userSession,
 		private readonly ConsumerMapper $consumerMapper,
-        private readonly IGroupManager  $groupManager
+        private readonly IGroupManager  $groupManager,
+        private readonly IProvider $tokenProvider,
 	)
 	{
 	}
@@ -208,7 +212,7 @@ class AuthorizationService
      * @param string $header The authorization header given in the request
      * @param array $users The users allowed to be authenticated according to the rule
      * @param array $groups The groups allowed to be authenticated according to the rule
-     * 
+     *
      * @return void
      * @throws AuthenticationException
      */
@@ -237,5 +241,32 @@ class AuthorizationService
         }
 
         $this->userSession->setUser($user);
+    }
+
+    public function authorizeOAuth(string $header, array $users, array $groups): void
+    {
+        $header = substr(string: $header, offset: strlen('Bearer '));
+
+        if($this->userSession->isLoggedIn() === false) {
+            throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The token you used has either expired or was not recognized as a valid token']);
+        }
+
+        $user = $this->userSession->getUser();
+
+        if($user === false) {
+            throw new AuthenticationException(message: 'Invalid username or password', details: []);
+        }
+
+        $userInAllowedUsers = array_intersect($users, [$user->getUID(), $user->getEMailAddress()]) !== [];
+
+        $userGroups = array_map(function(IGroup $group) {
+            return $group->getGID();
+        }, $this->groupManager->getUserGroups($user));
+
+        $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];
+
+        if($userInAllowedUsers === false && $userInAllowedGroups === false) {
+            throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The selected user is not allowed to login on this endpoint']);
+        }
     }
 }

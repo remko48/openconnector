@@ -798,7 +798,15 @@ class EndpointService
                 }
                 break;
             case 'oauth':
-                return new JSONResponse(data: ['error' => 'OAuth authentication is not yet implemented'], statusCode: 501);
+                try {
+                    $this->authorizationService->authorizeOAuth($header, $configuration['authentication']['users'], $configuration['authentication']['groups']);
+                } catch (AuthenticationException $exception) {
+                    return new JSONResponse(
+                        data: ['error' => $exception->getMessage(), 'details' => $exception->getDetails()],
+                        statusCode: 401
+                    );
+                }
+                break;
             default:
                 return new JSONResponse(data: ['error' => 'The authentication method is not supported'], statusCode: Http::STATUS_NOT_IMPLEMENTED);
         }
