@@ -320,15 +320,15 @@ class EndpointService
 				continue;
 			}
 
-			// If related object and has id
-			if ($isRelatedObject === true && $key === 'id' && isset($uuidToUrlMap[$value]) === true) {
-				$data[$key] = $uuidToUrlMap[$value];
+			// If in array of multiple objects and has id
+			if (is_array($value) === true && isset($value['id']) === true && isset($uuidToUrlMap[$value['id']]) === true) {
+				$data[$key] = $uuidToUrlMap[$value['id']];
 				continue;
 			}
 
-			// If in array of multiple objects and has id
-			if ($isRelatedObject === true && is_array($value) === true && isset($value['id']) === true && isset($uuidToUrlMap[$value['id']]) === true) {
-				$data[$key] = $uuidToUrlMap[$value['id']];
+			// If related object and has id
+			if ($isRelatedObject === true && $key === 'id' && isset($uuidToUrlMap[$value]) === true) {
+				$data[$key] = $uuidToUrlMap[$value];
 				continue;
 			}
 
@@ -379,20 +379,39 @@ class EndpointService
 				$id = pos($pathParams);
 			}
 
-			$main = $mapper->find($pathParams['id'])->getObject();
+			$main = $mapper->findByUuid($pathParams['id'])->getObject();
 			$ids = $main[$property];
 
+			if ($ids === null || empty($ids) === true) {
+				$returnArray = [
+					'count' => 0,
+					'results' => []
+				];
+
+				return $returnArray;
+			}
+
 			if (isset($id) === true && in_array(needle: $id, haystack: $ids) === true) {
-				return $this->replaceInternalReferences(mapper: $mapper, object: $mapper->findSubObjects([$id], $property)[0]);
+				$object = $mapper->find($id);
+
+				return $this->replaceInternalReferences(mapper: $mapper, object: $object);
 			} else if (isset($id) === true) {
 				$status = 404;
 				return ['error' => 'not found', 'message' => "the subobject with id $id does not exist"];
 
 			}
 
-            return array_map(function (ObjectEntity $subObject) use ($mapper) {
-                return $this->replaceInternalReferences(mapper: $mapper, object: $subObject);
-            }, $mapper->findSubObjects($ids, $property));
+			$results = $mapper->findMultiple($ids);
+			foreach ($results as $key => $result) {
+				$results[$key] = $this->replaceInternalReferences(mapper: $mapper, object: $result);
+			}
+
+			$returnArray = [
+				'count' => count($results),
+				'results' => $results
+			];
+
+            return $returnArray;
 		}
 
 		$result = $mapper->findAllPaginated(requestParams: $parameters);
@@ -800,7 +819,15 @@ class EndpointService
                 }
                 break;
             case 'oauth':
-                return new JSONResponse(data: ['error' => 'OAuth authentication is not yet implemented'], statusCode: 501);
+                try {
+                    $this->authorizationService->authorizeOAuth($header, $configuration['authentication']['users'], $configuration['authentication']['groups']);
+                } catch (AuthenticationException $exception) {
+                    return new JSONResponse(
+                        data: ['error' => $exception->getMessage(), 'details' => $exception->getDetails()],
+                        statusCode: 401
+                    );
+                }
+                break;
             default:
                 return new JSONResponse(data: ['error' => 'The authentication method is not supported'], statusCode: Http::STATUS_NOT_IMPLEMENTED);
         }
