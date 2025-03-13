@@ -318,15 +318,15 @@ class EndpointService
 				continue;
 			}
 
-			// If related object and has id
-			if ($isRelatedObject === true && $key === 'id' && isset($uuidToUrlMap[$value]) === true) {
-				$data[$key] = $uuidToUrlMap[$value];
+			// If in array of multiple objects and has id
+			if (is_array($value) === true && isset($value['id']) === true && isset($uuidToUrlMap[$value['id']]) === true) {
+				$data[$key] = $uuidToUrlMap[$value['id']];
 				continue;
 			}
 
-			// If in array of multiple objects and has id
-			if ($isRelatedObject === true && is_array($value) === true && isset($value['id']) === true && isset($uuidToUrlMap[$value['id']]) === true) {
-				$data[$key] = $uuidToUrlMap[$value['id']];
+			// If related object and has id
+			if ($isRelatedObject === true && $key === 'id' && isset($uuidToUrlMap[$value]) === true) {
+				$data[$key] = $uuidToUrlMap[$value];
 				continue;
 			}
 
