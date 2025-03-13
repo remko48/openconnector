@@ -251,17 +251,17 @@ class AuthorizationService
 
     public function authorizeOAuth(string $header, array $users, array $groups): void
     {
-        if(str_starts_with($header, 'Bearer') === false) {
+        if (str_starts_with($header, 'Bearer') === false) {
             throw new AuthenticationException(message: 'Invalid method', details: ['reason' => 'The authentication method you are using is not allowed on this resource.']);
         }
 
-        if($this->userSession->isLoggedIn() === false) {
+        if ($this->userSession->isLoggedIn() === false) {
             throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The token you used has either expired or was not recognized as a valid token']);
         }
 
         $user = $this->userSession->getUser();
 
-        if($user === false) {
+        if ($user === false) {
             throw new AuthenticationException(message: 'Invalid token', details: []);
         }
 
