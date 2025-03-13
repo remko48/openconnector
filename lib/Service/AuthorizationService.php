@@ -22,14 +22,19 @@ use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
+use OC\AppFramework\Http\Request;
+use OC\AppFramework\Middleware\Security\Exceptions\SecurityException;
 use OCA\OAuth2\Db\AccessTokenMapper;
 use OCA\OAuth2\Db\Client;
 use OCA\OpenConnector\Db\Consumer;
 use OCA\OpenConnector\Db\ConsumerMapper;
 use OCA\OpenConnector\Exception\AuthenticationException;
+use OCP\AppFramework\Http\Attribute\CORS;
+use OCP\AppFramework\Http\Response;
 use OCP\Authentication\Token\IProvider;
 use OCP\IGroup;
 use OCP\IGroupManager;
+use OCP\ISession;
 use OCP\IUserManager;
 use OCP\IUserSession;
 
@@ -228,24 +233,27 @@ class AuthorizationService
             throw new AuthenticationException(message: 'Invalid username or password', details: []);
         }
 
-        $userInAllowedUsers = array_intersect($users, [$user->getUID(), $user->getEMailAddress()]) !== [];
-
-        $userGroups = array_map(function(IGroup $group) {
-            return $group->getGID();
-        }, $this->groupManager->getUserGroups($user));
-
-        $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];
-
-        if($userInAllowedUsers === false && $userInAllowedGroups === false) {
-            throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The selected user is not allowed to login on this endpoint']);
-        }
+        //@TODO: This code can be enabled once the frontend can properly set users and usergroups
+//        $userInAllowedUsers = array_intersect($users, [$user->getUID(), $user->getEMailAddress()]) !== [];
+//
+//        $userGroups = array_map(function(IGroup $group) {
+//            return $group->getGID();
+//        }, $this->groupManager->getUserGroups($user));
+//
+//        $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];
+//
+//        if($userInAllowedUsers === false && $userInAllowedGroups === false) {
+//            throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The selected user is not allowed to login on this endpoint']);
+//        }
 
         $this->userSession->setUser($user);
     }
 
     public function authorizeOAuth(string $header, array $users, array $groups): void
     {
-        $header = substr(string: $header, offset: strlen('Bearer '));
+        if(str_starts_with($header, 'Bearer') === false) {
+            throw new AuthenticationException(message: 'Invalid method', details: ['reason' => 'The authentication method you are using is not allowed on this resource.']);
+        }
 
         if($this->userSession->isLoggedIn() === false) {
             throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The token you used has either expired or was not recognized as a valid token']);
@@ -254,19 +262,42 @@ class AuthorizationService
         $user = $this->userSession->getUser();
 
         if($user === false) {
-            throw new AuthenticationException(message: 'Invalid username or password', details: []);
+            throw new AuthenticationException(message: 'Invalid token', details: []);
         }
 
-        $userInAllowedUsers = array_intersect($users, [$user->getUID(), $user->getEMailAddress()]) !== [];
+        //@TODO: This code can be enabled once the frontend can properly set users and usergroups
+//        $userInAllowedUsers = array_intersect($users, [$user->getUID(), $user->getEMailAddress()]) !== [];
+//
+//        $userGroups = array_map(function(IGroup $group) {
+//            return $group->getGID();
+//        }, $this->groupManager->getUserGroups($user));
+//
+//        $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];
+//
+//        if($userInAllowedUsers === false && $userInAllowedGroups === false) {
+//            throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The selected user is not allowed to view endpoint']);
+//        }
+    }
 
-        $userGroups = array_map(function(IGroup $group) {
-            return $group->getGID();
-        }, $this->groupManager->getUserGroups($user));
+    public function corsAfterController(Request $request, Response $response) {
+        // only react if it's a CORS request and if the request sends origin and
 
-        $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];
+        if (isset($request->server['HTTP_ORIGIN'])) {
+            // allow credentials headers must not be true or CSRF is possible
+            // otherwise
+            foreach ($response->getHeaders() as $header => $value) {
+                if (strtolower($header) === 'access-control-allow-credentials' &&
+                    strtolower(trim($value)) === 'true') {
+                    $msg = 'Access-Control-Allow-Credentials must not be '.
+                        'set to true in order to prevent CSRF';
+                    throw new SecurityException($msg);
+                }
+            }
 
-        if($userInAllowedUsers === false && $userInAllowedGroups === false) {
-            throw new AuthenticationException(message: 'Not authorized', details: ['reason' => 'The selected user is not allowed to login on this endpoint']);
+            $origin = $request->server['HTTP_ORIGIN'];
+            $response->addHeader('Access-Control-Allow-Origin', $origin);
         }
+
+        return $response;
     }
 }
