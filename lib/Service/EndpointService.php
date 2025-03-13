@@ -251,13 +251,11 @@ class EndpointService
 
         // Find property names that are uris
         $validUriProperties = [];
-		if (empty($schema->getProperties()) === false) {
-			foreach ($schema->getProperties() as $propertyName => $property) {
-				if (isset($property['objectConfiguration']['handling']) === true && $property['objectConfiguration']['handling'] === 'uri') {
-					$validUriProperties[] = $propertyName;
-				}
-			}
-		}
+        foreach ($schema->getProperties() as $propertyName => $property) {
+            if (isset($property['objectConfiguration']['handling']) === true && $property['objectConfiguration']['handling'] === 'uri') {
+                $validUriProperties[] = $propertyName;
+            }
+        }
 
         foreach ($uses as $key => $use) {
             $baseKey = explode('.', $key, 2)[0];
