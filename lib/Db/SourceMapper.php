@@ -92,7 +92,6 @@ class SourceMapper extends QBMapper
 	public function updateFromArray(int $id, array $object): Source
 	{
 		$obj = $this->find($id);
-		$obj->hydrate($object);
 
 		// Set version
 		if (empty($obj->getVersion()) === true) {
@@ -105,6 +104,8 @@ class SourceMapper extends QBMapper
 				$object['version'] = implode('.', $version);
 			}
 		}
+
+		$obj->hydrate($object);
 
 		return $this->update($obj);
 	}
