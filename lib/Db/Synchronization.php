@@ -41,6 +41,55 @@ class Synchronization extends Entity implements JsonSerializable
 	protected array $followUps = [];
     protected array $actions = [];
 
+	/**
+	 * Get the source configuration array
+	 *
+	 * @return array The source configuration or empty array if null
+	 */
+	public function getSourceConfig(): array
+	{
+		return $this->sourceConfig ?? [];
+	}
+
+	/**
+	 * Get the target configuration array
+	 *
+	 * @return array The target configuration or empty array if null
+	 */
+	public function getTargetConfig(): array
+	{
+		return $this->targetConfig ?? [];
+	}
+
+	/**
+	 * Get the conditions array
+	 *
+	 * @return array The conditions or empty array if null
+	 */
+	public function getConditions(): array
+	{
+		return $this->conditions ?? [];
+	}
+
+	/**
+	 * Get the follow-ups array
+	 *
+	 * @return array The follow-ups or empty array if null
+	 */
+	public function getFollowUps(): array
+	{
+		return $this->followUps ?? [];
+	}
+
+	/**
+	 * Get the actions array
+	 *
+	 * @return array The actions or empty array if null
+	 */
+	public function getActions(): array
+	{
+		return $this->actions ?? [];
+	}
 
 	public function __construct() {
         $this->addType('uuid', 'string');

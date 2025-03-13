@@ -43,6 +43,26 @@ class EventMessage extends Entity implements JsonSerializable
     protected ?DateTime $updated = null;
 
     /**
+     * Get the message payload
+     *
+     * @return array The message payload or empty array if null
+     */
+    public function getPayload(): array
+    {
+        return $this->payload ?? [];
+    }
+
+    /**
+     * Get the last response from consumer
+     *
+     * @return array The last response or empty array if null
+     */
+    public function getLastResponse(): array
+    {
+        return $this->lastResponse ?? [];
+    }
+
+    /**
      * Constructor to set up data types for properties
      */
     public function __construct() {

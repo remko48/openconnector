@@ -21,6 +21,26 @@ class CallLog extends Entity implements JsonSerializable
     protected ?DateTime $expires = null;
     protected ?DateTime $created = null;
 
+    /**
+     * Get the request data
+     *
+     * @return array The request data or empty array if null
+     */
+    public function getRequest(): array
+    {
+        return $this->request ?? [];
+    }
+
+    /**
+     * Get the response data
+     *
+     * @return array The response data or empty array if null
+     */
+    public function getResponse(): array
+    {
+        return $this->response ?? [];
+    }
+
     public function __construct() {
         $this->addType('uuid', 'string');
         $this->addType('statusCode', 'integer');

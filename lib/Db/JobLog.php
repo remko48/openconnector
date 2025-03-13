@@ -24,6 +24,26 @@ class JobLog extends Entity implements JsonSerializable
     protected ?DateTime $nextRun = null;
     protected ?DateTime $created = null;
 
+    /**
+     * Get the job arguments
+     *
+     * @return array The job arguments or empty array if null
+     */
+    public function getArguments(): array
+    {
+        return $this->arguments ?? [];
+    }
+
+    /**
+     * Get the stack trace
+     *
+     * @return array The stack trace or empty array if null
+     */
+    public function getStackTrace(): array
+    {
+        return $this->stackTrace ?? [];
+    }
+
     public function __construct() {
         $this->addType('uuid', 'string');
         $this->addType('level', 'string');

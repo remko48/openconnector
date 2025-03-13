@@ -35,6 +35,16 @@ class Event extends Entity implements JsonSerializable
     protected ?string $status = 'pending'; // Event processing status
 
     /**
+     * Get the event data payload
+     *
+     * @return array The event data or empty array if null
+     */
+    public function getData(): array
+    {
+        return $this->data ?? [];
+    }
+
+    /**
      * Constructor to set up data types for properties
      */
     public function __construct() {
