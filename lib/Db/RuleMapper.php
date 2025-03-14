@@ -144,7 +144,6 @@ class RuleMapper extends QBMapper
 	public function updateFromArray(int $id, array $object): Rule
 	{
 		$obj = $this->find($id);
-		$obj->hydrate($object);
 
 		// Set version
 		if (empty($obj->getVersion()) === true) {
@@ -157,6 +156,8 @@ class RuleMapper extends QBMapper
 				$object['version'] = implode('.', $version);
 			}
 		}
+
+		$obj->hydrate($object);
 
 		return $this->update($obj);
 	}

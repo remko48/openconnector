@@ -118,7 +118,6 @@ class EventMapper extends QBMapper
 	public function updateFromArray(int $id, array $object): Event
 	{
 		$obj = $this->find($id);
-		$obj->hydrate($object);
 
 		// Set version
 		if (empty($obj->getVersion()) === true) {
@@ -131,6 +130,8 @@ class EventMapper extends QBMapper
 				$object['version'] = implode('.', $version);
 			}
 		}
+
+		$obj->hydrate($object);
 
 		return $this->update($obj);
 	}
