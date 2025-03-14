@@ -92,7 +92,6 @@ class JobMapper extends QBMapper
 	public function updateFromArray(int $id, array $object): Job
 	{
 		$obj = $this->find($id);
-		$obj->hydrate($object);
 
 		// Set version
 		if (empty($obj->getVersion()) === true) {
@@ -105,6 +104,8 @@ class JobMapper extends QBMapper
 				$object['version'] = implode('.', $version);
 			}
 		}
+
+		$obj->hydrate($object);
 
 		return $this->update($obj);
 	}

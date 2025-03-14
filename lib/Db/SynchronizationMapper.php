@@ -92,7 +92,6 @@ class SynchronizationMapper extends QBMapper
 	public function updateFromArray(int $id, array $object): Synchronization
 	{
 		$obj = $this->find($id);
-		$obj->hydrate($object);
 
 		// Set version
 		if (empty($obj->getVersion()) === true) {
@@ -105,6 +104,8 @@ class SynchronizationMapper extends QBMapper
 				$object['version'] = implode('.', $version);
 			}
 		}
+
+		$obj->hydrate($object);
 
 		return $this->update($obj);
 	}
