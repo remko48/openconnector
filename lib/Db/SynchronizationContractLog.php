@@ -31,21 +31,21 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     /**
      * Get the source data
      *
-     * @return array The source data or empty array if null
+     * @return array The source data or null
      */
-    public function getSource(): array
+    public function getSource(): ?array
     {
-        return $this->source ?? [];
+        return $this->source;
     }
 
     /**
      * Get the target data
      *
-     * @return array The target data or empty array if null
+     * @return array The target data or null
      */
-    public function getTarget(): array
+    public function getTarget(): ?array
     {
-        return $this->target ?? [];
+        return $this->target;
     }
 
     public function __construct() {

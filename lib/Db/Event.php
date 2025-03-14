@@ -25,7 +25,7 @@ class Event extends Entity implements JsonSerializable
     protected ?string $datacontenttype = 'application/json'; // Content type of data
     protected ?string $dataschema = null; // URI to the schema that data adheres to
     protected ?string $subject = null; // Subject of the event
-    protected ?array $data = null; // Event payload
+    protected ?array $data = []; // Event payload
 
     // Additional tracking fields
     protected ?string $userId = null; // User who triggered the event

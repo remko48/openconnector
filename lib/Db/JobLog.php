@@ -14,7 +14,7 @@ class JobLog extends Entity implements JsonSerializable
     protected ?string $jobId = null;
     protected ?string $jobListId = null;
     protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
-    protected ?array $arguments = null;
+    protected ?array $arguments = [];
     protected ?int $executionTime = 3600;
     protected ?string $userId = null;
     protected ?string $sessionId = null;
