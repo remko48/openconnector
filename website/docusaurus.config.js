@@ -22,26 +22,6 @@ const config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
-
-  plugins: [
-    [
-      'redocusaurus',
-      {
-        // Plugin options
-        specs: [
-          {
-            spec: 'static/oas/open-connector.json',
-            route: '/api/reference',
-          },
-        ],
-        // Theme options for Redocusaurus
-        theme: {
-          // Change with your site colors
-          primaryColor: '#34c4a7',
-        },
-      },
-    ],
-  ],
   
   presets: [
     [
@@ -59,6 +39,26 @@ const config = {
         },
       }),
     ],
+    [
+      'redocusaurus',
+      {
+        // Plugin Options for loading OpenAPI files
+        specs: [
+          // Pass it a path to a local OpenAPI YAML file
+          {
+            // Redocusaurus will automatically bundle your spec into a single file during the build
+            id: 'open-connector',
+            spec: 'static/oas/open-connector.json',
+            route: '/api',
+          },
+        ],
+        // Theme Options for modifying how redoc renders them
+        theme: {
+          // Change with your site colors
+          primaryColor: '#1890ff',
+        },
+      },
+    ]
   ],
 
   themeConfig:
@@ -76,6 +76,11 @@ const config = {
             sidebarId: 'tutorialSidebar',
             position: 'left',
             label: 'Documentation',
+          },
+          {
+            href: '/api',
+            label: 'API Documentation',
+            position: 'right',
           },
           {
             href: 'https://github.com/conductionnl/openconnector',
