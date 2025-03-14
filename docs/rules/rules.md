@@ -54,8 +54,12 @@ Authentication rules control access to endpoints by validating user credentials 
   - jwt: JSON Web Token authentication
   - jwt-zgw: ZGW-specific JWT authentication
   - oauth: OAuth 2.0 authentication
+  - apikey: Authentication using Api keys
 - users: Array of specific users allowed to access the endpoint
 - groups: Array of user groups allowed to access the endpoint
+- keys (when type is apikey): A key-value list with allowed api keys as keys, and the user which is authenticated using the api key as value.
+
+When the authentication rule is not validated, a response is given with 401 (unauthorized) status code with error and reason. The Api Key version will return Invalid API key if the api key is not know, and also when the user that is connected to the api key is not known in Nextcloud.
 
 ### Download Rules
 
