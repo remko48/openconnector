@@ -107,7 +107,7 @@ Add the key grant_type with value client_credentials and click 'Save'. Repeat th
 | client_assertion_type | _urn:ietf:params:oauth:client-assertion-type:jwt-bearer_                                                                                                                                                                                 |                                                                                                                                  |
 | private_key           | The base64 encoded private key of the certificate                                                                                                                                                                                        | Highly recommended using a secret manager for storing the private key.                                                           |
 | x5t                   | The sha1 of the thumbprint                                                                                                                                                                                                               | See 'Obtain x5t value'                                                                                                           |
-| payload               | ```{"aud": "{tokenUrl}","exp": \{\{ 'now'\|date_modify('+15 minutes')\|date('U') \}\},"iss": "{client_id}","jti":"dfdaa67d-d76e-48c4-a349-58861983869e","nbf": \{\{ 'now'\|date('U') \}\},"sub": "{client_id}","iat": \{\{ 'now'\|date('U') \}\}}``` | Replace `{tokenUrl}` by the same value as 'tokenUrl' (see below) and `{client_id}` by the same value as 'client_id' (see above)  |
+| payload               | ```{"aud": "{tokenUrl}","exp": {{ 'now'\|date_modify('+15 minutes')\|date('U') }},"iss": "{client_id}","jti":"dfdaa67d-d76e-48c4-a349-58861983869e","nbf": {{ 'now'\|date('U') }},"sub": "{client_id}","iat": {{ 'now'\|date('U') }}}``` | Replace ```{tokenUrl}``` by the same value as 'tokenUrl' (see below) and ```{client_id}``` by the same value as 'client_id' (see above)  |
 | tokenUrl              | `https://login.microsoftonline.com/{microsoft tenant id}/oauth2/v2.0/token`                                                                                                                                                              | Replace {microsoft tenant id} by your Microsoft Tenant ID (see 'Obtain client and tenant id')                                    |
 
 
@@ -125,6 +125,7 @@ The x5t value is an encoded version of the SHA1 thumbprint we obtained in the Ad
 To encode this value we can use the command line.
 
 In a linux (or git bash) command line we need the following command:
+
 ```bash
 echo '{thumbprint}' | xxd -r -p | base64
 ```
