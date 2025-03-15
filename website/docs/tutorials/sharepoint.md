@@ -92,7 +92,7 @@ Later on, we will need the thumbprint of the certificate, so keep this screen op
 
 Next, we need to set up the source in OpenConnector. Open your Nextcloud instance and go to OpenConnector, click sources and click the 'Add source' button.
 
-In the next modal, add a name, description and the location of SharePoint (usually https://{tenant}.sharepoint.com/_api), and set Type to API.
+In the next modal, add a name, description and the location of SharePoint (usually `https://{tenant}.sharepoint.com/_api)`, and set Type to API.
 Set up the source authentication
 Now, click the 'Authentication' tab in the new source, and click 'add Authentication' in the 'Actions' menu.
 Add the key grant_type with value client_credentials and click 'Save'. Repeat this step for the following values (grant type is added again for reference, italic values can be copied without editing):
@@ -133,7 +133,6 @@ The resulting string we can enter into the x5d value.
 
 #### Set configuration fields
 ![](images/OpenConnector_Configurations.png)
-
 Now that we have the authentication values, we can set the configuration fields.
 We click the tab 'Configurations' and in the Actions menu select 'add configuration'.
 Here we need to fill two fields. The first field to fill is `headers.Authorization`, with the value `Bearer {{ oauthToken(source) }}`, and the other one is `headers.Accept` with value `application\/json;odata=verbose`.
