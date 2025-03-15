@@ -73,7 +73,7 @@ Permissions are managed under the tab 'API Permissions'. Click 'Add' and in the 
 
 ![](images/Entra_AddPermission_4.png)
 
-Then, press the button 'Grant admin consent for {organization}', or ask an Entra admin to grant this consent.
+Then, press the button 'Grant admin consent for `organization`, or ask an Entra admin to grant this consent.
 
 ![](images/Entra_GrantConsent.png)
 
