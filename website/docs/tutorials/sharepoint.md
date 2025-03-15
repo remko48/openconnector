@@ -107,7 +107,7 @@ Add the key grant_type with value client_credentials and click 'Save'. Repeat th
 | client_assertion_type | _urn:ietf:params:oauth:client-assertion-type:jwt-bearer_                                                                                                                                                                                 |                                                                                                                                  |
 | private_key           | The base64 encoded private key of the certificate                                                                                                                                                                                        | Highly recommended using a secret manager for storing the private key.                                                           |
 | x5t                   | The sha1 of the thumbprint                                                                                                                                                                                                               | See 'Obtain x5t value'                                                                                                           |
-
+| tokenUrl              | `https://login.microsoftonline.com/{microsoft tenant id}/oauth2/v2.0/token`                                                                                                                                                              | Replace `microsoft tenant id` by your Microsoft Tenant ID (see 'Obtain client and tenant id')                                    |
 
 
 #### Obtain client and tenant ID
