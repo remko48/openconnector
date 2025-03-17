@@ -44,6 +44,7 @@ use ValueError;
 use OCA\OpenConnector\Db\Rule;
 use OCA\OpenConnector\Db\RuleMapper;
 use Psr\Container\ContainerInterface;
+use DateTime;
 
 /**
  * Service class for handling endpoint requests
@@ -73,7 +74,8 @@ class EndpointService
         private readonly IAppConfig $appConfig,
         private readonly StorageService $storageService,
         private readonly AuthorizationService $authorizationService,
-        private readonly ContainerInterface $containerInterface
+        private readonly ContainerInterface $containerInterface,
+        private readonly SynchronizationService $synchronizationService,
 	)
 	{
 	}
@@ -102,6 +104,9 @@ class EndpointService
 		try {
 			// Process initial data
 			$data = [
+                'utility' => [
+                    'currentDate' => (new DateTime())->format('c')
+                ],
 				'parameters' => $request->getParams(),
 				'headers' => $this->getHeaders($request->server, true),
 				'path' => $path,
@@ -134,6 +139,9 @@ class EndpointService
 
 				// Process initial data
 				$data = [
+                    'utility' => [
+                        'currentDate' => (new DateTime())->format('c')
+                    ],
 					'parameters' => $request->getParams(),
 					'requestHeaders' => $this->getHeaders($request->server, true),
 					'headers' => $result->getHeaders(),
@@ -494,24 +502,33 @@ class EndpointService
 
 
 		// Route to appropriate ObjectService method based on HTTP method
-		return match ($method) {
-			'GET' => new JSONResponse(
-				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
-			),
-			'POST' => new JSONResponse(
-				$this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->createFromArray(object: $parameters))
-			),
-			'PUT' => new JSONResponse(
-                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, false))
-			),
-            'PATCH' => new JSONResponse(
-                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, true))
-            ),
-			'DELETE' => new JSONResponse(
-				$mapper->delete($request->getParams())
-			),
-			default => throw new Exception('Unsupported HTTP method')
-		};
+        try {
+            return match ($method) {
+                'GET' => new JSONResponse(
+                    $this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
+                ),
+                'POST' => new JSONResponse(
+                    $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->createFromArray(object: $parameters))
+                ),
+                'PUT' => new JSONResponse(
+                    $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, false))
+                ),
+                'PATCH' => new JSONResponse(
+                    $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, true))
+                ),
+                'DELETE' => new JSONResponse(
+                    $mapper->delete($request->getParams())
+                ),
+                default => throw new Exception('Unsupported HTTP method')
+            };
+        } catch (Exception $exception) {
+            if (in_array(get_class($exception), ['OCA\OpenRegister\Exception\ValidationException', 'OCA\OpenRegister\Exception\CustomValidationException']) === true) {
+                return $mapper->handleValidationException(exception: $exception);
+            }
+
+            throw $exception;
+        } 
+
 	}
 
 	/**
@@ -903,8 +920,39 @@ class EndpointService
 	private function processSyncRule(Rule $rule, array $data): array
 	{
 		$config = $rule->getConfiguration();
-		// Here you would implement the synchronization logic
-		// For now, just return the data unchanged
+
+        // Check if base requirement is in config.
+        if(isset($config['synchronization']) === false) {
+            return $data;
+        }
+
+        // Fetch the synchronization.
+        if (is_numeric($config['synchronization']) === true) {
+            $synchronization = $this->synchronizationService->getSynchronization(id: (int) $config['synchronization']);
+        } else {
+            $synchronization = $this->synchronizationService->getSynchronization(filters: ['reference' => $config['synchronization']]);
+        }
+
+        // Check if the synchronization should be in test mode.
+        if(isset($data['body']['isTest']) === true) {
+            $test = $data['body']['isTest'];
+        } elseif (isset($config['isTest']) === true) {
+            $force = $config['isTest'];
+        } else {
+            $test = false;
+        }
+
+        // Check if the synchronization should be forced.
+        if(isset($data['body']['force']) === true) {
+            $force = $data['body']['force'];
+        } elseif (isset($config['force']) === true) {
+            $force = $config['force'];
+        } else {
+            $force = false;
+        }
+
+        // Run synchronization.
+        $data['body'] = $this->synchronizationService->synchronize(synchronization: $synchronization, isTest: $test, force: $force);
 		return $data;
 	}
 
