@@ -1986,14 +1986,14 @@ class SynchronizationService
 
 	/**
 	 * Convert SimpleXMLElement to array while preserving namespaced attributes
-	 * 
+	 *
 	 * @param \SimpleXMLElement $xml The XML element to convert
 	 * @return array The array representation with preserved namespaced attributes
 	 */
 	private function xmlToArray(\SimpleXMLElement $xml): array
 	{
 		$result = [];
-		
+
 		// Handle attributes - this preserves namespaced attributes with colons
 		$attributes = $xml->attributes();
 		if (count($attributes) > 0) {
@@ -2002,7 +2002,7 @@ class SynchronizationService
 				$result['@attributes'][(string)$attrName] = (string)$attrValue;
 			}
 		}
-		
+
 		// Handle namespaced attributes
 		$namespaces = $xml->getNamespaces(true);
 		foreach ($namespaces as $prefix => $namespace) {
@@ -2011,7 +2011,7 @@ class SynchronizationService
 				if (!isset($result['@attributes'])) {
 					$result['@attributes'] = [];
 				}
-				
+
 				foreach ($nsAttributes as $attrName => $attrValue) {
 					// Preserve the namespace prefix in the attribute name (with colon)
 					$nsAttrName = $prefix ? "$prefix:$attrName" : $attrName;
@@ -2019,11 +2019,11 @@ class SynchronizationService
 				}
 			}
 		}
-		
+
 		// Handle child elements
 		foreach ($xml->children() as $childName => $child) {
 			$childArray = $this->xmlToArray($child);
-			
+
 			if (isset($result[$childName])) {
 				// If this child name already exists, convert to or add to array
 				if (!is_array($result[$childName]) || !isset($result[$childName][0])) {
@@ -2034,7 +2034,7 @@ class SynchronizationService
 				$result[$childName] = $childArray;
 			}
 		}
-		
+
 		// Handle text content
 		$text = trim((string)$xml);
 		if (count($result) === 0 && $text !== '') {
@@ -2042,7 +2042,7 @@ class SynchronizationService
 		} elseif ($text !== '') {
 			$result['#text'] = $text;
 		}
-		
+
 		return $result;
 	}
 
@@ -2135,5 +2135,31 @@ class SynchronizationService
 		
 		return ['result' => $result, 'targetId' => $targetId];
 	}
+
+    /**
+     * Fetch an synchronization by id or other characteristics.
+     * Prevents other services from having to interact with the synchronizationmapper directly.
+     *
+     * @param string|int|null $id The id of the synchronization.
+     * @param array $filters Other filters to find the synchronization by.
+     * @return Synchronization The resulting synchronization
+     * @throws DoesNotExistException Thrown if the synchronization does not exist.
+     */
+    public function getSynchronization(null|string|int $id = null, array $filters = []) :Synchronization
+    {
+        if($id !== null) {
+            $id = intval($id);
+            return $this->synchronizationMapper->find($id);
+        }
+
+        /** @var Synchronization[] $synchronizations */
+        $synchronizations = $this->synchronizationMapper->findAll(filters: $filters);
+
+        if($synchronizations === 0) {
+            throw new DoesNotExistException('The synchronization you are looking for does not exist');
+        }
+
+        return $synchronizations[0];
+    }
 
 }
