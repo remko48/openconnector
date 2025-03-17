@@ -44,6 +44,7 @@ use ValueError;
 use OCA\OpenConnector\Db\Rule;
 use OCA\OpenConnector\Db\RuleMapper;
 use Psr\Container\ContainerInterface;
+use DateTime;
 
 /**
  * Service class for handling endpoint requests
@@ -103,6 +104,9 @@ class EndpointService
 		try {
 			// Process initial data
 			$data = [
+                'utility' => [
+                    'currentDate' => (new DateTime())->format('c')
+                ],
 				'parameters' => $request->getParams(),
 				'headers' => $this->getHeaders($request->server, true),
 				'path' => $path,
@@ -135,6 +139,9 @@ class EndpointService
 
 				// Process initial data
 				$data = [
+                    'utility' => [
+                        'currentDate' => (new DateTime())->format('c')
+                    ],
 					'parameters' => $request->getParams(),
 					'requestHeaders' => $this->getHeaders($request->server, true),
 					'headers' => $result->getHeaders(),
@@ -495,24 +502,33 @@ class EndpointService
 
 
 		// Route to appropriate ObjectService method based on HTTP method
-		return match ($method) {
-			'GET' => new JSONResponse(
-				$this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
-			),
-			'POST' => new JSONResponse(
-				$this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->createFromArray(object: $parameters))
-			),
-			'PUT' => new JSONResponse(
-                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, false))
-			),
-            'PATCH' => new JSONResponse(
-                $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, true))
-            ),
-			'DELETE' => new JSONResponse(
-				$mapper->delete($request->getParams())
-			),
-			default => throw new Exception('Unsupported HTTP method')
-		};
+        try {
+            return match ($method) {
+                'GET' => new JSONResponse(
+                    $this->getObjects(mapper: $mapper, parameters: $parameters, pathParams: $pathParams, status: $status), statusCode: $status, headers: $headers
+                ),
+                'POST' => new JSONResponse(
+                    $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->createFromArray(object: $parameters))
+                ),
+                'PUT' => new JSONResponse(
+                    $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, false))
+                ),
+                'PATCH' => new JSONResponse(
+                    $this->replaceInternalReferences(mapper: $mapper, serializedObject: $mapper->updateFromArray($parameters['id'], $request->getParams(), true, true))
+                ),
+                'DELETE' => new JSONResponse(
+                    $mapper->delete($request->getParams())
+                ),
+                default => throw new Exception('Unsupported HTTP method')
+            };
+        } catch (Exception $exception) {
+            if (in_array(get_class($exception), ['OCA\OpenRegister\Exception\ValidationException', 'OCA\OpenRegister\Exception\CustomValidationException']) === true) {
+                return $mapper->handleValidationException(exception: $exception);
+            }
+
+            throw $exception;
+        } 
+
 	}
 
 	/**
