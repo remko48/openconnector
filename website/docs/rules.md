@@ -88,6 +88,18 @@ Authentication rules control access to endpoints by validating user credentials 
 
 When the authentication rule is not validated, a response is given with 401 (unauthorized) status code with error and reason. The Api Key version will return Invalid API key if the api key is not know, and also when the user that is connected to the api key is not known in Nextcloud.
 
+### Synchronization Rules
+
+Synchronization rules can be used to run a synchronization in case an endpoint is requested. This synchronization has to be present in the database and defined in the rule.
+
+The synchronization rules take the following configuration options:
+
+- synchronization (required): The synchronization to run.
+- isTest (optional): if set to true, always treat the synchronization as if it is in test mode.
+- force (optional): if set to true, always force objects to be overwritten from the synchronization.
+
+The isTest and force options can also be overridden from the endpoint by setting the corresponding fields on the request body.
+
 ### Download Rules
 
 Download rules handle file access and retrieval. Configuration includes:
