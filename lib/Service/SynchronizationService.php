@@ -174,68 +174,25 @@ class SynchronizationService
 
 		$synchronizedTargetIds = [];
 
+		if ($sourceConfig['resultsPosition'] === '_object') {
+			$objectList = [$objectList];
+		}
+
 		foreach ($objectList as $key => $object) {
-			// We can only deal with arrays (bassed on the source empty values or string might be returned)
-			if (is_array($object) === false) {
-				$result['objects']['invalid']++;
-				unset($objectList[$key]);
-				continue;
+			$processResult = $this->processSynchronizationObject(
+				synchronization: $synchronization,
+				object: $object,
+				result: $result,
+				isTest: $isTest,
+				force: $force,
+				log: $log
+			);
+			
+			$result = $processResult['result'];
+			
+			if ($processResult['targetId'] !== null) {
+				$synchronizedTargetIds[] = $processResult['targetId'];
 			}
-			$conditionsObject = $this->encodeArrayKeys($object, '.', '&#46;');
-
-			// Check if object adheres to conditions.
-			// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
-			if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $conditionsObject)) {
-
-				// Increment skipped count in log since object doesn't meet conditions
-				$result['objects']['skipped']++;
-				unset($objectList[$key]);
-				continue;
-			}
-
-			// If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
-			$originId = $this->getOriginId($synchronization, $object);
-
-			// Get the synchronization contract for this object
-			$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
-
-			if ($synchronizationContract instanceof SynchronizationContract === false) {
-				// Only persist if not test
-				$synchronizationContract = new SynchronizationContract();
-				$synchronizationContract->setSynchronizationId($synchronization->getId());
-				$synchronizationContract->setOriginId($originId);
-
-				$synchronizationContractResult = $this->synchronizeContract(
-					synchronizationContract: $synchronizationContract,
-					synchronization: $synchronization,
-					object: $object,
-					isTest: $isTest,
-					force: $force,
-					log: $log
-				);
-
-				$synchronizationContract = $synchronizationContractResult['contract'];
-				$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) ? $synchronizationContractResult['contract']['uuid'] : null;
-				$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) ? $synchronizationContractResult['log']['uuid'] : null;
-				$result['objects']['created']++;
-			} else {
-				// @todo this is wierd
-				$synchronizationContractResult = $this->synchronizeContract(
-					synchronizationContract: $synchronizationContract,
-					synchronization: $synchronization,
-					object: $object,
-					isTest: $isTest,
-					force: $force,
-					log: $log
-				);
-
-				$synchronizationContract = $synchronizationContractResult['contract'];
-				$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) === true ? $synchronizationContractResult['contract']['uuid'] : null;
-				$result['logs'][] =isset($synchronizationContractResult['log']['uuid']) === true ? $synchronizationContractResult['log']['uuid'] : null;
-				$result['objects']['updated']++;
-			}
-
-			$synchronizedTargetIds[] = $synchronizationContract['targetId'];
 		}
 
 		// Delete invalid objects
@@ -1369,7 +1326,7 @@ class SynchronizationService
 		if (empty($sourceConfig['resultsPosition']) === false) {
 			$position = $sourceConfig['resultsPosition'];
 			// if position is root, return the array
-			if ($position === '_root') {
+			if ($position === '_root' || $position === '_object') {
 				return $array;
 			}
 			// Use Dot notation to access nested array elements
@@ -2087,6 +2044,96 @@ class SynchronizationService
 		}
 		
 		return $result;
+	}
+
+	/**
+	 * Process a single object during synchronization
+	 *
+	 * @param Synchronization $synchronization The synchronization being processed
+	 * @param array $object The object to synchronize
+	 * @param array $result The current result tracking data
+	 * @param bool $isTest Whether this is a test run
+	 * @param bool $force Whether to force synchronization regardless of changes
+	 * @param SynchronizationLog $log The synchronization log
+	 * 
+	 * @return array Contains updated result data and the targetId ['result' => array, 'targetId' => string|null]
+	 */
+	private function processSynchronizationObject(
+		Synchronization $synchronization, 
+		array $object, 
+		array $result, 
+		bool $isTest, 
+		bool $force, 
+		SynchronizationLog $log
+	): array {
+		// We can only deal with arrays (based on the source empty values or string might be returned)
+		if (is_array($object) === false) {
+			$result['objects']['invalid']++;
+			return ['result' => $result, 'targetId' => null];
+		}
+		
+		$conditionsObject = $this->encodeArrayKeys($object, '.', '&#46;');
+
+		// Check if object adheres to conditions.
+		// Take note, JsonLogic::apply() returns a range of return types, so checking it with '=== false' or '!== true' does not work properly.
+		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $conditionsObject)) {
+			// Increment skipped count in log since object doesn't meet conditions
+			$result['objects']['skipped']++;
+			return ['result' => $result, 'targetId' => null];
+		}
+
+		// If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
+		$originId = $this->getOriginId($synchronization, $object);
+
+		// Get the synchronization contract for this object
+		$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(
+			synchronizationId: $synchronization->id, 
+			originId: $originId
+		);
+
+		if ($synchronizationContract instanceof SynchronizationContract === false) {
+			// Only persist if not test
+			$synchronizationContract = new SynchronizationContract();
+			$synchronizationContract->setSynchronizationId($synchronization->getId());
+			$synchronizationContract->setOriginId($originId);
+
+			$synchronizationContractResult = $this->synchronizeContract(
+				synchronizationContract: $synchronizationContract,
+				synchronization: $synchronization,
+				object: $object,
+				isTest: $isTest,
+				force: $force,
+				log: $log
+			);
+
+			$synchronizationContract = $synchronizationContractResult['contract'];
+			$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) ? 
+				$synchronizationContractResult['contract']['uuid'] : null;
+			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) ? 
+				$synchronizationContractResult['log']['uuid'] : null;
+			$result['objects']['created']++;
+		} else {
+			// @todo this is weird
+			$synchronizationContractResult = $this->synchronizeContract(
+				synchronizationContract: $synchronizationContract,
+				synchronization: $synchronization,
+				object: $object,
+				isTest: $isTest,
+				force: $force,
+				log: $log
+			);
+
+			$synchronizationContract = $synchronizationContractResult['contract'];
+			$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) === true ? 
+				$synchronizationContractResult['contract']['uuid'] : null;
+			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) === true ? 
+				$synchronizationContractResult['log']['uuid'] : null;
+			$result['objects']['updated']++;
+		}
+
+		$targetId = $synchronizationContract['targetId'] ?? null;
+		
+		return ['result' => $result, 'targetId' => $targetId];
 	}
 
 }
