@@ -74,7 +74,8 @@ class EndpointService
         private readonly IAppConfig $appConfig,
         private readonly StorageService $storageService,
         private readonly AuthorizationService $authorizationService,
-        private readonly ContainerInterface $containerInterface
+        private readonly ContainerInterface $containerInterface,
+        private readonly SynchronizationService $synchronizationService,
 	)
 	{
 	}
@@ -919,8 +920,39 @@ class EndpointService
 	private function processSyncRule(Rule $rule, array $data): array
 	{
 		$config = $rule->getConfiguration();
-		// Here you would implement the synchronization logic
-		// For now, just return the data unchanged
+
+        // Check if base requirement is in config.
+        if(isset($config['synchronization']) === false) {
+            return $data;
+        }
+
+        // Fetch the synchronization.
+        if (is_numeric($config['synchronization']) === true) {
+            $synchronization = $this->synchronizationService->getSynchronization(id: (int) $config['synchronization']);
+        } else {
+            $synchronization = $this->synchronizationService->getSynchronization(filters: ['reference' => $config['synchronization']]);
+        }
+
+        // Check if the synchronization should be in test mode.
+        if(isset($data['body']['isTest']) === true) {
+            $test = $data['body']['isTest'];
+        } elseif (isset($config['isTest']) === true) {
+            $force = $config['isTest'];
+        } else {
+            $test = false;
+        }
+
+        // Check if the synchronization should be forced.
+        if(isset($data['body']['force']) === true) {
+            $force = $data['body']['force'];
+        } elseif (isset($config['force']) === true) {
+            $force = $config['force'];
+        } else {
+            $force = false;
+        }
+
+        // Run synchronization.
+        $data['body'] = $this->synchronizationService->synchronize(synchronization: $synchronization, isTest: $test, force: $force);
 		return $data;
 	}
 
