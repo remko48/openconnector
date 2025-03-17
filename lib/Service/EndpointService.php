@@ -111,7 +111,7 @@ class EndpointService
 				'path' => $path,
 				'method' => $request->getMethod(),
 				'body' => $this->parseContent(
-					$this->getRawContent(), 
+					$this->getRawContent(),
 					$request->getHeader('Content-Type')
 				),
 			];
@@ -135,7 +135,7 @@ class EndpointService
 			if ($endpoint->getTargetType() === 'register/schema') {
 				// Handle CRUD operations via ObjectService
 				$result = $this->handleSchemaRequest($endpoint, $request, $path);
-				
+
 				// Process initial data
 				$data = [
                     'utility' => [
@@ -802,6 +802,16 @@ class EndpointService
         }
 
         switch($configuration['authentication']['type']) {
+            case 'apikey':
+                try {
+                    $this->authorizationService->authorizeApiKey(header: $header, keys: $configuration['authentication']['keys']);
+                } catch (AuthenticationException $exception) {
+                    return new JSONResponse(
+                        data: ['error' => $exception->getMessage(), 'details' => $exception->getDetails()],
+                        statusCode: 401
+                    );
+                }
+                break;
             case 'jwt':
             case 'jwt-zgw':
                 try {
@@ -875,17 +885,17 @@ class EndpointService
 	{
 		$config = $rule->getConfiguration();
 		$mapping = $this->mappingService->getMapping($config['mapping']);
-		
+
 		if (isset($data['body']['results']) === true && strtolower($rule->getAction()) === 'get') {
 			foreach (($data['body']['results']) as $key => $result) {
 				$data['body']['results'][$key] = $this->mappingService->executeMapping($mapping, $result);
 			}
-			
+
 			return $data;
 		}
 
 		$data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
-		
+
 		return $data;
 	}
 
@@ -1122,19 +1132,19 @@ class EndpointService
 		if ($json !== null) {
 			return $json;
 		}
-		
+
 		// Try XML decode if content type suggests XML or content looks like XML
-		if ($contentType === 'application/xml' || $contentType === 'text/xml' || 
+		if ($contentType === 'application/xml' || $contentType === 'text/xml' ||
 			($contentType === null && $this->looksLikeXml($content) === true)) {
 			libxml_use_internal_errors(true);
 			$xml = simplexml_load_string($content);
 			libxml_clear_errors();
-			
+
 			if ($xml !== false) {
 				return json_decode(json_encode($xml), true);
 			}
 		}
-		
+
 		// Return original content as fallback
 		return $content;
 	}
@@ -1149,13 +1159,13 @@ class EndpointService
 	{
 		// Suppress XML errors
 		libxml_use_internal_errors(true);
-		
+
 		// Attempt to parse the content as XML
 		$result = simplexml_load_string($content) !== false;
-		
+
 		// Clear any XML errors
 		libxml_clear_errors();
-		
+
 		return $result;
 	}
 }

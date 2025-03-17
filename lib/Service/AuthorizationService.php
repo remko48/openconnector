@@ -279,6 +279,14 @@ class AuthorizationService
 //        }
     }
 
+    /**
+     * Add CORS headers to controller result
+     *
+     * @param Request $request The incoming request.
+     * @param Response $response The outgoing response.
+     * @return Response The updated response.
+     * @throws SecurityException
+     */
     public function corsAfterController(Request $request, Response $response) {
         // only react if it's a CORS request and if the request sends origin and
 
@@ -299,5 +307,29 @@ class AuthorizationService
         }
 
         return $response;
+    }
+
+    /**
+     * Authorize user based on APIkey
+     *
+     * @param string $header The authorization header used.
+     * @param array $keys The array of keys configured on the rule.
+     * @return void
+     * @throws AuthenticationException
+     */
+    public function authorizeApiKey(string $header, array $keys): void
+    {
+
+        if (array_key_exists(key: $header, array: $keys) === false) {
+            throw new AuthenticationException(message: 'Invalid API key', details: []);
+        }
+
+        $user = $this->userManager->get(uid: $keys[$header]);
+
+        if ($user === null){
+            throw new AuthenticationException(message: 'Invalid API key', details: []);
+        }
+
+        $this->userSession->setUser(user: $user);
     }
 }
