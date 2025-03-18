@@ -801,9 +801,9 @@ class EndpointService
     private function processAuthenticationRule(Rule $rule, array $data): array|JSONResponse
     {
         $configuration = $rule->getConfiguration();
-        $header = $data['headers']['Authorization'] ?? $data['headers']['authorization'];
+        $header = $data['headers']['Authorization'] ?? $data['headers']['authorization'] ?? '';
 
-        if ($header === '') {
+        if ($header === '' || $header === null) {
             return new JSONResponse(['error' => 'forbidden', 'details' => 'you are not allowed to access this endpoint unauththenticated'], Http::STATUS_FORBIDDEN);
         }
 
