@@ -25,6 +25,27 @@ use OCP\AppFramework\Db\DoesNotExistException;
 class EndpointsController extends Controller
 {
 	/**
+	 * CORS allowed methods
+	 *
+	 * @var string
+	 */
+	private string $corsMethods;
+
+	/**
+	 * CORS allowed headers
+	 *
+	 * @var string
+	 */
+	private string $corsAllowedHeaders;
+
+	/**
+	 * CORS max age
+	 *
+	 * @var int
+	 */
+	private int $corsMaxAge;
+
+	/**
 	 * Constructor for the EndpointsController
 	 *
 	 * @param string $appName The name of the app
@@ -228,6 +249,7 @@ class EndpointsController extends Controller
 		// Check if the Accept header is set to XML
 		$acceptHeader = $this->request->getHeader('Accept');
 		if (stripos($acceptHeader, 'application/xml') !== false) {
+			// Convert JSON response to XML response
 			$response = new XMLResponse($response->getData(), $response->getStatus());
 		}
 

@@ -3,124 +3,237 @@
 namespace OCA\OpenConnector\Http;
 
 use OCP\AppFramework\Http\Response;
-use SimpleXMLElement;
 use DOMDocument;
+use DOMElement;
+use DOMText;
 
 /**
- * Class XMLResponse
- * Handles conversion of array data to XML response
+ * A response for XML data
  *
- * @psalm-immutable
- * @phpstan-immutable
+ * @psalm-suppress PropertyNotSetInConstructor
  */
 class XMLResponse extends Response
 {
-	/**
-	 * The XML data as a string
-	 * 
-	 * @var string
-	 * @readonly
+	/** 
+	 * @var array<string, mixed> The data to be returned 
+	 * @psalm-var array<string, mixed>
 	 */
-	private readonly string $xmlData;
+	protected array $data;
+	
+	/** 
+	 * @var callable|null Custom render callback 
+	 * @psalm-var callable(array<string, mixed>): string|null
+	 */
+	protected $renderCallback = null;
 
 	/**
-	 * Constructor
+	 * Constructor for XMLResponse
 	 *
-	 * @param array<string, mixed> $data The data to convert to XML
+	 * @param array<string, mixed>|string $data The data to convert to XML
 	 * @param int $status HTTP status code, defaults to 200
+	 * @param array<string, string> $headers Custom headers to add to the response
 	 * 
-	 * @phpstan-param int $status Valid HTTP status code
+	 * @psalm-param array<string, mixed>|string $data
+	 * @psalm-param int $status
+	 * @psalm-param array<string, string> $headers
 	 */
-	public function __construct(array $data, int $status = 200, array $headers = [])
+	public function __construct($data = [], int $status = 200, array $headers = [])
 	{
-		parent::__construct($status, $headers);
-		$this->addHeader('Content-Type', 'application/xml; charset=UTF-8');
+		parent::__construct($status);
 		
-		// Extract root tag if specified in the data
-		$rootTag = 'response';
-		if (isset($data['@root'])) {
-			$rootTag = $data['@root'];
-			unset($data['@root']);
+		// Set response data
+		$this->data = is_array($data) ? $data : ['content' => $data];
+		
+		// Set headers
+		foreach ($headers as $name => $value) {
+			$this->addHeader($name, $value);
 		}
 		
-		// Convert array to XML using SimpleXMLElement
-		$this->xmlData = $this->arrayToXml($data, null, $rootTag);
+		// Set content type header
+		$this->addHeader('Content-Type', 'application/xml; charset=utf-8');
 	}
 
 	/**
-	 * Render the XML response
+	 * Get the data for rendering
+	 * 
+	 * @return array<string, mixed> The data for rendering
+	 * @psalm-return array<string, mixed>
+	 */
+	protected function getData(): array
+	{
+		return ['value' => $this->data];
+	}
+
+	/**
+	 * Set custom render callback
 	 *
-	 * @return string The XML string
+	 * @param callable $callback Function that takes data array and returns XML string 
+	 * @return $this
+	 * 
+	 * @psalm-param callable(array<string, mixed>): string $callback
+	 */
+	public function setRenderCallback(callable $callback): self
+	{
+		$this->renderCallback = $callback;
+		return $this;
+	}
+
+	/**
+	 * Returns the rendered XML
+	 *
+	 * @return string The rendered XML
 	 */
 	public function render(): string
 	{
-		return $this->xmlData;
+		if ($this->renderCallback !== null) {
+			return ($this->renderCallback)($this->getData());
+		}
+		
+		$data = $this->getData()['value'];
+		
+		// Check if data contains an @root key, if so use it directly
+		if (isset($data['@root'])) {
+			return $this->arrayToXml($data);
+		}
+		
+		// Use default root tag
+		return $this->arrayToXml(['value' => $data], 'response');
+	}
+
+	/**
+	 * Convert an array to XML
+	 *
+	 * @param array<string, mixed> $data The data to convert
+	 * @param string|null $rootTag Optional root tag name (overrides @root in data)
+	 * @return string The XML string or empty string on failure
+	 * 
+	 * @psalm-param array<string, mixed> $data
+	 * @psalm-return string
+	 */
+	public function arrayToXml(array $data, ?string $rootTag = null): string
+	{
+		// Extract root tag from data or use provided root tag
+		$rootName = $rootTag ?? ($data['@root'] ?? 'root');
+		
+		// Remove @root if it exists in data since we've extracted it
+		if (isset($data['@root'])) {
+			unset($data['@root']);
+		}
+		
+		// Create new DOM document
+		$dom = new DOMDocument('1.0', 'UTF-8');
+		$dom->formatOutput = true;
+		
+		// Create root element
+		$root = $dom->createElement($rootName);
+		if (!$root) {
+			// Failed to create root element
+			return '';
+		}
+		
+		$dom->appendChild($root);
+		
+		// Build XML structure
+		$this->buildXmlElement($dom, $root, $data);
+		
+		// Convert DOM to string
+		return $dom->saveXML() ?: '';
+	}
+
+	/**
+	 * Build an XML element with attributes and children in order
+	 * 
+	 * @param DOMDocument $dom The document
+	 * @param DOMElement $element The element to populate
+	 * @param array<string, mixed> $data The data to convert
+	 * @return void
+	 * 
+	 * @psalm-param DOMDocument $dom
+	 * @psalm-param DOMElement $element
+	 * @psalm-param array<string, mixed> $data
+	 */
+	private function buildXmlElement(DOMDocument $dom, DOMElement $element, array $data): void
+	{
+		// Process attributes first and maintain their order
+		if (isset($data['@attributes']) && is_array($data['@attributes'])) {
+			foreach ($data['@attributes'] as $attrKey => $attrValue) {
+				// Convert attribute value to string and set it
+				$element->setAttribute($attrKey, (string)$attrValue);
+			}
+			unset($data['@attributes']);
+		}
+		
+		// Process text content
+		if (isset($data['#text'])) {
+			$element->appendChild($this->createSafeTextNode($dom, (string)$data['#text']));
+			unset($data['#text']);
+		}
+		
+		// Process child elements
+		foreach ($data as $key => $value) {
+			// Normalize key name
+			$key = ltrim($key, '@');
+			$key = is_numeric($key) ? "item$key" : $key;
+			
+			if (is_array($value)) {
+				// Handle indexed arrays (multiple elements with same name)
+				if (isset($value[0]) && is_array($value[0])) {
+					foreach ($value as $item) {
+						$this->createChildElement($dom, $element, $key, $item);
+					}
+				} else {
+					// Handle associative arrays (complex elements)
+					$this->createChildElement($dom, $element, $key, $value);
+				}
+			} else {
+				// Handle simple value elements
+				$this->createChildElement($dom, $element, $key, $value);
+			}
+		}
+	}
+
+	/**
+	 * Create a child element and populate it
+	 * 
+	 * @param DOMDocument $dom The document
+	 * @param DOMElement $parentElement The parent element
+	 * @param string $tagName The tag name for the child element
+	 * @param array<string, mixed>|string $data The data for the child element
+	 * @return void
+	 * 
+	 * @psalm-param DOMDocument $dom
+	 * @psalm-param DOMElement $parentElement
+	 * @psalm-param string $tagName
+	 * @psalm-param array<string, mixed>|string $data
+	 */
+	private function createChildElement(DOMDocument $dom, DOMElement $parentElement, string $tagName, $data): void
+	{
+		$childElement = $dom->createElement($tagName);
+		if ($childElement) {
+			$parentElement->appendChild($childElement);
+			
+			if (is_array($data)) {
+				$this->buildXmlElement($dom, $childElement, $data);
+			} else {
+				$childElement->appendChild($this->createSafeTextNode($dom, (string)$data));
+			}
+		}
 	}
 	
 	/**
-	 * Convert an array to XML
+	 * Process text content safely
 	 * 
-	 * @param array<string, mixed> $data The data to convert to XML
-	 * @param SimpleXMLElement|null $xml The SimpleXMLElement to add to, or null to create a new one
-	 * @param string $rootTag The root tag name when creating a new SimpleXMLElement
+	 * @param DOMDocument $dom The document
+	 * @param string $text The text to create a node for
+	 * @return \DOMText The created text node
 	 * 
-	 * @return string The XML string
+	 * @psalm-param DOMDocument $dom
+	 * @psalm-param string $text
+	 * @psalm-return \DOMText
 	 */
-	private function arrayToXml(array $data, ?SimpleXMLElement $xml = null, string $rootTag = 'response'): string
+	private function createSafeTextNode(DOMDocument $dom, string $text): \DOMText
 	{
-		// Determine the root tag from $data or default to 'response'
-		if ($xml === null) {
-			$rootTag = $data['@root'] ?? $rootTag;
-			unset($data['@root']); // Ensure @root does not appear in the XML itself
-			$xml = new SimpleXMLElement("<?xml version=\"1.0\" encoding=\"UTF-8\"?><$rootTag/>");
-		}
-
-		foreach ($data as $key => $value) {
-			// Handle @attributes
-			if ($key === '@attributes' && is_array($value)) {
-				foreach ($value as $attrKey => $attrValue) {
-					// Special handling for attributes containing ':'
-					if (str_contains($attrKey, ':')) {
-						$xml->addAttribute($attrKey, htmlspecialchars((string)$attrValue, ENT_XML1, 'UTF-8'), 'http://www.w3.org/XML/1998/namespace');
-					} else {
-						$xml->addAttribute($attrKey, htmlspecialchars((string)$attrValue, ENT_XML1, 'UTF-8'));
-					}
-				}
-				continue;
-			}
-
-			// Handle text content
-			if ($key === '#text') {
-				$xml[0] = htmlspecialchars((string)$value, ENT_XML1, 'UTF-8');
-				continue;
-			}
-
-			// Ensure XML-safe tag names
-			$key = ltrim($key, '@'); // Remove @, except for @attributes (which is already processed)
-			$key = is_numeric($key) ? "item$key" : $key;
-
-			if (is_array($value)) {
-				// Handle arrays that should be repeated elements
-				if (isset($value[0]) && is_array($value[0])) {
-					foreach ($value as $item) {
-						$subnode = $xml->addChild($key);
-						$this->arrayToXml($item, $subnode);
-					}
-				} else {
-					$subnode = $xml->addChild($key);
-					$this->arrayToXml($value, $subnode);
-				}
-			} else {
-				$xml->addChild($key, htmlspecialchars((string)$value, ENT_XML1, 'UTF-8'));
-			}
-		}
-
-		// Format the XML for readability using DOMDocument
-		$dom = new DOMDocument('1.0', 'UTF-8');
-		$dom->preserveWhiteSpace = false;
-		$dom->formatOutput = true;
-		$dom->loadXML($xml->asXML());
-
-		return $dom->saveXML();
+		// DOM's createTextNode already handles XML character escaping
+		return $dom->createTextNode($text);
 	}
 }

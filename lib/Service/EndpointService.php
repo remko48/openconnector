@@ -896,7 +896,7 @@ class EndpointService
 		$config = $rule->getConfiguration();
 		$mapping = $this->mappingService->getMapping($config['mapping']);
 
-		// We should just remove this if statement and use mapping to loop through results instead.
+		// Todo: We should just remove this if statement and use mapping to loop through results instead.
 		if (isset($data['body']['results']) === true 
 			&& strtolower($rule->getAction()) === 'get'
 			&& (isset($config['mapResults']) === false || $config['mapResults'] === true)
