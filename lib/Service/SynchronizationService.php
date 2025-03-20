@@ -176,6 +176,7 @@ class SynchronizationService
 
 		if ($sourceConfig['resultsPosition'] === '_object') {
 			$objectList = [$objectList];
+			$result['objects']['found'] = count($objectList);
 		}
 
 		foreach ($objectList as $key => $object) {

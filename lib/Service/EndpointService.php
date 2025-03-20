@@ -801,9 +801,9 @@ class EndpointService
     private function processAuthenticationRule(Rule $rule, array $data): array|JSONResponse
     {
         $configuration = $rule->getConfiguration();
-        $header = $data['headers']['Authorization'] ?? $data['headers']['authorization'];
+        $header = $data['headers']['Authorization'] ?? $data['headers']['authorization'] ?? '';
 
-        if ($header === '') {
+        if ($header === '' || $header === null) {
             return new JSONResponse(['error' => 'forbidden', 'details' => 'you are not allowed to access this endpoint unauththenticated'], Http::STATUS_FORBIDDEN);
         }
 
@@ -896,7 +896,11 @@ class EndpointService
 		$config = $rule->getConfiguration();
 		$mapping = $this->mappingService->getMapping($config['mapping']);
 
-		if (isset($data['body']['results']) === true && strtolower($rule->getAction()) === 'get') {
+		// We should just remove this if statement and use mapping to loop through results instead.
+		if (isset($data['body']['results']) === true 
+			&& strtolower($rule->getAction()) === 'get'
+			&& (isset($config['mapResults']) === false || $config['mapResults'] === true)
+		) {
 			foreach (($data['body']['results']) as $key => $result) {
 				$data['body']['results'][$key] = $this->mappingService->executeMapping($mapping, $result);
 			}

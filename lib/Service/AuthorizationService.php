@@ -169,7 +169,7 @@ class AuthorizationService
 	{
 		$token = substr(string: $authorization, offset: strlen('Bearer '));
 
-		if ($token === '') {
+		if ($token === '' || $token === null) {
 			throw new AuthenticationException(message: 'No token has been provided', details: []);
 		}
 
@@ -197,6 +197,9 @@ class AuthorizationService
 		}
 
 		$payload = json_decode(json: $jws->getPayload(), associative: true);
+		if (isset($payload['iss']) === false || empty($payload['iss']) === true) {
+			throw new AuthenticationException(message: 'The token could not be validated', details: ['reason' => 'No issuer mentioned']);
+		}
 		$issuer = $this->findIssuer(issuer: $payload['iss']);
 
 		$publicKey = $issuer->getAuthorizationConfiguration()['publicKey'];
