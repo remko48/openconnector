@@ -25,6 +25,27 @@ use OCP\AppFramework\Db\DoesNotExistException;
 class EndpointsController extends Controller
 {
 	/**
+	 * CORS allowed methods
+	 *
+	 * @var string
+	 */
+	private string $corsMethods;
+
+	/**
+	 * CORS allowed headers
+	 *
+	 * @var string
+	 */
+	private string $corsAllowedHeaders;
+
+	/**
+	 * CORS max age
+	 *
+	 * @var int
+	 */
+	private int $corsMaxAge;
+
+	/**
 	 * Constructor for the EndpointsController
 	 *
 	 * @param string $appName The name of the app
@@ -127,7 +148,7 @@ class EndpointsController extends Controller
 		$data = $this->request->getParams();
 
 		foreach ($data as $key => $value) {
-			if (str_starts_with($key, '_')) {
+			if (str_starts_with($key, '_') === true) {
 				unset($data[$key]);
 			}
 		}
@@ -157,7 +178,7 @@ class EndpointsController extends Controller
 		$data = $this->request->getParams();
 
 		foreach ($data as $key => $value) {
-			if (str_starts_with($key, '_')) {
+			if (str_starts_with($key, '_') === true) {
 				unset($data[$key]);
 			}
 		}
@@ -212,7 +233,7 @@ class EndpointsController extends Controller
 		);
 
 		// If no matching endpoints found, return 404
-		if (empty($matchingEndpoints)) {
+		if (empty($matchingEndpoints) === true) {
 			return new JSONResponse(
 				data: ['error' => 'No matching endpoint found for path and method: ' . $_path . ' ' . $this->request->getMethod()],
 				statusCode: 404
@@ -228,7 +249,8 @@ class EndpointsController extends Controller
 		// Check if the Accept header is set to XML
 		$acceptHeader = $this->request->getHeader('Accept');
 		if (stripos($acceptHeader, 'application/xml') !== false) {
-			$response = new XMLResponse($response->getData(), $response->getStatus());
+			// Convert JSON response to XML response
+			$response = new XMLResponse($response->getData(), $response->getStatus(), $response->getHeaders());
 		}
 
         return $this->authorizationService->corsAfterController($this->request, $response);
@@ -248,7 +270,7 @@ class EndpointsController extends Controller
     #[PublicPage]
     public function preflightedCors(): Response {
         // Determine the origin
-        $origin = isset($this->request->server['HTTP_ORIGIN']) ? $this->request->server['HTTP_ORIGIN'] : '*';
+        $origin = isset($this->request->server['HTTP_ORIGIN']) === true ? $this->request->server['HTTP_ORIGIN'] : '*';
 
         // Create and configure the response
         $response = new Response();
