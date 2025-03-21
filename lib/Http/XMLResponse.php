@@ -233,7 +233,13 @@ class XMLResponse extends Response
 	 */
 	private function createSafeTextNode(DOMDocument $dom, string $text): \DOMText
 	{
+		// Decode any HTML entities to prevent double encoding
+		// First decode things like &amp; into &
+		$decodedText = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		// Then decode again to handle cases like &#039; into '
+		$decodedText = html_entity_decode($decodedText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		
 		// DOM's createTextNode already handles XML character escaping
-		return $dom->createTextNode($text);
+		return $dom->createTextNode($decodedText);
 	}
 }

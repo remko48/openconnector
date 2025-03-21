@@ -133,7 +133,14 @@ class XMLResponse extends MockResponse {
     }
 
     private function createSafeTextNode(\DOMDocument $dom, string $text): \DOMText {
-        return $dom->createTextNode($text);
+        // Decode any HTML entities to prevent double encoding
+        // First decode things like &amp; into &
+        $decodedText = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Then decode again to handle cases like &#039; into '
+        $decodedText = html_entity_decode($decodedText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // DOM's createTextNode already handles XML character escaping
+        return $dom->createTextNode($decodedText);
     }
 }
 
@@ -180,7 +187,7 @@ class XMLResponseTest
         
         // GROUP 6: Integration tests
         echo "Testing lib/Http/XMLResponse.php - Integration tests:\n";
-        $this->testOpenGroupModelXML();
+        $this->testArchiMateOpenGroupModelXML();
         
         echo "\nAll tests passed successfully!\n";
     }
@@ -392,6 +399,34 @@ class XMLResponseTest
     }
     
     /**
+     * Test HTML entity decoding
+     * 
+     * Tests:
+     * - lib/Http/XMLResponse.php::createSafeTextNode (HTML entity decoding)
+     * 
+     * @return void
+     */
+    private function testHtmlEntityDecoding(): void
+    {
+        echo "- Running testHtmlEntityDecoding: ";
+        
+        // Test both simple and double-encoded entities
+        $data = [
+            'simple' => 'Text with apostrophes like BOA&#039;s and camera&#039;s',
+            'double' => 'Text with double encoded apostrophes like BOA&amp;#039;s'
+        ];
+        
+        $response = new XMLResponse();
+        $xml = $response->arrayToXml($data);
+        
+        // Just verify that both were converted to real apostrophes
+        $this->assertContains("BOA's and camera's", $xml);
+        $this->assertContains("BOA's</double>", $xml);
+        
+        echo "PASSED\n";
+    }
+    
+    /**
      * Test for OpenGroup ArchiMate XML format - Integration test
      * 
      * Tests:
@@ -401,9 +436,9 @@ class XMLResponseTest
      * 
      * @return void
      */
-    private function testOpenGroupModelXML(): void
+    private function testArchiMateOpenGroupModelXML(): void
     {
-        echo "- Running testOpenGroupModelXML: ";
+        echo "- Running testArchiMateOpenGroupModelXML: ";
         
         $data = [
             '@root' => 'model',

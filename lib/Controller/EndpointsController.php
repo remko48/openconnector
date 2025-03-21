@@ -250,7 +250,7 @@ class EndpointsController extends Controller
 		$acceptHeader = $this->request->getHeader('Accept');
 		if (stripos($acceptHeader, 'application/xml') !== false) {
 			// Convert JSON response to XML response
-			$response = new XMLResponse($response->getData(), $response->getStatus());
+			$response = new XMLResponse($response->getData(), $response->getStatus(), $response->getHeaders());
 		}
 
         return $this->authorizationService->corsAfterController($this->request, $response);
