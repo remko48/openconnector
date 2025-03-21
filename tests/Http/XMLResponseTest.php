@@ -58,7 +58,7 @@ class XMLResponse extends MockResponse {
         $data = $this->getData()['value'];
         
         // Check if data contains an @root key, if so use it directly
-        if (isset($data['@root'])) {
+        if (isset($data['@root']) === true) {
             return $this->arrayToXml($data);
         }
         
@@ -69,7 +69,7 @@ class XMLResponse extends MockResponse {
     public function arrayToXml(array $data, ?string $rootTag = null): string {
         $rootName = $rootTag ?? ($data['@root'] ?? 'root');
         
-        if (isset($data['@root'])) {
+        if (isset($data['@root']) === true) {
             unset($data['@root']);
         }
         
@@ -89,24 +89,24 @@ class XMLResponse extends MockResponse {
     }
 
     private function buildXmlElement(\DOMDocument $dom, \DOMElement $element, array $data): void {
-        if (isset($data['@attributes']) && is_array($data['@attributes'])) {
+        if (isset($data['@attributes']) === true && is_array($data['@attributes']) === true) {
             foreach ($data['@attributes'] as $attrKey => $attrValue) {
                 $element->setAttribute($attrKey, (string)$attrValue);
             }
             unset($data['@attributes']);
         }
         
-        if (isset($data['#text'])) {
+        if (isset($data['#text']) === true) {
             $element->appendChild($this->createSafeTextNode($dom, (string)$data['#text']));
             unset($data['#text']);
         }
         
         foreach ($data as $key => $value) {
             $key = ltrim($key, '@');
-            $key = is_numeric($key) ? "item$key" : $key;
+            $key = is_numeric($key) === true ? "item$key" : $key;
             
-            if (is_array($value)) {
-                if (isset($value[0]) && is_array($value[0])) {
+            if (is_array($value) === true) {
+                if (isset($value[0]) === true && is_array($value[0]) === true) {
                     foreach ($value as $item) {
                         $this->createChildElement($dom, $element, $key, $item);
                     }
@@ -124,7 +124,7 @@ class XMLResponse extends MockResponse {
         if ($childElement) {
             $parentElement->appendChild($childElement);
             
-            if (is_array($data)) {
+            if (is_array($data) === true) {
                 $this->buildXmlElement($dom, $childElement, $data);
             } else {
                 $childElement->appendChild($this->createSafeTextNode($dom, (string)$data));
