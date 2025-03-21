@@ -908,7 +908,9 @@ class EndpointService
 			return $data;
 		}
 
-		return $this->mappingService->executeMapping($mapping, $data);
+		$data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
+
+		return $data;
 	}
 
 	/**
@@ -1137,13 +1139,13 @@ class EndpointService
 	{
 		// create items array of request
 		$items = [
-			'get'		 => [],
+			'get'		 => $_GET,
 			'post'		 => $_POST,
 			'files'		 => $_FILES,
 			'server'	 => $_SERVER,
 			'env'		 => $_ENV,
 			'cookies'	 => $_COOKIE,
-			'urlParams'  => $ruleData['parameters'],
+			'urlParams'  => $request->urlParams,
 			'params' => $ruleData['parameters'],
 			'method'     => $ruleData['method'],
 			'requesttoken' => false,
