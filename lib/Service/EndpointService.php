@@ -162,7 +162,7 @@ class EndpointService
                 timing: 'before'
             );
 
-			if ($ruleResult instanceof JSONResponse) {
+			if ($ruleResult instanceof JSONResponse === true) {
 				return $ruleResult;
 			}
 
@@ -195,7 +195,7 @@ class EndpointService
                     objectId: $result->getData()['id'] ?? null
                 );
 
-				if ($ruleResult instanceof JSONResponse) {
+				if ($ruleResult instanceof JSONResponse === true) {
 					return $ruleResult;
 				}
 
@@ -309,12 +309,12 @@ class EndpointService
                 continue;
             }
 
-            if (Uuid::isValid(uuid: $use)) {
+            if (Uuid::isValid(uuid: $use) === true) {
                 $useId = $use;
             } else if (
-                str_contains(haystack: $use, needle: 'localhost')
-                || str_contains(haystack: $use, needle: 'nextcloud.local')
-                || str_contains(haystack: $use, needle: $this->urlGenerator->getBaseUrl())
+                str_contains(haystack: $use, needle: 'localhost') === true
+                || str_contains(haystack: $use, needle: 'nextcloud.local') === true
+                || str_contains(haystack: $use, needle: $this->urlGenerator->getBaseUrl()) === true
             ) {
                 $explodedUrl = explode(separator: '/', string: $use);
                 $useId = end($explodedUrl);
@@ -595,7 +595,7 @@ class EndpointService
 				if (str_starts_with($key, 'HTTP_') === false) {
 					return false;
 				} else if ($proxyHeaders === false
-					&& (str_starts_with(haystack: $key, needle: 'HTTP_X_FORWARDED')
+					&& (str_starts_with(haystack: $key, needle: 'HTTP_X_FORWARDED') === true
 						|| $key === 'HTTP_X_REAL_IP' || $key === 'HTTP_X_ORIGINAL_URI'
 					)
 				) {
@@ -796,7 +796,7 @@ class EndpointService
 				};
 
 				// If result is JSONResponse, return error immediately
-				if ($result instanceof JSONResponse) {
+				if ($result instanceof JSONResponse === true) {
 					return $result;
 				}
 
@@ -934,7 +934,7 @@ class EndpointService
 		$config = $rule->getConfiguration();
 		$mapping = $this->mappingService->getMapping($config['mapping']);
 
-		// We should just remove this if statement and use mapping to loop through results instead.
+		// Todo: We should just remove this if statement and use mapping to loop through results instead.
 		if (isset($data['body']['results']) === true 
 			&& strtolower($rule->getAction()) === 'get'
 			&& (isset($config['mapResults']) === false || $config['mapResults'] === true)
@@ -946,9 +946,9 @@ class EndpointService
 			return $data;
 		}
 
-        $data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
+		$data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
 
-		return $data;;
+		return $data;
 	}
 
 	/**
@@ -1182,7 +1182,7 @@ class EndpointService
 
 		// create items array of request
 		$items = [
-			'get'		 => [],
+			'get'		 => $_GET,
 			'post'		 => $_POST,
 			'files'		 => $_FILES,
 			'server'	 => $_SERVER,
