@@ -136,8 +136,16 @@ class XMLResponse extends Response
 		// Build XML structure
 		$this->buildXmlElement($dom, $root, $data);
 		
-		// Convert DOM to string
-		return $dom->saveXML() ?: '';
+		// Get XML output
+		$xmlOutput = $dom->saveXML() ?: '';
+		
+		// Directly replace decimal CR entities with hexadecimal
+		$xmlOutput = str_replace('&#13;', '&#xD;', $xmlOutput);
+		
+		// Format empty tags to have a space before the closing bracket
+		$xmlOutput = preg_replace('/<([^>]*)\/>/','<$1 />', $xmlOutput);
+		
+		return $xmlOutput;
 	}
 
 	/**
@@ -227,13 +235,13 @@ class XMLResponse extends Response
 	 * 
 	 * @param DOMDocument $dom The document
 	 * @param string $text The text to create a node for
-	 * @return \DOMText The created text node
+	 * @return \DOMNode The created node
 	 * 
 	 * @psalm-param DOMDocument $dom
 	 * @psalm-param string $text
-	 * @psalm-return \DOMText
+	 * @psalm-return \DOMNode
 	 */
-	private function createSafeTextNode(DOMDocument $dom, string $text): \DOMText
+	private function createSafeTextNode(DOMDocument $dom, string $text): \DOMNode
 	{
 		// Decode any HTML entities to prevent double encoding
 		// First decode things like &amp; into &
@@ -241,7 +249,9 @@ class XMLResponse extends Response
 		// Then decode again to handle cases like &#039; into '
 		$decodedText = html_entity_decode($decodedText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 		
-		// DOM's createTextNode already handles XML character escaping
+		// Create a text node with the processed text
+		// Carriage returns will be encoded as decimal entities (&#13;) which are
+		// later converted to hexadecimal (&#xD;) in the arrayToXml method
 		return $dom->createTextNode($decodedText);
 	}
 }

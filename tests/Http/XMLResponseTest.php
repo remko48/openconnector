@@ -85,7 +85,16 @@ class XMLResponse extends MockResponse {
         
         $this->buildXmlElement($dom, $root, $data);
         
-        return $dom->saveXML() ?: '';
+        // Get XML output
+        $xmlOutput = $dom->saveXML() ?: '';
+        
+        // Directly replace decimal CR entities with hexadecimal
+        $xmlOutput = str_replace('&#13;', '&#xD;', $xmlOutput);
+        
+        // Format empty tags to have a space before the closing bracket
+        $xmlOutput = preg_replace('/<([^>]*)\/>/','<$1 />', $xmlOutput);
+        
+        return $xmlOutput;
     }
 
     private function buildXmlElement(\DOMDocument $dom, \DOMElement $element, array $data): void {
@@ -132,14 +141,16 @@ class XMLResponse extends MockResponse {
         }
     }
 
-    private function createSafeTextNode(\DOMDocument $dom, string $text): \DOMText {
+    private function createSafeTextNode(\DOMDocument $dom, string $text): \DOMNode {
         // Decode any HTML entities to prevent double encoding
         // First decode things like &amp; into &
         $decodedText = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         // Then decode again to handle cases like &#039; into '
         $decodedText = html_entity_decode($decodedText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         
-        // DOM's createTextNode already handles XML character escaping
+        // Create a text node with the processed text
+        // Carriage returns will be encoded as decimal entities (&#13;) which are
+        // later converted to hexadecimal (&#xD;) in the arrayToXml method
         return $dom->createTextNode($decodedText);
     }
 }
@@ -172,6 +183,7 @@ class XMLResponseTest
         echo "Testing lib/Http/XMLResponse.php - arrayToXml:\n";
         $this->testCustomRootTag();
         $this->testArrayItems();
+        $this->testEmptyTagFormatting();
         echo "\n";
         
         // GROUP 4: buildXmlElement method
@@ -183,6 +195,8 @@ class XMLResponseTest
         // GROUP 5: createSafeTextNode method
         echo "Testing lib/Http/XMLResponse.php - createSafeTextNode:\n";
         $this->testSpecialCharactersHandling();
+        $this->testHtmlEntityDecoding();
+        $this->testCarriageReturnHandling();
         echo "\n";
         
         // GROUP 6: Integration tests
@@ -427,6 +441,32 @@ class XMLResponseTest
     }
     
     /**
+     * Test carriage return handling with hexadecimal entities
+     * 
+     * Tests:
+     * - lib/Http/XMLResponse.php::createSafeTextNode (carriage return handling)
+     * 
+     * @return void
+     */
+    private function testCarriageReturnHandling(): void
+    {
+        echo "- Running testCarriageReturnHandling: ";
+        
+        $data = [
+            'element' => "Text with carriage return\r and line feed\n mixed together"
+        ];
+        
+        $response = new XMLResponse();
+        $xml = $response->arrayToXml($data);
+        
+        // Check for hexadecimal entity for carriage return (without CDATA)
+        $this->assertContains("carriage return&#xD; and line feed", $xml);
+        $this->assertNotContains("<![CDATA[", $xml);
+        
+        echo "PASSED\n";
+    }
+    
+    /**
      * Test for OpenGroup ArchiMate XML format - Integration test
      * 
      * Tests:
@@ -465,6 +505,43 @@ class XMLResponseTest
         $this->assertContains('xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"', $xml);
         $this->assertContains('xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd"', $xml);
         $this->assertContains('identifier="id-b58b6b03-a59d-472b-bd87-88ba77ded4e6"', $xml);
+        
+        echo "PASSED\n";
+    }
+    
+    /**
+     * Test empty tag formatting with space before the closing bracket
+     * 
+     * Tests:
+     * - lib/Http/XMLResponse.php::arrayToXml (empty tag formatting)
+     * 
+     * @return void
+     */
+    private function testEmptyTagFormatting(): void
+    {
+        echo "- Running testEmptyTagFormatting: ";
+        
+        $data = [
+            'properties' => [
+                'property' => [
+                    '@attributes' => [
+                        'propertyDefinitionRef' => 'propid-3'
+                    ],
+                    'value' => [
+                        '@attributes' => [
+                            'xml:lang' => 'nl'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        
+        $response = new XMLResponse();
+        $xml = $response->arrayToXml($data);
+        
+        // Check that empty tags have a space before the closing bracket
+        $this->assertContains('<value xml:lang="nl" />', $xml);
+        $this->assertNotContains('<value xml:lang="nl"/>', $xml);
         
         echo "PASSED\n";
     }
