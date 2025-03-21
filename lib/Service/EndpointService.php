@@ -55,6 +55,13 @@ use DateTime;
 class EndpointService
 {
 
+    private const MAPPING_DATA_EXPANSION = [
+        '_parameters',
+        '_utility',
+        '_method',
+        '_headers'
+    ];
+
 	/**
 	 * Constructor for EndpointService
 	 *
@@ -102,20 +109,37 @@ class EndpointService
 		}
 
 		try {
+
 			// Process initial data
-			$data = [
+            $responseBody = $this->parseContent(
+                $this->getRawContent(),
+                $request->getHeader('Content-Type')
+            );
+
+            if ($responseBody == '') {
+                $responseBody = [];
+            }
+
+            $currentDate = (new DateTime())->format('c');
+
+            // This is double becuase mapping needs it in body but other rules seek directly in data.
+            $data = [
                 'utility' => [
-                    'currentDate' => (new DateTime())->format('c')
+                    'currentDate' => $currentDate
                 ],
-				'parameters' => $request->getParams(),
-				'headers' => $this->getHeaders($request->server, true),
-				'path' => $path,
-				'method' => $request->getMethod(),
-				'body' => $this->parseContent(
-					$this->getRawContent(),
-					$request->getHeader('Content-Type')
-				),
-			];
+                'parameters' => $request->getParams(),
+                'headers' => $this->getHeaders($request->server, true),
+                'path' => $path,
+                'method' => $request->getMethod(),
+                'body' => array_merge([
+                    '_utility' => [
+                        'currentDate' => $currentDate
+                    ],
+                    '_parameters' => $request->getParams(),
+                    '_headers' => $this->getHeaders($request->server, true),
+                    '_path' => $path,
+                    '_method' => $request->getMethod()
+                ], $responseBody)];
 
 			// Process rules before handling the request
 			$ruleResult = $this->processRules(
@@ -908,7 +932,9 @@ class EndpointService
 			return $data;
 		}
 
-		return $this->mappingService->executeMapping($mapping, $data);
+        $data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
+
+		return $data;;
 	}
 
 	/**
@@ -1135,21 +1161,32 @@ class EndpointService
 	 */
 	private function updateRequestWithRuleData(IRequest $request, array $ruleData): IRequest
 	{
+        $queryParameters = $ruleData['body']['_parameters'] ?? [];
+        $method = $ruleData['body']['_method'] ?? 'GET';
+        $headers = $ruleData['body']['_headers'] ?? [];
+
+        // Prevent mapping data getting send to OpenRegister as part of the object
+        foreach ($this::MAPPING_DATA_EXPANSION as $dataKey) {
+            if (array_key_exists($dataKey, $ruleData['body']) === true) {
+                unset($ruleData['body'][$dataKey]);
+            }
+        }
+
 		// create items array of request
 		$items = [
 			'get'		 => [],
-			'post'		 => $_POST,
+			'post'		 => $ruleData['body'],
 			'files'		 => $_FILES,
 			'server'	 => $_SERVER,
 			'env'		 => $_ENV,
 			'cookies'	 => $_COOKIE,
-			'urlParams'  => $ruleData['parameters'],
-			'params' => $ruleData['parameters'],
-			'method'     => $ruleData['method'],
+			'urlParams'  => $queryParameters,
+			'params' => $queryParameters,
+			'method'     => $method,
 			'requesttoken' => false,
 		];
 
-		$items['server']['headers'] = $ruleData['headers'];
+		$items['server']['headers'] = $headers;
 
 		// build the new request
 		$request = new Request(
