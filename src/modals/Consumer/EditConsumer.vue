@@ -63,7 +63,7 @@ import { getTheme } from '../../services/getTheme.js'
 			<div class="buttonContainer">
 				<NcButton
 					v-if="success === null"
-					:disabled="loading || !consumerItem.name || error"
+					:disabled="loading || !consumerItem.name || !isAuthConfigValid"
 					type="primary"
 					@click="editConsumer()">
 					<template #icon>
@@ -137,13 +137,13 @@ export default {
 			closeTimeoutFunc: null,
 		}
 	},
-	watch: {
-		authConfig(newVal) {
+	computed: {
+		isAuthConfigValid() {
 			try {
-				JSON.parse(newVal)
-				this.error = false
+				JSON.parse(this.authConfig)
+				return true
 			} catch (e) {
-				this.error = 'Invalid JSON in authorization configuration'
+				return false
 			}
 		},
 	},
