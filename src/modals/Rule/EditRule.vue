@@ -190,7 +190,7 @@ import { Rule } from '../../entities/index.js'
 					<!-- Users Multi-Select -->
 					<NcSelect
 						v-model="ruleItem.configuration.authentication.users"
-						:options="usersList"
+						:options="usersList.map((el) => el.displayname)"
 						input-label="Allowed Users"
 						:multiple="true"
 						:clearable="true"
@@ -199,7 +199,7 @@ import { Rule } from '../../entities/index.js'
 					<!-- Groups Multi-Select -->
 					<NcSelect
 						v-model="ruleItem.configuration.authentication.groups"
-						:options="groupsList"
+						:options="groupsList.map((el) => el.displayname)"
 						input-label="Allowed Groups"
 						:multiple="true"
 						:clearable="true"
@@ -492,6 +492,8 @@ export default {
 			error: false,
 			closeAlert: false,
 			sourcesLoading: false,
+			usersLoading: false,
+			groupsLoading: false,
 			openRegister: {
 				isInstalled: true,
 				isAvailable: true,
@@ -506,15 +508,8 @@ export default {
 				value: null,
 				loading: false,
 			},
-			// @todoMock data for users and groups - should be fetched from backend
-			usersList: [
-				{ label: 'User 1', value: 'user1' },
-				{ label: 'User 2', value: 'user2' },
-			],
-			groupsList: [
-				{ label: 'Group 1', value: 'group1' },
-				{ label: 'Group 2', value: 'group2' },
-			],
+			usersList: [],
+			groupsList: [],
 
 			ruleItem: {
 				name: '',
@@ -677,6 +672,8 @@ export default {
 		this.getSynchronizations()
 		this.getSources()
 		this.getSchemas()
+		this.getAllowedUsers()
+		this.getGroups()
 	},
 	methods: {
 		async getMappings() {
@@ -849,6 +846,50 @@ export default {
 			} finally {
 				this.syncOptions.loading = false
 			}
+		},
+
+		async getAllowedUsers() {
+			this.usersLoading = true
+			const response = await fetch('/ocs/v1.php/cloud/users/details', {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'OCS-APIRequest': 'true',
+				},
+			})
+			if (!response.ok) {
+				console.info('Fetching users was not successful')
+				this.usersLoading = false
+				return
+			}
+
+			const responseData = await response.json()
+			this.usersList = Object.values(responseData.ocs.data.users)
+
+			this.usersLoading = false
+		},
+
+		async getGroups() {
+			this.groupsLoading = true
+			const response = await fetch('/ocs/v1.php/cloud/groups/details', {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'OCS-APIRequest': 'true',
+				},
+			},
+			)
+			if (!response.ok) {
+				console.info('Fetching groups was not successful')
+				this.groupsLoading = false
+				return
+			}
+
+			const responseData = await response.json()
+
+			this.groupsList = await responseData.ocs.data.groups
+
+			this.groupsLoading = false
 		},
 
 		setMethodOptions() {
