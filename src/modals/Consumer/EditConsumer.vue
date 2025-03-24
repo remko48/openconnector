@@ -117,7 +117,7 @@ export default {
 				authorizationType: '',
 				authorizationConfiguration: [['']],
 			},
-			authConfig: JSON.stringify([['']], null, 2),
+			authConfig: '{}',
 			success: null,
 			loading: false,
 			error: false,
