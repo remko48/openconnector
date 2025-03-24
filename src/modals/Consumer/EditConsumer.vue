@@ -65,7 +65,7 @@ import { getTheme } from '../../services/getTheme.js'
 					v-if="success === null"
 					:disabled="loading || !consumerItem.name || error"
 					type="primary"
-					@click="saveConsumerJSON">
+					@click="editConsumer()">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 						<ContentSaveOutline v-else :size="20" />
@@ -115,9 +115,9 @@ export default {
 				domains: '',
 				ips: '',
 				authorizationType: '',
-				authorizationConfiguration: [['']],
+				authorizationConfiguration: [],
 			},
-			authConfig: '{}',
+			authConfig: '[]',
 			success: null,
 			loading: false,
 			error: false,
@@ -174,7 +174,7 @@ export default {
 					.includes(item.authorizationType)) {
 					this.authorizationTypeOptions.value = { label: item.authorizationType }
 				}
-				this.authConfig = JSON.stringify(item.authorizationConfiguration || {}, null, 2)
+				this.authConfig = JSON.stringify(item.authorizationConfiguration || [], null, 2)
 			}
 		},
 
@@ -200,14 +200,9 @@ export default {
 				domains: '',
 				ips: '',
 				authorizationType: '',
-				authorizationConfiguration: [['']],
+				authorizationConfiguration: [],
 			}
 			this.authorizationTypeOptions.value = { label: 'none' }
-			this.authConfig = JSON.stringify([['']], null, 2)
-		},
-
-		saveConsumerJSON() {
-			this.editConsumer()
 		},
 
 		async editConsumer() {
@@ -220,12 +215,17 @@ export default {
 				this.loading = false
 				return
 			}
+			const finalAuthorizationConfiguration
+			= (Array.isArray(parsedAuthConfig) && parsedAuthConfig.length === 0) || (parsedAuthConfig && typeof parsedAuthConfig === 'object' && !Array.isArray(parsedAuthConfig) && Object.keys(parsedAuthConfig).length === 0)
+			 ? null
+				: parsedAuthConfig
+
 			const updatedConsumer = {
 				...this.consumerItem,
 				domains: this.consumerItem.domains.trim().split(/ *, */g).filter(Boolean),
 				ips: this.consumerItem.ips.trim().split(/ *, */g).filter(Boolean),
 				authorizationType: this.authorizationTypeOptions.value.label,
-				authorizationConfiguration: parsedAuthConfig,
+				authorizationConfiguration: finalAuthorizationConfiguration,
 			}
 			const newConsumer = new Consumer(updatedConsumer)
 			consumerStore.saveConsumer(newConsumer)
