@@ -174,7 +174,7 @@ export default {
 					.includes(item.authorizationType)) {
 					this.authorizationTypeOptions.value = { label: item.authorizationType }
 				}
-				this.authConfig = JSON.stringify(item.authorizationConfiguration || [['']], null, 2)
+				this.authConfig = JSON.stringify(item.authorizationConfiguration || {}, null, 2)
 			}
 		},
 
