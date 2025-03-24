@@ -203,6 +203,7 @@ export default {
 				authorizationConfiguration: [],
 			}
 			this.authorizationTypeOptions.value = { label: 'none' }
+			this.authConfig = '[]'
 		},
 
 		async editConsumer() {
