@@ -207,14 +207,7 @@ export default {
 
 		async editConsumer() {
 			this.loading = true
-			let parsedAuthConfig
-			try {
-				parsedAuthConfig = JSON.parse(this.authConfig)
-			} catch (e) {
-				this.error = 'Invalid JSON in authorization configuration'
-				this.loading = false
-				return
-			}
+			const parsedAuthConfig = JSON.parse(this.authConfig)
 			const finalAuthorizationConfiguration
 			= (Array.isArray(parsedAuthConfig) && parsedAuthConfig.length === 0) || (parsedAuthConfig && typeof parsedAuthConfig === 'object' && !Array.isArray(parsedAuthConfig) && Object.keys(parsedAuthConfig).length === 0)
 			 ? null
