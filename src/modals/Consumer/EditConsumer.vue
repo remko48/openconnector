@@ -45,12 +45,12 @@ import { getTheme } from '../../services/getTheme.js'
 
 					<div :class="`codeMirrorContainer ${getTheme()}`">
 						<CodeMirror
-							v-model="jsonContent"
+							v-model="authConfig"
 							:basic="true"
 							:dark="getTheme() === 'dark'"
 							:lang="json()"
 							:linter="jsonParseLinter()"
-							placeholder="Enter your data in JSON format..." />
+							placeholder="Enter authorization configuration in JSON format..." />
 					</div>
 					<NcButton class="prettifyButton" @click="prettifyJson">
 						<template #icon>
@@ -63,7 +63,7 @@ import { getTheme } from '../../services/getTheme.js'
 			<div class="buttonContainer">
 				<NcButton
 					v-if="success === null"
-					:disabled="loading || !consumerItem.name"
+					:disabled="loading || !consumerItem.name || error"
 					type="primary"
 					@click="saveConsumerJSON">
 					<template #icon>
@@ -115,8 +115,9 @@ export default {
 				domains: '',
 				ips: '',
 				authorizationType: '',
-				authorizationConfiguration: '',
+				authorizationConfiguration: [['']],
 			},
+			authConfig: JSON.stringify([['']], null, 2),
 			success: null,
 			loading: false,
 			error: false,
@@ -136,27 +137,14 @@ export default {
 			closeTimeoutFunc: null,
 		}
 	},
-	computed: {
-		jsonContent: {
-			get() {
-				return JSON.stringify(this.consumerItem, null, 2)
-			},
-			set(newVal) {
-				try {
-					const parsed = JSON.parse(newVal)
-					this.consumerItem = {
-						...this.consumerItem,
-						...parsed,
-						domains: Array.isArray(parsed.domains)
-							? parsed.domains.join(', ')
-							: (parsed.domains || ''),
-						ips: Array.isArray(parsed.ips)
-							? parsed.ips.join(', ')
-							: (parsed.ips || ''),
-					}
-				} catch (e) {
-				}
-			},
+	watch: {
+		authConfig(newVal) {
+			try {
+				JSON.parse(newVal)
+				this.error = false
+			} catch (e) {
+				this.error = 'Invalid JSON in authorization configuration'
+			}
 		},
 	},
 	mounted() {
@@ -186,14 +174,15 @@ export default {
 					.includes(item.authorizationType)) {
 					this.authorizationTypeOptions.value = { label: item.authorizationType }
 				}
+				this.authConfig = JSON.stringify(item.authorizationConfiguration || [['']], null, 2)
 			}
 		},
 
 		prettifyJson() {
 			try {
-				this.$set(this, 'jsonContent', JSON.stringify(JSON.parse(this.jsonContent), null, 2))
+				this.authConfig = JSON.stringify(JSON.parse(this.authConfig), null, 2)
 			} catch (e) {
-				this.error = 'Invalid JSON'
+				this.error = 'Invalid JSON in authorization configuration'
 			}
 		},
 
@@ -211,9 +200,10 @@ export default {
 				domains: '',
 				ips: '',
 				authorizationType: '',
-				authorizationConfiguration: '',
+				authorizationConfiguration: [['']],
 			}
 			this.authorizationTypeOptions.value = { label: 'none' }
+			this.authConfig = JSON.stringify([['']], null, 2)
 		},
 
 		saveConsumerJSON() {
@@ -222,13 +212,22 @@ export default {
 
 		async editConsumer() {
 			this.loading = true
-			const newConsumer = new Consumer({
+			let parsedAuthConfig
+			try {
+				parsedAuthConfig = JSON.parse(this.authConfig)
+			} catch (e) {
+				this.error = 'Invalid JSON in authorization configuration'
+				this.loading = false
+				return
+			}
+			const updatedConsumer = {
 				...this.consumerItem,
 				domains: this.consumerItem.domains.trim().split(/ *, */g).filter(Boolean),
 				ips: this.consumerItem.ips.trim().split(/ *, */g).filter(Boolean),
 				authorizationType: this.authorizationTypeOptions.value.label,
-				authorizationConfiguration: [['']],
-			})
+				authorizationConfiguration: parsedAuthConfig,
+			}
+			const newConsumer = new Consumer(updatedConsumer)
 			consumerStore.saveConsumer(newConsumer)
 				.then(({ response }) => {
 					this.success = response.ok
