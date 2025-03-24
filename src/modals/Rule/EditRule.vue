@@ -181,24 +181,47 @@ import { Rule } from '../../entities/index.js'
 						v-model="authenticationTypeOptions.value"
 						:options="authenticationTypeOptions.options"
 						input-label="Authentication Type" />
+					<template v-if="authenticationTypeOptions.value.value === 'api-key'">
+						<VueDraggable v-model="apiKeys" easing="ease-in-out" draggable="div:not(:last-child)">
+							<div v-for="(item, index) in apiKeys" :key="index" class="draggable-item-container">
+								<div :class="`draggable-form-item ${getTheme()}`">
+									<Drag class="drag-handle" :size="40" />
+									<NcTextArea
+										:value.sync="item.name"
+										:disabled="loading"
+										label="Api-key"
+										resize="none"
+										class="apiKeyTextArea" />
+									<NcSelect
+										v-model="item.allowedUsers"
+										:options="usersList"
+										:multiple="true"
+										:clearable="true"
+										placeholder="Select allowed users"
+										class="apiKeyUserSelect" />
+								</div>
+							</div>
+						</VueDraggable>
+					</template>
+					<template v-else>
+						<!-- Users Multi-Select -->
+						<NcSelect
+							v-model="ruleItem.configuration.authentication.users"
+							:options="usersList"
+							input-label="Allowed Users"
+							:multiple="true"
+							:clearable="true"
+							placeholder="Select users who can access" />
 
-					<!-- Users Multi-Select -->
-					<NcSelect
-						v-model="ruleItem.configuration.authentication.users"
-						:options="usersList"
-						input-label="Allowed Users"
-						:multiple="true"
-						:clearable="true"
-						placeholder="Select users who can access" />
-
-					<!-- Groups Multi-Select -->
-					<NcSelect
-						v-model="ruleItem.configuration.authentication.groups"
-						:options="groupsList"
-						input-label="Allowed Groups"
-						:multiple="true"
-						:clearable="true"
-						placeholder="Select groups who can access" />
+						<!-- Groups Multi-Select -->
+						<NcSelect
+							v-model="ruleItem.configuration.authentication.groups"
+							:options="groupsList"
+							input-label="Allowed Groups"
+							:multiple="true"
+							:clearable="true"
+							placeholder="Select groups who can access" />
+					</template>
 				</template>
 
 				<!-- Download Configuration -->
@@ -455,9 +478,10 @@ import {
 } from '@nextcloud/vue'
 import { json, jsonParseLinter } from '@codemirror/lang-json'
 import CodeMirror from 'vue-codemirror6'
-
+import { VueDraggable } from 'vue-draggable-plus'
 import ContentSaveOutline from 'vue-material-design-icons/ContentSaveOutline.vue'
 import Close from 'vue-material-design-icons/Close.vue'
+import Drag from 'vue-material-design-icons/Drag.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import CloudDownload from 'vue-material-design-icons/CloudDownload.vue'
 import FileTreeOutline from 'vue-material-design-icons/FileTreeOutline.vue'
@@ -478,6 +502,7 @@ export default {
 		NcActions,
 		NcActionButton,
 		NcCheckboxRadioSwitch,
+		VueDraggable,
 	},
 	data() {
 		return {
@@ -524,7 +549,7 @@ export default {
 					value: 'basic',
 				},
 			},
-
+			apiKeys: [{ name: '', allowedUsers: [] }],
 			ruleItem: {
 				name: '',
 				description: '',
@@ -614,6 +639,26 @@ export default {
 
 			closeTimeoutFunc: null,
 		}
+	},
+	watch: {
+		apiKeys: {
+			handler(newVal) {
+				const currentApiKeysLength = newVal.length
+
+				if (this.apiKeys[currentApiKeysLength - 1].name !== '') {
+					this.apiKeys.push({ name: '', allowedUsers: [] })
+				}
+
+				if (currentApiKeysLength > 1) {
+					for (let i = currentApiKeysLength - 2; i >= 0; i--) {
+						if (this.apiKeys[i].name.trim() === '') {
+							this.apiKeys.splice(i, 1)
+						}
+					}
+				}
+			},
+			deep: true,
+		},
 	},
 	mounted() {
 
@@ -1213,5 +1258,41 @@ export default {
 .schema-option > h6 {
     line-height: 0.8;
 }
+.draggable-form-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
 
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 12px;
+
+    margin-block: 8px;
+}
+.draggable-form-item.light {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+.draggable-form-item :deep(.v-select) {
+    min-width: 150px;
+}
+.draggable-form-item :deep(.input-field__label) {
+    margin-block-start: 0 !important;
+}
+.draggable-form-item .input-field {
+    margin-block-start: 0 !important;
+}
+
+.draggable-item-container:last-child .drag-handle {
+    cursor: not-allowed;
+}
+
+.apiKeyTextArea {
+	flex: 1 0 0;
+}
+
+.apiKeyUserSelect {
+	width: 45%;
+	margin-left: 10px;
+	margin-right: 8px;
+}
 </style>
