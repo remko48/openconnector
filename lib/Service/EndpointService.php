@@ -1182,7 +1182,7 @@ class EndpointService
 
 		// create items array of request
 		$items = [
-			'get'		 => $_GET,
+			'get'		 => [],
 			'post'		 => $_POST,
 			'files'		 => $_FILES,
 			'server'	 => $_SERVER,
