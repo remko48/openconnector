@@ -178,13 +178,8 @@ import { Rule } from '../../entities/index.js'
 				<!-- Authentication Configuration -->
 				<template v-if="typeOptions.value?.id === 'authentication'">
 					<NcSelect
-						v-model="ruleItem.configuration.authentication.type"
-						:options="[
-							{ label: 'Basic Authentication', value: 'basic' },
-							{ label: 'JWT', value: 'jwt' },
-							{ label: 'JWT-ZGW', value: 'jwt-zgw' },
-							{ label: 'OAuth', value: 'oauth' }
-						]"
+						v-model="authenticationTypeOptions.value"
+						:options="authenticationTypeOptions.options"
 						input-label="Authentication Type" />
 
 					<!-- Users Multi-Select -->
@@ -516,6 +511,20 @@ export default {
 				{ label: 'Group 2', value: 'group2' },
 			],
 
+			authenticationTypeOptions: {
+				options: [
+					{ label: 'Basic Authentication', value: 'basic' },
+					{ label: 'JWT', value: 'jwt' },
+					{ label: 'JWT-ZGW', value: 'jwt-zgw' },
+					{ label: 'OAuth', value: 'oauth' },
+					{ label: 'Api-key', value: 'api-key' },
+				],
+				value: {
+					label: 'Basic Authentication',
+					value: 'basic',
+				},
+			},
+
 			ruleItem: {
 				name: '',
 				description: '',
@@ -669,6 +678,12 @@ export default {
 			this.typeOptions.value = this.typeOptions.options.find(
 				option => option.id === this.ruleItem.type,
 			)
+			this.authenticationTypeOptions.value = this.authenticationTypeOptions.options.find(
+				option => option.value === ruleStore.ruleItem.configuration.authentication.type,
+			)
+		}
+		if (!this.IS_EDIT) {
+			this.authenticationTypeOptions.value = { label: 'Basic Authentication', value: 'basic' }
 		}
 		this.setMethodOptions()
 		this.setActionOptions()
@@ -987,7 +1002,7 @@ export default {
 				break
 			case 'authentication':
 				configuration.authentication = {
-					type: this.ruleItem.configuration.authentication.type.value,
+					type: this.authenticationTypeOptions.value.value,
 					users: this.ruleItem.configuration.authentication.users,
 					groups: this.ruleItem.configuration.authentication.groups,
 				}
