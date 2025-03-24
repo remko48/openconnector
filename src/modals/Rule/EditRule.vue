@@ -190,8 +190,9 @@ import { Rule } from '../../entities/index.js'
 					<!-- Users Multi-Select -->
 					<NcSelect
 						v-model="ruleItem.configuration.authentication.users"
-						:options="usersList.map((el) => el.displayname)"
+						v-bind="usersList"
 						input-label="Allowed Users"
+						:user-select="true"
 						:multiple="true"
 						:clearable="true"
 						placeholder="Select users who can access" />
@@ -199,7 +200,7 @@ import { Rule } from '../../entities/index.js'
 					<!-- Groups Multi-Select -->
 					<NcSelect
 						v-model="ruleItem.configuration.authentication.groups"
-						:options="groupsList.map((el) => el.displayname)"
+						v-bind="groupsList"
 						input-label="Allowed Groups"
 						:multiple="true"
 						:clearable="true"
@@ -864,7 +865,32 @@ export default {
 			}
 
 			const responseData = await response.json()
-			this.usersList = Object.values(responseData.ocs.data.users)
+
+			const selectedUsersValues = await Object.values(responseData.ocs.data.users).filter(user => this.ruleItem.configuration.authentication.users.includes(user.id))
+
+			this.usersList = {
+				options: Object.values(responseData.ocs.data.users).map((user) => ({
+					id: user.id,
+					displayName: user.displayname,
+					subname: user.email,
+					user: user.id,
+				})),
+				value: selectedUsersValues
+					? selectedUsersValues.map(user => ({
+						id: user.id,
+						displayName: user.displayname,
+						subname: user.email,
+						user: user.id,
+					}))
+					: [],
+			}
+
+			this.ruleItem.configuration.authentication.users = selectedUsersValues.map(user => ({
+				id: user.id,
+				displayName: user.displayname,
+				subname: user.email,
+				user: user.id,
+			}))
 
 			this.usersLoading = false
 		},
@@ -887,7 +913,25 @@ export default {
 
 			const responseData = await response.json()
 
-			this.groupsList = await responseData.ocs.data.groups
+			const selectedGroupsValues = await responseData.ocs.data.groups.filter(group => this.ruleItem.configuration.authentication.groups.includes(group.id))
+
+			this.groupsList = {
+				options: await responseData.ocs.data.groups.map(group => ({
+					label: group.displayname,
+					value: group.id,
+				})),
+				value: selectedGroupsValues
+					? selectedGroupsValues.map(group => ({
+						label: group.displayname,
+						value: group.id,
+					}))
+					: [],
+			}
+
+			this.ruleItem.configuration.authentication.groups = selectedGroupsValues.map(group => ({
+				label: group.displayname,
+				value: group.id,
+			}))
 
 			this.groupsLoading = false
 		},
@@ -1029,8 +1073,8 @@ export default {
 			case 'authentication':
 				configuration.authentication = {
 					type: this.ruleItem.configuration.authentication.type.value,
-					users: this.ruleItem.configuration.authentication.users,
-					groups: this.ruleItem.configuration.authentication.groups,
+					users: this.ruleItem.configuration.authentication.users.map(user => user.id),
+					groups: this.ruleItem.configuration.authentication.groups.map(group => group.value),
 				}
 				break
 			case 'download':
