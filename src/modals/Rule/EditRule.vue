@@ -531,7 +531,7 @@ export default {
 					},
 					javascript: '',
 					authentication: {
-						type: 'basic',
+						type: { label: 'Basic Authentication', value: 'basic' },
 						users: [],
 						groups: [],
 					},
