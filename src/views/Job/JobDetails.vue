@@ -343,11 +343,4 @@ export default {
 	word-wrap: break-word;
 }
 
-
-</style>
-<style>
-.jobStatusDisabled > svg > path {
-	fill: var(--color-error) !important;
-	color: red;
-}
 </style>
