@@ -75,8 +75,8 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 						<p>{{ jobStore.jobItem?.version || '-' }}</p>
 					</div>
 					<div class="gridContent">
-						<b>Enabled:</b>
-						<p>{{ jobStore.jobItem?.isEnabled || '-' }}</p>
+						<b>{{ jobStore.jobItem?.isEnabled ? 'Enabled' : 'Disabled' }}</b>
+						<NcUserStatusIcon :class="!jobStore.jobItem?.isEnabled && 'jobStatusDisabled'" :status="'online'" />
 					</div>
 					<div class="gridContent">
 						<b>Job Class:</b>
@@ -197,7 +197,7 @@ import { jobStore, navigationStore, logStore } from '../../store/store.js'
 </template>
 
 <script>
-import { NcActions, NcActionButton, NcListItem } from '@nextcloud/vue'
+import { NcActions, NcActionButton, NcListItem, NcUserStatusIcon } from '@nextcloud/vue'
 import { BTabs, BTab } from 'bootstrap-vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
@@ -291,54 +291,63 @@ export default {
 }
 </script>
 
-<style>
-	.successLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-success);
-		color: var(--OC-color-status-success);
-	}
+<style scoped>
+.successLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-success);
+	color: var(--OC-color-status-success);
+}
 
-	.errorLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-error);
-		color: var(--OC-color-status-error);
-	}
+.errorLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-error);
+	color: var(--OC-color-status-error);
+}
 
-	.noticeLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-notice);
-		color: var(--OC-color-status-notice);
-	}
+.noticeLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-notice);
+	color: var(--OC-color-status-notice);
+}
 
-	.warningLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-warning);
-		color: var(--OC-color-status-warning);
-	}
+.warningLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-warning);
+	color: var(--OC-color-status-warning);
+}
 
-	.infoLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-info);
-		color: var(--OC-color-status-info);
-	}
+.infoLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-info);
+	color: var(--OC-color-status-info);
+}
 
-	.criticalLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-critical);
-		color: var(--OC-color-status-critical);
-	}
+.criticalLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-critical);
+	color: var(--OC-color-status-critical);
+}
 
-	.alertLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-alert);
-		color: var(--OC-color-status-alert);
-	}
+.alertLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-alert);
+	color: var(--OC-color-status-alert);
+}
 
-	.emergencyLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-emergency);
-		color: var(--OC-color-status-emergency);
-	}
+.emergencyLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-emergency);
+	color: var(--OC-color-status-emergency);
+}
 
-	.debugLevel * .counter-bubble__counter {
-		background-color: var(--OC-color-status-background-debug);
-		color: var(--OC-color-status-debug);
-	}
-	.gridContent p {
+.debugLevel * .counter-bubble__counter {
+	background-color: var(--OC-color-status-background-debug);
+	color: var(--OC-color-status-debug);
+}
+
+.gridContent p {
 	white-space: normal;
 	overflow-wrap: break-word;
 	word-wrap: break-word;
+}
+
+
+</style>
+<style>
+.jobStatusDisabled > svg > path {
+	fill: var(--color-error) !important;
+	color: red;
 }
 </style>
