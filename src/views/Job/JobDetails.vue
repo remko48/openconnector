@@ -228,7 +228,7 @@ export default {
 		NcListItem,
 	},
 	mounted() {
-		jobStore.refreshJobLogs()
+		jobStore.refreshJobLogs(jobStore.jobItem.id)
 	},
 	methods: {
 		deleteJobArgument(key) {
@@ -260,7 +260,7 @@ export default {
 			navigationStore.setModal('viewJobLog')
 		},
 		refreshJobLogs() {
-			jobStore.refreshJobLogs()
+			jobStore.refreshJobLogs(jobStore.jobItem.id)
 		},
 		getLevelColor(level) {
 			switch (level) {
