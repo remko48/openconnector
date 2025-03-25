@@ -162,6 +162,88 @@ class XMLResponse extends MockResponse {
  */
 class XMLResponseTest
 {
+    private const BASIC_XML_DATA = [
+        'user' => [
+            'id' => 123,
+            'name' => 'Test User',
+            'email' => 'test@example.com'
+        ]
+    ];
+
+    private const CUSTOM_RENDER_DATA = [
+        'test' => 'data'
+    ];
+
+    private const CUSTOM_ROOT_DATA = [
+        '@root' => 'customRoot',
+        'message' => 'Hello World'
+    ];
+
+    private const ARRAY_ITEMS_DATA = [
+        'items' => [
+            ['name' => 'Item 1', 'value' => 100],
+            ['name' => 'Item 2', 'value' => 200],
+            ['name' => 'Item 3', 'value' => 300]
+        ]
+    ];
+
+    private const ATTRIBUTES_DATA = [
+        'element' => [
+            '@attributes' => [
+                'id' => '123',
+                'class' => 'container'
+            ],
+            'content' => 'Text with attributes'
+        ]
+    ];
+
+    private const NAMESPACED_ATTRIBUTES_DATA = [
+        '@root' => 'root',
+        '@attributes' => [
+            'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+            'xsi:schemaLocation' => 'http://example.org/schema.xsd'
+        ],
+        'content' => 'Namespaced content'
+    ];
+
+    private const SPECIAL_CHARS_DATA = [
+        'element' => 'Text with <special> & "characters"'
+    ];
+
+    private const HTML_ENTITY_DATA = [
+        'simple' => 'Text with apostrophes like BOA&#039;s and camera&#039;s',
+        'double' => 'Text with double encoded apostrophes like BOA&amp;#039;s'
+    ];
+
+    private const CARRIAGE_RETURN_DATA = [
+        'element' => "Text with carriage return\r and line feed\n mixed together"
+    ];
+
+    private const ARCHIMATE_MODEL_DATA = [
+        '@root' => 'model',
+        '@attributes' => [
+            'xmlns' => 'http://www.opengroup.org/xsd/archimate/3.0/',
+            'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+            'xsi:schemaLocation' => 'http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd',
+            'identifier' => 'id-b58b6b03-a59d-472b-bd87-88ba77ded4e6'
+        ]
+    ];
+
+    private const EMPTY_TAG_DATA = [
+        'properties' => [
+            'property' => [
+                '@attributes' => [
+                    'propertyDefinitionRef' => 'propid-3'
+                ],
+                'value' => [
+                    '@attributes' => [
+                        'xml:lang' => 'nl'
+                    ]
+                ]
+            ]
+        ]
+    ];
+
     /**
      * Run all tests
      * 
@@ -220,15 +302,7 @@ class XMLResponseTest
     {
         echo "- Running testBasicXmlGeneration: ";
         
-        $data = [
-            'user' => [
-                'id' => 123,
-                'name' => 'Test User',
-                'email' => 'test@example.com'
-            ]
-        ];
-        
-        $response = new XMLResponse($data);
+        $response = new XMLResponse(self::BASIC_XML_DATA);
         $xml = $response->render();
         
         $this->assertContains('<response>', $xml);
@@ -254,7 +328,7 @@ class XMLResponseTest
     {
         echo "- Running testCustomRenderCallback: ";
         
-        $response = new XMLResponse(['test' => 'data']);
+        $response = new XMLResponse(self::CUSTOM_RENDER_DATA);
         $response->setRenderCallback(function($data) {
             return '<custom>' . json_encode($data) . '</custom>';
         });
@@ -279,12 +353,7 @@ class XMLResponseTest
     {
         echo "- Running testCustomRootTag: ";
         
-        $data = [
-            '@root' => 'customRoot',
-            'message' => 'Hello World'
-        ];
-        
-        $response = new XMLResponse($data);
+        $response = new XMLResponse(self::CUSTOM_ROOT_DATA);
         $xml = $response->render();
         
         $this->assertContains('<customRoot>', $xml);
@@ -308,16 +377,8 @@ class XMLResponseTest
     {
         echo "- Running testArrayItems: ";
         
-        $data = [
-            'items' => [
-                ['name' => 'Item 1', 'value' => 100],
-                ['name' => 'Item 2', 'value' => 200],
-                ['name' => 'Item 3', 'value' => 300]
-            ]
-        ];
-        
         $response = new XMLResponse();
-        $xml = $response->arrayToXml($data);
+        $xml = $response->arrayToXml(self::ARRAY_ITEMS_DATA);
         
         $this->assertContains('<items>', $xml);
         $this->assertContains('<name>Item 1</name>', $xml);
@@ -339,18 +400,8 @@ class XMLResponseTest
     {
         echo "- Running testAttributesHandling: ";
         
-        $data = [
-            'element' => [
-                '@attributes' => [
-                    'id' => '123',
-                    'class' => 'container'
-                ],
-                'content' => 'Text with attributes'
-            ]
-        ];
-        
         $response = new XMLResponse();
-        $xml = $response->arrayToXml($data);
+        $xml = $response->arrayToXml(self::ATTRIBUTES_DATA);
         
         $this->assertContains('<element id="123" class="container">', $xml);
         $this->assertContains('<content>Text with attributes</content>', $xml);
@@ -370,17 +421,8 @@ class XMLResponseTest
     {
         echo "- Running testNamespacedAttributes: ";
         
-        $data = [
-            '@root' => 'root',
-            '@attributes' => [
-                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
-                'xsi:schemaLocation' => 'http://example.org/schema.xsd'
-            ],
-            'content' => 'Namespaced content'
-        ];
-        
         $response = new XMLResponse();
-        $xml = $response->arrayToXml($data);
+        $xml = $response->arrayToXml(self::NAMESPACED_ATTRIBUTES_DATA);
         
         $this->assertContains('<root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://example.org/schema.xsd">', $xml);
         $this->assertContains('<content>Namespaced content</content>', $xml);
@@ -400,12 +442,8 @@ class XMLResponseTest
     {
         echo "- Running testSpecialCharactersHandling: ";
         
-        $data = [
-            'element' => 'Text with <special> & "characters"'
-        ];
-        
         $response = new XMLResponse();
-        $xml = $response->arrayToXml($data);
+        $xml = $response->arrayToXml(self::SPECIAL_CHARS_DATA);
         
         $this->assertContains('<element>Text with &lt;special&gt; &amp; "characters"</element>', $xml);
         
@@ -424,14 +462,8 @@ class XMLResponseTest
     {
         echo "- Running testHtmlEntityDecoding: ";
         
-        // Test both simple and double-encoded entities
-        $data = [
-            'simple' => 'Text with apostrophes like BOA&#039;s and camera&#039;s',
-            'double' => 'Text with double encoded apostrophes like BOA&amp;#039;s'
-        ];
-        
         $response = new XMLResponse();
-        $xml = $response->arrayToXml($data);
+        $xml = $response->arrayToXml(self::HTML_ENTITY_DATA);
         
         // Just verify that both were converted to real apostrophes
         $this->assertContains("BOA's and camera's", $xml);
@@ -452,12 +484,8 @@ class XMLResponseTest
     {
         echo "- Running testCarriageReturnHandling: ";
         
-        $data = [
-            'element' => "Text with carriage return\r and line feed\n mixed together"
-        ];
-        
         $response = new XMLResponse();
-        $xml = $response->arrayToXml($data);
+        $xml = $response->arrayToXml(self::CARRIAGE_RETURN_DATA);
         
         // Check for hexadecimal entity for carriage return (without CDATA)
         $this->assertContains("carriage return&#xD; and line feed", $xml);
@@ -480,17 +508,7 @@ class XMLResponseTest
     {
         echo "- Running testArchiMateOpenGroupModelXML: ";
         
-        $data = [
-            '@root' => 'model',
-            '@attributes' => [
-                'xmlns' => 'http://www.opengroup.org/xsd/archimate/3.0/',
-                'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
-                'xsi:schemaLocation' => 'http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd',
-                'identifier' => 'id-b58b6b03-a59d-472b-bd87-88ba77ded4e6'
-            ]
-        ];
-        
-        $response = new XMLResponse($data);
+        $response = new XMLResponse(self::ARCHIMATE_MODEL_DATA);
         $xml = $response->render();
         
         // Verify XML declaration
@@ -521,23 +539,8 @@ class XMLResponseTest
     {
         echo "- Running testEmptyTagFormatting: ";
         
-        $data = [
-            'properties' => [
-                'property' => [
-                    '@attributes' => [
-                        'propertyDefinitionRef' => 'propid-3'
-                    ],
-                    'value' => [
-                        '@attributes' => [
-                            'xml:lang' => 'nl'
-                        ]
-                    ]
-                ]
-            ]
-        ];
-        
         $response = new XMLResponse();
-        $xml = $response->arrayToXml($data);
+        $xml = $response->arrayToXml(self::EMPTY_TAG_DATA);
         
         // Check that empty tags have a space before the closing bracket
         $this->assertContains('<value xml:lang="nl" />', $xml);
