@@ -213,5 +213,4 @@
 
 .jobStatusDisabled > svg > path {
   fill: var(--color-error) !important;
-  color: red;
 }
