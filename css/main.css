@@ -210,3 +210,8 @@
   font-weight: bold !important;
   unicode-bidi: isolate !important;
 }
+
+.jobStatusDisabled > svg > path {
+  fill: var(--color-error) !important;
+  color: red;
+}
