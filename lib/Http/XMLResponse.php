@@ -92,7 +92,7 @@ class XMLResponse extends Response
 		$data = $this->getData()['value'];
 		
 		// Check if data contains an @root key, if so use it directly
-		if (isset($data['@root'])) {
+		if (isset($data['@root']) === true) {
 			return $this->arrayToXml($data);
 		}
 		
@@ -116,7 +116,7 @@ class XMLResponse extends Response
 		$rootName = $rootTag ?? ($data['@root'] ?? 'root');
 		
 		// Remove @root if it exists in data since we've extracted it
-		if (isset($data['@root'])) {
+		if (isset($data['@root']) === true) {
 			unset($data['@root']);
 		}
 		
@@ -126,7 +126,7 @@ class XMLResponse extends Response
 		
 		// Create root element
 		$root = $dom->createElement($rootName);
-		if (!$root) {
+		if ($root === false) {
 			// Failed to create root element
 			return '';
 		}
@@ -136,8 +136,16 @@ class XMLResponse extends Response
 		// Build XML structure
 		$this->buildXmlElement($dom, $root, $data);
 		
-		// Convert DOM to string
-		return $dom->saveXML() ?: '';
+		// Get XML output
+		$xmlOutput = $dom->saveXML() ?: '';
+		
+		// Directly replace decimal CR entities with hexadecimal
+		$xmlOutput = str_replace('&#13;', '&#xD;', $xmlOutput);
+		
+		// Format empty tags to have a space before the closing bracket
+		$xmlOutput = preg_replace('/<([^>]*)\/>/','<$1 />', $xmlOutput);
+		
+		return $xmlOutput;
 	}
 
 	/**
@@ -155,7 +163,7 @@ class XMLResponse extends Response
 	private function buildXmlElement(DOMDocument $dom, DOMElement $element, array $data): void
 	{
 		// Process attributes first and maintain their order
-		if (isset($data['@attributes']) && is_array($data['@attributes'])) {
+		if (isset($data['@attributes']) === true && is_array($data['@attributes']) === true) {
 			foreach ($data['@attributes'] as $attrKey => $attrValue) {
 				// Convert attribute value to string and set it
 				$element->setAttribute($attrKey, (string)$attrValue);
@@ -164,7 +172,7 @@ class XMLResponse extends Response
 		}
 		
 		// Process text content
-		if (isset($data['#text'])) {
+		if (isset($data['#text']) === true) {
 			$element->appendChild($this->createSafeTextNode($dom, (string)$data['#text']));
 			unset($data['#text']);
 		}
@@ -175,9 +183,9 @@ class XMLResponse extends Response
 			$key = ltrim($key, '@');
 			$key = is_numeric($key) ? "item$key" : $key;
 			
-			if (is_array($value)) {
+			if (is_array($value) === true) {
 				// Handle indexed arrays (multiple elements with same name)
-				if (isset($value[0]) && is_array($value[0])) {
+				if (isset($value[0]) === true && is_array($value[0]) === true) {
 					foreach ($value as $item) {
 						$this->createChildElement($dom, $element, $key, $item);
 					}
@@ -209,14 +217,16 @@ class XMLResponse extends Response
 	private function createChildElement(DOMDocument $dom, DOMElement $parentElement, string $tagName, $data): void
 	{
 		$childElement = $dom->createElement($tagName);
-		if ($childElement) {
-			$parentElement->appendChild($childElement);
-			
-			if (is_array($data)) {
-				$this->buildXmlElement($dom, $childElement, $data);
-			} else {
-				$childElement->appendChild($this->createSafeTextNode($dom, (string)$data));
-			}
+		if ($childElement === false) {
+			return;
+		}
+		
+		$parentElement->appendChild($childElement);
+		
+		if (is_array($data) === true) {
+			$this->buildXmlElement($dom, $childElement, $data);
+		} else {
+			$childElement->appendChild($this->createSafeTextNode($dom, (string)$data));
 		}
 	}
 	
@@ -225,15 +235,23 @@ class XMLResponse extends Response
 	 * 
 	 * @param DOMDocument $dom The document
 	 * @param string $text The text to create a node for
-	 * @return \DOMText The created text node
+	 * @return \DOMNode The created node
 	 * 
 	 * @psalm-param DOMDocument $dom
 	 * @psalm-param string $text
-	 * @psalm-return \DOMText
+	 * @psalm-return \DOMNode
 	 */
-	private function createSafeTextNode(DOMDocument $dom, string $text): \DOMText
+	private function createSafeTextNode(DOMDocument $dom, string $text): \DOMNode
 	{
-		// DOM's createTextNode already handles XML character escaping
-		return $dom->createTextNode($text);
+		// Decode any HTML entities to prevent double encoding
+		// First decode things like &amp; into &
+		$decodedText = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		// Then decode again to handle cases like &#039; into '
+		$decodedText = html_entity_decode($decodedText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		
+		// Create a text node with the processed text
+		// Carriage returns will be encoded as decimal entities (&#13;) which are
+		// later converted to hexadecimal (&#xD;) in the arrayToXml method
+		return $dom->createTextNode($decodedText);
 	}
 }

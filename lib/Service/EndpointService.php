@@ -55,6 +55,15 @@ use DateTime;
 class EndpointService
 {
 
+    private const UNSET_PARAMETERS = [
+        '_parameters',
+        '_utility',
+        '_method',
+        '_headers',
+        '_route',
+        '_path'
+    ];
+
 	/**
 	 * Constructor for EndpointService
 	 *
@@ -102,20 +111,48 @@ class EndpointService
 		}
 
 		try {
+
 			// Process initial data
-			$data = [
+            $responseBody = $this->parseContent(
+                $this->getRawContent(),
+                $request->getHeader('Content-Type')
+            );
+
+            if ($responseBody == '') {
+                $responseBody = [];
+            }
+
+            $currentDate = (new DateTime())->format('c');
+
+            // This is double becuase mapping needs it in body but other rules seek directly in data.
+
+            $incomingMethod = $request->getMethod();
+            $incomingHeaders = $this->getHeaders($request->server, true);
+            $incomingParams = $request->getParams();
+
+            $incomingData = [
+                'method' => $incomingMethod,
+                'headers' => $incomingHeaders,
+                'params' => $incomingParams
+            ];
+
+            $data = [
                 'utility' => [
-                    'currentDate' => (new DateTime())->format('c')
+                    'currentDate' => $currentDate
                 ],
-				'parameters' => $request->getParams(),
-				'headers' => $this->getHeaders($request->server, true),
-				'path' => $path,
-				'method' => $request->getMethod(),
-				'body' => $this->parseContent(
-					$this->getRawContent(),
-					$request->getHeader('Content-Type')
-				),
-			];
+                'parameters' => $incomingParams,
+                'headers' => $incomingHeaders,
+                'path' => $path,
+                'method' => $incomingMethod,
+                'body' => array_merge([
+                    '_utility' => [
+                        'currentDate' => $currentDate
+                    ],
+                    '_parameters' => $incomingParams,
+                    '_headers' => $incomingHeaders,
+                    '_path' => $path,
+                    '_method' => $incomingMethod,
+                ], $responseBody)];
 
 			// Process rules before handling the request
 			$ruleResult = $this->processRules(
@@ -125,12 +162,12 @@ class EndpointService
                 timing: 'before'
             );
 
-			if ($ruleResult instanceof JSONResponse) {
+			if ($ruleResult instanceof JSONResponse === true) {
 				return $ruleResult;
 			}
 
 			// Update request data with rule processing results
-			$request = $this->updateRequestWithRuleData($request, $ruleResult);
+			$request = $this->updateRequestWithRuleData(request: $request, ruleData: $ruleResult, incomingData: $incomingData);
 
 			// Check if endpoint connects to a schema
 			if ($endpoint->getTargetType() === 'register/schema') {
@@ -158,7 +195,7 @@ class EndpointService
                     objectId: $result->getData()['id'] ?? null
                 );
 
-				if ($ruleResult instanceof JSONResponse) {
+				if ($ruleResult instanceof JSONResponse === true) {
 					return $ruleResult;
 				}
 
@@ -272,12 +309,12 @@ class EndpointService
                 continue;
             }
 
-            if (Uuid::isValid(uuid: $use)) {
+            if (Uuid::isValid(uuid: $use) === true) {
                 $useId = $use;
             } else if (
-                str_contains(haystack: $use, needle: 'localhost')
-                || str_contains(haystack: $use, needle: 'nextcloud.local')
-                || str_contains(haystack: $use, needle: $this->urlGenerator->getBaseUrl())
+                str_contains(haystack: $use, needle: 'localhost') === true
+                || str_contains(haystack: $use, needle: 'nextcloud.local') === true
+                || str_contains(haystack: $use, needle: $this->urlGenerator->getBaseUrl()) === true
             ) {
                 $explodedUrl = explode(separator: '/', string: $use);
                 $useId = end($explodedUrl);
@@ -493,8 +530,9 @@ class EndpointService
         if (isset($pathParams['id']) === true) {
             $parameters['id'] = $pathParams['id'];
         }
-
-		unset($parameters['_route'], $parameters['_path']);
+        foreach ($this::UNSET_PARAMETERS as $parameter) {
+            unset($parameters[$parameter]);
+        }
 
 		$status = 200;
 
@@ -557,7 +595,7 @@ class EndpointService
 				if (str_starts_with($key, 'HTTP_') === false) {
 					return false;
 				} else if ($proxyHeaders === false
-					&& (str_starts_with(haystack: $key, needle: 'HTTP_X_FORWARDED')
+					&& (str_starts_with(haystack: $key, needle: 'HTTP_X_FORWARDED') === true
 						|| $key === 'HTTP_X_REAL_IP' || $key === 'HTTP_X_ORIGINAL_URI'
 					)
 				) {
@@ -758,7 +796,7 @@ class EndpointService
 				};
 
 				// If result is JSONResponse, return error immediately
-				if ($result instanceof JSONResponse) {
+				if ($result instanceof JSONResponse === true) {
 					return $result;
 				}
 
@@ -908,7 +946,9 @@ class EndpointService
 			return $data;
 		}
 
-		return $this->mappingService->executeMapping($mapping, $data);
+		$data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
+
+		return $data;
 	}
 
 	/**
@@ -1130,11 +1170,16 @@ class EndpointService
 	 *
 	 * @param IRequest $request The request object to be updated
 	 * @param array $ruleData The processed rule data to update the request with
+	 * @param array $incomingData The processed rule data to update the request with
 	 *
 	 * @return IRequest The updated request object
 	 */
-	private function updateRequestWithRuleData(IRequest $request, array $ruleData): IRequest
+	private function updateRequestWithRuleData(IRequest $request, array $ruleData, array $incomingData): IRequest
 	{
+        $queryParameters = $ruleData['body']['_parameters'] ?? $incomingData['params'];
+        $method = $ruleData['body']['_method'] ?? $incomingData['method'];
+        $headers = $ruleData['body']['_headers'] ?? $incomingData['headers'];
+
 		// create items array of request
 		$items = [
 			'get'		 => [],
@@ -1143,13 +1188,13 @@ class EndpointService
 			'server'	 => $_SERVER,
 			'env'		 => $_ENV,
 			'cookies'	 => $_COOKIE,
-			'urlParams'  => $ruleData['parameters'],
-			'params' => $ruleData['parameters'],
-			'method'     => $ruleData['method'],
+			'urlParams'  => $queryParameters,
+			'params' => $queryParameters,
+			'method'     => $method,
 			'requesttoken' => false,
 		];
 
-		$items['server']['headers'] = $ruleData['headers'];
+		$items['server']['headers'] = $headers;
 
 		// build the new request
 		$request = new Request(
