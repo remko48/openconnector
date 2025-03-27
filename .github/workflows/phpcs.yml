@@ -1,6 +1,18 @@
 name: php-cs
 
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - 'main'
+      - 'master'
+      - 'prod'
+      - 'production'
+  pull_request:
+    branches-ignore:
+      - 'main'
+      - 'master'
+      - 'prod'
+      - 'production'
 
 jobs:
   build:

@@ -49,8 +49,9 @@ class XMLResponse extends Response
 			$this->addHeader($name, $value);
 		}
 		
-		// Set content type header
+		// Set content type and disposition headers
 		$this->addHeader('Content-Type', 'application/xml; charset=utf-8');
+		$this->addHeader('Content-Disposition', 'attachment; filename="export.xml"');
 	}
 
 	/**
