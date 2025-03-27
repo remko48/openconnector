@@ -32,12 +32,14 @@ class XMLResponse extends Response
 	 * @param array<string, mixed>|string $data The data to convert to XML
 	 * @param int $status HTTP status code, defaults to 200
 	 * @param array<string, string> $headers Custom headers to add to the response
+	 * @param string|null $path The request path to determine if download header should be added
 	 * 
 	 * @psalm-param array<string, mixed>|string $data
 	 * @psalm-param int $status
 	 * @psalm-param array<string, string> $headers
+	 * @psalm-param string|null $path
 	 */
-	public function __construct($data = [], int $status = 200, array $headers = [])
+	public function __construct($data = [], int $status = 200, array $headers = [], ?string $path = null)
 	{
 		parent::__construct($status);
 		
@@ -49,9 +51,13 @@ class XMLResponse extends Response
 			$this->addHeader($name, $value);
 		}
 		
-		// Set content type and disposition headers
+		// Set content type header
 		$this->addHeader('Content-Type', 'application/xml; charset=utf-8');
-		$this->addHeader('Content-Disposition', 'attachment; filename="export.xml"');
+		
+		// Only add Content-Disposition header if path ends with .xml
+		if ($path !== null && str_ends_with($path, '.xml')) {
+			$this->addHeader('Content-Disposition', 'attachment; filename="export.xml"');
+		}
 	}
 
 	/**

@@ -22,13 +22,8 @@ use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
-use OC\AppFramework\Http\Request;
+use OCP\IRequest;
 use OC\AppFramework\Middleware\Security\Exceptions\SecurityException;
-use OCA\OAuth2\Db\AccessTokenMapper;
-use OCA\OAuth2\Db\Client;
-use OCA\OpenConnector\Db\Consumer;
-use OCA\OpenConnector\Db\ConsumerMapper;
-use OCA\OpenConnector\Exception\AuthenticationException;
 use OCP\AppFramework\Http\Attribute\CORS;
 use OCP\AppFramework\Http\Response;
 use OCP\Authentication\Token\IProvider;
@@ -37,6 +32,11 @@ use OCP\IGroupManager;
 use OCP\ISession;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCA\OAuth2\Db\AccessTokenMapper;
+use OCA\OAuth2\Db\Client;
+use OCA\OpenConnector\Db\Consumer;
+use OCA\OpenConnector\Db\ConsumerMapper;
+use OCA\OpenConnector\Exception\AuthenticationException;
 
 /**
  * Service class for handling authorization on incoming calls.
@@ -285,12 +285,12 @@ class AuthorizationService
     /**
      * Add CORS headers to controller result
      *
-     * @param Request $request The incoming request.
+     * @param IRequest $request The incoming request.
      * @param Response $response The outgoing response.
      * @return Response The updated response.
      * @throws SecurityException
      */
-    public function corsAfterController(Request $request, Response $response) {
+    public function corsAfterController(IRequest $request, Response $response) {
         // only react if it's a CORS request and if the request sends origin and
 
         if (isset($request->server['HTTP_ORIGIN'])) {
