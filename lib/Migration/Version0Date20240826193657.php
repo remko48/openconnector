@@ -61,6 +61,7 @@ class Version0Date20240826193657 extends SimpleMigrationStep
      * @param  array                     $options       Options for the migration
      * @return null|ISchemaWrapper      Modified schema or null if no changes
      */
+    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
         /*
          * @var ISchemaWrapper $schema
@@ -261,6 +262,8 @@ class Version0Date20240826193657 extends SimpleMigrationStep
             $table->addColumn('authorization_type', Types::STRING, ['notnull' => false, 'length' => 255]);
             // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.
             $table->addColumn('authorization_configuration', Types::TEXT, ['notnull' => false]);
+        }
+    }
 
     /**
      * Operations to be performed after schema changes.

@@ -61,6 +61,7 @@ class Version1Date20250123100521 extends SimpleMigrationStep
      * @param  array                     $options       Options for the migration
      * @return null|ISchemaWrapper      Modified schema or null if no changes
      */
+    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
         /*
          * @var ISchemaWrapper $schema
@@ -92,26 +93,9 @@ class Version1Date20250123100521 extends SimpleMigrationStep
      *
      * @return void
      */
-    {
-        // No operations required after schema changes.
-    }//end postSchemaChange()
-
-
-}//end class
-
-    /**
-     * Operations to be performed after schema changes.
-     *
-     * @param IOutput                   $output        Output handler for the migration
-     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
-     * @param array                     $options       Options for the migration
-     *
-     * @return void
-     */
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
         // No operations required after schema changes.
     }//end postSchemaChange()
-
 
 }//end class
