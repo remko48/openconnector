@@ -6,13 +6,107 @@ alwaysApply: false
 # PHP Coding Standards
 
 ## General Rules
-- All PHP files must start with the `<?php` tag followed by a blank line
-- All PHP files must be in a namespace following the pattern `OCA\OpenConnector\{Category}\{Subcategory}`
-- All PHP files must end with a single newline
-- No trailing whitespace is allowed
-- No short open tags are allowed
-- When a file is altered run phpcs from the command line on that file (not from the vender, to make sure phpcs.xml in root is properly applied)
-- When errors are found, update .cursor/rules/php.mdc if neceserry to prevent these errors in the feature
+- Use spaces for indentation, not tabs
+- Indent with 4 spaces
+- Line length should not exceed 150 characters
+- Files must end with a single blank line
+- No trailing whitespace at the end of lines
+- Use single quotes for strings unless double quotes are needed
+- Add docblocks to all methods, classes, and properties
+- Add return types to all methods
+- Add type hints to all methods
+- Add default values to all methods where appropriate
+- Add phpstan and psalm annotations to all methods
+- Add phpunit tests to all methods
+- Add inline comments to explain complex logic
+- Use readonly properties where appropriate
+
+## Class Structure
+- Class files should begin with a docblock containing:
+  - Class name
+  - Category
+  - Package
+  - Author
+  - Copyright
+  - License
+  - Version
+  - Link to the application
+
+## Method Structure
+- One blank line between methods
+- Opening brace on same line as method declaration
+- Closing brace must be followed by one blank line
+- Method parameters should be properly aligned
+- Type declarations should be used whenever possible
+- Return type declarations should be used
+
+## Control Structures
+- Opening brace on same line
+- One space after keywords (if, for, while, etc)
+- No space after function name in function calls
+- Spaces around operators
+- One space after commas in function calls
+- Use elseif instead of else if
+- Add end comments for long control structures
+
+## Arrays
+- Multi-line arrays should have each element on its own line
+- Array elements should be properly aligned
+- Trailing comma after last element
+- Use short array syntax []
+
+## Error Handling
+- Use try-catch blocks appropriately
+- Document thrown exceptions in docblocks
+- Add meaningful error messages
+
+## Documentation
+- All classes must have complete docblocks
+- All methods must have complete docblocks
+- Complex logic should have inline comments
+- Use proper alignment in docblocks
+- Add @param, @return, and @throws tags as needed
+
+## Naming Conventions
+- Classes: PascalCase
+- Methods: camelCase
+- Properties: camelCase
+- Constants: UPPER_SNAKE_CASE
+- Variables: camelCase
+
+## File Structure
+- One class per file
+- Namespace declaration first
+- Use statements after namespace
+- Class declaration after use statements
+- Proper file and directory naming
+
+## Testing
+- All public methods should have unit tests
+- Test class names should end with Test
+- Test methods should begin with test
+- Use meaningful test method names
+- Add docblocks to test methods
+
+## Security
+- Validate all input
+- Escape all output
+- Use prepared statements for SQL
+- Follow OWASP security guidelines
+- Document security considerations
+
+## Performance
+- Optimize database queries
+- Use caching where appropriate
+- Minimize file operations
+- Document performance considerations
+
+## Maintenance
+- Remove unused code
+- Keep dependencies updated
+- Monitor error logs
+- Regular backups
+- Document maintenance procedures
 
 ## Class and Interface Rules
 - All classes and interfaces must have a complete docblock containing:
@@ -49,11 +143,6 @@ alwaysApply: false
     - @return annotation with type and description
     - @throws annotation for any exceptions
   - PHPStan and Psalm annotations where appropriate
-
-## Testing
-- All methods must have corresponding PHPUnit tests
-- Test methods must follow the pattern `test{MethodName}{Scenario}`
-- Test methods must have docblocks describing the test scenario
 
 ## Documentation
 - All code changes must be documented in Docusaurus
