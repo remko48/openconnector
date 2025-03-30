@@ -75,7 +75,7 @@ class CallService
      * @throws LoaderError If there is an error loading a Twig template.
      * @throws SyntaxError If there is a syntax error in a Twig template.
      */
-    private function renderValue((array | string $value), Source $source): (array | string)
+    private function renderValue($value, Source $source)
     {
         if (is_array($value) === false
             && str_contains(haystack: $value, needle: "{{") === true

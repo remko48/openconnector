@@ -25,18 +25,30 @@ use Symfony\Component\Yaml\Yaml;
  * This service enables exporting database entities as files in various formats,
  * determined by the `Accept` header of the request. It retrieves the appropriate
  * data from mappers and generates responses or downloadable files.
+ *
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   GIT: <git_id>
+ * @link      https://openregister.app
+ *
+ * @since 1.0.0
  */
 class ExportService
 {
-
-
-public function __construct(
-    private readonly IURLGenerator $urlGenerator,
-    private readonly ObjectService $objectService
-) {
-
-}//end __construct()
-
+    /**
+     * Constructor for ExportService.
+     *
+     * @param IURLGenerator $urlGenerator The URL generator service.
+     * @param ObjectService $objectService The object service.
+     */
+    public function __construct(
+        private readonly IURLGenerator $urlGenerator,
+        private readonly ObjectService $objectService
+    ) {
+    }
 
     /**
      * Handles an upload api-call to create a new object or update an existing one.
@@ -47,24 +59,28 @@ public function __construct(
      *
      * @return JSONResponse The JSONResponse response.
      */
-public function export(string $objectType, string $id, string $accept): JSONResponse
-{
-    $type = match (true) {
-    str_contains(haystack: $accept, needle: 'application/json') => 'json',
-    $accept === 'application/yaml' => 'yaml',
-    default => null
-    };
+    public function export(string $objectType, string $id, string $accept): JSONResponse
+    {
+        // Determine the type based on the Accept header
+        $type = match (true) {
+            str_contains($accept, 'application/json') => 'json',
+            $accept === 'application/yaml' => 'yaml',
+            default => null
+        };
 
+        // If the type is not supported, return an error response
         if ($type === null) {
-             return new JSONResponse(data: ['error' => "The Accept type $accept is not supported."], statusCode: 400);
+            return new JSONResponse(['error' => "The Accept type $accept is not supported."], 400);
         }
 
         try {
-            $mapper = $this->objectService->getMapper(objectType: $objectType);
+            // Get the appropriate mapper for the object type
+            $mapper = $this->objectService->getMapper($objectType);
         } catch (InvalidArgumentException | NotFoundExceptionInterface | ContainerExceptionInterface $e) {
-            return new JSONResponse(data: ['error' => "Could not find a mapper for this {type}: ".$objectType], statusCode: 400);
+            return new JSONResponse(['error' => "Could not find a mapper for this type: ".$objectType], 400);
         }
 
+        // Check if the object type is allowed to be exported
         if (in_array(
             strtolower($objectType),
             [
@@ -76,27 +92,29 @@ public function export(string $objectType, string $id, string $accept): JSONResp
                 'synchronizationcontract',
                 'synchronizationcontractlog',
             ]
-        ) === true
-        ) {
-            return new JSONResponse(data: ['error' => "It is not allowed to export objects of {type}: ".$objectType], statusCode: 400);
+        )) {
+            return new JSONResponse(['error' => "It is not allowed to export objects of type: ".$objectType], 400);
         }
 
         try {
+            // Find the object by its ID
             $object = $mapper->find($id);
         } catch (Exception $exception) {
-            return new JSONResponse(data: ['error' => "Could not find an object with this {id}: ".$id], statusCode: 400);
+            return new JSONResponse(['error' => "Could not find an object with this id: ".$id], 400);
         }
 
-        $objectArray = $this->prepareObject(objectType: $objectType, mapper: $mapper, object: $object);
+        // Prepare the object array for export
+        $objectArray = $this->prepareObject($objectType, $mapper, $object);
 
+        // Generate the filename for the export
         $filename = ucfirst($objectType).'-'.($objectArray['name'] ?? $objectType).'-v'.($objectArray['version'] ?? '0.0.0');
 
-        $dataString = $this->encode(objectArray: $objectArray, type: $accept);
+        // Encode the object array to the appropriate format
+        $dataString = $this->encode($objectArray, $accept);
 
-        $this->download(dataString: $dataString, filename: $filename, type: $type);
-
-}//end export()
-
+        // Generate the downloadable file response
+        $this->download($dataString, $filename, $type);
+    }
 
     /**
      * Prepares a PHP array with all data of the object we want to end up in the downloadable file.
@@ -107,47 +125,45 @@ public function export(string $objectType, string $id, string $accept): JSONResp
      *
      * @return array The object array data.
      */
-private function prepareObject(string $objectType, mixed $mapper, Entity $object): array
-{
-    $objectArray = $object->jsonSerialize();
+    private function prepareObject(string $objectType, mixed $mapper, Entity $object): array
+    {
+        $objectArray = $object->jsonSerialize();
 
-    if (empty($objectArray['reference']) === false) {
-        $url = $objectArray['reference'];
-    } else {
-        $url = $objectArray['reference'] = $this->urlGenerator->getAbsoluteURL(
-            url: $this->urlGenerator->linkToRoute(
-                routeName: 'openconnector.'.ucfirst($objectType).'s.show',
-                arguments: ['id' => $object->getId()]
-            )
-        );
+        if (!empty($objectArray['reference'])) {
+            $url = $objectArray['reference'];
+        } else {
+            $url = $objectArray['reference'] = $this->urlGenerator->getAbsoluteURL(
+                $this->urlGenerator->linkToRoute(
+                    'openconnector.'.ucfirst($objectType).'s.show',
+                    ['id' => $object->getId()]
+                )
+            );
 
-        unset(
-            $objectArray['id'],
-            $objectArray['uuid'],
-            $objectArray['created'],
-            $objectArray['updated'],
-            $objectArray['dateCreated'],
-            $objectArray['dateModified']
-        );
+            unset(
+                $objectArray['id'],
+                $objectArray['uuid'],
+                $objectArray['created'],
+                $objectArray['updated'],
+                $objectArray['dateCreated'],
+                $objectArray['dateModified']
+            );
 
-        // Make sure we update the reference of this object if it wasn't set yet.
-        $mapper->updateFromArray(id: $object->getId(), object: $objectArray);
-    }//end if
+            // Make sure we update the reference of this object if it wasn't set yet.
+            $mapper->updateFromArray($object->getId(), $objectArray);
+        }
 
-    // Prepare Json-LD default properties.
-    $jsonLdDefault = [
-        '@context' => [
-            "schema"   => "http://schema.org",
-            "register" => "Not Implemented",
-        ],
-        '@type'    => $objectType,
-        '@id'      => $url,
-    ];
+        // Prepare Json-LD default properties.
+        $jsonLdDefault = [
+            '@context' => [
+                "schema"   => "http://schema.org",
+                "register" => "Not Implemented",
+            ],
+            '@type'    => $objectType,
+            '@id'      => $url,
+        ];
 
-    return array_merge($jsonLdDefault, $objectArray);
-
-}//end prepareObject()
-
+        return array_merge($jsonLdDefault, $objectArray);
+    }
 
     /**
      * A function used to encode object array to a data string.
@@ -158,38 +174,36 @@ private function prepareObject(string $objectType, mixed $mapper, Entity $object
      *
      * @return string|null The encoded data string or null.
      */
-private function encode(array $objectArray, ?string $type): ?string
-{
-    switch ($type) {
-    case 'application/json':
-        $dataString = json_encode(value: $objectArray, flags: JSON_PRETTY_PRINT);
-        break;
-    case 'application/yaml':
-        $dataString = Yaml::dump(input: $objectArray);
-        break;
-    default:
-        // If type is not specified or not recognized, try to encode as JSON first, then YAML
-        $dataString = json_encode(value: $objectArray, flags: JSON_PRETTY_PRINT);
-        if ($dataString === false) {
-            try {
-                  $dataString = Yaml::dump(input: $objectArray);
-            } catch (Exception $exception) {
-                $dataString = null;
-            }
+    private function encode(array $objectArray, ?string $type): ?string
+    {
+        switch ($type) {
+            case 'application/json':
+                $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
+                break;
+            case 'application/yaml':
+                $dataString = Yaml::dump($objectArray);
+                break;
+            default:
+                // If type is not specified or not recognized, try to encode as JSON first, then YAML
+                $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
+                if ($dataString === false) {
+                    try {
+                        $dataString = Yaml::dump($objectArray);
+                    } catch (Exception $exception) {
+                        $dataString = null;
+                    }
+                }
+                break;
         }
-        break;
+
+        if ($dataString === null || $dataString === false) {
+            return null;
+        }
+
+        return $dataString;
     }
 
-    if ($dataString === null || $dataString === false) {
-        return null;
-    }
-
-    return $dataString;
-
-}//end encode()
-
-
-    /*
+    /**
      * Generate a downloadable file response.
      *
      * @param string $dataString The data to create a file with of the given $type.
@@ -202,22 +216,23 @@ private function encode(array $objectArray, ?string $type): ?string
     {
         // Define the file name and path for the temporary JSON file
         $fileName = "$filename.$type";
-
-
         $filePath = sys_get_temp_dir().DIRECTORY_SEPARATOR.$fileName;
 
         // Create and write the (JSON) data to the file
-        file_put_contents(filename: $filePath, data: $dataString);
+        file_put_contents($filePath, $dataString);
 
         // Set headers to download the file
         header("Content-Type: application/$type");
         header('Content-Disposition: attachment; filename="'.$fileName.'"');
-        header('Content-Length: '.filesize(filename: $filePath));
+        header('Content-Length: '.filesize($filePath));
 
         // Output the file contents
-        readfile(filename: $filePath);
+        readfile($filePath);
 
         // Clean up: delete the temporary file
-        unlink(filename: $filePath);
+        unlink($filePath);
+
+        // Ensure no further script execution
         exit;
-        // Ensure no further script execution    }//end download()    }//end download()
+    }
+}
