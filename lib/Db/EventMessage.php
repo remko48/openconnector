@@ -27,21 +27,21 @@ class EventMessage extends Entity implements JsonSerializable
     /**
      * Reference to the original event.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $eventId = null;
 
     /**
      * Reference to the consumer.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $consumerId = null;
 
     /**
      * Reference to the subscription.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $subscriptionId = null;
 
@@ -69,7 +69,7 @@ class EventMessage extends Entity implements JsonSerializable
     /**
      * Number of delivery attempts.
      *
-     * @var int
+     * @var integer
      */
     protected int $retryCount = 0;
 

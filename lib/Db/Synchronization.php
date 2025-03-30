@@ -112,7 +112,7 @@ class Synchronization extends Entity implements JsonSerializable
     /**
      * The last page synced. Used for keeping track of where to continue syncing after the rate limit has been exceeded on the source with pagination.
      *
-     * @var int
+     * @var integer
      */
     protected ?int $currentPage = 1;
 

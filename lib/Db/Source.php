@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Source Entity
+ *
+ * This file contains the entity class for source data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -6,6 +20,15 @@ use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
+/**
+ * Class Source
+ *
+ * A source represents an external API or data source that can be connected to.
+ * It contains all the configuration required to connect to and interact with
+ * the external system.
+ *
+ * @package OCA\OpenConnector\Db
+ */
 class Source extends Entity implements JsonSerializable
 {
 
@@ -54,7 +77,7 @@ class Source extends Entity implements JsonSerializable
     /**
      * Indicates if the source is enabled.
      *
-     * @var bool|null
+     * @var boolean|null
      */
     protected ?bool $isEnabled = null;
 
@@ -215,56 +238,56 @@ class Source extends Entity implements JsonSerializable
     /**
      * The duration in seconds to retain all logs.
      *
-     * @var int
+     * @var integer
      */
     protected ?int $logRetention = 3600;
 
     /**
      * The duration in seconds to retain error logs.
      *
-     * @var int
+     * @var integer
      */
     protected ?int $errorRetention = 86400;
 
     /**
      * The count of objects associated with the source.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $objectCount = null;
 
     /**
      * Indicates if the source is in test mode.
      *
-     * @var bool|null
+     * @var boolean|null
      */
     protected ?bool $test = null;
 
     /**
      * The total number of allowed requests within a specific time period.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $rateLimitLimit = null;
 
     /**
      * Specifies how many requests are still allowed within the current limit.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $rateLimitRemaining = null;
 
     /**
      * A Unix Time Stamp that indicates when the rate limit will be reset.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $rateLimitReset = null;
 
     /**
      * Indicates how many seconds the client must wait before making new requests.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $rateLimitWindow = null;
 
@@ -381,6 +404,12 @@ class Source extends Entity implements JsonSerializable
     }//end getEndpointsConfig()
 
 
+    /**
+     * Constructor for the Source class.
+     * Initializes the field types for the Source entity.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->addType('uuid', 'string');
@@ -428,6 +457,11 @@ class Source extends Entity implements JsonSerializable
     }//end __construct()
 
 
+    /**
+     * Get the JSON fields of the Source entity.
+     *
+     * @return array An array of field names that are of type 'json'
+     */
     public function getJsonFields(): array
     {
         return array_keys(
@@ -442,6 +476,13 @@ class Source extends Entity implements JsonSerializable
     }//end getJsonFields()
 
 
+    /**
+     * Hydrate the Source entity with data from an array.
+     *
+     * @param array $object The array containing the data to hydrate the entity
+     *
+     * @return self Returns the hydrated Source entity
+     */
     public function hydrate(array $object): self
     {
         $jsonFields = $this->getJsonFields();
@@ -456,7 +497,7 @@ class Source extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Error handling can be added here
+                // Error writing $key.
             }
         }
 
@@ -465,8 +506,33 @@ class Source extends Entity implements JsonSerializable
     }//end hydrate()
 
 
+    /**
+     * Serialize the Source entity to JSON.
+     *
+     * @return array An array representation of the Source entity for JSON serialization
+     */
     public function jsonSerialize(): array
     {
+        $lastCall = null;
+        if (isset($this->lastCall) === true) {
+            $lastCall = $this->lastCall->format('c');
+        }
+
+        $lastSync = null;
+        if (isset($this->lastSync) === true) {
+            $lastSync = $this->lastSync->format('c');
+        }
+
+        $dateCreated = null;
+        if (isset($this->dateCreated) === true) {
+            $dateCreated = $this->dateCreated->format('c');
+        }
+
+        $dateModified = null;
+        if (isset($this->dateModified) === true) {
+            $dateModified = $this->dateModified->format('c');
+        }
+
         return [
             'id'                             => $this->id,
             'uuid'                           => $this->uuid,
@@ -506,10 +572,10 @@ class Source extends Entity implements JsonSerializable
             'rateLimitRemaining'             => $this->rateLimitRemaining,
             'rateLimitReset'                 => $this->rateLimitReset,
             'rateLimitWindow'                => $this->rateLimitWindow,
-            'lastCall'                       => isset($this->lastCall) ? $this->lastCall->format('c') : null,
-            'lastSync'                       => isset($this->lastSync) ? $this->lastSync->format('c') : null,
-            'dateCreated'                    => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
-            'dateModified'                   => isset($this->dateModified) ? $this->dateModified->format('c') : null,
+            'lastCall'                       => $lastCall,
+            'lastSync'                       => $lastSync,
+            'dateCreated'                    => $dateCreated,
+            'dateModified'                   => $dateModified,
         ];
 
     }//end jsonSerialize()

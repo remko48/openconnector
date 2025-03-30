@@ -10,9 +10,9 @@ use OCA\OpenConnector\Twig\MappingExtension;
 use OCA\OpenConnector\Twig\MappingRuntimeLoader;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-//use Twig\Environment;
-//use Twig\Error\LoaderError;
-//use Twig\Error\SyntaxError;
+// use Twig\Environment;
+// use Twig\Error\LoaderError;
+// use Twig\Error\SyntaxError;
 use Adbar\Dot;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -21,6 +21,7 @@ use Twig\Loader\ArrayLoader;
 
 class MappingService
 {
+
     /**
      * Create a private variable to store the twig environment.
      *
@@ -28,21 +29,23 @@ class MappingService
      */
     private Environment $twig;
 
-	/**
-	 * Setting up the base class with required services.
-	 *
-	 * @param ArrayLoader   $loader		   The ArrayLoader for Twig.
-	 * @param MappingMapper $mappingMapper The mapping mapper.
-	 */
+
+    /**
+     * Setting up the base class with required services.
+     *
+     * @param ArrayLoader   $loader        The ArrayLoader for Twig.
+     * @param MappingMapper $mappingMapper The mapping mapper.
+     */
     public function __construct(
-		ArrayLoader $loader,
-		private readonly MappingMapper $mappingMapper
+        ArrayLoader $loader,
+        private readonly MappingMapper $mappingMapper
     ) {
         $this->twig = new Environment($loader);
-		$this->twig->addExtension(new MappingExtension());
-		$this->twig->addRuntimeLoader(new MappingRuntimeLoader(mappingService: $this, mappingMapper: $this->mappingMapper));
+        $this->twig->addExtension(new MappingExtension());
+        $this->twig->addRuntimeLoader(new MappingRuntimeLoader(mappingService: $this, mappingMapper: $this->mappingMapper));
 
     }//end __construct()
+
 
     /**
      * Replaces strings in array keys, helpful for characters like . in array keys.
@@ -71,6 +74,7 @@ class MappingService
 
     }//end encodeArrayKeys()
 
+
     /**
      * Maps (transforms) an array (input) to a different array (output).
      *
@@ -79,10 +83,9 @@ class MappingService
      * @param bool    $list    Whether we want a list instead of a single item
      *
      * @return array The result (output) of the mapping process
-     *@throws LoaderError|SyntaxError Twig Exceptions
-     *
+     * @throws LoaderError|SyntaxError Twig Exceptions
      */
-    public function executeMapping(Mapping $mapping, array $input, bool $list = false): array
+    public function executeMapping(Mapping $mapping, array $input, bool $list=false): array
     {
 
         // Check for list
@@ -111,10 +114,9 @@ class MappingService
         }//end if
 
         $originalInput = $input;
-        $input = $this->encodeArrayKeys($input, '.', '&#46;');
+        $input         = $this->encodeArrayKeys($input, '.', '&#46;');
 
         // @todo: error logging
-
         // Determine pass through.
         // Let's get the dot array based on https://github.com/adbario/php-dot-notation.
         if ($mapping->getPassThrough()) {
@@ -124,6 +126,7 @@ class MappingService
             $dotArray = new Dot();
             // @todo: error logging
         }
+
         $dotInput = new Dot($input);
 
         // Let's do the actual mapping.
@@ -135,7 +138,7 @@ class MappingService
             }
 
             // Render the value from twig.
-			$dotArray->set($key, $this->twig->createTemplate($value)->render($originalInput));
+            $dotArray->set($key, $this->twig->createTemplate($value)->render($originalInput));
         }
 
         // Unset unwanted key's.
@@ -186,7 +189,7 @@ class MappingService
         // Log the result.
         // @todo: error handling
         /*
-        isset($this->style) === true && $this->style->info(
+            isset($this->style) === true && $this->style->info(
             'Mapped object',
             [
                 'input'      => $input,
@@ -194,12 +197,13 @@ class MappingService
                 'passThrough' => $mappingObject->getPassThrough(),
                 'mapping'    => $mappingObject->getMapping(),
             ]
-        );
+            );
         */
 
         return $output;
 
-    }//end mapping()
+    }//end executeMapping()
+
 
     /**
      * Handles a single cast.
@@ -346,7 +350,7 @@ class MappingService
             break;
         default:
             // @todo: error handling
-            //isset($this->style) === true && $this->style->info('Trying to cast to an unsupported cast type: '.$cast);
+            // isset($this->style) === true && $this->style->info('Trying to cast to an unsupported cast type: '.$cast);
             break;
         }//end switch
 
@@ -356,6 +360,7 @@ class MappingService
         }
 
     }//end handleCast()
+
 
     /**
      * Checks if all keys in multi-dimensional array are null.
@@ -383,6 +388,7 @@ class MappingService
         return true;
 
     }//end areAllArrayKeysNull()
+
 
     /**
      * Converts a coordinate string to an array of coordinates.
@@ -424,7 +430,7 @@ class MappingService
      * mappings through this service layer, rather than accessing the mapper directly.
      * This maintains proper encapsulation and separation of concerns.
      *
-     * @param string $mappingId The unique identifier of the mapping to retrieve
+     * @param  string $mappingId The unique identifier of the mapping to retrieve
      * @return Mapping The requested mapping entity
      * @throws \OCP\AppFramework\Db\DoesNotExistException If mapping is not found
      * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple mappings found
@@ -433,7 +439,9 @@ class MappingService
     {
         // Forward the find request to the mapper while maintaining encapsulation
         return $this->mappingMapper->find($mappingId);
-    }
+
+    }//end getMapping()
+
 
     /**
      * Retrieves all available mappings.
@@ -450,6 +458,8 @@ class MappingService
         // Forward the findAll request to the mapper while maintaining encapsulation
         // @todo: add filtering options
         return $this->mappingMapper->findAll();
-    }
 
-}
+    }//end getMappings()
+
+
+}//end class

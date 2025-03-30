@@ -8,6 +8,7 @@ use OCP\AppFramework\Db\Entity;
 
 class JobLog extends Entity implements JsonSerializable
 {
+
     /**
      * The unique identifier of the job log entry.
      *
@@ -60,7 +61,7 @@ class JobLog extends Entity implements JsonSerializable
     /**
      * The execution time of the job in seconds.
      *
-     * @var int|null
+     * @var integer|null
      */
     protected ?int $executionTime = 3600;
 

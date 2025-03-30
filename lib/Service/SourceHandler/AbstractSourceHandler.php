@@ -3,14 +3,14 @@
 /**
  * Abstract base class for source handlers.
  *
- * @category  Service
- * @package   OpenConnector
+ * @category   Service
+ * @package    OpenConnector
  * @subpackage SourceHandler
- * @author    Conduction B.V.
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license   EUPL 1.2
- * @version   GIT: <git_id>
- * @link      https://openregister.app
+ * @author     Conduction B.V.
+ * @copyright  Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license    EUPL 1.2
+ * @version    GIT: <git_id>
+ * @link       https://openregister.app
  *
  * @since 1.0.0 - Description of when this class was added
  */

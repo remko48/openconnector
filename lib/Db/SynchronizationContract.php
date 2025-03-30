@@ -14,15 +14,14 @@ use OCP\AppFramework\Db\Entity;
 class SynchronizationContract extends Entity implements JsonSerializable
 {
 
-
     /**
-     * @var string|null The ID of the object in the source.
+     * @var  string|null The ID of the object in the source.
      * @todo can be removed when migrations are merged
      */
     protected ?string $sourceId = null;
 
     /**
-     * @var string|null The hash of the object in the source.
+     * @var  string|null The hash of the object in the source.
      * @todo can be removed when migrations are merged
      */
     protected ?string $sourceHash = null;
@@ -112,7 +111,8 @@ class SynchronizationContract extends Entity implements JsonSerializable
      * @var DateTime|null The date and time the synchronization was last updated.
      */
     protected ?DateTime $updated = null;
-    
+
+
     public function __construct()
     {
         $this->addType('uuid', 'string');

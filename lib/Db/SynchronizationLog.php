@@ -11,6 +11,7 @@ use OCP\AppFramework\Db\Entity;
  */
 class SynchronizationLog extends Entity implements JsonSerializable
 {
+
     /**
      * The unique identifier of the synchronization log entry.
      *
@@ -56,21 +57,21 @@ class SynchronizationLog extends Entity implements JsonSerializable
     /**
      * Indicates if the synchronization was a test run.
      *
-     * @var bool
+     * @var boolean
      */
     protected bool $test = false;
 
     /**
      * Indicates if the synchronization was forced.
      *
-     * @var bool
+     * @var boolean
      */
     protected bool $force = false;
 
     /**
      * The execution time of the synchronization in seconds.
      *
-     * @var int
+     * @var integer
      */
     protected int $executionTime = 0;
 

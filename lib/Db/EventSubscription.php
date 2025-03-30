@@ -30,6 +30,7 @@ use OCP\AppFramework\Db\Entity;
  */
 class EventSubscription extends Entity implements JsonSerializable
 {
+
     /**
      * Unique identifier for the subscription.
      *

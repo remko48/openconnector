@@ -40,12 +40,15 @@ class Application extends App implements IBootstrap
         include_once __DIR__.'/../../vendor/autoload.php';
 
         // Register target handlers
-        $context->registerService(TargetHandlerRegistry::class, function($c) {
-            $registry = new TargetHandlerRegistry($c);
-            $registry->registerHandler($c->get(OpenRegisterHandler::class));
-            $registry->registerHandler($c->get(ApiHandler::class));
-            return $registry;
-        });
+        $context->registerService(
+            TargetHandlerRegistry::class,
+            function ($c) {
+                $registry = new TargetHandlerRegistry($c);
+                $registry->registerHandler($c->get(OpenRegisterHandler::class));
+                $registry->registerHandler($c->get(ApiHandler::class));
+                return $registry;
+            }
+        );
 
         // Register event listeners
         $dispatcher = $this->getContainer()->get(IEventDispatcher::class);

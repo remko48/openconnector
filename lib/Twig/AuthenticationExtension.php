@@ -14,6 +14,8 @@ use Twig\TwigFunction;
  */
 class AuthenticationExtension extends AbstractExtension
 {
+
+
     /**
      * Get the list of custom Twig functions provided by this extension.
      *
@@ -26,5 +28,8 @@ class AuthenticationExtension extends AbstractExtension
             new TwigFunction(name: 'decosToken', callable: [AuthenticationRuntime::class, 'decosToken']),
             new TwigFunction(name: 'jwtToken', callable: [AuthenticationRuntime::class, 'jwtToken']),
         ];
+
     }//end getFunctions()
+
+
 }//end class

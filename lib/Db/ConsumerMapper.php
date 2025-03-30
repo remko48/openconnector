@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Consumer Mapper
+ *
+ * This file contains the mapper class for consumer data in the OpenConnector
+ * application.
+ *
+ * @category  Mapper
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -20,10 +34,13 @@ use Symfony\Component\Uid\Uuid;
 class ConsumerMapper extends QBMapper
 {
 
+
     /**
      * ConsumerMapper constructor.
      *
      * @param IDBConnection $db The database connection
+     *
+     * @return void
      */
     public function __construct(IDBConnection $db)
     {
@@ -35,8 +52,11 @@ class ConsumerMapper extends QBMapper
     /**
      * Find a Consumer by its ID.
      *
-     * @param  int $id The ID of the Consumer
+     * @param int $id The ID of the Consumer
+     *
      * @return Consumer The found Consumer entity
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the consumer is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one consumer is found
      */
     public function find(int $id): Consumer
     {
@@ -48,7 +68,7 @@ class ConsumerMapper extends QBMapper
                 $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
             );
 
-            return $this->findEntity(query: $qb);
+        return $this->findEntity(query: $qb);
 
     }//end find()
 
@@ -56,15 +76,21 @@ class ConsumerMapper extends QBMapper
     /**
      * Find all Consumers with optional filtering and pagination.
      *
-     * @param  int|null   $limit            Maximum number of results to return
-     * @param  int|null   $offset           Number of results to skip
-     * @param  array|null $filters          Associative array of filters
-     * @param  array|null $searchConditions Array of search conditions
-     * @param  array|null $searchParams     Array of search parameters
+     * @param int|null   $limit            Maximum number of results to return
+     * @param int|null   $offset           Number of results to skip
+     * @param array|null $filters          Associative array of filters
+     * @param array|null $searchConditions Array of search conditions
+     * @param array|null $searchParams     Array of search parameters
+     *
      * @return array An array of Consumer entities
      */
-    public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[], ?array $searchConditions=[], ?array $searchParams=[]): array
-    {
+    public function findAll(
+        ?int $limit=null,
+        ?int $offset=null,
+        ?array $filters=[],
+        ?array $searchConditions=[],
+        ?array $searchParams=[]
+    ): array {
         $qb = $this->db->getQueryBuilder();
 
         $qb->select('*')
@@ -97,14 +123,15 @@ class ConsumerMapper extends QBMapper
     /**
      * Create a new Consumer from an array of data.
      *
-     * @param  array $object An array of Consumer data
+     * @param array $object An array of Consumer data
+     *
      * @return Consumer The newly created Consumer entity
      */
     public function createFromArray(array $object): Consumer
     {
         $obj = new Consumer();
         $obj->hydrate($object);
-        // Set uuid
+        // Set uuid.
         if ($obj->getUuid() === null) {
             $obj->setUuid(Uuid::v4());
         }
@@ -117,9 +144,12 @@ class ConsumerMapper extends QBMapper
     /**
      * Update an existing Consumer from an array of data.
      *
-     * @param  int   $id     The ID of the Consumer to update
-     * @param  array $object An array of updated Consumer data
+     * @param int   $id     The ID of the Consumer to update
+     * @param array $object An array of updated Consumer data
+     *
      * @return Consumer The updated Consumer entity
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the consumer is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one consumer is found
      */
     public function updateFromArray(int $id, array $object): Consumer
     {
@@ -132,28 +162,31 @@ class ConsumerMapper extends QBMapper
         // $version = explode('.', $obj->getVersion());
         // $version[2] = (int)$version[2] + 1;
         // $obj->setVersion(implode('.', $version));
-        // }     return $this->update($obj);    }//end updateFromArray()
-    }
+        // }
+        return $this->update($obj);
+
+    }//end updateFromArray()
 
 
     /**
-     * Get the total count of all call logs.
+     * Get the total count of all consumers.
      *
-     * @return int The total number of call logs in the database.
+     * @return int The total number of consumers in the database
      */
     public function getTotalCallCount(): int
     {
         $qb = $this->db->getQueryBuilder();
 
-        // Select count of all logs
+        // Select count of all consumers.
         $qb->select($qb->createFunction('COUNT(*) as count'))
             ->from('openconnector_consumers');
 
         $result = $qb->execute();
         $row    = $result->fetch();
 
-        // Return the total count
+        // Return the total count.
         return (int) $row['count'];
+
     }//end getTotalCallCount()
 
 

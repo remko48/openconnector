@@ -194,92 +194,92 @@ class CallService
         $method = $this->decideMethod(default: $method, configuration: $config, read: $read);
               unset($config['createMethod'], $config['updateMethod'], $config['destroyMethod'], $config['listMethod'], $config['readMethod']);
 
-            if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
-                  // Create and save the CallLog
-                  $callLog = new CallLog();
-                  $callLog->setUuid(Uuid::v4());
-                  $callLog->setSourceId($this->source->getId());
-                  $callLog->setStatusCode(409);
-                  $callLog->setStatusMessage("This source is not enabled");
-                  $callLog->setCreated(new \DateTime());
-                  $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
+        if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
+              // Create and save the CallLog
+              $callLog = new CallLog();
+              $callLog->setUuid(Uuid::v4());
+              $callLog->setSourceId($this->source->getId());
+              $callLog->setStatusCode(409);
+              $callLog->setStatusMessage("This source is not enabled");
+              $callLog->setCreated(new \DateTime());
+              $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
-                  $this->callLogMapper->insert($callLog);
+              $this->callLogMapper->insert($callLog);
 
-                  return $callLog;
-            }
+              return $callLog;
+        }
 
-            if (empty($this->source->getLocation()) === true) {
-                // Create and save the CallLog
-                $callLog = new CallLog();
-                $callLog->setUuid(Uuid::v4());
-                $callLog->setSourceId($this->source->getId());
-                $callLog->setStatusCode(409);
-                $callLog->setStatusMessage("This source has no location");
-                $callLog->setCreated(new \DateTime());
-                $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
+        if (empty($this->source->getLocation()) === true) {
+            // Create and save the CallLog
+            $callLog = new CallLog();
+            $callLog->setUuid(Uuid::v4());
+            $callLog->setSourceId($this->source->getId());
+            $callLog->setStatusCode(409);
+            $callLog->setStatusMessage("This source has no location");
+            $callLog->setCreated(new \DateTime());
+            $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
-                $this->callLogMapper->insert($callLog);
+            $this->callLogMapper->insert($callLog);
 
-                return $callLog;
-            }
+            return $callLog;
+        }
 
             // Check if Source has a RateLimit and if we need to reset RateLimit-Reset and RateLimit-Remaining.
-            if ($this->source->getRateLimitReset() !== null
-                && $this->source->getRateLimitRemaining() !== null
-                && $this->source->getRateLimitReset() <= time()
-            ) {
-                $this->source->setRateLimitReset(null);
-                $this->source->setRateLimitRemaining(null);
+        if ($this->source->getRateLimitReset() !== null
+            && $this->source->getRateLimitRemaining() !== null
+            && $this->source->getRateLimitReset() <= time()
+        ) {
+            $this->source->setRateLimitReset(null);
+            $this->source->setRateLimitRemaining(null);
 
-                $this->sourceMapper->update($source);
-            }
+            $this->sourceMapper->update($source);
+        }
 
             // Check if RateLimit-Remaining is set on this source and if limit has been reached.
-            if ($this->source->getRateLimitRemaining() !== null && $this->source->getRateLimitRemaining() <= 0) {
-                // Create and save the CallLog
-                $callLog = new CallLog();
-                $callLog->setUuid(Uuid::v4());
-                $callLog->setSourceId($this->source->getId());
-                $callLog->setStatusCode(429);
-                $callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
-                $callLog->setCreated(new \DateTime());
-                $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
+        if ($this->source->getRateLimitRemaining() !== null && $this->source->getRateLimitRemaining() <= 0) {
+            // Create and save the CallLog
+            $callLog = new CallLog();
+            $callLog->setUuid(Uuid::v4());
+            $callLog->setSourceId($this->source->getId());
+            $callLog->setStatusCode(429);
+            $callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
+            $callLog->setCreated(new \DateTime());
+            $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
-                $this->callLogMapper->insert($callLog);
+            $this->callLogMapper->insert($callLog);
 
-                return $callLog;
-            }
+            return $callLog;
+        }
 
             // Check if the source has a configuration and merge it with the given config
-            if (empty($this->source->getConfiguration()) === false) {
-                $config = array_merge_recursive($config, $this->applyConfigDot($this->source->getConfiguration()));
-            }
+        if (empty($this->source->getConfiguration()) === false) {
+            $config = array_merge_recursive($config, $this->applyConfigDot($this->source->getConfiguration()));
+        }
 
             // Check if the config has a Content-Type header and overwrite it if it does
-            if (isset($config['headers']['Content-Type']) === true) {
-                $overwriteContentType = $config['headers']['Content-Type'];
-            }
+        if (isset($config['headers']['Content-Type']) === true) {
+            $overwriteContentType = $config['headers']['Content-Type'];
+        }
 
             // decapitalized fall back for content-type
-            if (isset($config['headers']['content-type']) === true) {
-                $overwriteContentType = $config['headers']['content-type'];
-            }
+        if (isset($config['headers']['content-type']) === true) {
+            $overwriteContentType = $config['headers']['content-type'];
+        }
 
             // Make sure we do not have an array of accept headers but just one value
-            if (isset($config['headers']['accept']) === true && is_array($config['headers']['accept']) === true) {
-                $config['headers']['accept'] = $config['headers']['accept'][0];
-            }
+        if (isset($config['headers']['accept']) === true && is_array($config['headers']['accept']) === true) {
+            $config['headers']['accept'] = $config['headers']['accept'][0];
+        }
 
             // Check if the config has a headers array and create it if it doesn't
-            if (isset($config['headers']) === false) {
-                $config['headers'] = [];
-            }
+        if (isset($config['headers']) === false) {
+            $config['headers'] = [];
+        }
 
-            if (isset($config['pagination']) === true) {
-                $config['query'][$config['pagination']['paginationQuery']] = $config['pagination']['page'];
-                unset($config['pagination']);
-            }
+        if (isset($config['pagination']) === true) {
+            $config['query'][$config['pagination']['paginationQuery']] = $config['pagination']['page'];
+            unset($config['pagination']);
+        }
 
             $config = $this->renderConfiguration(configuration: $config, source: $source);
 
@@ -307,16 +307,16 @@ class CallService
             // @todo: save the source
             // Let's make the call.
             $time_start = microtime(true);
-            try {
-                if ($asynchronous === false) {
-                    $response = $this->client->request($method, $url, $config);
-                } else {
-                    // @todo: we want to get rate limit headers from async calls as well
-                    return $this->client->requestAsync($method, $url, $config);
-                }
-            } catch (GuzzleHttp\Exception\BadResponseException $e) {
-                         $response = $e->getResponse();
+        try {
+            if ($asynchronous === false) {
+                $response = $this->client->request($method, $url, $config);
+            } else {
+                // @todo: we want to get rate limit headers from async calls as well
+                return $this->client->requestAsync($method, $url, $config);
             }
+        } catch (GuzzleHttp\Exception\BadResponseException $e) {
+                     $response = $e->getResponse();
+        }
 
             $time_end = microtime(true);
 

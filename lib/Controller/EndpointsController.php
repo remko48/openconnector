@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Endpoints Controller
+ *
+ * This file contains the controller for handling endpoint related operations
+ * in the OpenConnector application.
+ *
+ * @category  Controller
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Controller;
 
@@ -50,11 +64,17 @@ class EndpointsController extends Controller
     /**
      * Constructor for the EndpointsController
      *
-     * @param string          $appName         The name of the app
-     * @param IRequest        $request         The request object
-     * @param IAppConfig      $config          The app configuration object
-     * @param EndpointMapper  $endpointMapper  The endpoint mapper object
-     * @param EndpointService $endpointService Service for handling endpoint operations
+     * @param string               $appName              The name of the app
+     * @param IRequest             $request              The request object
+     * @param IAppConfig           $config               The app configuration object
+     * @param EndpointMapper       $endpointMapper       The endpoint mapper object
+     * @param EndpointService      $endpointService      Service for handling endpoint operations
+     * @param AuthorizationService $authorizationService Service for handling authorization
+     * @param string               $corsMethods          CORS allowed methods
+     * @param string               $corsAllowedHeaders   CORS allowed headers
+     * @param int                  $corsMaxAge           CORS max age in seconds
+     *
+     * @return void
      */
     public function __construct(
         $appName,
@@ -101,6 +121,9 @@ class EndpointsController extends Controller
      *
      * This method returns a JSON response containing an array of all endpoints in the system.
      *
+     * @param ObjectService $objectService Service for object operations
+     * @param SearchService $searchService Service for search operations
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
@@ -116,10 +139,23 @@ class EndpointsController extends Controller
         ];
 
         $searchParams     = $searchService->createMySQLSearchParams(filters: $filters);
-        $searchConditions = $searchService->createMySQLSearchConditions(filters: $filters, fieldsToSearch: $fieldsToSearch);
+        $searchConditions = $searchService->createMySQLSearchConditions(
+            filters: $filters,
+            fieldsToSearch: $fieldsToSearch
+        );
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
-        return new JSONResponse(['results' => $this->endpointMapper->findAll(limit: null, offset: null, filters: $filters, searchConditions: $searchConditions, searchParams: $searchParams)]);
+        return new JSONResponse(
+            [
+                'results' => $this->endpointMapper->findAll(
+                    limit: null,
+                    offset: null,
+                    filters: $filters,
+                    searchConditions: $searchConditions,
+                    searchParams: $searchParams
+                ),
+            ]
+        );
 
     }//end index()
 
@@ -129,10 +165,11 @@ class EndpointsController extends Controller
      *
      * This method returns a JSON response containing the details of a specific endpoint.
      *
+     * @param string $id The ID of the endpoint to retrieve
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  string $id The ID of the endpoint to retrieve
      * @return JSONResponse A JSON response containing the endpoint details
      */
     public function show(string $id): JSONResponse
@@ -182,10 +219,11 @@ class EndpointsController extends Controller
      *
      * This method updates an existing endpoint based on its ID.
      *
+     * @param int $id The ID of the endpoint to update
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  int $id The ID of the endpoint to update
      * @return JSONResponse A JSON response containing the updated endpoint details
      */
     public function update(int $id): JSONResponse
@@ -214,10 +252,11 @@ class EndpointsController extends Controller
      *
      * This method deletes an endpoint based on its ID.
      *
+     * @param int $id The ID of the endpoint to delete
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  int $id The ID of the endpoint to delete
      * @return JSONResponse An empty JSON response
      * @throws \OCP\DB\Exception
      */
@@ -234,25 +273,26 @@ class EndpointsController extends Controller
      * Handles generic path requests by matching against registered endpoints
      *
      * This method checks if the current path matches any registered endpoint patterns
-     * and forwards the request to the appropriate endpoint service if found
+     * and forwards the request to the appropriate endpoint service if found.
+     *
+     * @param string $_path The path to handle
      *
      * @NoAdminRequired
      * @NoCSRFRequired
      * @PublicPage
      *
-     * @param  string $_path
      * @return JSONResponse|XMLResponse The response from the endpoint service or 404 if no match
      * @throws Exception
      */
     public function handlePath(string $_path): Response
     {
-        // Find matching endpoints for the given path and method
+        // Find matching endpoints for the given path and method.
         $matchingEndpoints = $this->endpointMapper->findByPathRegex(
             path: $_path,
             method: $this->request->getMethod()
         );
 
-        // If no matching endpoints found, return 404
+        // If no matching endpoints found, return 404.
         if (empty($matchingEndpoints) === true) {
             return new JSONResponse(
                 data: ['error' => 'No matching endpoint found for path and method: '.$_path.' '.$this->request->getMethod()],
@@ -260,7 +300,7 @@ class EndpointsController extends Controller
             );
         }
 
-        // If no matching endpoints found, return 404
+        // If multiple matching endpoints found, return 409.
         if (count($matchingEndpoints) > 1) {
             return new JSONResponse(
                 data: ['error' => 'Multiple endpoints found for path and method: '.$_path.' '.$this->request->getMethod()],
@@ -268,16 +308,16 @@ class EndpointsController extends Controller
             );
         }
 
-        // Get the first matching endpoint since we have already filtered by method
+        // Get the first matching endpoint since we have already filtered by method.
         $endpoint = reset($matchingEndpoints);
 
-        // Forward the request to the endpoint service
+        // Forward the request to the endpoint service.
         $response = $this->endpointService->handleRequest($endpoint, $this->request, $_path);
 
-        // Check if the Accept header is set to XML
+        // Check if the Accept header is set to XML.
         $acceptHeader = $this->request->getHeader('Accept');
         if (stripos($acceptHeader, 'application/xml') !== false) {
-            // Convert JSON response to XML response
+            // Convert JSON response to XML response.
             $response = new XMLResponse($response->getData(), $response->getStatus(), $response->getHeaders(), $_path);
         }
 
@@ -286,8 +326,10 @@ class EndpointsController extends Controller
     }//end handlePath()
 
 
-    /*
-     * Implements a preflighted CORS response for OPTIONS requests.
+    /**
+     * Implements a preflighted CORS response for OPTIONS requests
+     *
+     * This method handles OPTIONS preflight requests for Cross-Origin Resource Sharing.
      *
      * @NoAdminRequired
      * @NoCSRFRequired
@@ -298,14 +340,15 @@ class EndpointsController extends Controller
      */
     #[NoCSRFRequired]
     #[PublicPage]
-
-
     public function preflightedCors(): Response
     {
-        // Determine the origin
-        $origin = isset($this->request->server['HTTP_ORIGIN']) === true ? $this->request->server['HTTP_ORIGIN'] : '*';
+        // Determine the origin.
+        $origin = '*';
+        if (isset($this->request->server['HTTP_ORIGIN']) === true) {
+            $origin = $this->request->server['HTTP_ORIGIN'];
+        }
 
-        // Create and configure the response
+        // Create and configure the response.
         $response = new Response();
         $response->addHeader('Access-Control-Allow-Origin', $origin);
         $response->addHeader('Access-Control-Allow-Methods', $this->corsMethods);

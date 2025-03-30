@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Mapping Entity
+ *
+ * This file contains the entity class for mapping data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -6,6 +20,14 @@ use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
+/**
+ * Class Mapping
+ *
+ * A mapping represents a configuration for transforming data from one format to another.
+ * It includes rules for field mapping, type casting, and field removal.
+ *
+ * @package OCA\OpenConnector\Db
+ */
 class Mapping extends Entity implements JsonSerializable
 {
 
@@ -68,7 +90,7 @@ class Mapping extends Entity implements JsonSerializable
     /**
      * Indicates if the mapping is a pass-through.
      *
-     * @var bool|null
+     * @var boolean|null
      */
     protected ?bool $passThrough = null;
 
@@ -123,6 +145,12 @@ class Mapping extends Entity implements JsonSerializable
     }//end getCast()
 
 
+    /**
+     * Mapping constructor.
+     * Initializes the field types for the Mapping entity.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->addType('uuid', 'string');
@@ -140,6 +168,11 @@ class Mapping extends Entity implements JsonSerializable
     }//end __construct()
 
 
+    /**
+     * Get the JSON fields of the Mapping entity.
+     *
+     * @return array An array of field names that are of type 'json'
+     */
     public function getJsonFields(): array
     {
         return array_keys(
@@ -154,6 +187,11 @@ class Mapping extends Entity implements JsonSerializable
     }//end getJsonFields()
 
 
+    /**
+     * Get the date and time when the mapping was last updated.
+     *
+     * @return DateTime|null The date and time of the last modification or null if not set
+     */
     public function getUpdated(): ?DateTime
     {
         return $this->dateModified;
@@ -161,6 +199,13 @@ class Mapping extends Entity implements JsonSerializable
     }//end getUpdated()
 
 
+    /**
+     * Hydrate the Mapping entity with data from an array.
+     *
+     * @param array $object The array containing the data to hydrate the entity
+     *
+     * @return self Returns the hydrated Mapping entity
+     */
     public function hydrate(array $object): self
     {
         $jsonFields = $this->getJsonFields();
@@ -175,7 +220,7 @@ class Mapping extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // ("Error writing $key");
+                // Error writing $key.
             }
         }
 
@@ -184,8 +229,23 @@ class Mapping extends Entity implements JsonSerializable
     }//end hydrate()
 
 
+    /**
+     * Serialize the Mapping entity to JSON.
+     *
+     * @return array An array representation of the Mapping entity for JSON serialization
+     */
     public function jsonSerialize(): array
     {
+        $dateCreated = null;
+        if (isset($this->dateCreated) === true) {
+            $dateCreated = $this->dateCreated->format('c');
+        }
+
+        $dateModified = null;
+        if (isset($this->dateModified) === true) {
+            $dateModified = $this->dateModified->format('c');
+        }
+
         return [
             'id'           => $this->id,
             'uuid'         => $this->uuid,
@@ -197,8 +257,8 @@ class Mapping extends Entity implements JsonSerializable
             'unset'        => $this->unset,
             'cast'         => $this->cast,
             'passThrough'  => $this->passThrough,
-            'dateCreated'  => isset($this->dateCreated) ? $this->dateCreated->format('c') : null,
-            'dateModified' => isset($this->dateModified) ? $this->dateModified->format('c') : null,
+            'dateCreated'  => $dateCreated,
+            'dateModified' => $dateModified,
         ];
 
     }//end jsonSerialize()

@@ -3,11 +3,11 @@
 /**
  * Processes individual objects during synchronization.
  *
- * @category  Service
- * @package   OpenConnector
- * @version   GIT: <git_id>
- * @link      https://openregister.app
- * @since 1.0.0
+ * @category Service
+ * @package  OpenConnector
+ * @version  GIT: <git_id>
+ * @link     https://openregister.app
+ * @since    1.0.0
  */
 
 namespace OCA\OpenConnector\Service;
@@ -31,11 +31,11 @@ use Twig\Error\SyntaxError;
 /**
  * Service for processing individual objects during synchronization.
  *
- * @category  Service
- * @package   OpenConnector
- * @version   GIT: <git_id>
- * @link      https://openregister.app
- * @since 1.0.0
+ * @category Service
+ * @package  OpenConnector
+ * @version  GIT: <git_id>
+ * @link     https://openregister.app
+ * @since    1.0.0
  */
 class SynchronizationObjectProcessor
 {

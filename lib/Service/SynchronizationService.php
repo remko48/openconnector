@@ -55,6 +55,7 @@ use Twig\Error\SyntaxError;
  */
 class SynchronizationService
 {
+
     /**
      * The call service instance.
      *
@@ -111,17 +112,18 @@ class SynchronizationService
      */
     private readonly SynchronizationObjectProcessor $objectProcessor;
 
+
     /**
      * Constructor
      *
-     * @param CallService                   $callService                Call service for API requests
-     * @param SynchronizationMapper         $synchronizationMapper      Mapper for synchronization entities
-     * @param SourceMapper                  $sourceMapper               Mapper for source entities
-     * @param SynchronizationLogMapper      $synchronizationLogMapper   Mapper for log entities
-     * @param SynchronizationContractMapper $synchronizationContractMapper Mapper for contract entities
-     * @param SourceHandlerRegistry         $sourceHandlerRegistry      Registry for source handlers
-     * @param TargetHandlerRegistry         $targetHandlerRegistry      Registry for target handlers
-     * @param SynchronizationObjectProcessor $objectProcessor           Processor for objects
+     * @param CallService                    $callService                   Call service for API requests
+     * @param SynchronizationMapper          $synchronizationMapper         Mapper for synchronization entities
+     * @param SourceMapper                   $sourceMapper                  Mapper for source entities
+     * @param SynchronizationLogMapper       $synchronizationLogMapper      Mapper for log entities
+     * @param SynchronizationContractMapper  $synchronizationContractMapper Mapper for contract entities
+     * @param SourceHandlerRegistry          $sourceHandlerRegistry         Registry for source handlers
+     * @param TargetHandlerRegistry          $targetHandlerRegistry         Registry for target handlers
+     * @param SynchronizationObjectProcessor $objectProcessor               Processor for objects
      */
     public function __construct(
         CallService $callService,
@@ -133,15 +135,17 @@ class SynchronizationService
         TargetHandlerRegistry $targetHandlerRegistry,
         SynchronizationObjectProcessor $objectProcessor
     ) {
-        $this->callService = $callService;
-        $this->synchronizationMapper = $synchronizationMapper;
-        $this->sourceMapper = $sourceMapper;
-        $this->synchronizationLogMapper = $synchronizationLogMapper;
+        $this->callService                   = $callService;
+        $this->synchronizationMapper         = $synchronizationMapper;
+        $this->sourceMapper                  = $sourceMapper;
+        $this->synchronizationLogMapper      = $synchronizationLogMapper;
         $this->synchronizationContractMapper = $synchronizationContractMapper;
-        $this->sourceHandlerRegistry = $sourceHandlerRegistry;
-        $this->targetHandlerRegistry = $targetHandlerRegistry;
-        $this->objectProcessor = $objectProcessor;
-    }
+        $this->sourceHandlerRegistry         = $sourceHandlerRegistry;
+        $this->targetHandlerRegistry         = $targetHandlerRegistry;
+        $this->objectProcessor               = $objectProcessor;
+
+    }//end __construct()
+
 
     /**
      * Synchronizes a given synchronization (or a complete source).
@@ -164,8 +168,8 @@ class SynchronizationService
      */
     public function synchronize(
         Synchronization $synchronization,
-        bool $isTest = false,
-        bool $force = false
+        bool $isTest=false,
+        bool $force=false
     ): array {
         // Start execution time measurement
         $startTime = microtime(true);
@@ -213,14 +217,14 @@ class SynchronizationService
         }
 
         // Update log with object count
-        $result = $log->getResult();
+        $result                     = $log->getResult();
         $result['objects']['found'] = count($objectList);
 
         $synchronizedTargetIds = [];
 
         // Handle single object case
         if (isset($sourceConfig['resultsPosition']) && $sourceConfig['resultsPosition'] === '_object') {
-            $objectList = [$objectList];
+            $objectList                 = [$objectList];
             $result['objects']['found'] = count($objectList);
         }
 
@@ -282,7 +286,9 @@ class SynchronizationService
         $this->synchronizationLogMapper->update($log);
 
         return $log->jsonSerialize();
-    }
+
+    }//end synchronize()
+
 
     /**
      * Get all the objects from a source.
@@ -291,69 +297,70 @@ class SynchronizationService
      * @param bool            $isTest          False by default, currently added for synchronization-test endpoint
      *
      * @return array The objects fetched from the source
-     * 
+     *
      * @throws ContainerExceptionInterface
      * @throws GuzzleException
      * @throws NotFoundExceptionInterface
      * @throws \OCP\DB\Exception
      */
-    public function getAllObjectsFromSource(Synchronization $synchronization, bool $isTest = false): array
+    public function getAllObjectsFromSource(Synchronization $synchronization, bool $isTest=false): array
     {
-        $source = $this->sourceMapper->find($synchronization->getSourceId());
+        $source       = $this->sourceMapper->find($synchronization->getSourceId());
         $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
-        
+
         switch ($source->getType()) {
-            case 'register/schema':
-                // @todo: implement for register/schema type
-                return [];
-                
-            case 'api':
-            case 'xml':
-            case 'json-api':
-            case 'soap':
-                // Extract configuration for the API call
-                $endpoint = ($sourceConfig['endpoint'] ?? '');
-                $headers = ($sourceConfig['headers'] ?? []);
-                $query = ($sourceConfig['query'] ?? []);
-                
-                // Set current page based on rate limit
-                $currentPage = 1;
-                if ($source->getRateLimitLimit() !== null) {
-                    $currentPage = ($synchronization->getCurrentPage() ?? 1);
-                }
-                
-                // Use the appropriate handler through the registry
-                $objects = $this->sourceHandlerRegistry->getAllObjects(
-                    source: $source,
-                    config: $sourceConfig,
-                    isTest: $isTest,
-                    currentPage: $currentPage,
-                    headers: $headers,
-                    query: $query
-                );
-                
-                // Reset page counter after synchronization if not in test mode
-                if ($isTest === false) {
-                    $synchronization->setCurrentPage(1);
-                    $this->synchronizationMapper->update($synchronization);
-                }
-                
-                return $objects;
-                
-            case 'database':
-                // @todo: implement for database type
-                return [];
-                
-            default:
-                return [];
-        }
-    }
+        case 'register/schema':
+            // @todo: implement for register/schema type
+            return [];
+
+        case 'api':
+        case 'xml':
+        case 'json-api':
+        case 'soap':
+            // Extract configuration for the API call
+            $endpoint = ($sourceConfig['endpoint'] ?? '');
+            $headers  = ($sourceConfig['headers'] ?? []);
+            $query    = ($sourceConfig['query'] ?? []);
+
+            // Set current page based on rate limit
+            $currentPage = 1;
+            if ($source->getRateLimitLimit() !== null) {
+                $currentPage = ($synchronization->getCurrentPage() ?? 1);
+            }
+
+            // Use the appropriate handler through the registry
+            $objects = $this->sourceHandlerRegistry->getAllObjects(
+                source: $source,
+                config: $sourceConfig,
+                isTest: $isTest,
+                currentPage: $currentPage,
+                headers: $headers,
+                query: $query
+            );
+
+            // Reset page counter after synchronization if not in test mode
+            if ($isTest === false) {
+                $synchronization->setCurrentPage(1);
+                $this->synchronizationMapper->update($synchronization);
+            }
+            return $objects;
+
+        case 'database':
+            // @todo: implement for database type
+            return [];
+
+        default:
+            return [];
+        }//end switch
+
+    }//end getAllObjectsFromSource()
+
 
     /**
      * Synchronize data to a target.
      *
      * This method provides an entry point for OpenRegister to synchronize objects to targets.
-     * The synchronizationContract should be given if the normal procedure to find the contract (on originId) 
+     * The synchronizationContract should be given if the normal procedure to find the contract (on originId)
      * is not available to the contract that should be updated.
      *
      * @param ObjectEntity                 $object                  The object to synchronize
@@ -373,10 +380,10 @@ class SynchronizationService
      */
     public function synchronizeToTarget(
         ObjectEntity $object,
-        ?SynchronizationContract $synchronizationContract = null,
-        bool $force = false,
-        bool $test = false,
-        ?SynchronizationLog $log = null
+        ?SynchronizationContract $synchronizationContract=null,
+        bool $force=false,
+        bool $test=false,
+        ?SynchronizationLog $log=null
     ): array {
         $objectId = $object->getUuid();
 
@@ -392,7 +399,7 @@ class SynchronizationService
                 'source_id'   => "{$object->getRegister()}/{$object->getSchema()}",
             ]
         );
-        
+
         if (count($synchronizations) === 0) {
             return [];
         }
@@ -420,9 +427,9 @@ class SynchronizationService
         );
 
         // Determine contract to return
-        if (isset($synchronizationContractResult['contract']) &&
-            is_array($synchronizationContractResult['contract']) &&
-            isset($synchronizationContractResult['contract']['id'])
+        if (isset($synchronizationContractResult['contract'])
+            && is_array($synchronizationContractResult['contract'])
+            && isset($synchronizationContractResult['contract']['id'])
         ) {
             // Return contract from result
             $contract = $this->synchronizationContractMapper->find(
@@ -433,7 +440,9 @@ class SynchronizationService
 
         // Return original contract if no result contract
         return [$synchronizationContract];
-    }
+
+    }//end synchronizeToTarget()
+
 
     /**
      * Fetch a synchronization by ID or other characteristics.
@@ -446,8 +455,8 @@ class SynchronizationService
      * @throws DoesNotExistException When synchronization not found
      */
     public function getSynchronization(
-        string|int|null $id = null,
-        array $filters = []
+        string|int|null $id=null,
+        array $filters=[]
     ): Synchronization {
         // Find by ID if provided
         if ($id !== null) {
@@ -455,7 +464,9 @@ class SynchronizationService
         }
 
         // Find by filters
-        /** @var Synchronization[] $synchronizations */
+        /*
+         * @var Synchronization[] $synchronizations
+         */
         $synchronizations = $this->synchronizationMapper->findAll(filters: $filters);
 
         if (count($synchronizations) === 0) {
@@ -463,5 +474,8 @@ class SynchronizationService
         }
 
         return $synchronizations[0];
-    }
-} 
+
+    }//end getSynchronization()
+
+
+}//end class

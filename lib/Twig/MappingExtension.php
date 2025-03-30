@@ -14,6 +14,8 @@ use Twig\TwigFunction;
  */
 class MappingExtension extends AbstractExtension
 {
+
+
     /**
      * Get the list of custom Twig functions provided by this extension.
      *
@@ -24,5 +26,8 @@ class MappingExtension extends AbstractExtension
         return [
             new TwigFunction(name: 'executeMapping', callable: [MappingRuntime::class, 'executeMapping']),
         ];
+
     }//end getFunctions()
+
+
 }//end class

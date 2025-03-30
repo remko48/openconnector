@@ -13,25 +13,31 @@ use OCP\IUserSession;
 
 class LogCleanUpTask extends TimedJob
 {
-	public function __construct(
-		ITimeFactory $time,
-		private readonly CallLogMapper $callLogMapper,
-	) {
-		parent::__construct($time);
 
-		// Run every 5 minutes
-		$this->setInterval(300);
 
-		// Delay until low-load time
-		//$this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_SENSITIVE);
-		// Or $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
+    public function __construct(
+        ITimeFactory $time,
+        private readonly CallLogMapper $callLogMapper,
+    ) {
+        parent::__construct($time);
 
-		// Only run one instance of this job at a time
-		$this->setAllowParallelRuns(false);
-	}
+        // Run every 5 minutes
+        $this->setInterval(300);
 
-    public function run(mixed $argument) {
+        // Delay until low-load time
+        // $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_SENSITIVE);
+        // Or $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
+        // Only run one instance of this job at a time
+        $this->setAllowParallelRuns(false);
+
+    }//end __construct()
+
+
+    public function run(mixed $argument)
+    {
         $this->callLogMapper->clearLogs();
-    }
 
-}
+    }//end run()
+
+
+}//end class

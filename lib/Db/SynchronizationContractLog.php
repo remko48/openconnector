@@ -13,6 +13,7 @@ use OCP\AppFramework\Db\Entity;
  */
 class SynchronizationContractLog extends Entity implements JsonSerializable
 {
+
     /**
      * The unique identifier of the synchronization contract log entry.
      *
@@ -86,14 +87,14 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     /**
      * Indicates if the synchronization was a test run.
      *
-     * @var bool|null
+     * @var boolean|null
      */
     protected ?bool $test = false;
 
     /**
      * Indicates if the synchronization was forced.
      *
-     * @var bool|null
+     * @var boolean|null
      */
     protected ?bool $force = false;
 
@@ -110,6 +111,7 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
      * @var DateTime|null
      */
     protected ?DateTime $created = null;
+
 
     /**
      * Get the source data

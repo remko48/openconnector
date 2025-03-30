@@ -13,28 +13,33 @@ use OCA\OpenConnector\Db\SynchronizationContractMapper;
 class ObjectDeletedEventListener implements IEventListener
 {
 
-	public function __construct(
-		private readonly SynchronizationService $synchronizationService,
-		private readonly SynchronizationContractMapper $synchronizationContractMapper,
-	)
-	{
-	}
 
-	/**
+    public function __construct(
+        private readonly SynchronizationService $synchronizationService,
+        private readonly SynchronizationContractMapper $synchronizationContractMapper,
+    ) {
+
+    }//end __construct()
+
+
+    /**
      * @inheritDoc
      */
     public function handle(Event $event): void
     {
         if ($event instanceof ObjectDeletedEvent === false) {
-			return;
-		}
+            return;
+        }
 
-		$object = $event->getObject();
+        $object = $event->getObject();
 
-		$contracts = $this->synchronizationContractMapper->handleObjectRemoval($object->getUuid());
+        $contracts = $this->synchronizationContractMapper->handleObjectRemoval($object->getUuid());
 
-		foreach ($contracts as $contract) {
-			$this->synchronizationService->synchronizeToTarget($object, $contract);
-		}
-    }
-}
+        foreach ($contracts as $contract) {
+            $this->synchronizationService->synchronizeToTarget($object, $contract);
+        }
+
+    }//end handle()
+
+
+}//end class

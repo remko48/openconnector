@@ -38,17 +38,21 @@ use Symfony\Component\Yaml\Yaml;
  */
 class ExportService
 {
+
+
     /**
      * Constructor for ExportService.
      *
-     * @param IURLGenerator $urlGenerator The URL generator service.
+     * @param IURLGenerator $urlGenerator  The URL generator service.
      * @param ObjectService $objectService The object service.
      */
     public function __construct(
         private readonly IURLGenerator $urlGenerator,
         private readonly ObjectService $objectService
     ) {
-    }
+
+    }//end __construct()
+
 
     /**
      * Handles an upload api-call to create a new object or update an existing one.
@@ -92,7 +96,8 @@ class ExportService
                 'synchronizationcontract',
                 'synchronizationcontractlog',
             ]
-        )) {
+        )
+        ) {
             return new JSONResponse(['error' => "It is not allowed to export objects of type: ".$objectType], 400);
         }
 
@@ -114,7 +119,9 @@ class ExportService
 
         // Generate the downloadable file response
         $this->download($dataString, $filename, $type);
-    }
+
+    }//end export()
+
 
     /**
      * Prepares a PHP array with all data of the object we want to end up in the downloadable file.
@@ -150,7 +157,7 @@ class ExportService
 
             // Make sure we update the reference of this object if it wasn't set yet.
             $mapper->updateFromArray($object->getId(), $objectArray);
-        }
+        }//end if
 
         // Prepare Json-LD default properties.
         $jsonLdDefault = [
@@ -163,7 +170,9 @@ class ExportService
         ];
 
         return array_merge($jsonLdDefault, $objectArray);
-    }
+
+    }//end prepareObject()
+
 
     /**
      * A function used to encode object array to a data string.
@@ -177,23 +186,23 @@ class ExportService
     private function encode(array $objectArray, ?string $type): ?string
     {
         switch ($type) {
-            case 'application/json':
-                $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
-                break;
-            case 'application/yaml':
-                $dataString = Yaml::dump($objectArray);
-                break;
-            default:
-                // If type is not specified or not recognized, try to encode as JSON first, then YAML
-                $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
-                if ($dataString === false) {
-                    try {
-                        $dataString = Yaml::dump($objectArray);
-                    } catch (Exception $exception) {
-                        $dataString = null;
-                    }
+        case 'application/json':
+            $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
+            break;
+        case 'application/yaml':
+            $dataString = Yaml::dump($objectArray);
+            break;
+        default:
+            // If type is not specified or not recognized, try to encode as JSON first, then YAML
+            $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
+            if ($dataString === false) {
+                try {
+                    $dataString = Yaml::dump($objectArray);
+                } catch (Exception $exception) {
+                    $dataString = null;
                 }
-                break;
+            }
+            break;
         }
 
         if ($dataString === null || $dataString === false) {
@@ -201,14 +210,16 @@ class ExportService
         }
 
         return $dataString;
-    }
+
+    }//end encode()
+
 
     /**
      * Generate a downloadable file response.
      *
      * @param string $dataString The data to create a file with of the given $type.
-     * @param string $filename The filename, .[$type] will be added after this filename in this function.
-     * @param string $type The type of file to create and download. Default = json.
+     * @param string $filename   The filename, .[$type] will be added after this filename in this function.
+     * @param string $type       The type of file to create and download. Default = json.
      *
      * @return void
      */
@@ -234,5 +245,8 @@ class ExportService
 
         // Ensure no further script execution
         exit;
-    }
-}
+
+    }//end download()
+
+
+}//end class

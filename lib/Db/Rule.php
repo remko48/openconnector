@@ -89,7 +89,7 @@ class Rule extends Entity implements JsonSerializable
     /**
      * The order in which the rule should be applied.
      *
-     * @var int
+     * @var integer
      */
     protected int $order = 0;
 

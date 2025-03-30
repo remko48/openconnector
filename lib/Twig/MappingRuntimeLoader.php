@@ -9,19 +9,25 @@ use Twig\RuntimeLoader\RuntimeLoaderInterface;
 
 class MappingRuntimeLoader implements RuntimeLoaderInterface
 {
-	public function __construct(
-		private readonly MappingService $mappingService,
-		private readonly MappingMapper  $mappingMapper
-	) {
 
-	}
 
-	public function load(string $class): ?MappingRuntime
-	{
-		if ($class === MappingRuntime::class) {
-			return new MappingRuntime(mappingService: $this->mappingService, mappingMapper: $this->mappingMapper);
-		}
+    public function __construct(
+        private readonly MappingService $mappingService,
+        private readonly MappingMapper $mappingMapper
+    ) {
 
-		return null;
-	}
-}
+    }//end __construct()
+
+
+    public function load(string $class): ?MappingRuntime
+    {
+        if ($class === MappingRuntime::class) {
+            return new MappingRuntime(mappingService: $this->mappingService, mappingMapper: $this->mappingMapper);
+        }
+
+        return null;
+
+    }//end load()
+
+
+}//end class

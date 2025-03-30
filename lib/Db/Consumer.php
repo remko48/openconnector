@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Consumer Entity
+ *
+ * This file contains the entity class for consumer data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -18,24 +32,77 @@ use OCP\AppFramework\Db\Entity;
 class Consumer extends Entity implements JsonSerializable
 {
 
+    /**
+     * Unique identifier for the consumer
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * Name of the consumer
+     *
+     * @var string|null
+     */
     protected ?string $name = null;
 
-    // The name of the consumer
+    /**
+     * Description of the consumer
+     *
+     * @var string|null
+     */
     protected ?string $description = null;
 
-    // The description of the consumer    protected ?array $domains = [];
-    // The domains the consumer is allowed to run from    protected ?array $ips = [];
-    // The ips the consumer is allowed to run from    protected ?string $authorizationType = null;
-    // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.    protected ?array $authorizationConfiguration = [];
-    // The authorization configuration of the consumer
+    /**
+     * Domains the consumer is allowed to run from
+     *
+     * @var array|null
+     */
+    protected ?array $domains = [];
+
+    /**
+     * IPs the consumer is allowed to run from
+     *
+     * @var array|null
+     */
+    protected ?array $ips = [];
+
+    /**
+     * Authorization type of the consumer
+     *
+     * Should be one of: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'.
+     * The consumer needs to be able to handle the authorization type.
+     *
+     * @var string|null
+     */
+    protected ?string $authorizationType = null;
+
+    /**
+     * Authorization configuration of the consumer
+     *
+     * @var array|null
+     */
+    protected ?array $authorizationConfiguration = [];
+
+    /**
+     * The date and time the consumer was created
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $created = null;
 
-    // the date and time the consumer was created
+    /**
+     * The date and time the consumer was updated
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $updated = null;
 
-    // the date and time the consumer was updated
+    /**
+     * The ID of the user who created/owns the consumer
+     *
+     * @var string|null
+     */
     protected ?string $userId = null;
 
 
@@ -117,7 +184,8 @@ class Consumer extends Entity implements JsonSerializable
     /**
      * Hydrate the Consumer entity with data from an array.
      *
-     * @param  array $object The array containing the data to hydrate the entity
+     * @param array $object The array containing the data to hydrate the entity
+     *
      * @return self Returns the hydrated Consumer entity
      */
     public function hydrate(array $object): self
@@ -134,7 +202,7 @@ class Consumer extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // ("Error writing $key");
+                // Error writing $key.
             }
         }
 
@@ -150,6 +218,16 @@ class Consumer extends Entity implements JsonSerializable
      */
     public function jsonSerialize(): array
     {
+        $created = null;
+        if (isset($this->created) === true) {
+            $created = $this->created->format('c');
+        }
+
+        $updated = null;
+        if (isset($this->updated) === true) {
+            $updated = $this->updated->format('c');
+        }
+
         return [
             'id'                         => $this->id,
             'uuid'                       => $this->uuid,
@@ -160,8 +238,8 @@ class Consumer extends Entity implements JsonSerializable
             'authorizationType'          => $this->authorizationType,
             'authorizationConfiguration' => $this->authorizationConfiguration,
             'userId'                     => $this->userId,
-            'created'                    => isset($this->created) ? $this->created->format('c') : null,
-            'updated'                    => isset($this->updated) ? $this->updated->format('c') : null,
+            'created'                    => $created,
+            'updated'                    => $updated,
         ];
 
     }//end jsonSerialize()

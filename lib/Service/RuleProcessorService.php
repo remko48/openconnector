@@ -3,11 +3,11 @@
 /**
  * Service for processing rules in synchronization contexts.
  *
- * @category  Service
- * @package   OpenConnector
- * @version   GIT: <git_id>
- * @link      https://openregister.app
- * @since 1.0.0
+ * @category Service
+ * @package  OpenConnector
+ * @version  GIT: <git_id>
+ * @link     https://openregister.app
+ * @since    1.0.0
  */
 
 namespace OCA\OpenConnector\Service;
@@ -33,14 +33,15 @@ use Adbar\Dot;
  *
  * This class handles evaluation of rules and execution of rule actions.
  *
- * @category  Service
- * @package   OpenConnector
- * @version   GIT: <git_id>
- * @link      https://openregister.app
- * @since 1.0.0
+ * @category Service
+ * @package  OpenConnector
+ * @version  GIT: <git_id>
+ * @link     https://openregister.app
+ * @since    1.0.0
  */
 class RuleProcessorService
 {
+
     /**
      * The rule mapper instance.
      *
@@ -62,6 +63,7 @@ class RuleProcessorService
      */
     private readonly FileHandlerService $fileHandlerService;
 
+
     /**
      * Constructor.
      *
@@ -77,7 +79,9 @@ class RuleProcessorService
         $this->ruleMapper         = $ruleMapper;
         $this->mappingService     = $mappingService;
         $this->fileHandlerService = $fileHandlerService;
-    }
+
+    }//end __construct()
+
 
     /**
      * Processes rules for an endpoint request.
@@ -100,9 +104,9 @@ class RuleProcessorService
         Synchronization $synchronization,
         array $data,
         string $timing,
-        ?string $objectId = null,
-        ?int $registerId = null,
-        ?int $schemaId = null
+        ?string $objectId=null,
+        ?int $registerId=null,
+        ?int $schemaId=null
     ): array|JSONResponse {
         $rules = $synchronization->getActions();
         if (empty($rules)) {
@@ -135,7 +139,7 @@ class RuleProcessorService
                     'synchronization' => $this->processSyncRule($rule, $data),
                     'fetch_file' => $this->processFetchFileRule($rule, $data, $objectId),
                     'write_file' => $this->processWriteFileRule($rule, $data, $objectId, $registerId, $schemaId),
-                    default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
+                    default => throw new Exception('Unsupported rule type: '.$rule->getType()),
                 };
 
                 // If result is JSONResponse, return error immediately
@@ -145,13 +149,15 @@ class RuleProcessorService
 
                 // Update data with rule result
                 $data = $result;
-            }
+            }//end foreach
 
             return $data;
         } catch (Exception $e) {
-            return new JSONResponse(['error' => 'Rule processing failed: ' . $e->getMessage()], 500);
-        }
-    }
+            return new JSONResponse(['error' => 'Rule processing failed: '.$e->getMessage()], 500);
+        }//end try
+
+    }//end processRules()
+
 
     /**
      * Get a rule by its ID using RuleMapper.
@@ -167,7 +173,9 @@ class RuleProcessorService
         } catch (Exception $e) {
             return null;
         }
-    }
+
+    }//end getRuleById()
+
 
     /**
      * Check if rule conditions are met for given data.
@@ -187,7 +195,9 @@ class RuleProcessorService
         }
 
         return JsonLogic::apply($conditions, $data) === true;
-    }
+
+    }//end checkRuleConditions()
+
 
     /**
      * Process an error rule and return an error response.
@@ -206,7 +216,9 @@ class RuleProcessorService
             ],
             $config['error']['code']
         );
-    }
+
+    }//end processErrorRule()
+
 
     /**
      * Process a mapping rule to transform data.
@@ -225,7 +237,9 @@ class RuleProcessorService
         $mapping = $this->mappingService->getMapping($config['mapping']);
 
         return $this->mappingService->executeMapping($mapping, $data);
-    }
+
+    }//end processMappingRule()
+
 
     /**
      * Process a synchronization rule.
@@ -239,7 +253,9 @@ class RuleProcessorService
     {
         // Implementation would be added based on application needs
         return $data;
-    }
+
+    }//end processSyncRule()
+
 
     /**
      * Process a rule to fetch a file from external source.
@@ -318,7 +334,7 @@ class RuleProcessorService
                     tags: $tags,
                     filename: $filename
                 );
-            }
+            }//end foreach
 
             $dataDot[$config['filePath']] = $result;
         } else {
@@ -328,10 +344,12 @@ class RuleProcessorService
                 config: $config,
                 objectId: $objectId
             );
-        }
+        }//end if
 
         return $dataDot->jsonSerialize();
-    }
+
+    }//end processFetchFileRule()
+
 
     /**
      * Process a rule to write files.
@@ -366,7 +384,9 @@ class RuleProcessorService
         // Implementation would be specific to file processing requirements
         // and would use the FileHandlerService
         return $data;
-    }
+
+    }//end processWriteFileRule()
+
 
     /**
      * Gets a source by ID.
@@ -383,5 +403,8 @@ class RuleProcessorService
     {
         // This would need to be implemented based on the application's data access methods
         throw new Exception('Method not implemented');
-    }
-}
+
+    }//end getSourceById()
+
+
+}//end class

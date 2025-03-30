@@ -13,21 +13,27 @@ use OCA\OpenConnector\Db\SynchronizationContractMapper;
 class ObjectCreatedEventListener implements IEventListener
 {
 
-	public function __construct(
-		private readonly SynchronizationService $synchronizationService
-	)
-	{
-	}
 
-	/**
+    public function __construct(
+        private readonly SynchronizationService $synchronizationService
+    ) {
+
+    }//end __construct()
+
+
+    /**
      * @inheritDoc
      */
     public function handle(Event $event): void
     {
         if ($event instanceof ObjectCreatedEvent === false) {
-			return;
-		}
+            return;
+        }
+
         $object = $event->getObject();
-		$this->synchronizationService->synchronizeToTarget($object);
-    }
-}
+        $this->synchronizationService->synchronizeToTarget($object);
+
+    }//end handle()
+
+
+}//end class
