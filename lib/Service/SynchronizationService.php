@@ -37,11 +37,17 @@ use OCA\OpenConnector\Db\SynchronizationContract;
 use OCA\OpenConnector\Db\SynchronizationContractLog;
 use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
 use OCA\OpenConnector\Db\SynchronizationContractMapper;
+use OCA\OpenConnector\Db\MappingMapper;
 use OCA\OpenConnector\Service\CallService;
+use OCA\OpenConnector\Service\FileHandlerService;
 use OCA\OpenConnector\Service\MappingService;
+use OCA\OpenConnector\Service\RuleProcessorService;
+use OCA\OpenConnector\Service\SourceHandler\SourceHandlerRegistry;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\NotFoundResponse;
 use OCP\Files\GenericFileException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -51,7 +57,6 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Uid\Uuid;
-use OCP\AppFramework\Db\DoesNotExistException;
 use Adbar\Dot;
 use OCP\SystemTag\ISystemTagManager;
 use OCP\SystemTag\ISystemTagObjectMapper;
@@ -61,8 +66,6 @@ use OCP\SystemTag\TagNotFoundException;
 use Psr\Container\ContainerInterface;
 use DateInterval;
 use DateTime;
-use OCA\OpenConnector\Db\MappingMapper;
-use OCP\AppFramework\Http\NotFoundResponse;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
@@ -70,10 +73,12 @@ use Twig\Error\SyntaxError;
 /**
  * Class SynchronizationService
  *
+ * Handles synchronization between data sources and targets.
+ *
  * @category Service
  * @package  OCA\OpenConnector\Service
- * @author   Your Name <your.email@example.com>
- * @license  AGPL-3.0
+ * @author   Conduction <info@conduction.nl>
+ * @license  EUPL-1.2
  * @link     https://github.com/nextcloud/server/tree/master/apps/openconnector
  */
 class SynchronizationService
@@ -84,7 +89,6 @@ class SynchronizationService
     private const KEY_FOR_EXTRA_DATA_LOCATION          = 'keyToSetExtraData';
     private const MERGE_EXTRA_DATA_OBJECT_LOCATION     = 'mergeExtraData';
     private const UNSET_CONFIG_KEY_LOCATION            = 'unsetConfigKey';
-    private const FILE_TAG_TYPE                        = 'files';
 
     /**
      * The call service instance.
@@ -157,32 +161,25 @@ class SynchronizationService
     private readonly ObjectService $objectService;
 
     /**
-     * The storage service instance.
+     * The source handler registry instance.
      *
-     * @var StorageService
+     * @var SourceHandlerRegistry
      */
-    private readonly StorageService $storageService;
+    private readonly SourceHandlerRegistry $sourceHandlerRegistry;
 
     /**
-     * The rule mapper instance.
+     * The file handler service instance.
      *
-     * @var RuleMapper
+     * @var FileHandlerService
      */
-    private readonly RuleMapper $ruleMapper;
+    private readonly FileHandlerService $fileHandlerService;
 
     /**
-     * The system tag manager instance.
+     * The rule processor service instance.
      *
-     * @var ISystemTagManager
+     * @var RuleProcessorService
      */
-    private readonly ISystemTagManager $systemTagManager;
-
-    /**
-     * The system tag object mapper instance.
-     *
-     * @var ISystemTagObjectMapper
-     */
-    private readonly ISystemTagObjectMapper $systemTagMapper;
+    private readonly RuleProcessorService $ruleProcessorService;
 
 
     /**
@@ -198,10 +195,9 @@ class SynchronizationService
      * @param SynchronizationContractMapper    $synchronizationContractMapper    Synchronization contract mapper instance
      * @param SynchronizationContractLogMapper $synchronizationContractLogMapper Contract log mapper instance
      * @param ObjectService                    $objectService                    Object service instance
-     * @param StorageService                   $storageService                   Storage service instance
-     * @param RuleMapper                       $ruleMapper                       Rule mapper instance
-     * @param ISystemTagManager                $systemTagManager                 System tag manager instance
-     * @param ISystemTagObjectMapper           $systemTagMapper                  System tag mapper instance
+     * @param SourceHandlerRegistry            $sourceHandlerRegistry            Source handler registry instance
+     * @param FileHandlerService               $fileHandlerService               File handler service instance
+     * @param RuleProcessorService             $ruleProcessorService             Rule processor service instance
      */
     public function __construct(
         CallService $callService,
@@ -214,28 +210,24 @@ class SynchronizationService
         SynchronizationContractMapper $synchronizationContractMapper,
         SynchronizationContractLogMapper $synchronizationContractLogMapper,
         ObjectService $objectService,
-        StorageService $storageService,
-        RuleMapper $ruleMapper,
-        ISystemTagManager $systemTagManager,
-        ISystemTagObjectMapper $systemTagMapper
+        SourceHandlerRegistry $sourceHandlerRegistry,
+        FileHandlerService $fileHandlerService,
+        RuleProcessorService $ruleProcessorService
     ) {
-        $this->callService                      = $callService;
-        $this->mappingService                   = $mappingService;
-        $this->containerInterface               = $containerInterface;
-        $this->synchronizationMapper            = $synchronizationMapper;
-        $this->mappingMapper                    = $mappingMapper;
-        $this->synchronizationContractMapper    = $synchronizationContractMapper;
-        $this->synchronizationLogMapper         = $synchronizationLogMapper;
+        $this->callService = $callService;
+        $this->mappingService = $mappingService;
+        $this->containerInterface = $containerInterface;
+        $this->synchronizationMapper = $synchronizationMapper;
+        $this->mappingMapper = $mappingMapper;
+        $this->synchronizationContractMapper = $synchronizationContractMapper;
+        $this->synchronizationLogMapper = $synchronizationLogMapper;
         $this->synchronizationContractLogMapper = $synchronizationContractLogMapper;
-        $this->sourceMapper                     = $sourceMapper;
-        $this->objectService                    = $objectService;
-        $this->storageService                   = $storageService;
-        $this->ruleMapper                       = $ruleMapper;
-        $this->systemTagManager                 = $systemTagManager;
-        $this->systemTagMapper                  = $systemTagMapper;
-
-    }//end __construct()
-
+        $this->sourceMapper = $sourceMapper;
+        $this->objectService = $objectService;
+        $this->sourceHandlerRegistry = $sourceHandlerRegistry;
+        $this->fileHandlerService = $fileHandlerService;
+        $this->ruleProcessorService = $ruleProcessorService;
+    }
 
     /**
      * Synchronizes a given synchronization (or a complete source).
@@ -258,13 +250,13 @@ class SynchronizationService
      */
     public function synchronize(
         Synchronization $synchronization,
-        ?bool $isTest=false,
-        ?bool $force=false
+        ?bool $isTest = false,
+        ?bool $force = false
     ): array {
-        // Start execution time measurement.
+        // Start execution time measurement
         $startTime = microtime(true);
 
-        // Create log with synchronization ID and initialize results tracking.
+        // Create log with synchronization ID and initialize results tracking
         $log = [
             'synchronizationId' => $synchronization->getUuid(),
             'result'            => [
@@ -283,12 +275,12 @@ class SynchronizationService
             'force'             => $force,
         ];
 
-        // Create initial log entry for tracking purposes.
+        // Create initial log entry for tracking purposes
         $log = $this->synchronizationLogMapper->createFromArray($log);
 
         $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
-        // Validate source ID.
+        // Validate source ID
         if ($synchronization->getSourceId() === '') {
             $errorMessage = 'sourceId of synchronization cannot be empty. Canceling synchronization...';
             $log->setMessage($errorMessage);
@@ -296,7 +288,7 @@ class SynchronizationService
             throw new Exception($errorMessage);
         }
 
-        // Fetch objects from source.
+        // Fetch objects from source
         try {
             $objectList = $this->getAllObjectsFromSource(
                 synchronization: $synchronization,
@@ -306,19 +298,19 @@ class SynchronizationService
             $rateLimitException = $e;
         }
 
-        // Update log with object count.
-        $result                     = $log->getResult();
+        // Update log with object count
+        $result = $log->getResult();
         $result['objects']['found'] = count($objectList);
 
         $synchronizedTargetIds = [];
 
-        // Handle single object case.
+        // Handle single object case
         if ($sourceConfig['resultsPosition'] === '_object') {
-            $objectList                 = [$objectList];
+            $objectList = [$objectList];
             $result['objects']['found'] = count($objectList);
         }
 
-        // Process each object.
+        // Process each object
         foreach ($objectList as $key => $object) {
             $processResult = $this->processSynchronizationObject(
                 synchronization: $synchronization,
@@ -336,7 +328,7 @@ class SynchronizationService
             }
         }
 
-        // Handle object deletion.
+        // Handle object deletion
         if ($isTest === false) {
             $result['objects']['deleted'] = $this->deleteInvalidObjects(
                 synchronization: $synchronization,
@@ -346,7 +338,7 @@ class SynchronizationService
             $result['objects']['deleted'] = 0;
         }
 
-        // Process follow-up synchronizations.
+        // Process follow-up synchronizations
         foreach ($synchronization->getFollowUps() as $followUp) {
             $followUpSynchronization = $this->synchronizationMapper->find($followUp);
             $this->synchronize(
@@ -358,7 +350,7 @@ class SynchronizationService
 
         $log->setResult($result);
 
-        // Handle rate limit exception.
+        // Handle rate limit exception
         if (isset($rateLimitException) === true) {
             $log->setMessage($rateLimitException->getMessage());
             $this->synchronizationLogMapper->update($log);
@@ -369,15 +361,14 @@ class SynchronizationService
             );
         }
 
-        // Finalize log.
+        // Finalize log
         $executionTime = round((microtime(true) - $startTime) * 1000);
         $log->setExecutionTime($executionTime);
         $log->setMessage('Success');
         $this->synchronizationLogMapper->update($log);
 
         return $log->jsonSerialize();
-
-    }//end synchronize()
+    }
 
 
     /**
@@ -452,12 +443,15 @@ class SynchronizationService
             $endpoint = str_replace(search: $source->getLocation(), replace: '', subject: $endpoint);
         }
 
-        // Make the initial API call, read denotes that we call an endpoint for a single object (for config variations).
-        $response = $this->callService->call(source: $source, endpoint: $endpoint, config: $config, read: true)->getResponse();
-
-        return json_decode($response['body'], true);
-
-    }//end getObjectFromSource()
+        // Use the source handler registry to get the object from the appropriate handler
+        return $this->sourceHandlerRegistry->getObject(
+            source: $source,
+            endpoint: $endpoint,
+            config: $config,
+            headers: $config['headers'] ?? [],
+            query: $config['query'] ?? []
+        );
+    }
 
 
     /**
@@ -987,8 +981,7 @@ class SynchronizationService
         }//end switch
 
         return $synchronizationContract;
-
-    }//end updateTargetOpenRegister()
+    }
 
 
     /**
@@ -1260,8 +1253,7 @@ class SynchronizationService
         }
 
         return $synchronizationContract;
-
-    }//end updateTarget()
+    }
 
 
     /**
@@ -1278,25 +1270,55 @@ class SynchronizationService
      */
     public function getAllObjectsFromSource(Synchronization $synchronization, ?bool $isTest=false): array
     {
-        $objects = [];
-
-        $type = $synchronization->getSourceType();
-
-        switch ($type) {
+        $source = $this->sourceMapper->find($synchronization->getSourceId());
+        $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
+        
+        switch ($source->getType()) {
         case 'register/schema':
-            // @todo: implement.
-            break;
+            // @todo: implement for register/schema type
+            return [];
+            
         case 'api':
-            $objects = $this->getAllObjectsFromApi(synchronization: $synchronization, isTest: $isTest);
-            break;
+        case 'xml':
+        case 'json-api':
+        case 'soap':
+            // Extract configuration for the API call
+            $endpoint = ($sourceConfig['endpoint'] ?? '');
+            $headers = ($sourceConfig['headers'] ?? []);
+            $query = ($sourceConfig['query'] ?? []);
+            
+            // Set current page based on rate limit
+            $currentPage = 1;
+            if ($source->getRateLimitLimit() !== null) {
+                $currentPage = ($synchronization->getCurrentPage() ?? 1);
+            }
+            
+            // Use the appropriate handler through the registry
+            $objects = $this->sourceHandlerRegistry->getAllObjects(
+                source: $source,
+                config: $sourceConfig,
+                isTest: $isTest,
+                currentPage: $currentPage,
+                headers: $headers,
+                query: $query
+            );
+            
+            // Reset page counter after synchronization if not in test mode
+            if ($isTest === false) {
+                $synchronization->setCurrentPage(1);
+                $this->synchronizationMapper->update($synchronization);
+            }
+            
+            return $objects;
+            
         case 'database':
-            // @todo: implement.
-            break;
+            // @todo: implement for database type
+            return [];
+            
+        default:
+            return [];
         }
-
-        return $objects;
-
-    }//end getAllObjectsFromSource()
+    }
 
 
     /**
@@ -1854,75 +1876,15 @@ class SynchronizationService
      */
     private function processRules(Synchronization $synchronization, array $data, string $timing, ?string $objectId=null, ?int $registerId=null, ?int $schemaId=null): array | JSONResponse
     {
-        $rules = $synchronization->getActions();
-        if (empty($rules) === true) {
-            return $data;
-        }
-
-        try {
-            // Get all rules at once and sort by order.
-            $ruleEntities = array_filter(
-                array_map(
-                    fn($ruleId) => $this->getRuleById($ruleId),
-                    $rules
-                )
-            );
-
-            // Sort rules by order.
-            usort($ruleEntities, fn($a, $b) => ($a->getOrder() - $b->getOrder()));
-
-            // Process each rule in order.
-            foreach ($ruleEntities as $rule) {
-                // Check rule conditions.
-                if ($this->checkRuleConditions($rule, $data) === false || $rule->getTiming() !== $timing) {
-                    continue;
-                }
-
-                // Process rule based on type.
-                $result = match ($rule->getType()) {
-                    'error' => $this->processErrorRule($rule),
-                    'mapping' => $this->processMappingRule($rule, $data),
-                    'synchronization' => $this->processSyncRule($rule, $data),
-                    'fetch_file' => $this->processFetchFileRule($rule, $data, $objectId),
-                    'write_file' => $this->processWriteFileRule($rule, $data, $objectId, $registerId, $schemaId),
-                default => throw new Exception('Unsupported rule type: '.$rule->getType()),
-                };
-
-                    // If result is JSONResponse, return error immediately.
-                    if ($result instanceof JSONResponse) {
-                        return $result;
-                    }
-
-                    // Update data with rule result.
-                    $data = $result;
-            }//end foreach
-
-            return $data;
-        } catch (Exception $e) {
-            // $this->logger->error('Error processing rules: ' . $e->getMessage());
-            return new JSONResponse(['error' => 'Rule processing failed: '.$e->getMessage()], 500);
-        }//end try
-
-    }//end processRules()
-
-
-    /**
-     * Get a rule by its ID using RuleMapper.
-     *
-     * @param string $id The unique identifier of the rule.
-     *
-     * @return Rule|null The rule object if found, or null if not found.
-     */
-    private function getRuleById(string $id): ?Rule
-    {
-        try {
-            return $this->ruleMapper->find((int) $id);
-        } catch (Exception $e) {
-            // $this->logger->error('Error fetching rule: ' . $e->getMessage());
-            return null;
-        }
-
-    }//end getRuleById()
+        return $this->ruleProcessorService->processRules(
+            synchronization: $synchronization,
+            data: $data,
+            timing: $timing,
+            objectId: $objectId,
+            registerId: $registerId,
+            schemaId: $schemaId
+        );
+    }
 
 
     /**

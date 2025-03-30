@@ -156,10 +156,17 @@ alwaysApply: false
 
 ## Quality Checks
 - All code must pass:
-  - PHP_CodeSniffer (PSR-12)
-  - PHPStan (Level 8)
-  - Psalm (Level 1)
-  - PHPUnit tests
+  - PHP_CodeSniffer (PSR-12) with zero errors or warnings
+  - PHPStan (Level 5) with zero errors
+  - Psalm (Level 5) with zero errors
+  - PHPUnit tests with 100% pass rate and at least 80% code coverage
+- Configuration files:
+  - Use phpcs.xml for phpcs configuration
+  - Use phpstan.neon for PHPStan configuration
+  - Use psalm.xml for Psalm configuration
+  - Both should be present in the project root
+- Set up pre-commit hooks to automatically run checks
+- For CI/CD pipelines, these checks should be part of the build process
 
 ## Example Class Structure
 ```php
@@ -359,4 +366,74 @@ class ExampleClass
 - Use Composer for dependency management
 - Keep dependencies up to date
 - Document all external dependencies
-- Use specific version constraints 
+- Use specific version constraints
+
+## Automatic Code Quality Checks
+
+### PHP_CodeSniffer (PHPCS)
+- All code must pass PHPCS checks using PSR-12 standard
+- Run PHPCS before committing code changes:
+  ```bash
+  # Check coding standard violations
+  phpcs --standard=PSR12 file_or_directory_to_check.php
+  
+  # Automatically fix coding standard violations
+  phpcbf --standard=PSR12 file_or_directory_to_check.php
+  ```
+- Common standards to check:
+  - PSR-12 (Preferred)
+  - PSR-2 (Legacy)
+  - PSR-1 (Basic)
+
+### PHPStan
+- All code must pass PHPStan analysis at level 5 or higher
+- Run PHPStan before committing code changes:
+  ```bash
+  # Run PHPStan on specific files
+  vendor/bin/phpstan analyse lib/Service/YourService.php
+  
+  # Run PHPStan on entire lib directory
+  vendor/bin/phpstan analyse lib/
+  ```
+- Use PHPStan annotations to improve type checking:
+  - `@phpstan-param` - Specify more detailed parameter types
+  - `@phpstan-return` - Specify more detailed return types
+  - `@phpstan-var` - Specify more detailed property types
+  - `@phpstan-template` - For generic classes
+  - `@phpstan-type` - To define complex types
+
+### Psalm
+- All code must pass Psalm analysis at level 5 or higher
+- Run Psalm before committing code changes:
+  ```bash
+  # Run Psalm on specific files
+  vendor/bin/psalm lib/Service/YourService.php --no-cache
+  
+  # Run Psalm on entire lib directory
+  vendor/bin/psalm --no-cache
+  ```
+- Use Psalm annotations for better type checking:
+  - `@psalm-param` - Specify more detailed parameter types
+  - `@psalm-return` - Specify more detailed return types
+  - `@psalm-var` - Specify more detailed property types
+  - `@psalm-pure` - Mark methods as pure (no side effects)
+  - `@psalm-immutable` - Mark classes as immutable
+
+### Verification Workflow
+1. Write or modify code according to standards
+2. Run PHPCS to check and fix formatting issues:
+   ```bash
+   phpcbf --standard=PSR12 path/to/your/file.php
+   phpcs --standard=PSR12 path/to/your/file.php
+   ```
+3. Run PHPStan to check for type errors and logical issues:
+   ```bash
+   vendor/bin/phpstan analyse path/to/your/file.php
+   ```
+4. Run Psalm for additional static analysis:
+   ```bash
+   vendor/bin/psalm path/to/your/file.php --no-cache
+   ```
+5. Fix any identified issues
+6. Run unit tests to ensure functionality
+7. Commit only after all checks pass 
