@@ -1,11 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
-/*
- * SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
- * SPDX-License-Identifier: AGPL-3.0-or-later
+/**
+ * This file is part of the OpenConnector app.
+ *
+ * @package     OpenConnector
+ * @category    Migration
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
+ * @version     1.0.0
  */
+
+declare(strict_types=1);
 
 namespace OCA\OpenConnector\Migration;
 
@@ -15,26 +22,46 @@ use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
+/**
+ * Migration for creating event-related tables and adding rules to endpoints.
+ *
+ * This migration creates new tables for events, event subscriptions, event messages,
+ * and rules. It also adds a rules column to the endpoints table.
+ *
+ * @package     OpenConnector
+ * @category    Migration
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
+ */
 class Version1Date20250109093325 extends SimpleMigrationStep
 {
-
-
     /**
-     * @param IOutput                   $output
-     * @param Closure(): ISchemaWrapper $schemaClosure
-     * @param array                     $options
+     * Operations to be performed before schema changes.
+     *
+     * @param IOutput                   $output        Output handler for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param array                     $options       Options for the migration
+     *
+     * @return void
      */
     public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-
+        // No operations required before schema changes.
     }//end preSchemaChange()
 
 
     /**
-     * @param  IOutput                   $output
-     * @param  Closure(): ISchemaWrapper $schemaClosure
-     * @param  array                     $options
-     * @return null|ISchemaWrapper
+     * Apply schema changes.
+     *
+     * Creates new tables for events, event subscriptions, event messages, and rules.
+     * Also adds a rules column to the endpoints table.
+     *
+     * @param  IOutput                   $output        Output handler for the migration
+     * @param  Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param  array                     $options       Options for the migration
+     * @return null|ISchemaWrapper      Modified schema or null if no changes
      */
     public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
@@ -43,6 +70,7 @@ class Version1Date20250109093325 extends SimpleMigrationStep
          */
         $schema = $schemaClosure();
 
+        // Create events table if it doesn't exist
         if (!$schema->hasTable('openconnector_events')) {
             $table = $schema->createTable('openconnector_events');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
@@ -64,6 +92,7 @@ class Version1Date20250109093325 extends SimpleMigrationStep
             $table->addIndex(['uuid'], 'openconnector_events_uuid_index');
         }
 
+        // Create event subscriptions table if it doesn't exist
         if (!$schema->hasTable('openconnector_event_subscriptions')) {
             $table = $schema->createTable('openconnector_event_subscriptions');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
@@ -91,6 +120,7 @@ class Version1Date20250109093325 extends SimpleMigrationStep
             $table->addIndex(['status'], 'openconnector_event_subs_status_index');
         }//end if
 
+        // Create event messages table if it doesn't exist
         if (!$schema->hasTable('openconnector_event_messages')) {
             $table = $schema->createTable('openconnector_event_messages');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
@@ -116,6 +146,7 @@ class Version1Date20250109093325 extends SimpleMigrationStep
             $table->addIndex(['next_attempt'], 'openconnector_event_msg_next_index');
         }//end if
 
+        // Create rules table if it doesn't exist
         if (!$schema->hasTable('openconnector_rules')) {
             $table = $schema->createTable('openconnector_rules');
             $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
@@ -157,13 +188,17 @@ class Version1Date20250109093325 extends SimpleMigrationStep
 
 
     /**
-     * @param IOutput                   $output
-     * @param Closure(): ISchemaWrapper $schemaClosure
-     * @param array                     $options
+     * Operations to be performed after schema changes.
+     *
+     * @param IOutput                   $output        Output handler for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param array                     $options       Options for the migration
+     *
+     * @return void
      */
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-
+        // No operations required after schema changes.
     }//end postSchemaChange()
 
 

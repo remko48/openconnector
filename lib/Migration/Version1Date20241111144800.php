@@ -1,20 +1,15 @@
 <?php
+
 /**
- * OpenConnector - Connect your Nextcloud to external services
+ * This file is part of the OpenConnector app.
  *
- * This migration changes the following:
- * - Renaming of SynchronizationContract sourceId & sourceHash to originId and originHash,
- *   creating the new columns and transferring old data to the new fields.
- * - Removal of old indexes related to sourceId and sourceHash
- * - Addition of new indexes for originId and synchronization_id fields
- *
- * @category  Migration
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conductio.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @version   GIT: <git-id>
- * @link      https://OpenConnector.app
+ * @package     OpenConnector
+ * @category    Migration
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
+ * @version     1.0.0
  */
 
 declare(strict_types=1);
@@ -29,66 +24,44 @@ use OCP\Migration\SimpleMigrationStep;
 use OCP\IDBConnection;
 
 /**
- * Migration class for renaming SynchronizationContract columns
+ * Migration for openconnector_sync_contracts_origin_id_index table modifications.
  *
- * This migration renames the sourceId and sourceHash columns to originId and originHash
- * and updates the associated indexes.
+ * This migration alters the openconnector_sync_contracts_origin_id_index table structure.
  *
- * @package   OCA\OpenConnector\Migration
- * @category  Migration
- * @author    Conduction Development Team <dev@conductio.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @version   1.0.0
+ * @package     OpenConnector
+ * @category    Migration
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
  */
 class Version1Date20241111144800 extends SimpleMigrationStep
 {
     /**
-     * Database connection
+     * Operations to be performed before schema changes.
      *
-     * @var IDBConnection
-     */
-    private IDBConnection $connection;
-
-    /**
-     * Constructor
-     *
-     * @param IDBConnection $connection Database connection
-     * 
-     * @return void
-     */
-    public function __construct(IDBConnection $connection)
-    {
-        $this->connection = $connection;
-    }//end __construct()
-
-    /**
-     * Pre-schema change hook
-     *
-     * Actions to be executed before schema changes are applied
-     *
-     * @param IOutput                   $output        Output for the migration
-     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns the schema
+     * @param IOutput                   $output        Output handler for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
      * @param array                     $options       Options for the migration
-     * 
+     *
      * @return void
      */
     public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
+        // No operations required before schema changes.
     }//end preSchemaChange()
 
+
     /**
-     * Change database schema
+     * Apply schema changes.
      *
-     * Adds new columns and updates indexes
+     * Modifies the openconnector_sync_contracts_origin_id_index table structure.
      *
-     * @param IOutput                   $output        Output for the migration
-     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns the schema
-     * @param array                     $options       Options for the migration
-     * 
-     * @return ISchemaWrapper|null Modified schema or null if no changes
+     * @param  IOutput                   $output        Output handler for the migration
+     * @param  Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param  array                     $options       Options for the migration
+     * @return null|ISchemaWrapper      Modified schema or null if no changes
      */
-    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
         /**
          * @var ISchemaWrapper $schema
@@ -150,7 +123,6 @@ class Version1Date20241111144800 extends SimpleMigrationStep
      * 
      * @return void
      */
-    public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
         /**
          * @var ISchemaWrapper $schema
@@ -179,4 +151,21 @@ class Version1Date20241111144800 extends SimpleMigrationStep
             $table->dropColumn('source_hash');
         }
     }//end postSchemaChange()
+}//end class
+
+    /**
+     * Operations to be performed after schema changes.
+     *
+     * @param IOutput                   $output        Output handler for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param array                     $options       Options for the migration
+     *
+     * @return void
+     */
+    public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
+    {
+        // No operations required after schema changes.
+    }//end postSchemaChange()
+
+
 }//end class

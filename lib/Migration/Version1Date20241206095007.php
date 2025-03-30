@@ -23,10 +23,9 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 /**
- * Migration to rename columns in the openconnector_sources table.
+ * Migration for openconnector_sources table modifications.
  *
- * This migration renames the logRetention and errorRetention columns to
- * snake_case format (log_retention and error_retention).
+ * This migration alters the openconnector_sources table structure.
  *
  * @package     OpenConnector
  * @category    Migration
@@ -37,7 +36,6 @@ use OCP\Migration\SimpleMigrationStep;
  */
 class Version1Date20241206095007 extends SimpleMigrationStep
 {
-
     /**
      * Operations to be performed before schema changes.
      *
@@ -56,15 +54,13 @@ class Version1Date20241206095007 extends SimpleMigrationStep
     /**
      * Apply schema changes.
      *
-     * Renames logRetention to log_retention and errorRetention to error_retention
-     * in the openconnector_sources table.
+     * Modifies the openconnector_sources table structure.
      *
      * @param  IOutput                   $output        Output handler for the migration
      * @param  Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
      * @param  array                     $options       Options for the migration
      * @return null|ISchemaWrapper      Modified schema or null if no changes
      */
-    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
         /*
          * @var ISchemaWrapper $schema
@@ -92,6 +88,22 @@ class Version1Date20241206095007 extends SimpleMigrationStep
 
     }//end changeSchema()
 
+
+    /**
+     * Operations to be performed after schema changes.
+     *
+     * @param IOutput                   $output        Output handler for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param array                     $options       Options for the migration
+     *
+     * @return void
+     */
+    {
+        // No operations required after schema changes.
+    }//end postSchemaChange()
+
+
+}//end class
 
     /**
      * Operations to be performed after schema changes.

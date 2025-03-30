@@ -1,11 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
-/*
- * SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
- * SPDX-License-Identifier: AGPL-3.0-or-later
+/**
+ * This file is part of the OpenConnector app.
+ *
+ * @package     OpenConnector
+ * @category    Migration
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
+ * @version     1.0.0
  */
+
+declare(strict_types=1);
 
 namespace OCA\OpenConnector\Migration;
 
@@ -15,33 +22,45 @@ use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-
 /**
- * FIXME Auto-generated migration step: Please modify to your needs!
+ * Migration for openconnector_call_logs table modifications.
+ *
+ * This migration alters the openconnector_call_logs table structure.
+ *
+ * @package     OpenConnector
+ * @category    Migration
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
  */
-
- class Version0Date20240826193657 extends SimpleMigrationStep
+class Version0Date20240826193657 extends SimpleMigrationStep
 {
-
-
     /**
-     * @param IOutput                   $output
-     * @param Closure(): ISchemaWrapper $schemaClosure
-     * @param array                     $options
+     * Operations to be performed before schema changes.
+     *
+     * @param IOutput                   $output        Output handler for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param array                     $options       Options for the migration
+     *
+     * @return void
      */
     public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-
+        // No operations required before schema changes.
     }//end preSchemaChange()
 
 
     /**
-     * @param  IOutput                   $output
-     * @param  Closure(): ISchemaWrapper $schemaClosure
-     * @param  array                     $options
-     * @return null|ISchemaWrapper
+     * Apply schema changes.
+     *
+     * Modifies the openconnector_call_logs table structure.
+     *
+     * @param  IOutput                   $output        Output handler for the migration
+     * @param  Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param  array                     $options       Options for the migration
+     * @return null|ISchemaWrapper      Modified schema or null if no changes
      */
-    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
         /*
          * @var ISchemaWrapper $schema
@@ -242,95 +261,19 @@ use OCP\Migration\SimpleMigrationStep;
             $table->addColumn('authorization_type', Types::STRING, ['notnull' => false, 'length' => 255]);
             // The authorization type of the consumer, should be one of the following: 'none', 'basic', 'bearer', 'apiKey', 'oauth2', 'jwt'. Keep in mind that the consumer needs to be able to handle the authorization type.
             $table->addColumn('authorization_configuration', Types::TEXT, ['notnull' => false]);
-            // The authorization configuration of the consumer
-            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-            // the date and time the consumer was created
-            $table->addColumn('updated', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-            // the date and time the consumer was updated
-            $table->setPrimaryKey(['id']);
-            $table->addIndex(['uuid'], 'openconnector_consumers_uuid_index');
-        }//end if
-
-        if (!$schema->hasTable('openconnector_call_logs')) {
-            $table = $schema->createTable('openconnector_call_logs');
-            $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-            $table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]);
-            $table->addColumn('status_code', Types::INTEGER, ['notnull' => false, 'length' => 3]);
-            $table->addColumn('status_message', Types::STRING, ['notnull' => false, 'length' => 256]);
-            $table->addColumn('request', Types::JSON, ['notnull' => false]);
-            $table->addColumn('response', Types::JSON, ['notnull' => false]);
-            $table->addColumn('source_id', Types::INTEGER, ['notnull' => true]);
-            $table->addColumn('action_id', Types::INTEGER, ['notnull' => false]);
-            $table->addColumn('synchronization_id', Types::INTEGER, ['notnull' => false]);
-            $table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('session_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-            $table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
-
-            $table->setPrimaryKey(['id']);
-            $table->addIndex(['uuid'], 'openconnector_call_logs_uuid_index');
-            $table->addIndex(['source_id'], 'openconnector_call_logs_source_id_index');
-            $table->addIndex(['action_id'], 'openconnector_call_logs_action_id_index');
-            $table->addIndex(['synchronization_id'], 'openconnector_call_logs_sync_id_index');
-            $table->addIndex(['status_code'], 'openconnector_call_logs_status_code_index');
-        }//end if
-
-        if (!$schema->hasTable('openconnector_job_logs')) {
-            $table = $schema->createTable('openconnector_job_logs');
-            $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-            $table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]);
-            $table->addColumn('level', Types::STRING, ['notnull' => true, 'length' => 255, 'default' => 'INFO']);
-            $table->addColumn('message', Types::STRING, ['notnull' => true, 'length' => 255, 'default' => 'success']);
-            $table->addColumn('job_id', Types::STRING, ['notnull' => true, 'length' => 255]);
-            $table->addColumn('job_list_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('job_class', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('arguments', Types::JSON, ['notnull' => false]);
-            $table->addColumn('execution_time', Types::INTEGER, ['notnull' => true, 'default' => 0]);
-            $table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('session_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('stack_trace', Types::JSON, ['notnull' => false]);
-            $table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
-            $table->addColumn('last_run', Types::DATETIME, ['notnull' => false]);
-            $table->addColumn('next_run', Types::DATETIME, ['notnull' => false]);
-            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-            $table->setPrimaryKey(['id']);
-            $table->addIndex(['uuid'], 'openconnector_job_logs_uuid_index');
-            $table->addIndex(['job_id'], 'openconnector_job_logs_job_id_index');
-            $table->addIndex(['job_list_id'], 'openconnector_job_logs_job_list_id_index');
-            $table->addIndex(['user_id'], 'openconnector_job_logs_user_id_index');
-        }//end if
-
-        if (!$schema->hasTable('openconnector_synchronization_contract_logs')) {
-            $table = $schema->createTable('openconnector_synchronization_contract_logs');
-            $table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true, 'length' => 20]);
-            $table->addColumn('uuid', Types::STRING, ['notnull' => true, 'length' => 36]);
-            $table->addColumn('synchronization_id', Types::STRING, ['notnull' => true, 'length' => 255]);
-            $table->addColumn('synchronization_contract_id', Types::STRING, ['notnull' => true, 'length' => 255]);
-            $table->addColumn('source', Types::JSON, ['notnull' => false]);
-            $table->addColumn('target', Types::JSON, ['notnull' => false]);
-            $table->addColumn('user_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('session_id', Types::STRING, ['notnull' => false, 'length' => 255]);
-            $table->addColumn('expires', Types::DATETIME, ['notnull' => false]);
-            $table->addColumn('created', Types::DATETIME, ['notnull' => true, 'default' => 'CURRENT_TIMESTAMP']);
-            $table->setPrimaryKey(['id']);
-            $table->addIndex(['uuid'], 'openconnector_sync_contract_logs_uuid_index');
-            $table->addIndex(['synchronization_id'], 'openconnector_sync_contract_logs_sync_index');
-            $table->addIndex(['synchronization_contract_id'], 'openconnector_sync_contract_logs_contract_index');
-        }
-
-        return $schema;
-
-    }//end changeSchema()
-
 
     /**
-     * @param IOutput                   $output
-     * @param Closure(): ISchemaWrapper $schemaClosure
-     * @param array                     $options
+     * Operations to be performed after schema changes.
+     *
+     * @param IOutput                   $output        Output handler for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns a schema wrapper
+     * @param array                     $options       Options for the migration
+     *
+     * @return void
      */
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-
+        // No operations required after schema changes.
     }//end postSchemaChange()
 
 
