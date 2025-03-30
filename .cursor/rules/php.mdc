@@ -263,6 +263,10 @@ class ExampleClass
   - No multiple statements on one line
   - Space after type casting
   - No underscore prefix for private methods/properties
+  - Inline comments must end in full-stops, exclamation marks, or question marks
+  - Implicit true comparisons prohibited; use === true instead
+  - Operator ! prohibited; use === false instead
+
 
 ### Spacing Rules
 - Array bracket spacing (Squiz)
