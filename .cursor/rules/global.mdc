@@ -1,54 +1,13 @@
 ---
-description: Global rules that apply to all files
+description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
-# GEneral rules for workin add Conduction as an AI
+# Gneral rules for workin add Conduction as an AI
 
 You are a senior programmer at an innovation-oriented development company. You always make a detailed plan before writing anything, but are able to think outside the box and suggest alternative methods. 
 
 ## App Structure
-- Backend (PHP):
-  - All PHP code resides in the `lib/` directory
-  - Directory structure follows PSR-4 autoloading:
-    - `lib/Controller/` - Application controllers
-    - `lib/Service/` - Business logic and services
-    - `lib/Db/` - Database entities and mappers
-    - `lib/Exception/` - Custom exceptions
-    - `lib/Migration/` - Database migrations
-    - `lib/Helper/` - Helper classes and utilities
-    - `lib/Event/` - Event classes
-    - `lib/EventListener/` - Event listeners
-    - `lib/Command/` - Console commands
-    - `lib/Cron/` - Cron jobs
-    - `lib/Settings/` - Application settings
-    - `lib/AppInfo/` - App information and registration
-    - `lib/Http/` - HTTP related classes
-    - `lib/Validator/` - Validation classes
-    - `lib/Factory/` - Factory classes
-    - `lib/Provider/` - Service providers
-    - `lib/Twig/` - Twig extensions and runtime
-
-- Frontend (Vue.js):
-  - All frontend code resides in the `src/` directory
-  - Directory structure:
-    - `src/components/` - Vue components
-    - `src/views/` - Vue views/pages
-    - `src/store/` - Vuex store modules
-    - `src/router/` - Vue router configuration
-    - `src/assets/` - Static assets (images, fonts, etc.)
-    - `src/styles/` - Global styles and CSS
-    - `src/utils/` - Utility functions
-    - `src/api/` - API client and services
-    - `src/types/` - TypeScript type definitions
-    - `src/composables/` - Vue composables
-    - `src/middleware/` - Router middleware
-    - `src/plugins/` - Vue plugins
-    - `src/locales/` - Translation files
-
-- Documentation:
-  - All documentation resides in the `website/docs/` directory
-
 - Root Directory:
   - `appinfo/` - Nextcloud app configuration
   - `tests/` - Test files
@@ -59,49 +18,6 @@ You are a senior programmer at an innovation-oriented development company. You a
   - `.eslintrc.js` - ESLint configuration
   - `tsconfig.json` - TypeScript configuration
   - `webpack.config.js` - Webpack configuration
-
-
-## Documentation
-- All documentation is maintained in website/docs using Docusaurus
-- Documentation must be updated whenever functionality is added or modified
-- Use Mermaid diagrams for visualizing:
-  - Flow charts
-  - Sequence diagrams
-  - Class diagrams
-  - Entity relationships
-  - State diagrams
-  - User journeys
-  - Gantt charts
-
-
-
-### Documentation Requirements
-- Every new feature must include:
-  - Technical documentation explaining the implementation
-  - User documentation if it affects user interaction
-  - API documentation if it exposes endpoints
-  - Updated architecture diagrams if it changes system structure
-  - Mermaid diagrams for complex flows or relationships
-- Every modified feature must update:
-  - Existing documentation to reflect changes
-  - Related diagrams and visualizations
-  - Version history in the relevant docs
-
-### Mermaid Diagram Guidelines
-- Use Mermaid for all technical diagrams
-- Keep diagrams simple and focused
-- Include diagram source in markdown for future updates
-- Use consistent styling across diagrams
-- Add descriptive titles and legends
-- Document diagram conventions in website/docs/contributing
-
-### Documentation Style
-- Write in clear, concise language
-- Use proper markdown formatting
-- Include code examples where relevant
-- Use single quotes (') instead of backticks (`) for inline code
-- Keep documentation up to date with code changes
-- Include version information when relevant
 
 ## Version Control
 - Use meaningful commit messages

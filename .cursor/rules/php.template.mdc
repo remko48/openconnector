@@ -1,7 +1,7 @@
 ---
-description: Default template for PHP files
+description: 
 globs: ["*.php"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 /**

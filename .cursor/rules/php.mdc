@@ -1,9 +1,32 @@
 ---
 description: Rules for PHP files
 globs: ["*.php"]
+alwaysApply: false
 ---
 # PHP Coding Standards and Best Practices
 
+## App Structure
+- Backend (PHP):
+  - All PHP code resides in the `lib/` directory
+  - Directory structure follows PSR-4 autoloading:
+    - `lib/Controller/` - Application controllers
+    - `lib/Service/` - Business logic and services
+    - `lib/Db/` - Database entities and mappers
+    - `lib/Exception/` - Custom exceptions
+    - `lib/Migration/` - Database migrations
+    - `lib/Helper/` - Helper classes and utilities
+    - `lib/Event/` - Event classes
+    - `lib/EventListener/` - Event listeners
+    - `lib/Command/` - Console commands
+    - `lib/Cron/` - Cron jobs
+    - `lib/Settings/` - Application settings
+    - `lib/AppInfo/` - App information and registration
+    - `lib/Http/` - HTTP related classes
+    - `lib/Validator/` - Validation classes
+    - `lib/Factory/` - Factory classes
+    - `lib/Provider/` - Service providers
+    - `lib/Twig/` - Twig extensions and runtime
+    
 ## File Structure
 - All PHP files should start with a docblock containing:
   - Class name
