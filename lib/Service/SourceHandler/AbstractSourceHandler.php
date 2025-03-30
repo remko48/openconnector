@@ -1,16 +1,30 @@
 <?php
 
+/**
+ * Abstract base class for source handlers.
+ *
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction B.V.
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   GIT: <git_id>
+ * @link      https://openregister.app
+ *
+ * @since 1.0.0 - Description of when this class was added
+ */
+
 namespace OCA\OpenConnector\Service\SourceHandler;
 
 /**
  * Abstract base class for source handlers.
  *
- * @package   OpenConnector
  * @category  Service
- * @author    Conduction B.V. <info@conduction.nl>
+ * @package   OpenConnector
+ * @author    Conduction B.V.
  * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
  * @license   EUPL 1.2
- * @version   1.0.0
+ * @version   GIT: <git_id>
  * @link      https://openregister.app
  *
  * @since 1.0.0 - Description of when this class was added
@@ -40,6 +54,8 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
      * Checks rate limits and throws an exception if exceeded.
      *
      * @param Source $source The source to check rate limits for
+     *
+     * @return void
      *
      * @throws TooManyRequestsHttpException If rate limit is exceeded
      */
@@ -92,7 +108,7 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
      */
     protected function extractObjects(array $array, array $config): array
     {
-        // Check for specific results position in config
+        // Check for specific results position in config.
         if (empty($config['resultsPosition']) === false) {
             $position = $config['resultsPosition'];
             if ($position === '_root' || $position === '_object') {
@@ -107,7 +123,7 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
             return [];
         }
 
-        // Check common keys
+        // Check common keys.
         $commonKeys = [
             'items',
             'result',

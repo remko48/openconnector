@@ -1,16 +1,33 @@
 <?php
 
+/**
+ * Handler for JSON API sources.
+ *
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   GIT: <git_id>
+ * @link      https://openregister.app
+ *
+ * @since 1.0.0 - Description of when this class was added
+ */
+
 namespace OCA\OpenConnector\Service\SourceHandler;
+
+use GuzzleHttp\Exception\GuzzleException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 /**
  * Handler for JSON API sources.
  *
- * @package   OpenConnector
  * @category  Service
+ * @package   OpenConnector
  * @author    Conduction B.V. <info@conduction.nl>
  * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
  * @license   EUPL 1.2
- * @version   1.0.0
+ * @version   GIT: <git_id>
  * @link      https://openregister.app
  *
  * @since 1.0.0 - Description of when this class was added
@@ -20,7 +37,14 @@ class JsonApiHandler extends AbstractSourceHandler
 
 
     /**
-     * @inheritDoc
+     * Checks if this handler can handle the given source type.
+     *
+     * @param string $sourceType The type of source to check
+     *
+     * @return bool True if this handler can handle the source type
+     *
+     * @psalm-pure
+     * @phpstan-return bool
      */
     public function canHandle(string $sourceType): bool
     {
@@ -30,7 +54,18 @@ class JsonApiHandler extends AbstractSourceHandler
 
 
     /**
-     * @inheritDoc
+     * Gets all objects from a JSON API source.
+     *
+     * @param Source $source      The source to fetch from
+     * @param array  $config      Configuration for the source
+     * @param bool   $isTest      Whether this is a test run
+     * @param int    $currentPage Current page for pagination
+     * @param array  $headers     Optional headers for the request
+     * @param array  $query       Optional query parameters
+     *
+     * @return array Array of objects fetched from the source
+     *
+     * @throws \Exception If there is an error fetching the objects
      */
     public function getAllObjects(
         Source $source,
@@ -64,7 +99,17 @@ class JsonApiHandler extends AbstractSourceHandler
 
 
     /**
-     * @inheritDoc
+     * Gets a single object from a JSON API source.
+     *
+     * @param Source $source   The source to fetch from
+     * @param string $endpoint The endpoint to fetch from
+     * @param array  $config   Configuration for the source
+     * @param array  $headers  Optional headers for the request
+     * @param array  $query    Optional query parameters
+     *
+     * @return array Array of the fetched object
+     *
+     * @throws \Exception If there is an error fetching the object
      */
     public function getObject(
         Source $source,
@@ -135,17 +180,17 @@ class JsonApiHandler extends AbstractSourceHandler
         }
 
         $result = json_decode($response['body'], true);
-        if (empty($result)) {
+        if (empty($result) === true) {
             return [];
         }
 
         $objects = $this->extractObjects($result, $sourceConfig);
 
-        if ($isTest) {
-            return isset($objects[0]) ? [$objects[0]] : [];
+        if ($isTest === true) {
+            return isset($objects[0]) === true ? [$objects[0]] : [];
         }
 
-        if (!$usesPagination) {
+        if ($usesPagination === false) {
             return $objects;
         }
 
@@ -153,19 +198,21 @@ class JsonApiHandler extends AbstractSourceHandler
         $nextEndpoint    = $endpoint;
         $newNextEndpoint = null;
 
-        if (array_key_exists('next', $result) && $usesNextEndpoint === null) {
+        if (array_key_exists('next', $result) === true && $usesNextEndpoint === null) {
             $usesNextEndpoint = true;
         }
 
         if ($usesNextEndpoint !== false) {
             $newNextEndpoint = $this->getNextEndpoint($result, $source->getLocation());
-        } else if ($newNextEndpoint === null && $usesNextEndpoint !== true) {
-            $usesNextEndpoint = false;
-            $config           = $this->updatePaginationConfig($config, $sourceConfig, $currentPage);
+        } else {
+            if ($newNextEndpoint === null && $usesNextEndpoint !== true) {
+                $usesNextEndpoint = false;
+                $config           = $this->updatePaginationConfig($config, $sourceConfig, $currentPage);
+            }
         }
 
         if (($usesNextEndpoint === true && ($newNextEndpoint === null || $newNextEndpoint === $endpoint))
-            || ($usesNextEndpoint === false && ($objects === null || empty($objects)))
+            || ($usesNextEndpoint === false && ($objects === null || empty($objects) === true))
         ) {
             return $objects;
         }
@@ -223,7 +270,7 @@ class JsonApiHandler extends AbstractSourceHandler
             return null;
         }
 
-        if (str_starts_with($nextLink, $baseUrl)) {
+        if (str_starts_with($nextLink, $baseUrl) === true) {
             return substr($nextLink, strlen($baseUrl));
         }
 

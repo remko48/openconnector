@@ -1,14 +1,28 @@
 <?php
 
+/**
+ * Interface for source handlers that fetch objects from different types of sources.
+ *
+ * @category  Interface
+ * @package   OpenConnector
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V.
+ * @license   EUPL 1.2
+ * @version   1.0.0
+ * @link      https://openregister.app
+ *
+ * @since 1.0.0 - Description of when this class was added
+ */
+
 namespace OCA\OpenConnector\Service\SourceHandler;
 
 /**
  * Interface for source handlers that fetch objects from different types of sources.
  *
- * @package   OpenConnector
  * @category  Interface
+ * @package   OpenConnector
  * @author    Conduction B.V. <info@conduction.nl>
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @copyright Copyright (C) 2024 Conduction B.V.
  * @license   EUPL 1.2
  * @version   1.0.0
  * @link      https://openregister.app

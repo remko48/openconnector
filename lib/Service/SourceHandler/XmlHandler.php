@@ -1,16 +1,32 @@
 <?php
 
+/**
+ * Handler for XML sources.
+ *
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   GIT: <git_id>
+ * @link      https://openregister.app
+ *
+ * @since 1.0.0 - Description of when this class was added
+ */
+
 namespace OCA\OpenConnector\Service\SourceHandler;
+
+use SimpleXMLElement;
 
 /**
  * Handler for XML sources.
  *
- * @package   OpenConnector
  * @category  Service
+ * @package   OpenConnector
  * @author    Conduction B.V. <info@conduction.nl>
  * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
  * @license   EUPL 1.2
- * @version   1.0.0
+ * @version   GIT: <git_id>
  * @link      https://openregister.app
  *
  * @since 1.0.0 - Description of when this class was added
@@ -20,7 +36,14 @@ class XmlHandler extends AbstractSourceHandler
 
 
     /**
-     * @inheritDoc
+     * Checks if this handler can handle the given source type.
+     *
+     * @param string $sourceType The type of source to check
+     *
+     * @return bool True if this handler can handle the source type
+     *
+     * @psalm-pure
+     * @phpstan-return bool
      */
     public function canHandle(string $sourceType): bool
     {
@@ -30,7 +53,18 @@ class XmlHandler extends AbstractSourceHandler
 
 
     /**
-     * @inheritDoc
+     * Gets all objects from an XML source.
+     *
+     * @param Source $source      The source to fetch from
+     * @param array  $config      Configuration for the source
+     * @param bool   $isTest      Whether this is a test run
+     * @param int    $currentPage Current page for pagination
+     * @param array  $headers     Optional headers for the request
+     * @param array  $query       Optional query parameters
+     *
+     * @return array Array of objects fetched from the source
+     *
+     * @throws \Exception If there is an error fetching the objects
      */
     public function getAllObjects(
         Source $source,
@@ -66,7 +100,7 @@ class XmlHandler extends AbstractSourceHandler
         $result  = $this->xmlToArray($xml);
         $objects = $this->extractObjects($result, $config);
 
-        if ($isTest && !empty($objects)) {
+        if ($isTest === true && empty($objects) === false) {
             return [$objects[0]];
         }
 
@@ -76,7 +110,17 @@ class XmlHandler extends AbstractSourceHandler
 
 
     /**
-     * @inheritDoc
+     * Fetches a single object from the source.
+     *
+     * @param Source $source   The source to fetch from
+     * @param string $endpoint The endpoint to fetch from
+     * @param array  $config   Configuration for the source
+     * @param array  $headers  Optional headers for the request
+     * @param array  $query    Optional query parameters
+     *
+     * @return array The fetched object
+     *
+     * @throws \Exception If there is an error fetching the object
      */
     public function getObject(
         Source $source,
@@ -142,7 +186,7 @@ class XmlHandler extends AbstractSourceHandler
     {
         $result = [];
 
-        // Handle attributes
+        // Handle attributes.
         $attributes = $xml->attributes();
         if (count($attributes) > 0) {
             $result['@attributes'] = [];
@@ -151,12 +195,12 @@ class XmlHandler extends AbstractSourceHandler
             }
         }
 
-        // Handle namespaced attributes
+        // Handle namespaced attributes.
         $namespaces = $xml->getNamespaces(true);
         foreach ($namespaces as $prefix => $namespace) {
             $nsAttributes = $xml->attributes($namespace);
             if (count($nsAttributes) > 0) {
-                if (!isset($result['@attributes'])) {
+                if (isset($result['@attributes']) === false) {
                     $result['@attributes'] = [];
                 }
 
@@ -167,12 +211,12 @@ class XmlHandler extends AbstractSourceHandler
             }
         }
 
-        // Handle child elements
+        // Handle child elements.
         foreach ($xml->children() as $childName => $child) {
             $childArray = $this->xmlToArray($child);
 
-            if (isset($result[$childName])) {
-                if (!is_array($result[$childName]) || !isset($result[$childName][0])) {
+            if (isset($result[$childName]) === true) {
+                if (is_array($result[$childName]) === false || isset($result[$childName][0]) === false) {
                     $result[$childName] = [$result[$childName]];
                 }
 
@@ -182,7 +226,7 @@ class XmlHandler extends AbstractSourceHandler
             }
         }
 
-        // Handle text content
+        // Handle text content.
         $text = trim((string) $xml);
         if (count($result) === 0 && $text !== '') {
             return ['#text' => $text];

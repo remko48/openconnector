@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Handler for SOAP sources without requiring PHP SOAP extension.
+ *
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   GIT: <git_id>
+ * @link      https://openregister.app
+ *
+ * @since 1.0.0 - Description of when this class was added
+ */
+
 namespace OCA\OpenConnector\Service\SourceHandler;
 
 use InvalidArgumentException;
@@ -8,12 +22,12 @@ use SimpleXMLElement;
 /**
  * Handler for SOAP sources without requiring PHP SOAP extension.
  *
- * @package   OpenConnector
  * @category  Service
+ * @package   OpenConnector
  * @author    Conduction B.V. <info@conduction.nl>
  * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
  * @license   EUPL 1.2
- * @version   1.0.0
+ * @version   GIT: <git_id>
  * @link      https://openregister.app
  *
  * @since 1.0.0 - Description of when this class was added
@@ -69,7 +83,7 @@ class SoapHandler extends AbstractSourceHandler
     ): array {
         $this->checkRateLimit($source);
 
-        if (!isset($config['soapAction'], $config['operation'])) {
+        if (isset($config['soapAction']) === false || isset($config['operation']) === false) {
             throw new InvalidArgumentException('SOAP action and operation must be specified in config');
         }
 
@@ -107,7 +121,7 @@ class SoapHandler extends AbstractSourceHandler
         $result  = $this->parseSoapResponse($response['body']);
         $objects = $this->extractObjects($result, $config);
 
-        if ($isTest && !empty($objects)) {
+        if ($isTest === true && empty($objects) === false) {
             return [$objects[0]];
         }
 
@@ -144,7 +158,7 @@ class SoapHandler extends AbstractSourceHandler
     ): array {
         $this->checkRateLimit($source);
 
-        if (!isset($config['soapAction'], $config['operation'])) {
+        if (isset($config['soapAction']) === false || isset($config['operation']) === false) {
             throw new InvalidArgumentException('SOAP action and operation must be specified in config');
         }
 
@@ -208,7 +222,7 @@ class SoapHandler extends AbstractSourceHandler
         $xml .= "  <SOAP-ENV:Body>\n";
         $xml .= "    <{$nsPrefix}{$operation}>\n";
 
-        // Add parameters
+        // Add parameters.
         foreach ($parameters as $key => $value) {
             $xml .= $this->parameterToXml($key, $value, '      ');
         }
@@ -235,7 +249,7 @@ class SoapHandler extends AbstractSourceHandler
      */
     private function parameterToXml(string $key, mixed $value, string $indent): string
     {
-        if (is_array($value)) {
+        if (is_array($value) === true) {
             $xml = "$indent<$key>\n";
             foreach ($value as $subKey => $subValue) {
                 $xml .= $this->parameterToXml($subKey, $subValue, $indent.'  ');
@@ -266,17 +280,17 @@ class SoapHandler extends AbstractSourceHandler
             return [];
         }
 
-        // Remove SOAP envelope and get to the actual response data
+        // Remove SOAP envelope and get to the actual response data.
         $body = $xml->children('http://schemas.xmlsoap.org/soap/envelope/')->Body;
-        if (!$body) {
+        if ($body === false) {
             $body = $xml->children('http://www.w3.org/2003/05/soap-envelope')->Body;
         }
 
-        if (!$body) {
+        if ($body === false) {
             return [];
         }
 
-        // Convert the response to array
+        // Convert the response to array.
         return $this->xmlToArray($body->children()[0]);
 
     }//end parseSoapResponse()
@@ -313,7 +327,7 @@ class SoapHandler extends AbstractSourceHandler
     {
         $result = [];
 
-        // Handle attributes
+        // Handle attributes.
         $attributes = $xml->attributes();
         if (count($attributes) > 0) {
             $result['@attributes'] = [];
@@ -322,12 +336,12 @@ class SoapHandler extends AbstractSourceHandler
             }
         }
 
-        // Handle namespaced attributes
+        // Handle namespaced attributes.
         $namespaces = $xml->getNamespaces(true);
         foreach ($namespaces as $prefix => $namespace) {
             $nsAttributes = $xml->attributes($namespace);
             if (count($nsAttributes) > 0) {
-                if (!isset($result['@attributes'])) {
+                if (isset($result['@attributes']) === false) {
                     $result['@attributes'] = [];
                 }
 
@@ -338,12 +352,12 @@ class SoapHandler extends AbstractSourceHandler
             }
         }
 
-        // Handle child elements
+        // Handle child elements.
         foreach ($xml->children() as $childName => $child) {
             $childArray = $this->xmlToArray($child);
 
-            if (isset($result[$childName])) {
-                if (!is_array($result[$childName]) || !isset($result[$childName][0])) {
+            if (isset($result[$childName]) === true) {
+                if (is_array($result[$childName]) === false || isset($result[$childName][0]) === false) {
                     $result[$childName] = [$result[$childName]];
                 }
 
@@ -353,7 +367,7 @@ class SoapHandler extends AbstractSourceHandler
             }
         }
 
-        // Handle text content
+        // Handle text content.
         $text = trim((string) $xml);
         if (count($result) === 0 && $text !== '') {
             return ['#text' => $text];
