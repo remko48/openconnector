@@ -5,25 +5,29 @@ namespace OCA\OpenConnector\Service\SourceHandler;
 /**
  * Handler for JSON API sources.
  *
- * @package     OpenConnector
- * @category    Service
- * @author      Conduction B.V. <info@conduction.nl>
- * @copyright   Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license     EUPL 1.2
- * @version     1.0.0
- * @link        https://openregister.app
+ * @package   OpenConnector
+ * @category  Service
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   1.0.0
+ * @link      https://openregister.app
  *
- * @since       1.0.0 - Description of when this class was added
+ * @since 1.0.0 - Description of when this class was added
  */
 class JsonApiHandler extends AbstractSourceHandler
 {
+
+
     /**
      * @inheritDoc
      */
     public function canHandle(string $sourceType): bool
     {
         return $sourceType === 'json-api';
-    }
+
+    }//end canHandle()
+
 
     /**
      * @inheritDoc
@@ -31,19 +35,19 @@ class JsonApiHandler extends AbstractSourceHandler
     public function getAllObjects(
         Source $source,
         array $config,
-        bool $isTest = false,
-        int $currentPage = 1,
-        array $headers = [],
-        array $query = []
+        bool $isTest=false,
+        int $currentPage=1,
+        array $headers=[],
+        array $query=[]
     ): array {
         $this->checkRateLimit($source);
 
-        $endpoint = $config['endpoint'] ?? '';
+        $endpoint       = ($config['endpoint'] ?? '');
         $usesPagination = $config['usesPagination'] ?? true;
 
         $requestConfig = [
             'headers' => $headers,
-            'query' => $query
+            'query'   => $query,
         ];
 
         return $this->fetchAllPages(
@@ -55,7 +59,9 @@ class JsonApiHandler extends AbstractSourceHandler
             isTest: $isTest,
             usesPagination: $usesPagination
         );
-    }
+
+    }//end getAllObjects()
+
 
     /**
      * @inheritDoc
@@ -64,8 +70,8 @@ class JsonApiHandler extends AbstractSourceHandler
         Source $source,
         string $endpoint,
         array $config,
-        array $headers = [],
-        array $query = []
+        array $headers=[],
+        array $query=[]
     ): array {
         $this->checkRateLimit($source);
 
@@ -75,7 +81,7 @@ class JsonApiHandler extends AbstractSourceHandler
 
         $requestConfig = [
             'headers' => $headers,
-            'query' => $query
+            'query'   => $query,
         ];
 
         $response = $this->callService->call(
@@ -86,18 +92,20 @@ class JsonApiHandler extends AbstractSourceHandler
         )->getResponse();
 
         return json_decode($response['body'], true);
-    }
+
+    }//end getObject()
+
 
     /**
      * Recursively fetches all pages from a paginated API.
      *
-     * @param Source $source The source to fetch from
-     * @param string $endpoint The endpoint to fetch from
-     * @param array $config Request configuration
-     * @param array $sourceConfig Source configuration
-     * @param int $currentPage Current page number
-     * @param bool $isTest Whether this is a test run
-     * @param bool $usesPagination Whether to use pagination
+     * @param Source    $source           The source to fetch from
+     * @param string    $endpoint         The endpoint to fetch from
+     * @param array     $config           Request configuration
+     * @param array     $sourceConfig     Source configuration
+     * @param int       $currentPage      Current page number
+     * @param bool      $isTest           Whether this is a test run
+     * @param bool      $usesPagination   Whether to use pagination
      * @param bool|null $usesNextEndpoint Whether to use next endpoint for pagination
      *
      * @return array Array of all objects from all pages
@@ -111,11 +119,11 @@ class JsonApiHandler extends AbstractSourceHandler
         array $config,
         array $sourceConfig,
         int $currentPage,
-        bool $isTest = false,
-        bool $usesPagination = true,
-        ?bool $usesNextEndpoint = null
+        bool $isTest=false,
+        bool $usesPagination=true,
+        ?bool $usesNextEndpoint=null
     ): array {
-        $callLog = $this->callService->call(source: $source, endpoint: $endpoint, config: $config);
+        $callLog  = $this->callService->call(source: $source, endpoint: $endpoint, config: $config);
         $response = $callLog->getResponse();
 
         if ($response === null && $callLog->getStatusCode() === 429) {
@@ -142,7 +150,7 @@ class JsonApiHandler extends AbstractSourceHandler
         }
 
         $currentPage++;
-        $nextEndpoint = $endpoint;
+        $nextEndpoint    = $endpoint;
         $newNextEndpoint = null;
 
         if (array_key_exists('next', $result) && $usesNextEndpoint === null) {
@@ -151,14 +159,13 @@ class JsonApiHandler extends AbstractSourceHandler
 
         if ($usesNextEndpoint !== false) {
             $newNextEndpoint = $this->getNextEndpoint($result, $source->getLocation());
-        } elseif ($newNextEndpoint === null && $usesNextEndpoint !== true) {
+        } else if ($newNextEndpoint === null && $usesNextEndpoint !== true) {
             $usesNextEndpoint = false;
-            $config = $this->updatePaginationConfig($config, $sourceConfig, $currentPage);
+            $config           = $this->updatePaginationConfig($config, $sourceConfig, $currentPage);
         }
 
-        if (
-            ($usesNextEndpoint === true && ($newNextEndpoint === null || $newNextEndpoint === $endpoint)) ||
-            ($usesNextEndpoint === false && ($objects === null || empty($objects)))
+        if (($usesNextEndpoint === true && ($newNextEndpoint === null || $newNextEndpoint === $endpoint))
+            || ($usesNextEndpoint === false && ($objects === null || empty($objects)))
         ) {
             return $objects;
         }
@@ -167,7 +174,7 @@ class JsonApiHandler extends AbstractSourceHandler
             $objects,
             $this->fetchAllPages(
                 source: $source,
-                endpoint: $newNextEndpoint ?? $nextEndpoint,
+                endpoint: ($newNextEndpoint ?? $nextEndpoint),
                 config: $config,
                 sourceConfig: $sourceConfig,
                 currentPage: $currentPage,
@@ -176,31 +183,35 @@ class JsonApiHandler extends AbstractSourceHandler
                 usesNextEndpoint: $usesNextEndpoint
             )
         );
-    }
+
+    }//end fetchAllPages()
+
 
     /**
      * Updates pagination configuration for the next page.
      *
-     * @param array $config Current configuration
+     * @param array $config       Current configuration
      * @param array $sourceConfig Source configuration
-     * @param int $currentPage Current page number
+     * @param int   $currentPage  Current page number
      *
      * @return array Updated configuration
      */
     private function updatePaginationConfig(array $config, array $sourceConfig, int $currentPage): array
     {
         $config['pagination'] = [
-            'paginationQuery' => $sourceConfig['paginationQuery'] ?? 'page',
-            'page' => $currentPage
+            'paginationQuery' => ($sourceConfig['paginationQuery'] ?? 'page'),
+            'page'            => $currentPage,
         ];
 
         return $config;
-    }
+
+    }//end updatePaginationConfig()
+
 
     /**
      * Gets the next endpoint URL from the response.
      *
-     * @param array $body Response body
+     * @param array  $body    Response body
      * @param string $baseUrl Base URL of the source
      *
      * @return string|null Next endpoint URL or null if none
@@ -217,5 +228,8 @@ class JsonApiHandler extends AbstractSourceHandler
         }
 
         return $nextLink;
-    }
-}
+
+    }//end getNextEndpoint()
+
+
+}//end class

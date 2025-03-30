@@ -5,25 +5,29 @@ namespace OCA\OpenConnector\Service\SourceHandler;
 /**
  * Handler for XML sources.
  *
- * @package     OpenConnector
- * @category    Service
- * @author      Conduction B.V. <info@conduction.nl>
- * @copyright   Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license     EUPL 1.2
- * @version     1.0.0
- * @link        https://openregister.app
+ * @package   OpenConnector
+ * @category  Service
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   1.0.0
+ * @link      https://openregister.app
  *
- * @since       1.0.0 - Description of when this class was added
+ * @since 1.0.0 - Description of when this class was added
  */
 class XmlHandler extends AbstractSourceHandler
 {
+
+
     /**
      * @inheritDoc
      */
     public function canHandle(string $sourceType): bool
     {
         return $sourceType === 'xml';
-    }
+
+    }//end canHandle()
+
 
     /**
      * @inheritDoc
@@ -31,17 +35,17 @@ class XmlHandler extends AbstractSourceHandler
     public function getAllObjects(
         Source $source,
         array $config,
-        bool $isTest = false,
-        int $currentPage = 1,
-        array $headers = [],
-        array $query = []
+        bool $isTest=false,
+        int $currentPage=1,
+        array $headers=[],
+        array $query=[]
     ): array {
         $this->checkRateLimit($source);
 
-        $endpoint = $config['endpoint'] ?? '';
+        $endpoint      = ($config['endpoint'] ?? '');
         $requestConfig = [
             'headers' => $headers,
-            'query' => $query
+            'query'   => $query,
         ];
 
         $response = $this->callService->call(
@@ -59,7 +63,7 @@ class XmlHandler extends AbstractSourceHandler
             return [];
         }
 
-        $result = $this->xmlToArray($xml);
+        $result  = $this->xmlToArray($xml);
         $objects = $this->extractObjects($result, $config);
 
         if ($isTest && !empty($objects)) {
@@ -67,7 +71,9 @@ class XmlHandler extends AbstractSourceHandler
         }
 
         return $objects;
-    }
+
+    }//end getAllObjects()
+
 
     /**
      * @inheritDoc
@@ -76,8 +82,8 @@ class XmlHandler extends AbstractSourceHandler
         Source $source,
         string $endpoint,
         array $config,
-        array $headers = [],
-        array $query = []
+        array $headers=[],
+        array $query=[]
     ): array {
         $this->checkRateLimit($source);
 
@@ -87,7 +93,7 @@ class XmlHandler extends AbstractSourceHandler
 
         $requestConfig = [
             'headers' => $headers,
-            'query' => $query
+            'query'   => $query,
         ];
 
         $response = $this->callService->call(
@@ -103,7 +109,9 @@ class XmlHandler extends AbstractSourceHandler
         }
 
         return $this->xmlToArray($xml);
-    }
+
+    }//end getObject()
+
 
     /**
      * Parses an XML string into a SimpleXMLElement.
@@ -112,14 +120,16 @@ class XmlHandler extends AbstractSourceHandler
      *
      * @return \SimpleXMLElement|false The parsed XML or false on failure
      */
-    private function parseXmlResponse(string $xmlString): \SimpleXMLElement|false
+    private function parseXmlResponse(string $xmlString): \SimpleXMLElement | false
     {
         libxml_use_internal_errors(true);
         $xml = simplexml_load_string($xmlString, "SimpleXMLElement", LIBXML_NOCDATA);
         libxml_use_internal_errors(false);
 
         return $xml;
-    }
+
+    }//end parseXmlResponse()
+
 
     /**
      * Converts a SimpleXMLElement to an array while preserving namespaced attributes.
@@ -137,7 +147,7 @@ class XmlHandler extends AbstractSourceHandler
         if (count($attributes) > 0) {
             $result['@attributes'] = [];
             foreach ($attributes as $attrName => $attrValue) {
-                $result['@attributes'][(string)$attrName] = (string)$attrValue;
+                $result['@attributes'][(string) $attrName] = (string) $attrValue;
             }
         }
 
@@ -151,8 +161,8 @@ class XmlHandler extends AbstractSourceHandler
                 }
 
                 foreach ($nsAttributes as $attrName => $attrValue) {
-                    $nsAttrName = $prefix ? "$prefix:$attrName" : $attrName;
-                    $result['@attributes'][$nsAttrName] = (string)$attrValue;
+                    $nsAttrName                         = $prefix ? "$prefix:$attrName" : $attrName;
+                    $result['@attributes'][$nsAttrName] = (string) $attrValue;
                 }
             }
         }
@@ -165,6 +175,7 @@ class XmlHandler extends AbstractSourceHandler
                 if (!is_array($result[$childName]) || !isset($result[$childName][0])) {
                     $result[$childName] = [$result[$childName]];
                 }
+
                 $result[$childName][] = $childArray;
             } else {
                 $result[$childName] = $childArray;
@@ -172,13 +183,16 @@ class XmlHandler extends AbstractSourceHandler
         }
 
         // Handle text content
-        $text = trim((string)$xml);
+        $text = trim((string) $xml);
         if (count($result) === 0 && $text !== '') {
             return ['#text' => $text];
-        } elseif ($text !== '') {
+        } else if ($text !== '') {
             $result['#text'] = $text;
         }
 
         return $result;
-    }
-}
+
+    }//end xmlToArray()
+
+
+}//end class

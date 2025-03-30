@@ -5,27 +5,29 @@ namespace OCA\OpenConnector\Service\SourceHandler;
 /**
  * Interface for source handlers that fetch objects from different types of sources.
  *
- * @package     OpenConnector
- * @category    Interface
- * @author      Conduction B.V. <info@conduction.nl>
- * @copyright   Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license     EUPL 1.2
- * @version     1.0.0
- * @link        https://openregister.app
+ * @package   OpenConnector
+ * @category  Interface
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   1.0.0
+ * @link      https://openregister.app
  *
- * @since       1.0.0 - Description of when this class was added
+ * @since 1.0.0 - Description of when this class was added
  */
 interface SourceHandlerInterface
 {
+
+
     /**
      * Fetches all objects from the source.
      *
-     * @param Source $source The source to fetch from
-     * @param array $config Configuration for the source
-     * @param bool $isTest Whether this is a test run
-     * @param int $currentPage Current page for pagination
-     * @param array $headers Optional headers for the request
-     * @param array $query Optional query parameters
+     * @param Source $source      The source to fetch from
+     * @param array  $config      Configuration for the source
+     * @param bool   $isTest      Whether this is a test run
+     * @param int    $currentPage Current page for pagination
+     * @param array  $headers     Optional headers for the request
+     * @param array  $query       Optional query parameters
      *
      * @return array Array of objects fetched from the source
      *
@@ -34,20 +36,21 @@ interface SourceHandlerInterface
     public function getAllObjects(
         Source $source,
         array $config,
-        bool $isTest = false,
-        int $currentPage = 1,
-        array $headers = [],
-        array $query = []
+        bool $isTest=false,
+        int $currentPage=1,
+        array $headers=[],
+        array $query=[]
     ): array;
+
 
     /**
      * Fetches a single object from the source.
      *
-     * @param Source $source The source to fetch from
+     * @param Source $source   The source to fetch from
      * @param string $endpoint The endpoint to fetch from
-     * @param array $config Configuration for the source
-     * @param array $headers Optional headers for the request
-     * @param array $query Optional query parameters
+     * @param array  $config   Configuration for the source
+     * @param array  $headers  Optional headers for the request
+     * @param array  $query    Optional query parameters
      *
      * @return array The fetched object
      *
@@ -57,9 +60,10 @@ interface SourceHandlerInterface
         Source $source,
         string $endpoint,
         array $config,
-        array $headers = [],
-        array $query = []
+        array $headers=[],
+        array $query=[]
     ): array;
+
 
     /**
      * Checks if this handler can handle the given source type.
@@ -69,4 +73,6 @@ interface SourceHandlerInterface
      * @return bool True if this handler can handle the source type
      */
     public function canHandle(string $sourceType): bool;
-}
+
+
+}//end interface

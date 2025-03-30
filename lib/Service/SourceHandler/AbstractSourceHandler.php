@@ -5,22 +5,24 @@ namespace OCA\OpenConnector\Service\SourceHandler;
 /**
  * Abstract base class for source handlers.
  *
- * @package     OpenConnector
- * @category    Service
- * @author      Conduction B.V. <info@conduction.nl>
- * @copyright   Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license     EUPL 1.2
- * @version     1.0.0
- * @link        https://openregister.app
+ * @package   OpenConnector
+ * @category  Service
+ * @author    Conduction B.V. <info@conduction.nl>
+ * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license   EUPL 1.2
+ * @version   1.0.0
+ * @link      https://openregister.app
  *
- * @since       1.0.0 - Description of when this class was added
+ * @since 1.0.0 - Description of when this class was added
  */
 abstract class AbstractSourceHandler implements SourceHandlerInterface
 {
+
     /**
      * @var CallService The service for making HTTP calls
      */
     protected CallService $callService;
+
 
     /**
      * Constructor.
@@ -30,7 +32,9 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
     public function __construct(CallService $callService)
     {
         $this->callService = $callService;
-    }
+
+    }//end __construct()
+
 
     /**
      * Checks rate limits and throws an exception if exceeded.
@@ -41,11 +45,10 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
      */
     protected function checkRateLimit(Source $source): void
     {
-        if (
-            $source->getRateLimitRemaining() !== null &&
-            $source->getRateLimitReset() !== null &&
-            $source->getRateLimitRemaining() <= 0 &&
-            $source->getRateLimitReset() > time()
+        if ($source->getRateLimitRemaining() !== null
+            && $source->getRateLimitReset() !== null
+            && $source->getRateLimitRemaining() <= 0
+            && $source->getRateLimitReset() > time()
         ) {
             throw new TooManyRequestsHttpException(
                 message: "Rate Limit on Source has been exceeded. Canceling synchronization...",
@@ -53,7 +56,9 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
                 headers: $this->getRateLimitHeaders($source)
             );
         }
-    }
+
+    }//end checkRateLimit()
+
 
     /**
      * Gets rate limit headers from a source.
@@ -65,18 +70,20 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
     protected function getRateLimitHeaders(Source $source): array
     {
         return [
-            'X-RateLimit-Limit' => $source->getRateLimitLimit(),
+            'X-RateLimit-Limit'     => $source->getRateLimitLimit(),
             'X-RateLimit-Remaining' => $source->getRateLimitRemaining(),
-            'X-RateLimit-Reset' => $source->getRateLimitReset(),
-            'X-RateLimit-Used' => 0,
-            'X-RateLimit-Window' => $source->getRateLimitWindow(),
+            'X-RateLimit-Reset'     => $source->getRateLimitReset(),
+            'X-RateLimit-Used'      => 0,
+            'X-RateLimit-Window'    => $source->getRateLimitWindow(),
         ];
-    }
+
+    }//end getRateLimitHeaders()
+
 
     /**
      * Extracts objects from a response array based on configuration.
      *
-     * @param array $array The response array
+     * @param array $array  The response array
      * @param array $config The source configuration
      *
      * @return array The extracted objects
@@ -101,7 +108,11 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
         }
 
         // Check common keys
-        $commonKeys = ['items', 'result', 'results'];
+        $commonKeys = [
+            'items',
+            'result',
+            'results',
+        ];
         foreach ($commonKeys as $key) {
             if (isset($array[$key]) === true) {
                 return $array[$key];
@@ -109,5 +120,8 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
         }
 
         throw new \Exception("Cannot determine the position of objects in the response body.");
-    }
-}
+
+    }//end extractObjects()
+
+
+}//end class
