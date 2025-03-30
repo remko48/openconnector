@@ -11,6 +11,8 @@ alwaysApply: false
 - All PHP files must end with a single newline
 - No trailing whitespace is allowed
 - No short open tags are allowed
+- When a file is altered run phpcs from the command line on that file (not from the vender, to make sure phpcs.xml in root is properly applied)
+- When errors are found, update .cursor/rules/php.mdc if neceserry to prevent these errors in the feature
 
 ## Class and Interface Rules
 - All classes and interfaces must have a complete docblock containing:

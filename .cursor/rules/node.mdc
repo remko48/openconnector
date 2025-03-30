@@ -5,6 +5,8 @@ alwaysApply: false
 ---
 # Node.js Coding Standards and Best Practices
 
+Always use linting afther creating or altering a file
+
 ## App Structure
 - Frontend (Vue.js):
   - All frontend code resides in the `src/` directory
