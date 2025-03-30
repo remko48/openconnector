@@ -5,6 +5,7 @@
  *
  * @category  Service
  * @package   OpenConnector
+ * @subpackage SourceHandler
  * @author    Conduction B.V.
  * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
  * @license   EUPL 1.2
@@ -15,6 +16,10 @@
  */
 
 namespace OCA\OpenConnector\Service\SourceHandler;
+
+use OCA\OpenConnector\Service\CallService;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
+use Adbar\Dot;
 
 /**
  * Abstract base class for source handlers.

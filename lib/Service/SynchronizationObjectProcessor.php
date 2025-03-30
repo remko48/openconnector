@@ -5,12 +5,8 @@
  *
  * @category  Service
  * @package   OpenConnector
- * @author    Conduction B.V. <info@conduction.nl>
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license   EUPL 1.2
  * @version   GIT: <git_id>
  * @link      https://openregister.app
- *
  * @since 1.0.0
  */
 
@@ -37,12 +33,8 @@ use Twig\Error\SyntaxError;
  *
  * @category  Service
  * @package   OpenConnector
- * @author    Conduction B.V. <info@conduction.nl>
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license   EUPL 1.2
  * @version   GIT: <git_id>
  * @link      https://openregister.app
- *
  * @since 1.0.0
  */
 class SynchronizationObjectProcessor
@@ -244,7 +236,7 @@ class SynchronizationObjectProcessor
      *
      * @throws Exception If origin ID cannot be found
      */
-    public function getOriginId(Synchronization $synchronization, array $object): (string | int)
+    public function getOriginId(Synchronization $synchronization, array $object): string|int
     {
         // Default ID position is 'id' if not specified in source config
         $originIdPosition = 'id';

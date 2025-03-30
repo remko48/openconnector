@@ -20,17 +20,16 @@ use Symfony\Component\Uid\Uuid;
 class ConsumerMapper extends QBMapper
 {
 
-
     /**
      * ConsumerMapper constructor.
      *
      * @param IDBConnection $db The database connection
      */
-public function __construct(IDBConnection $db)
-{
-    parent::__construct($db, 'openconnector_consumers');
+    public function __construct(IDBConnection $db)
+    {
+        parent::__construct($db, 'openconnector_consumers');
 
-}//end __construct()
+    }//end __construct()
 
 
     /**
@@ -39,19 +38,19 @@ public function __construct(IDBConnection $db)
      * @param  int $id The ID of the Consumer
      * @return Consumer The found Consumer entity
      */
-public function find(int $id): Consumer
-{
-    $qb = $this->db->getQueryBuilder();
+    public function find(int $id): Consumer
+    {
+        $qb = $this->db->getQueryBuilder();
 
-    $qb->select('*')
-        ->from('openconnector_consumers')
-        ->where(
-            $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
-        );
+        $qb->select('*')
+            ->from('openconnector_consumers')
+            ->where(
+                $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
+            );
 
-        return $this->findEntity(query: $qb);
+            return $this->findEntity(query: $qb);
 
-}//end find()
+    }//end find()
 
 
     /**
@@ -64,35 +63,35 @@ public function find(int $id): Consumer
      * @param  array|null $searchParams     Array of search parameters
      * @return array An array of Consumer entities
      */
-public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[], ?array $searchConditions=[], ?array $searchParams=[]): array
-{
-    $qb = $this->db->getQueryBuilder();
+    public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[], ?array $searchConditions=[], ?array $searchParams=[]): array
+    {
+        $qb = $this->db->getQueryBuilder();
 
-    $qb->select('*')
-        ->from('openconnector_consumers')
-        ->setMaxResults($limit)
-        ->setFirstResult($offset);
+        $qb->select('*')
+            ->from('openconnector_consumers')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset);
 
-    foreach ($filters as $filter => $value) {
-        if ($value === 'IS NOT NULL') {
-            $qb->andWhere($qb->expr()->isNotNull($filter));
-        } else if ($value === 'IS NULL') {
-            $qb->andWhere($qb->expr()->isNull($filter));
-        } else {
-            $qb->andWhere($qb->expr()->eq($filter, $qb->createNamedParameter($value)));
+        foreach ($filters as $filter => $value) {
+            if ($value === 'IS NOT NULL') {
+                $qb->andWhere($qb->expr()->isNotNull($filter));
+            } else if ($value === 'IS NULL') {
+                $qb->andWhere($qb->expr()->isNull($filter));
+            } else {
+                $qb->andWhere($qb->expr()->eq($filter, $qb->createNamedParameter($value)));
+            }
         }
-    }
 
-    if (empty($searchConditions) === false) {
-        $qb->andWhere('('.implode(' OR ', $searchConditions).')');
-        foreach ($searchParams as $param => $value) {
-            $qb->setParameter($param, $value);
+        if (empty($searchConditions) === false) {
+            $qb->andWhere('('.implode(' OR ', $searchConditions).')');
+            foreach ($searchParams as $param => $value) {
+                $qb->setParameter($param, $value);
+            }
         }
-    }
 
-    return $this->findEntities(query: $qb);
+        return $this->findEntities(query: $qb);
 
-}//end findAll()
+    }//end findAll()
 
 
     /**
@@ -101,18 +100,18 @@ public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[],
      * @param  array $object An array of Consumer data
      * @return Consumer The newly created Consumer entity
      */
-public function createFromArray(array $object): Consumer
-{
-    $obj = new Consumer();
-    $obj->hydrate($object);
-    // Set uuid
-    if ($obj->getUuid() === null) {
-        $obj->setUuid(Uuid::v4());
-    }
+    public function createFromArray(array $object): Consumer
+    {
+        $obj = new Consumer();
+        $obj->hydrate($object);
+        // Set uuid
+        if ($obj->getUuid() === null) {
+            $obj->setUuid(Uuid::v4());
+        }
 
-    return $this->insert(entity: $obj);
+        return $this->insert(entity: $obj);
 
-}//end createFromArray()
+    }//end createFromArray()
 
 
     /**
@@ -122,18 +121,19 @@ public function createFromArray(array $object): Consumer
      * @param  array $object An array of updated Consumer data
      * @return Consumer The updated Consumer entity
      */
-public function updateFromArray(int $id, array $object): Consumer
-{
-    $obj = $this->find($id);
-    $obj->hydrate($object);
+    public function updateFromArray(int $id, array $object): Consumer
+    {
+        $obj = $this->find($id);
+        $obj->hydrate($object);
 
-    // @todo: does Consumer need a version? $version field does currently not exist.
-    // if (isset($object['version']) === false) {
-    // Set or update the version
-    // $version = explode('.', $obj->getVersion());
-    // $version[2] = (int)$version[2] + 1;
-    // $obj->setVersion(implode('.', $version));
-    // }     return $this->update($obj);    }//end updateFromArray()
+        // @todo: does Consumer need a version? $version field does currently not exist.
+        // if (isset($object['version']) === false) {
+        // Set or update the version
+        // $version = explode('.', $obj->getVersion());
+        // $version[2] = (int)$version[2] + 1;
+        // $obj->setVersion(implode('.', $version));
+        // }     return $this->update($obj);    }//end updateFromArray()
+    }
 
 
     /**
@@ -157,5 +157,4 @@ public function updateFromArray(int $id, array $object): Consumer
     }//end getTotalCallCount()
 
 
-
-}//end updateFromArray()
+}//end class
