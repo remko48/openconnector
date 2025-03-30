@@ -6,13 +6,13 @@
  * This file contains the SynchronizationService class which handles all synchronization
  * operations between different data sources and targets in the OpenConnector app.
  *
- * @category Service
- * @package  OCA\OpenConnector\Service
- * @author   Conduction <info@conduction.nl>
+ * @category  Service
+ * @package   OCA\OpenConnector\Service
+ * @author    Conduction <info@conduction.nl>
  * @copyright 2023 Conduction
- * @license  https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12 EUPL-1.2
- * @version  GIT: <git_id>
- * @link     https://github.com/nextcloud/server/tree/master/apps/openconnector
+ * @license   https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12 EUPL-1.2
+ * @version   GIT: <git_id>
+ * @link      https://github.com/nextcloud/server/tree/master/apps/openconnector
  */
 
 namespace OCA\OpenConnector\Service;
@@ -390,7 +390,7 @@ class SynchronizationService
      *
      * @throws Exception
      */
-    private function getOriginId(Synchronization $synchronization, array $object): int|string
+    private function getOriginId(Synchronization $synchronization, array $object): int | string
     {
         // Default ID position is 'id' if not specified in source config.
         $originIdPosition = 'id';
@@ -642,7 +642,7 @@ class SynchronizationService
     private function mapHashObject(
         Synchronization $synchronization,
         array $object
-    ): array|Exception {
+    ): array | Exception {
         if ($synchronization->getSourceHashMapping() !== '') {
             try {
                 $sourceHashMapping = $this->mappingMapper->find(
@@ -759,7 +759,7 @@ class SynchronizationService
         ?bool $isTest=false,
         ?bool $force=false,
         ?SynchronizationLog $log=null
-    ): SynchronizationContract|Exception|array {
+    ): SynchronizationContract | Exception | array {
         $contractLog = null;
 
         // We are doing something so lets log it.
@@ -1852,7 +1852,7 @@ class SynchronizationService
      * @throws NotFoundExceptionInterface
      * @throws Exception
      */
-    private function processRules(Synchronization $synchronization, array $data, string $timing, ?string $objectId=null, ?int $registerId=null, ?int $schemaId=null): array|JSONResponse
+    private function processRules(Synchronization $synchronization, array $data, string $timing, ?string $objectId=null, ?int $registerId=null, ?int $schemaId=null): array | JSONResponse
     {
         $rules = $synchronization->getActions();
         if (empty($rules) === true) {
@@ -2609,8 +2609,8 @@ class SynchronizationService
      * @throws InvalidArgumentException When invalid ID type provided.
      */
     public function getSynchronization(
-        string|int|null $id = null,
-        array $filters = []
+        string | int | null $id=null,
+        array $filters=[]
     ): Synchronization {
         // Find by ID if provided.
         if ($id !== null) {
