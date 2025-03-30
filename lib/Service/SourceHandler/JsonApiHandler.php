@@ -1,3 +1,7 @@
+<?php
+
+namespace OCA\OpenConnector\Service\SourceHandler;
+
 /**
  * Handler for JSON API sources.
  *
@@ -152,8 +156,10 @@ class JsonApiHandler extends AbstractSourceHandler
             $config = $this->updatePaginationConfig($config, $sourceConfig, $currentPage);
         }
 
-        if (($usesNextEndpoint === true && ($newNextEndpoint === null || $newNextEndpoint === $endpoint)) ||
-            ($usesNextEndpoint === false && ($objects === null || empty($objects)))) {
+        if (
+            ($usesNextEndpoint === true && ($newNextEndpoint === null || $newNextEndpoint === $endpoint)) ||
+            ($usesNextEndpoint === false && ($objects === null || empty($objects)))
+        ) {
             return $objects;
         }
 
@@ -212,4 +218,4 @@ class JsonApiHandler extends AbstractSourceHandler
 
         return $nextLink;
     }
-} 
+}

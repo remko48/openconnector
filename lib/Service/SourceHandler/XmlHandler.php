@@ -1,3 +1,7 @@
+<?php
+
+namespace OCA\OpenConnector\Service\SourceHandler;
+
 /**
  * Handler for XML sources.
  *
@@ -177,4 +181,4 @@ class XmlHandler extends AbstractSourceHandler
 
         return $result;
     }
-} 
+}

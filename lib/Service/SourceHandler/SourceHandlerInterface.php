@@ -1,3 +1,7 @@
+<?php
+
+namespace OCA\OpenConnector\Service\SourceHandler;
+
 /**
  * Interface for source handlers that fetch objects from different types of sources.
  *
@@ -65,4 +69,4 @@ interface SourceHandlerInterface
      * @return bool True if this handler can handle the source type
      */
     public function canHandle(string $sourceType): bool;
-} 
+}

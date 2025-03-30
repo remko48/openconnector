@@ -3,7 +3,131 @@ description: Rules for PHP files
 globs: ["*.php"]
 alwaysApply: false
 ---
-# PHP Coding Standards and Best Practices
+# PHP Coding Standards
+
+## General Rules
+- All PHP files must start with the `<?php` tag followed by a blank line
+- All PHP files must be in a namespace following the pattern `OCA\OpenConnector\{Category}\{Subcategory}`
+- All PHP files must end with a single newline
+- No trailing whitespace is allowed
+- No short open tags are allowed
+
+## Class and Interface Rules
+- All classes and interfaces must have a complete docblock containing:
+  - Description
+  - Package
+  - Category
+  - Author
+  - Copyright
+  - License
+  - Version
+  - Link
+  - Since
+
+## Code Style
+- Follow PSR-12 coding standards
+- Multi-line control structures must have:
+  - First expression on the line after the opening parenthesis
+  - Closing parenthesis on the line after the last expression
+  - Proper indentation for all lines
+
+## Properties
+- All properties must have type declarations
+- Use readonly properties where appropriate
+- All properties must have docblocks with type information
+
+## Methods
+- All methods must have:
+  - Return type declarations
+  - Parameter type declarations
+  - Default values for optional parameters
+  - Complete docblocks including:
+    - Description
+    - @param annotations with types and descriptions
+    - @return annotation with type and description
+    - @throws annotation for any exceptions
+  - PHPStan and Psalm annotations where appropriate
+
+## Testing
+- All methods must have corresponding PHPUnit tests
+- Test methods must follow the pattern `test{MethodName}{Scenario}`
+- Test methods must have docblocks describing the test scenario
+
+## Documentation
+- All code changes must be documented in Docusaurus
+- Documentation files must be in the website/docs folder
+- Use single quotes (') instead of backticks (`) in documentation
+- Technical documentation must include:
+  - Class purpose and responsibility
+  - Method descriptions and usage examples
+  - Configuration options
+  - Dependencies and requirements
+
+## Quality Checks
+- All code must pass:
+  - PHP_CodeSniffer (PSR-12)
+  - PHPStan (Level 8)
+  - Psalm (Level 1)
+  - PHPUnit tests
+
+## Example Class Structure
+```php
+<?php
+
+namespace OCA\OpenConnector\Service\Handler;
+
+/**
+ * Description of the class purpose.
+ *
+ * @package     OpenConnector
+ * @category    Service
+ * @author      Conduction B.V. <info@conduction.nl>
+ * @copyright   Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @license     EUPL 1.2
+ * @version     1.0.0
+ * @link        https://openregister.app
+ *
+ * @since       1.0.0 - Description of when this class was added
+ */
+class ExampleClass
+{
+    /**
+     * Description of the property.
+     *
+     * @var string
+     */
+    private readonly string $property;
+
+    /**
+     * Constructor.
+     *
+     * @param string $property Description of the parameter
+     */
+    public function __construct(string $property)
+    {
+        $this->property = $property;
+    }
+
+    /**
+     * Description of what the method does.
+     *
+     * @param string $param Description of the parameter
+     * @param int    $optionalParam Description of the optional parameter
+     *
+     * @return bool Description of the return value
+     *
+     * @throws \Exception When something goes wrong
+     *
+     * @psalm-pure
+     * @phpstan-return bool
+     */
+    public function exampleMethod(string $param, int $optionalParam = 0): bool
+    {
+        // Method implementation
+        return true;
+    }
+}
+```
 
 ## App Structure
 - Backend (PHP):

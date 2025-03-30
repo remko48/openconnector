@@ -1,3 +1,7 @@
+<?php
+
+namespace OCA\OpenConnector\Service\SourceHandler;
+
 /**
  * Abstract base class for source handlers.
  *
@@ -37,7 +41,8 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
      */
     protected function checkRateLimit(Source $source): void
     {
-        if ($source->getRateLimitRemaining() !== null &&
+        if (
+            $source->getRateLimitRemaining() !== null &&
             $source->getRateLimitReset() !== null &&
             $source->getRateLimitRemaining() <= 0 &&
             $source->getRateLimitReset() > time()
@@ -86,12 +91,12 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
             if ($position === '_root' || $position === '_object') {
                 return $array;
             }
-            
+
             $dot = new Dot($array);
             if ($dot->has($position) === true) {
                 return $dot->get($position);
             }
-            
+
             return [];
         }
 
@@ -105,4 +110,4 @@ abstract class AbstractSourceHandler implements SourceHandlerInterface
 
         throw new \Exception("Cannot determine the position of objects in the response body.");
     }
-} 
+}

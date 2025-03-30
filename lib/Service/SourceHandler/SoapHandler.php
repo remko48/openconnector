@@ -1,3 +1,10 @@
+<?php
+
+namespace OCA\OpenConnector\Service\SourceHandler;
+
+use InvalidArgumentException;
+use SimpleXMLElement;
+
 /**
  * Handler for SOAP sources without requiring PHP SOAP extension.
  *
@@ -14,7 +21,14 @@
 class SoapHandler extends AbstractSourceHandler
 {
     /**
-     * @inheritDoc
+     * Checks if this handler can handle the given source type.
+     *
+     * @param string $sourceType The type of source to check
+     *
+     * @return bool True if this handler can handle the source type
+     *
+     * @psalm-pure
+     * @phpstan-return bool
      */
     public function canHandle(string $sourceType): bool
     {
@@ -22,7 +36,24 @@ class SoapHandler extends AbstractSourceHandler
     }
 
     /**
-     * @inheritDoc
+     * Gets all objects from a SOAP source.
+     *
+     * @param Source $source The source to fetch from
+     * @param array $config Configuration for the source
+     * @param bool $isTest Whether this is a test run
+     * @param int $currentPage Current page for pagination
+     * @param array $headers Optional headers for the request
+     * @param array $query Optional query parameters
+     *
+     * @return array Array of objects fetched from the source
+     *
+     * @throws InvalidArgumentException When SOAP action or operation is not specified
+     * @throws \Exception If there is an error fetching the objects
+     *
+     * @phpstan-param array<string, mixed> $config
+     * @phpstan-param array<string, string> $headers
+     * @phpstan-param array<string, mixed> $query
+     * @phpstan-return array<mixed>
      */
     public function getAllObjects(
         Source $source,
@@ -35,7 +66,7 @@ class SoapHandler extends AbstractSourceHandler
         $this->checkRateLimit($source);
 
         if (!isset($config['soapAction'], $config['operation'])) {
-            throw new \InvalidArgumentException('SOAP action and operation must be specified in config');
+            throw new InvalidArgumentException('SOAP action and operation must be specified in config');
         }
 
         $soapRequest = $this->buildSoapRequest(
@@ -77,7 +108,23 @@ class SoapHandler extends AbstractSourceHandler
     }
 
     /**
-     * @inheritDoc
+     * Gets a single object from a SOAP source.
+     *
+     * @param Source $source The source to fetch from
+     * @param string $endpoint The endpoint to fetch from
+     * @param array $config Configuration for the source
+     * @param array $headers Optional headers for the request
+     * @param array $query Optional query parameters
+     *
+     * @return array The fetched object
+     *
+     * @throws InvalidArgumentException When SOAP action or operation is not specified
+     * @throws \Exception If there is an error fetching the object
+     *
+     * @phpstan-param array<string, mixed> $config
+     * @phpstan-param array<string, string> $headers
+     * @phpstan-param array<string, mixed> $query
+     * @phpstan-return array<mixed>
      */
     public function getObject(
         Source $source,
@@ -89,7 +136,7 @@ class SoapHandler extends AbstractSourceHandler
         $this->checkRateLimit($source);
 
         if (!isset($config['soapAction'], $config['operation'])) {
-            throw new \InvalidArgumentException('SOAP action and operation must be specified in config');
+            throw new InvalidArgumentException('SOAP action and operation must be specified in config');
         }
 
         $soapRequest = $this->buildSoapRequest(
@@ -129,6 +176,8 @@ class SoapHandler extends AbstractSourceHandler
      * @param string $soapVersion SOAP version to use ('1.1' or '1.2')
      *
      * @return string The SOAP request XML
+     *
+     * @phpstan-param array<string, mixed> $parameters
      */
     private function buildSoapRequest(
         string $operation,
@@ -138,8 +187,8 @@ class SoapHandler extends AbstractSourceHandler
     ): string {
         $nsPrefix = $namespace ? 'ns1:' : '';
         $ns = $namespace ? " xmlns:ns1=\"$namespace\"" : '';
-        $envelope = $soapVersion === '1.2' ? 
-            'http://www.w3.org/2003/05/soap-envelope' : 
+        $envelope = $soapVersion === '1.2' ?
+            'http://www.w3.org/2003/05/soap-envelope' :
             'http://schemas.xmlsoap.org/soap/envelope/';
 
         $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -167,6 +216,8 @@ class SoapHandler extends AbstractSourceHandler
      * @param string $indent Indentation string
      *
      * @return string The XML representation of the parameter
+     *
+     * @phpstan-param string|int|float|bool|array|null $value
      */
     private function parameterToXml(string $key, mixed $value, string $indent): string
     {
@@ -179,7 +230,7 @@ class SoapHandler extends AbstractSourceHandler
             return $xml;
         }
 
-        return "$indent<$key>" . htmlspecialchars($value) . "</$key>\n";
+        return "$indent<$key>" . htmlspecialchars((string)$value) . "</$key>\n";
     }
 
     /**
@@ -188,6 +239,8 @@ class SoapHandler extends AbstractSourceHandler
      * @param string $response The SOAP response XML
      *
      * @return array The parsed response
+     *
+     * @phpstan-return array<mixed>
      */
     private function parseSoapResponse(string $response): array
     {
@@ -215,9 +268,9 @@ class SoapHandler extends AbstractSourceHandler
      *
      * @param string $xmlString The XML string to parse
      *
-     * @return \SimpleXMLElement|false The parsed XML or false on failure
+     * @return SimpleXMLElement|false The parsed XML or false on failure
      */
-    private function parseXmlResponse(string $xmlString): \SimpleXMLElement|false
+    private function parseXmlResponse(string $xmlString): SimpleXMLElement|false
     {
         libxml_use_internal_errors(true);
         $xml = simplexml_load_string($xmlString, "SimpleXMLElement", LIBXML_NOCDATA);
@@ -229,11 +282,13 @@ class SoapHandler extends AbstractSourceHandler
     /**
      * Converts a SimpleXMLElement to an array while preserving namespaced attributes.
      *
-     * @param \SimpleXMLElement $xml The XML element to convert
+     * @param SimpleXMLElement $xml The XML element to convert
      *
      * @return array The array representation
+     *
+     * @phpstan-return array<string, mixed>
      */
-    private function xmlToArray(\SimpleXMLElement $xml): array
+    private function xmlToArray(SimpleXMLElement $xml): array
     {
         $result = [];
 
@@ -286,4 +341,4 @@ class SoapHandler extends AbstractSourceHandler
 
         return $result;
     }
-} 
+}
