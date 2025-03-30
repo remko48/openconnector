@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * This file is part of the OpenConnector app.
+ *
+ * @package     OpenConnector
+ * @category    Http
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
+ * @version     1.0.0
+ */
 namespace OCA\OpenConnector\Http;
 
 use OCP\AppFramework\Http\Response;
@@ -8,7 +19,16 @@ use DOMElement;
 use DOMText;
 
 /**
- * A response for XML data
+ * XML Response.
+ *
+ * A response class for handling XML data formatting and output.
+ *
+ * @package     OpenConnector
+ * @category    Http
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
  *
  * @psalm-suppress PropertyNotSetInConstructor
  */
@@ -16,20 +36,26 @@ class XMLResponse extends Response
 {
 
     /**
-     * @var       array<string, mixed> The data to be returned
+     * The data to be returned in the response.
+     *
+     * @var       array<string, mixed> The data to be formatted as XML
      * @psalm-var array<string, mixed>
      */
     protected array $data;
 
     /**
-     * @var       callable|null Custom render callback
+     * Custom render callback function.
+     *
+     * @var       callable|null Custom render callback for XML formatting
      * @psalm-var callable(array<string, mixed>): string|null
      */
     protected $renderCallback = null;
 
 
     /**
-     * Constructor for XMLResponse
+     * Constructor for XMLResponse.
+     *
+     * Sets up the response with data, status, headers, and content type.
      *
      * @param array<string, mixed>|string $data    The data to convert to XML
      * @param int                         $status  HTTP status code, defaults to 200
@@ -40,6 +66,8 @@ class XMLResponse extends Response
      * @psalm-param int $status
      * @psalm-param array<string, string> $headers
      * @psalm-param string|null $path
+     * 
+     * @return void
      */
     public function __construct($data=[], int $status=200, array $headers=[], ?string $path=null)
     {
@@ -65,7 +93,9 @@ class XMLResponse extends Response
 
 
     /**
-     * Get the data for rendering
+     * Get the data for rendering.
+     *
+     * Prepares the data structure for XML rendering.
      *
      * @return       array<string, mixed> The data for rendering
      * @psalm-return array<string, mixed>
@@ -78,7 +108,9 @@ class XMLResponse extends Response
 
 
     /**
-     * Set custom render callback
+     * Set custom render callback.
+     *
+     * Allows setting a custom function for rendering XML.
      *
      * @param  callable $callback Function that takes data array and returns XML string
      * @return $this
@@ -94,7 +126,9 @@ class XMLResponse extends Response
 
 
     /**
-     * Returns the rendered XML
+     * Returns the rendered XML.
+     *
+     * Generates XML output using either the custom callback or default rendering.
      *
      * @return string The rendered XML
      */
@@ -118,7 +152,9 @@ class XMLResponse extends Response
 
 
     /**
-     * Convert an array to XML
+     * Convert an array to XML.
+     *
+     * Transforms array data into properly formatted XML.
      *
      * @param  array<string, mixed> $data    The data to convert
      * @param  string|null          $rootTag Optional root tag name (overrides @root in data)
@@ -168,7 +204,9 @@ class XMLResponse extends Response
 
 
     /**
-     * Build an XML element with attributes and children in order
+     * Build an XML element with attributes and children in order.
+     *
+     * Processes element attributes, text content, and child elements.
      *
      * @param  DOMDocument          $dom     The document
      * @param  DOMElement           $element The element to populate
@@ -223,7 +261,9 @@ class XMLResponse extends Response
 
 
     /**
-     * Create a child element and populate it
+     * Create a child element and populate it.
+     *
+     * Creates and appends a child element with appropriate data.
      *
      * @param  DOMDocument                 $dom           The document
      * @param  DOMElement                  $parentElement The parent element
@@ -255,7 +295,9 @@ class XMLResponse extends Response
 
 
     /**
-     * Process text content safely
+     * Process text content safely.
+     *
+     * Creates a text node with properly decoded content to prevent double encoding.
      *
      * @param  DOMDocument $dom  The document
      * @param  string      $text The text to create a node for

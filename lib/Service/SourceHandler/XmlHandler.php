@@ -1,42 +1,39 @@
 <?php
 
 /**
- * Handler for XML sources.
+ * This file is part of the OpenConnector app.
  *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction B.V. <info@conduction.nl>
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license   EUPL 1.2
- * @version   GIT: <git_id>
- * @link      https://openregister.app
- *
- * @since 1.0.0 - Description of when this class was added
+ * @package     OpenConnector
+ * @category    Service
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
+ * @version     1.0.0
  */
-
 namespace OCA\OpenConnector\Service\SourceHandler;
 
+use OCA\OpenConnector\Db\Source;
 use SimpleXMLElement;
 
 /**
- * Handler for XML sources.
+ * XML Source Handler.
  *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction B.V. <info@conduction.nl>
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license   EUPL 1.2
- * @version   GIT: <git_id>
- * @link      https://openregister.app
+ * Handler for processing XML sources and converting data between XML and array formats.
  *
- * @since 1.0.0 - Description of when this class was added
+ * @package     OpenConnector
+ * @category    Service
+ * @author      Conduction Development Team <dev@conduction.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link        https://OpenConnector.app
  */
 class XmlHandler extends AbstractSourceHandler
 {
-
-
     /**
      * Checks if this handler can handle the given source type.
+     *
+     * Determines if this handler is appropriate for the specified source type.
      *
      * @param string $sourceType The type of source to check
      *
@@ -55,16 +52,23 @@ class XmlHandler extends AbstractSourceHandler
     /**
      * Gets all objects from an XML source.
      *
+     * Fetches and processes XML data from the source, converting it to array format.
+     *
      * @param Source $source      The source to fetch from
      * @param array  $config      Configuration for the source
-     * @param bool   $isTest      Whether this is a test run
-     * @param int    $currentPage Current page for pagination
-     * @param array  $headers     Optional headers for the request
-     * @param array  $query       Optional query parameters
+     * @param bool   $isTest      Whether this is a test run, defaults to false
+     * @param int    $currentPage Current page for pagination, defaults to 1
+     * @param array  $headers     Optional headers for the request, defaults to empty array
+     * @param array  $query       Optional query parameters, defaults to empty array
      *
      * @return array Array of objects fetched from the source
      *
      * @throws \Exception If there is an error fetching the objects
+     * 
+     * @psalm-param array<string, mixed> $config
+     * @psalm-param array<string, string> $headers
+     * @psalm-param array<string, mixed> $query
+     * @psalm-return array<int, array<string, mixed>>
      */
     public function getAllObjects(
         Source $source,
@@ -74,32 +78,39 @@ class XmlHandler extends AbstractSourceHandler
         array $headers=[],
         array $query=[]
     ): array {
+        // Check rate limit before making the call
         $this->checkRateLimit($source);
 
+        // Prepare endpoint and request configuration
         $endpoint      = ($config['endpoint'] ?? '');
         $requestConfig = [
             'headers' => $headers,
             'query'   => $query,
         ];
 
+        // Make the API call to the source
         $response = $this->callService->call(
             source: $source,
             endpoint: $endpoint,
             config: $requestConfig
         )->getResponse();
 
+        // Return empty array if no response
         if ($response === null) {
             return [];
         }
 
+        // Parse the XML response
         $xml = $this->parseXmlResponse($response['body']);
         if ($xml === false) {
             return [];
         }
 
+        // Convert XML to array and extract objects
         $result  = $this->xmlToArray($xml);
         $objects = $this->extractObjects($result, $config);
 
+        // If this is a test run, return only the first object
         if ($isTest === true && empty($objects) === false) {
             return [$objects[0]];
         }
@@ -112,15 +123,22 @@ class XmlHandler extends AbstractSourceHandler
     /**
      * Fetches a single object from the source.
      *
+     * Retrieves and processes a single XML object from the specified endpoint.
+     *
      * @param Source $source   The source to fetch from
      * @param string $endpoint The endpoint to fetch from
      * @param array  $config   Configuration for the source
-     * @param array  $headers  Optional headers for the request
-     * @param array  $query    Optional query parameters
+     * @param array  $headers  Optional headers for the request, defaults to empty array
+     * @param array  $query    Optional query parameters, defaults to empty array
      *
-     * @return array The fetched object
+     * @return array The fetched object as an array
      *
      * @throws \Exception If there is an error fetching the object
+     * 
+     * @psalm-param array<string, mixed> $config
+     * @psalm-param array<string, string> $headers
+     * @psalm-param array<string, mixed> $query
+     * @psalm-return array<string, mixed>
      */
     public function getObject(
         Source $source,
@@ -129,17 +147,21 @@ class XmlHandler extends AbstractSourceHandler
         array $headers=[],
         array $query=[]
     ): array {
+        // Check rate limit before making the call
         $this->checkRateLimit($source);
 
+        // Remove base URL from endpoint if present
         if (str_starts_with($endpoint, $source->getLocation()) === true) {
             $endpoint = str_replace(search: $source->getLocation(), replace: '', subject: $endpoint);
         }
 
+        // Prepare request configuration
         $requestConfig = [
             'headers' => $headers,
             'query'   => $query,
         ];
 
+        // Make the API call to the source
         $response = $this->callService->call(
             source: $source,
             endpoint: $endpoint,
@@ -147,11 +169,13 @@ class XmlHandler extends AbstractSourceHandler
             read: true
         )->getResponse();
 
+        // Parse the XML response
         $xml = $this->parseXmlResponse($response['body']);
         if ($xml === false) {
             return [];
         }
 
+        // Convert XML to array and return
         return $this->xmlToArray($xml);
 
     }//end getObject()
@@ -160,14 +184,21 @@ class XmlHandler extends AbstractSourceHandler
     /**
      * Parses an XML string into a SimpleXMLElement.
      *
+     * Converts a raw XML string to a SimpleXMLElement object for processing.
+     *
      * @param string $xmlString The XML string to parse
      *
      * @return \SimpleXMLElement|false The parsed XML or false on failure
      */
     private function parseXmlResponse(string $xmlString): \SimpleXMLElement | false
     {
+        // Suppress XML parsing errors by using internal error handling
         libxml_use_internal_errors(true);
+        
+        // Parse the XML string, ignoring CDATA sections
         $xml = simplexml_load_string($xmlString, "SimpleXMLElement", LIBXML_NOCDATA);
+        
+        // Restore default error handling
         libxml_use_internal_errors(false);
 
         return $xml;
@@ -178,9 +209,13 @@ class XmlHandler extends AbstractSourceHandler
     /**
      * Converts a SimpleXMLElement to an array while preserving namespaced attributes.
      *
+     * Recursively transforms XML elements into a structured array representation.
+     *
      * @param \SimpleXMLElement $xml The XML element to convert
      *
-     * @return array The array representation
+     * @return array The array representation of the XML element
+     * 
+     * @psalm-return array<string, mixed>
      */
     private function xmlToArray(\SimpleXMLElement $xml): array
     {

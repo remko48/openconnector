@@ -6,7 +6,7 @@
  * @category  Service
  * @package   OpenConnector
  * @author    Conduction B.V. <info@conduction.nl>
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @copyright 2024 Conduction B.V. All rights reserved.
  * @license   EUPL 1.2
  * @version   GIT: <git_id>
  * @link      https://openregister.app
@@ -25,7 +25,7 @@ use SimpleXMLElement;
  * @category  Service
  * @package   OpenConnector
  * @author    Conduction B.V. <info@conduction.nl>
- * @copyright Copyright (C) 2024 Conduction B.V. All rights reserved.
+ * @copyright 2024 Conduction B.V. All rights reserved.
  * @license   EUPL 1.2
  * @version   GIT: <git_id>
  * @link      https://openregister.app
@@ -76,14 +76,14 @@ class SoapHandler extends AbstractSourceHandler
     public function getAllObjects(
         Source $source,
         array $config,
-        bool $isTest=false,
-        int $currentPage=1,
-        array $headers=[],
-        array $query=[]
+        bool $isTest = false,
+        int $currentPage = 1,
+        array $headers = [],
+        array $query = []
     ): array {
         $this->checkRateLimit($source);
 
-        if (isset($config['soapAction']) === false || isset($config['operation']) === false) {
+        if ((isset($config['soapAction']) === false) || (isset($config['operation']) === false)) {
             throw new InvalidArgumentException('SOAP action and operation must be specified in config');
         }
 
@@ -121,7 +121,7 @@ class SoapHandler extends AbstractSourceHandler
         $result  = $this->parseSoapResponse($response['body']);
         $objects = $this->extractObjects($result, $config);
 
-        if ($isTest === true && empty($objects) === false) {
+        if (($isTest === true) && (empty($objects) === false)) {
             return [$objects[0]];
         }
 
@@ -153,12 +153,12 @@ class SoapHandler extends AbstractSourceHandler
         Source $source,
         string $endpoint,
         array $config,
-        array $headers=[],
-        array $query=[]
+        array $headers = [],
+        array $query = []
     ): array {
         $this->checkRateLimit($source);
 
-        if (isset($config['soapAction']) === false || isset($config['operation']) === false) {
+        if ((isset($config['soapAction']) === false) || (isset($config['operation']) === false)) {
             throw new InvalidArgumentException('SOAP action and operation must be specified in config');
         }
 
@@ -210,8 +210,8 @@ class SoapHandler extends AbstractSourceHandler
     private function buildSoapRequest(
         string $operation,
         array $parameters,
-        ?string $namespace=null,
-        string $soapVersion='1.1'
+        ?string $namespace = null,
+        string $soapVersion = '1.1'
     ): string {
         $nsPrefix = $namespace ? 'ns1:' : '';
         $ns       = $namespace ? " xmlns:ns1=\"$namespace\"" : '';
@@ -357,7 +357,7 @@ class SoapHandler extends AbstractSourceHandler
             $childArray = $this->xmlToArray($child);
 
             if (isset($result[$childName]) === true) {
-                if (is_array($result[$childName]) === false || isset($result[$childName][0]) === false) {
+                if ((is_array($result[$childName]) === false) || (isset($result[$childName][0]) === false)) {
                     $result[$childName] = [$result[$childName]];
                 }
 
@@ -369,7 +369,7 @@ class SoapHandler extends AbstractSourceHandler
 
         // Handle text content.
         $text = trim((string) $xml);
-        if (count($result) === 0 && $text !== '') {
+        if ((count($result) === 0) && ($text !== '')) {
             return ['#text' => $text];
         } else if ($text !== '') {
             $result['#text'] = $text;

@@ -7,11 +7,11 @@
  *
  * @category  Controller
  * @package   OpenConnector
- * @author    NextCloud Development Team <dev@nextcloud.com>
- * @copyright 2023 NextCloud GmbH
- * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @version   GIT: <git-id>
- * @link      https://nextcloud.com
+ * @link      https://OpenConnector.app
  */
 
 namespace OCA\OpenConnector\Controller;
@@ -25,11 +25,17 @@ use OCP\IRequest;
 
 /**
  * Controller for handling import related operations
+ *
+ * @category  Controller
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   1.0.0
+ * @link      https://OpenConnector.app
  */
 class ImportController extends Controller
 {
-
-
     /**
      * Constructor for the ImportController
      *
@@ -47,9 +53,7 @@ class ImportController extends Controller
         private readonly ImportService $importService
     ) {
         parent::__construct($appName, $request);
-
     }//end __construct()
-
 
     /**
      * Creates a new object or updates an existing one using a json text/string as input
@@ -100,8 +104,5 @@ class ImportController extends Controller
             data: $data,
             uploadedFiles: $uploadedFiles
         );
-
     }//end import()
-
-
 }//end class

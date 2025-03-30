@@ -7,11 +7,11 @@
  *
  * @category  Entity
  * @package   OpenConnector
- * @author    NextCloud Development Team <dev@nextcloud.com>
- * @copyright 2023 NextCloud GmbH
- * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @version   GIT: <git-id>
- * @link      https://nextcloud.com
+ * @link      https://OpenConnector.app
  */
 
 namespace OCA\OpenConnector\Db;
@@ -26,21 +26,6 @@ use OCP\AppFramework\Db\Entity;
  * Represents a subscription to events in the system, following the CloudEvents specification.
  * Supports both push and pull delivery styles and configurable filtering logic.
  *
- * @package OCA\OpenConnector\Db
- *
- * @property string|null $uuid Unique identifier for the subscription
- * @property string|null $source URI identifying the context where events originate
- * @property array|null $types Array of CloudEvent type values to subscribe to
- * @property array|null $config Subscription manager specific configuration
- * @property array|null $filters Array of filter expressions for event matching
- * @property string|null $sink URI where events should be delivered
- * @property string|null $protocol Delivery protocol (HTTP, MQTT, AMQP, etc.)
- * @property array|null $protocolSettings Protocol-specific settings
- * @property string|null $style Delivery style ('push' or 'pull')
- * @property string|null $status Subscription status
- * @property string|null $userId Owner of the subscription
- * @property DateTime|null $created Creation timestamp
- * @property DateTime|null $updated Last update timestamp
  */
 class EventSubscription extends Entity implements JsonSerializable
 {

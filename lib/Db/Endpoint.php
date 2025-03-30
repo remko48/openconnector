@@ -5,11 +5,13 @@
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
  *
- * @author Nextcloud <info@nextcloud.com>
- * @copyright Nextcloud GmbH
- * @license AGPL-3.0-or-later
- *
- * @see https://github.com/nextcloud/openconnector
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: <git-id>
+ * @link      https://OpenConnector.app
  */
 
 namespace OCA\OpenConnector\Db;
@@ -19,15 +21,7 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * Class Endpoint
- *
  * Represents an API endpoint configuration entity
- *
- * @package OCA\OpenConnector\Db
- * @category Entity
- * @copyright Nextcloud GmbH
- * @license AGPL-3.0-or-later
- * @version 1.0.0
  */
 class Endpoint extends Entity implements JsonSerializable
 {

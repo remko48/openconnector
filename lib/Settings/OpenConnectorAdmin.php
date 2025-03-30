@@ -6,11 +6,11 @@
  *
  * @category  Settings
  * @package   OpenConnector
- * @author    NextCloud Development Team <dev@nextcloud.com>
- * @copyright 2023 NextCloud GmbH
- * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @version   GIT: <git-id>
- * @link      https://nextcloud.com
+ * @link      https://OpenConnector.app
  */
 
 namespace OCA\OpenConnector\Settings;
@@ -22,6 +22,13 @@ use OCP\Settings\ISettings;
 
 /**
  * Admin settings for OpenConnector
+ *
+ * @package   OCA\OpenConnector\Settings
+ * @category  Settings
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   1.0.0
  */
 class OpenConnectorAdmin implements ISettings
 {
@@ -62,7 +69,7 @@ class OpenConnectorAdmin implements ISettings
      *
      * @return TemplateResponse The template response containing the settings form
      */
-    public function getForm()
+    public function getForm(): TemplateResponse
     {
         $parameters = [
             'mySetting' => $this->config->getSystemValue('open_connector_setting', true),
@@ -78,7 +85,7 @@ class OpenConnectorAdmin implements ISettings
      *
      * @return string The section ID
      */
-    public function getSection()
+    public function getSection(): string
     {
         // Name of the previously created section.
         return 'openconnector';
@@ -95,7 +102,7 @@ class OpenConnectorAdmin implements ISettings
      *
      * E.g.: 70
      */
-    public function getPriority()
+    public function getPriority(): int
     {
         return 10;
 

@@ -1,11 +1,23 @@
 <?php
+/**
+ * OpenConnector - Connect your Nextcloud to external services
+ *
+ * This migration changes the following:
+ * - Renaming of SynchronizationContract sourceId & sourceHash to originId and originHash,
+ *   creating the new columns and transferring old data to the new fields.
+ * - Removal of old indexes related to sourceId and sourceHash
+ * - Addition of new indexes for originId and synchronization_id fields
+ *
+ * @category  Migration
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: <git-id>
+ * @link      https://OpenConnector.app
+ */
 
 declare(strict_types=1);
-
-/*
- * SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
- * SPDX-License-Identifier: AGPL-3.0-or-later
- */
 
 namespace OCA\OpenConnector\Migration;
 
@@ -17,51 +29,74 @@ use OCP\Migration\SimpleMigrationStep;
 use OCP\IDBConnection;
 
 /**
- * This migration changes the following:
- * - Renaming of SynchronizationContract sourceId & sourceHash to originId and originHash,
- * creating the new columns and transferring old data to the new fields.
- * - Removal of old indexes related to sourceId and sourceHash
- * - Addition of new indexes for originId and synchronization_id fields
+ * Migration class for renaming SynchronizationContract columns
+ *
+ * This migration renames the sourceId and sourceHash columns to originId and originHash
+ * and updates the associated indexes.
+ *
+ * @package   OCA\OpenConnector\Migration
+ * @category  Migration
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   1.0.0
  */
 class Version1Date20241111144800 extends SimpleMigrationStep
 {
-
+    /**
+     * Database connection
+     *
+     * @var IDBConnection
+     */
     private IDBConnection $connection;
 
-
+    /**
+     * Constructor
+     *
+     * @param IDBConnection $connection Database connection
+     * 
+     * @return void
+     */
     public function __construct(IDBConnection $connection)
     {
         $this->connection = $connection;
-
     }//end __construct()
 
-
     /**
-     * @param IOutput                   $output
-     * @param Closure(): ISchemaWrapper $schemaClosure
-     * @param array                     $options
+     * Pre-schema change hook
+     *
+     * Actions to be executed before schema changes are applied
+     *
+     * @param IOutput                   $output        Output for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns the schema
+     * @param array                     $options       Options for the migration
+     * 
+     * @return void
      */
     public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-
     }//end preSchemaChange()
 
-
     /**
-     * @param  IOutput                   $output
-     * @param  Closure(): ISchemaWrapper $schemaClosure
-     * @param  array                     $options
-     * @return null|ISchemaWrapper
+     * Change database schema
+     *
+     * Adds new columns and updates indexes
+     *
+     * @param IOutput                   $output        Output for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns the schema
+     * @param array                     $options       Options for the migration
+     * 
+     * @return ISchemaWrapper|null Modified schema or null if no changes
      */
     public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper
     {
-        /*
+        /**
          * @var ISchemaWrapper $schema
          */
         $schema = $schemaClosure();
         $table  = $schema->getTable('openconnector_synchronization_contracts');
 
-        // Step 1: Add new columns for 'origin_id' and 'origin_hash'
+        // Step 1: Add new columns for 'origin_id' and 'origin_hash'.
         if ($table->hasColumn('origin_id') === false) {
             $table->addColumn(
                 'origin_id',
@@ -84,7 +119,7 @@ class Version1Date20241111144800 extends SimpleMigrationStep
             );
         }
 
-        // Step 4: Adjust indexes in preparation for data migration
+        // Step 4: Adjust indexes in preparation for data migration.
         if ($table->hasIndex('openconnector_sync_contracts_source_id_index') === true) {
             $table->dropIndex('openconnector_sync_contracts_source_id_index');
         }
@@ -102,26 +137,30 @@ class Version1Date20241111144800 extends SimpleMigrationStep
         }
 
         return $schema;
-
     }//end changeSchema()
 
-
     /**
-     * @param IOutput                   $output
-     * @param Closure(): ISchemaWrapper $schemaClosure
-     * @param array                     $options
+     * Post-schema change hook
+     *
+     * Copy data from old columns to new columns and drop old columns
+     *
+     * @param IOutput                   $output        Output for the migration
+     * @param Closure(): ISchemaWrapper $schemaClosure Closure that returns the schema
+     * @param array                     $options       Options for the migration
+     * 
+     * @return void
      */
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-        /*
+        /**
          * @var ISchemaWrapper $schema
          */
         $schema = $schemaClosure();
         $table  = $schema->getTable('openconnector_synchronization_contracts');
 
-        // Step 2: Copy data from old columns to new columns
-        if ($table->hasColumn('origin_id') === true && $table->hasColumn('origin_hash') === true
-            && $table->hasColumn('source_id') === true && $table->hasColumn('source_hash') === true
+        // Step 2: Copy data from old columns to new columns.
+        if (($table->hasColumn('origin_id') === true) && ($table->hasColumn('origin_hash') === true)
+            && ($table->hasColumn('source_id') === true) && ($table->hasColumn('source_hash') === true)
         ) {
             $this->connection->executeQuery(
                 "
@@ -139,8 +178,5 @@ class Version1Date20241111144800 extends SimpleMigrationStep
         if ($table->hasColumn('source_hash') === true) {
             $table->dropColumn('source_hash');
         }
-
     }//end postSchemaChange()
-
-
 }//end class

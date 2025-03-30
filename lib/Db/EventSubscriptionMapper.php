@@ -7,11 +7,11 @@
  *
  * @category  Mapper
  * @package   OpenConnector
- * @author    NextCloud Development Team <dev@nextcloud.com>
- * @copyright 2023 NextCloud GmbH
- * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @version   GIT: <git-id>
- * @link      https://nextcloud.com
+ * @link      https://OpenConnector.app
  */
 
 namespace OCA\OpenConnector\Db;
@@ -25,8 +25,6 @@ use Symfony\Component\Uid\Uuid;
  * Class EventSubscriptionMapper
  *
  * Handles database operations for event subscriptions.
- *
- * @package OCA\OpenConnector\Db
  */
 class EventSubscriptionMapper extends QBMapper
 {

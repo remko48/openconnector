@@ -18,7 +18,9 @@ use OCP\Migration\SimpleMigrationStep;
 
 /**
  * FIXME Auto-generated migration step: Please modify to your needs!
- */class Version0Date20240826193657 extends SimpleMigrationStep
+ */
+
+ class Version0Date20240826193657 extends SimpleMigrationStep
 {
 
 
