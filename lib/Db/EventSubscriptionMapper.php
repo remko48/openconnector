@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector EventSubscription Mapper
+ *
+ * This file contains the mapper class for event subscription data in the OpenConnector
+ * application.
+ *
+ * @category  Mapper
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -10,7 +24,7 @@ use Symfony\Component\Uid\Uuid;
 /**
  * Class EventSubscriptionMapper
  *
- * Handles database operations for event subscriptions
+ * Handles database operations for event subscriptions.
  *
  * @package OCA\OpenConnector\Db
  */
@@ -22,6 +36,8 @@ class EventSubscriptionMapper extends QBMapper
      * Constructor
      *
      * @param IDBConnection $db Database connection
+     *
+     * @return void
      */
     public function __construct(IDBConnection $db)
     {
@@ -31,10 +47,13 @@ class EventSubscriptionMapper extends QBMapper
 
 
     /**
-     * Find a subscription by ID
+     * Find a subscription by ID.
      *
-     * @param  int $id The subscription ID
-     * @return EventSubscription
+     * @param integer $id The subscription ID
+     *
+     * @return EventSubscription The found event subscription
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the subscription is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one subscription is found
      */
     public function find(int $id): EventSubscription
     {
@@ -52,10 +71,11 @@ class EventSubscriptionMapper extends QBMapper
 
 
     /**
-     * Find a subscription by reference
+     * Find a subscription by reference.
      *
-     * @param  int $id The subscription ID
-     * @return EventSubscription
+     * @param string $reference The subscription reference
+     *
+     * @return array An array of event subscriptions matching the reference
      */
     public function findByRef(string $reference): array
     {
@@ -73,15 +93,19 @@ class EventSubscriptionMapper extends QBMapper
 
 
     /**
-     * Find all subscriptions matching the given criteria
+     * Find all subscriptions matching the given criteria.
      *
-     * @param  int|null   $limit   Maximum number of results
-     * @param  int|null   $offset  Number of records to skip
-     * @param  array|null $filters Key-value pairs for filtering
-     * @return EventSubscription[]
+     * @param integer|null $limit   Maximum number of results
+     * @param integer|null $offset  Number of records to skip
+     * @param array|null   $filters Key-value pairs for filtering
+     *
+     * @return array An array of EventSubscription objects
      */
-    public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[]): array
-    {
+    public function findAll(
+        ?int $limit=null,
+        ?int $offset=null,
+        ?array $filters=[]
+    ): array {
         $qb = $this->db->getQueryBuilder();
 
         $qb->select('*')
@@ -105,17 +129,18 @@ class EventSubscriptionMapper extends QBMapper
 
 
     /**
-     * Create a new subscription from array data
+     * Create a new subscription from array data.
      *
-     * @param  array $data Subscription data
-     * @return EventSubscription
+     * @param array $data Subscription data
+     *
+     * @return EventSubscription The newly created event subscription
      */
     public function createFromArray(array $data): EventSubscription
     {
         $obj = new EventSubscription();
         $obj->hydrate($data);
 
-        // Set uuid
+        // Set uuid.
         if ($obj->getUuid() === null) {
             $obj->setUuid(Uuid::v4());
         }
@@ -126,11 +151,14 @@ class EventSubscriptionMapper extends QBMapper
 
 
     /**
-     * Update an existing subscription
+     * Update an existing subscription.
      *
-     * @param  int   $id   Subscription ID
-     * @param  array $data Updated subscription data
-     * @return EventSubscription
+     * @param integer $id   Subscription ID
+     * @param array   $data Updated subscription data
+     *
+     * @return EventSubscription The updated event subscription
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the subscription is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one subscription is found
      */
     public function updateFromArray(int $id, array $data): EventSubscription
     {

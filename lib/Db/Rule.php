@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Rule Entity
+ *
+ * This file contains the entity class for rule data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -9,7 +23,7 @@ use OCP\AppFramework\Db\Entity;
 /**
  * Class Rule
  *
- * Represents a rule that can be triggered during endpoint handling
+ * Represents a rule that can be triggered during endpoint handling.
  *
  * @package OCA\OpenConnector\Db
  */
@@ -109,7 +123,7 @@ class Rule extends Entity implements JsonSerializable
 
 
     /**
-     * Get the conditions array
+     * Get the conditions array.
      *
      * @return array The conditions in JSON Logic format or empty array if null
      */
@@ -121,7 +135,7 @@ class Rule extends Entity implements JsonSerializable
 
 
     /**
-     * Get the configuration array
+     * Get the configuration array.
      *
      * @return array The type-specific configuration or empty array if null
      */
@@ -132,13 +146,19 @@ class Rule extends Entity implements JsonSerializable
     }//end getConfiguration()
 
 
+    /**
+     * Rule constructor.
+     * Initializes the field types for the Rule entity.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->addType('uuid', 'string');
         $this->addType('name', 'string');
         $this->addType('description', 'string');
-        $this->addType(fieldName:'reference', type: 'string');
-        $this->addType(fieldName:'version', type: 'string');
+        $this->addType(fieldName: 'reference', type: 'string');
+        $this->addType(fieldName: 'version', type: 'string');
         $this->addType('action', 'string');
         $this->addType('timing', 'string');
         $this->addType('conditions', 'json');
@@ -152,7 +172,7 @@ class Rule extends Entity implements JsonSerializable
 
 
     /**
-     * Get fields that should be JSON encoded
+     * Get fields that should be JSON encoded.
      *
      * @return array<string> List of field names that are JSON type
      */
@@ -171,9 +191,10 @@ class Rule extends Entity implements JsonSerializable
 
 
     /**
-     * Hydrate the entity from an array of data
+     * Hydrate the entity from an array of data.
      *
-     * @param  array<string,mixed> $object Data to hydrate from
+     * @param array<string,mixed> $object Data to hydrate from
+     *
      * @return self Returns the hydrated entity
      */
     public function hydrate(array $object): self
@@ -190,7 +211,7 @@ class Rule extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Silent fail if property doesn't exist
+                // Error writing $key.
             }
         }
 
@@ -199,8 +220,23 @@ class Rule extends Entity implements JsonSerializable
     }//end hydrate()
 
 
+    /**
+     * Serialize the Rule entity to JSON.
+     *
+     * @return array An array representation of the Rule entity for JSON serialization
+     */
     public function jsonSerialize(): array
     {
+        $created = null;
+        if (isset($this->created) === true) {
+            $created = $this->created->format('c');
+        }
+
+        $updated = null;
+        if (isset($this->updated) === true) {
+            $updated = $this->updated->format('c');
+        }
+
         return [
             'id'            => $this->id,
             'uuid'          => $this->uuid,
@@ -214,8 +250,8 @@ class Rule extends Entity implements JsonSerializable
             'type'          => $this->type,
             'configuration' => $this->configuration,
             'order'         => $this->order,
-            'created'       => isset($this->created) ? $this->created->format('c') : null,
-            'updated'       => isset($this->updated) ? $this->updated->format('c') : null,
+            'created'       => $created,
+            'updated'       => $updated,
         ];
 
     }//end jsonSerialize()

@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector JobLog Entity
+ *
+ * This file contains the entity class for job log data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -6,6 +20,13 @@ use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
+/**
+ * Class JobLog
+ *
+ * Entity class representing a job log entry.
+ *
+ * @package OCA\OpenConnector\Db
+ */
 class JobLog extends Entity implements JsonSerializable
 {
 
@@ -116,7 +137,7 @@ class JobLog extends Entity implements JsonSerializable
 
 
     /**
-     * Get the job arguments
+     * Get the job arguments.
      *
      * @return array The job arguments or empty array if null
      */
@@ -128,7 +149,7 @@ class JobLog extends Entity implements JsonSerializable
 
 
     /**
-     * Get the stack trace
+     * Get the stack trace.
      *
      * @return array The stack trace or empty array if null
      */
@@ -139,6 +160,12 @@ class JobLog extends Entity implements JsonSerializable
     }//end getStackTrace()
 
 
+    /**
+     * JobLog constructor.
+     * Initializes the field types for the JobLog entity.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->addType('uuid', 'string');
@@ -160,6 +187,11 @@ class JobLog extends Entity implements JsonSerializable
     }//end __construct()
 
 
+    /**
+     * Get the JSON fields of the JobLog entity.
+     *
+     * @return array An array of field names that are of type 'json'
+     */
     public function getJsonFields(): array
     {
         return array_keys(
@@ -174,6 +206,13 @@ class JobLog extends Entity implements JsonSerializable
     }//end getJsonFields()
 
 
+    /**
+     * Hydrate the JobLog entity with data from an array.
+     *
+     * @param array $object The array containing the data to hydrate the entity
+     *
+     * @return self Returns the hydrated JobLog entity
+     */
     public function hydrate(array $object): self
     {
         $jsonFields = $this->getJsonFields();
@@ -188,7 +227,7 @@ class JobLog extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Handle or log the exception if needed
+                // Error writing $key.
             }
         }
 
@@ -197,8 +236,33 @@ class JobLog extends Entity implements JsonSerializable
     }//end hydrate()
 
 
+    /**
+     * Serialize the JobLog entity to JSON.
+     *
+     * @return array An array representation of the JobLog entity for JSON serialization
+     */
     public function jsonSerialize(): array
     {
+        $expires = null;
+        if (isset($this->expires) === true) {
+            $expires = $this->expires->format('c');
+        }
+
+        $lastRun = null;
+        if (isset($this->lastRun) === true) {
+            $lastRun = $this->lastRun->format('c');
+        }
+
+        $nextRun = null;
+        if (isset($this->nextRun) === true) {
+            $nextRun = $this->nextRun->format('c');
+        }
+
+        $created = null;
+        if (isset($this->created) === true) {
+            $created = $this->created->format('c');
+        }
+
         return [
             'id'            => $this->id,
             'uuid'          => $this->uuid,
@@ -212,11 +276,10 @@ class JobLog extends Entity implements JsonSerializable
             'userId'        => $this->userId,
             'sessionId'     => $this->sessionId,
             'stackTrace'    => $this->stackTrace,
-            'expires'       => isset($this->expires) ? $this->expires->format('c') : null,
-            'lastRun'       => isset($this->lastRun) ? $this->lastRun->format('c') : null,
-            'nextRun'       => isset($this->nextRun) ? $this->nextRun->format('c') : null,
-            'created'       => isset($this->created) ? $this->created->format('c') : null,
-
+            'expires'       => $expires,
+            'lastRun'       => $lastRun,
+            'nextRun'       => $nextRun,
+            'created'       => $created,
         ];
 
     }//end jsonSerialize()

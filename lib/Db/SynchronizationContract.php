@@ -1,4 +1,16 @@
 <?php
+/**
+ * OpenConnector - Connect your Nextcloud to external services
+ *
+ * This file is licensed under the Affero General Public License version 3 or
+ * later. See the COPYING file.
+ *
+ * @author Nextcloud <info@nextcloud.com>
+ * @copyright Nextcloud GmbH
+ * @license AGPL-3.0-or-later
+ *
+ * @see https://github.com/nextcloud/openconnector
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -7,112 +19,158 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * This class is used to define a contract for a synchronization. Or in other words, a contract between a source and target object.
+ * Class SynchronizationContract
+ *
+ * This class is used to define a contract for a synchronization. 
+ * Or in other words, a contract between a source and target object.
  *
  * @package OCA\OpenConnector\Db
+ * @category Entity
+ * @copyright Nextcloud GmbH
+ * @license AGPL-3.0-or-later
+ * @version 1.0.0
  */
 class SynchronizationContract extends Entity implements JsonSerializable
 {
-
     /**
-     * @var  string|null The ID of the object in the source.
+     * The ID of the object in the source.
+     *
+     * @var string|null
      * @todo can be removed when migrations are merged
      */
     protected ?string $sourceId = null;
 
     /**
-     * @var  string|null The hash of the object in the source.
+     * The hash of the object in the source.
+     *
+     * @var string|null
      * @todo can be removed when migrations are merged
      */
     protected ?string $sourceHash = null;
 
     /**
-     * @var string|null The unique identifier of the synchronization contract.
+     * The unique identifier of the synchronization contract.
+     *
+     * @var string|null
      */
     protected ?string $uuid = null;
 
     /**
-     * @var string|null The version of the synchronization.
+     * The version of the synchronization.
+     *
+     * @var string|null
      */
     protected ?string $version = null;
 
     /**
-     * @var string|null The ID of the synchronization that this contract belongs to.
+     * The ID of the synchronization that this contract belongs to.
+     *
+     * @var string|null
      */
     protected ?string $synchronizationId = null;
 
     // Source
 
     /**
-     * @var string|null The ID of the object in the source.
+     * The ID of the object in the source.
+     *
+     * @var string|null
      */
     protected ?string $originId = null;
 
     /**
-     * @var string|null The hash of the object in the source.
+     * The hash of the object in the source.
+     *
+     * @var string|null
      */
     protected ?string $originHash = null;
 
     /**
-     * @var DateTime|null The last changed date of the object in the source.
+     * The last changed date of the object in the source.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $sourceLastChanged = null;
 
     /**
-     * @var DateTime|null The last checked date of the object in the source.
+     * The last checked date of the object in the source.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $sourceLastChecked = null;
 
     /**
-     * @var DateTime|null The last synced date of the object in the source.
+     * The last synced date of the object in the source.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $sourceLastSynced = null;
 
     // Target
 
     /**
-     * @var string|null The ID of the object in the target.
+     * The ID of the object in the target.
+     *
+     * @var string|null
      */
     protected ?string $targetId = null;
 
     /**
-     * @var string|null The hash of the object in the target.
+     * The hash of the object in the target.
+     *
+     * @var string|null
      */
     protected ?string $targetHash = null;
 
     /**
-     * @var DateTime|null The last changed date of the object in the target.
+     * The last changed date of the object in the target.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $targetLastChanged = null;
 
     /**
-     * @var DateTime|null The last checked date of the object in the target.
+     * The last checked date of the object in the target.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $targetLastChecked = null;
 
     /**
-     * @var DateTime|null The last synced date of the object in the target.
+     * The last synced date of the object in the target.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $targetLastSynced = null;
 
     /**
-     * @var string|null The last CRUD action performed on the target (create, read, update, delete).
+     * The last CRUD action performed on the target (create, read, update, delete).
+     *
+     * @var string|null
      */
     protected ?string $targetLastAction = null;
 
     // General
 
     /**
-     * @var DateTime|null The date and time the synchronization was created.
+     * The date and time the synchronization was created.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $created = null;
 
     /**
-     * @var DateTime|null The date and time the synchronization was last updated.
+     * The date and time the synchronization was last updated.
+     *
+     * @var DateTime|null
      */
     protected ?DateTime $updated = null;
 
-
+    /**
+     * Constructor to initialize field types
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->addType('uuid', 'string');
@@ -132,27 +190,38 @@ class SynchronizationContract extends Entity implements JsonSerializable
         $this->addType('created', 'datetime');
         $this->addType('updated', 'datetime');
 
-        // @todo can be removed when migrations are merged
+        // @todo can be removed when migrations are merged.
         $this->addType('sourceId', 'string');
         $this->addType('sourceHash', 'string');
-
     }//end __construct()
 
-
+    /**
+     * Get the field names that are stored as JSON
+     *
+     * @return array<int, string> List of JSON field names
+     * @psalm-return array<int, string>
+     * @phpstan-return array<int, string>
+     */
     public function getJsonFields(): array
     {
         return array_keys(
             array_filter(
                 $this->getFieldTypes(),
                 function ($field) {
-                        return $field === 'json';
+                    return $field === 'json';
                 }
             )
         );
-
     }//end getJsonFields()
 
-
+    /**
+     * Hydrate the entity with data from an array
+     *
+     * @param array $object Data to hydrate the entity with
+     * @psalm-param array<string, mixed> $object
+     * @phpstan-param array<string, mixed> $object
+     * @return self The hydrated entity
+     */
     public function hydrate(array $object): self
     {
         $jsonFields = $this->getJsonFields();
@@ -167,15 +236,18 @@ class SynchronizationContract extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Error handling could be improved here
+                // Error handling could be improved here.
             }
         }
 
         return $this;
-
     }//end hydrate()
 
-
+    /**
+     * Serialize the synchronization contract entity to JSON
+     *
+     * @return array<string, mixed> The serialized synchronization contract data
+     */
     public function jsonSerialize(): array
     {
         return [
@@ -196,12 +268,9 @@ class SynchronizationContract extends Entity implements JsonSerializable
             'targetLastAction'  => $this->targetLastAction,
             'created'           => isset($this->created) ? $this->created->format('c') : null,
             'updated'           => isset($this->updated) ? $this->updated->format('c') : null,
-        // @todo these 2 can be removed when migrations are merged
+            // @todo these 2 can be removed when migrations are merged.
             'sourceId'          => $this->sourceId,
             'sourceHash'        => $this->sourceHash,
         ];
-
     }//end jsonSerialize()
-
-
 }//end class

@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector EventSubscription Entity
+ *
+ * This file contains the entity class for event subscription data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -138,7 +152,7 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Get the event types to subscribe to
+     * Get the event types to subscribe to.
      *
      * @return array The event types or empty array if null
      */
@@ -150,7 +164,7 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Get the subscription configuration
+     * Get the subscription configuration.
      *
      * @return array The configuration or empty array if null
      */
@@ -162,7 +176,7 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Get the subscription filters
+     * Get the subscription filters.
      *
      * @return array The filters or empty array if null
      */
@@ -174,7 +188,7 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Get the protocol settings
+     * Get the protocol settings.
      *
      * @return array The protocol settings or empty array if null
      */
@@ -186,13 +200,15 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Constructor to set up data types for properties
+     * Constructor to set up data types for properties.
+     *
+     * @return void
      */
     public function __construct()
     {
         $this->addType('uuid', 'string');
-        $this->addType(fieldName:'reference', type: 'string');
-        $this->addType(fieldName:'version', type: 'string');
+        $this->addType(fieldName: 'reference', type: 'string');
+        $this->addType(fieldName: 'version', type: 'string');
         $this->addType('source', 'string');
         $this->addType('types', 'json');
         $this->addType('config', 'json');
@@ -210,7 +226,7 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Get fields that should be JSON encoded
+     * Get fields that should be JSON encoded.
      *
      * @return array<string> List of field names that are JSON type
      */
@@ -229,9 +245,10 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Hydrate the entity from an array of data
+     * Hydrate the entity from an array of data.
      *
-     * @param  array<string,mixed> $object Data to hydrate from
+     * @param array<string,mixed> $object Data to hydrate from
+     *
      * @return self Returns the hydrated entity
      */
     public function hydrate(array $object): self
@@ -248,7 +265,7 @@ class EventSubscription extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Silent fail if property doesn't exist
+                // Error writing $key.
             }
         }
 
@@ -258,15 +275,27 @@ class EventSubscription extends Entity implements JsonSerializable
 
 
     /**
-     * Serialize the entity to JSON
+     * Serialize the entity to JSON.
      *
-     * @return array<string,mixed> JSON serializable array
+     * @return array<string,mixed> The serialized entity data
      */
     public function jsonSerialize(): array
     {
+        $created = null;
+        if (isset($this->created) === true) {
+            $created = $this->created->format('c');
+        }
+
+        $updated = null;
+        if (isset($this->updated) === true) {
+            $updated = $this->updated->format('c');
+        }
+
         return [
             'id'               => $this->id,
             'uuid'             => $this->uuid,
+            'reference'        => $this->reference,
+            'version'          => $this->version,
             'source'           => $this->source,
             'types'            => $this->types,
             'config'           => $this->config,
@@ -277,8 +306,8 @@ class EventSubscription extends Entity implements JsonSerializable
             'style'            => $this->style,
             'status'           => $this->status,
             'userId'           => $this->userId,
-            'created'          => isset($this->created) ? $this->created->format('c') : null,
-            'updated'          => isset($this->updated) ? $this->updated->format('c') : null,
+            'created'          => $created,
+            'updated'          => $updated,
         ];
 
     }//end jsonSerialize()

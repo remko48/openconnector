@@ -1,4 +1,16 @@
 <?php
+/**
+ * OpenConnector - Connect your Nextcloud to external services
+ *
+ * This file is licensed under the Affero General Public License version 3 or
+ * later. See the COPYING file.
+ *
+ * @author Nextcloud <info@nextcloud.com>
+ * @copyright Nextcloud GmbH
+ * @license AGPL-3.0-or-later
+ *
+ * @see https://github.com/nextcloud/openconnector
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -12,6 +24,10 @@ use OCP\AppFramework\Db\Entity;
  * Represents an API endpoint configuration entity
  *
  * @package OCA\OpenConnector\Db
+ * @category Entity
+ * @copyright Nextcloud GmbH
+ * @license AGPL-3.0-or-later
+ * @version 1.0.0
  */
 class Endpoint extends Entity implements JsonSerializable
 {
@@ -62,6 +78,8 @@ class Endpoint extends Entity implements JsonSerializable
      * An array representation of the endpoint. Automatically generated.
      *
      * @var array|null
+     * @psalm-var array<int, string>|null
+     * @phpstan-var array<int, string>|null
      */
     protected ?array $endpointArray = [];
 
@@ -100,6 +118,8 @@ class Endpoint extends Entity implements JsonSerializable
      * Array of conditions to be applied.
      *
      * @var array|null
+     * @psalm-var array<string, mixed>|null
+     * @phpstan-var array<string, mixed>|null
      */
     protected ?array $conditions = [];
 
@@ -135,14 +155,46 @@ class Endpoint extends Entity implements JsonSerializable
      * Array of rules to be applied.
      *
      * @var array|null
+     * @psalm-var array<string, mixed>|null
+     * @phpstan-var array<string, mixed>|null
      */
     protected ?array $rules = [];
+
+
+    /**
+     * Constructor to initialize field types
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->addType(fieldName: 'uuid', type: 'string');
+        $this->addType(fieldName: 'name', type: 'string');
+        $this->addType(fieldName: 'description', type: 'string');
+        $this->addType(fieldName: 'reference', type: 'string');
+        $this->addType(fieldName: 'version', type: 'string');
+        $this->addType(fieldName: 'endpoint', type: 'string');
+        $this->addType(fieldName: 'endpointArray', type: 'json');
+        $this->addType(fieldName: 'endpointRegex', type: 'string');
+        $this->addType(fieldName: 'method', type: 'string');
+        $this->addType(fieldName: 'targetType', type: 'string');
+        $this->addType(fieldName: 'targetId', type: 'string');
+        $this->addType(fieldName: 'conditions', type: 'json');
+        $this->addType(fieldName: 'created', type: 'datetime');
+        $this->addType(fieldName: 'updated', type: 'datetime');
+        $this->addType(fieldName: 'inputMapping', type: 'string');
+        $this->addType(fieldName: 'outputMapping', type: 'string');
+        $this->addType(fieldName: 'rules', type: 'json');
+
+    }//end __construct()
 
 
     /**
      * Get the endpoint array representation
      *
      * @return array The endpoint array or empty array if null
+     * @psalm-return array<int, string>
+     * @phpstan-return array<int, string>
      */
     public function getEndpointArray(): array
     {
@@ -155,6 +207,8 @@ class Endpoint extends Entity implements JsonSerializable
      * Get the conditions array
      *
      * @return array The conditions or empty array if null
+     * @psalm-return array<string, mixed>
+     * @phpstan-return array<string, mixed>
      */
     public function getConditions(): array
     {
@@ -167,6 +221,8 @@ class Endpoint extends Entity implements JsonSerializable
      * Get the rules array
      *
      * @return array The rules or empty array if null
+     * @psalm-return array<string, mixed>
+     * @phpstan-return array<string, mixed>
      */
     public function getRules(): array
     {
@@ -175,29 +231,13 @@ class Endpoint extends Entity implements JsonSerializable
     }//end getRules()
 
 
-    public function __construct()
-    {
-        $this->addType(fieldName:'uuid', type: 'string');
-        $this->addType(fieldName:'name', type: 'string');
-        $this->addType(fieldName:'description', type: 'string');
-        $this->addType(fieldName:'reference', type: 'string');
-        $this->addType(fieldName:'version', type: 'string');
-        $this->addType(fieldName:'endpoint', type: 'string');
-        $this->addType(fieldName:'endpointArray', type: 'json');
-        $this->addType(fieldName:'endpointRegex', type: 'string');
-        $this->addType(fieldName:'method', type: 'string');
-        $this->addType(fieldName:'targetType', type: 'string');
-        $this->addType(fieldName:'targetId', type: 'string');
-        $this->addType(fieldName:'conditions', type: 'json');
-        $this->addType(fieldName:'created', type: 'datetime');
-        $this->addType(fieldName:'updated', type: 'datetime');
-        $this->addType(fieldName:'inputMapping', type: 'string');
-        $this->addType(fieldName:'outputMapping', type: 'string');
-        $this->addType(fieldName:'rules', type: 'json');
-
-    }//end __construct()
-
-
+    /**
+     * Get the field names that are stored as JSON
+     *
+     * @return array<int, string> List of JSON field names
+     * @psalm-return array<int, string>
+     * @phpstan-return array<int, string>
+     */
     public function getJsonFields(): array
     {
         return array_keys(
@@ -212,6 +252,14 @@ class Endpoint extends Entity implements JsonSerializable
     }//end getJsonFields()
 
 
+    /**
+     * Hydrate the entity with data from an array
+     *
+     * @param array $object Data to hydrate the entity with
+     * @psalm-param array<string, mixed> $object
+     * @phpstan-param array<string, mixed> $object
+     * @return self The hydrated entity
+     */
     public function hydrate(array $object): self
     {
         $jsonFields = $this->getJsonFields();

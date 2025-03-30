@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector SynchronizationContractLog Mapper
+ *
+ * This file contains the mapper class for synchronization contract log data in the OpenConnector
+ * application.
+ *
+ * @category  Mapper
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -19,12 +33,23 @@ use OCP\Session\Exceptions\SessionNotAvailableException;
 /**
  * Class SynchronizationContractLogMapper
  *
- * Mapper class for handling SynchronizationContractLog entities
+ * Mapper class for handling SynchronizationContractLog entities.
+ *
+ * @package OCA\OpenConnector\Db
  */
 class SynchronizationContractLogMapper extends QBMapper
 {
 
 
+    /**
+     * SynchronizationContractLogMapper constructor.
+     *
+     * @param IDBConnection $db          The database connection
+     * @param IUserSession  $userSession The user session
+     * @param ISession      $session     The session
+     *
+     * @return void
+     */
     public function __construct(
         IDBConnection $db,
         private readonly IUserSession $userSession,
@@ -35,6 +60,15 @@ class SynchronizationContractLogMapper extends QBMapper
     }//end __construct()
 
 
+    /**
+     * Find a SynchronizationContractLog by its ID.
+     *
+     * @param integer $id The ID of the synchronization contract log
+     *
+     * @return SynchronizationContractLog The found synchronization contract log
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the log entry is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one log entry is found
+     */
     public function find(int $id): SynchronizationContractLog
     {
         $qb = $this->db->getQueryBuilder();
@@ -50,6 +84,13 @@ class SynchronizationContractLogMapper extends QBMapper
     }//end find()
 
 
+    /**
+     * Find a SynchronizationContractLog by synchronization ID.
+     *
+     * @param string $synchronizationId The synchronization ID to search for
+     *
+     * @return SynchronizationContractLog|null The found synchronization contract log or null if not found
+     */
     public function findOnSynchronizationId(string $synchronizationId): ?SynchronizationContractLog
     {
         $qb = $this->db->getQueryBuilder();
@@ -69,8 +110,24 @@ class SynchronizationContractLogMapper extends QBMapper
     }//end findOnSynchronizationId()
 
 
-    public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[], ?array $searchConditions=[], ?array $searchParams=[]): array
-    {
+    /**
+     * Find all SynchronizationContractLogs with optional filtering and pagination.
+     *
+     * @param integer|null $limit            Maximum number of results to return
+     * @param integer|null $offset           Number of results to skip
+     * @param array|null   $filters          Associative array of filters
+     * @param array|null   $searchConditions Array of search conditions
+     * @param array|null   $searchParams     Array of search parameters
+     *
+     * @return array An array of SynchronizationContractLog entities
+     */
+    public function findAll(
+        ?int $limit=null,
+        ?int $offset=null,
+        ?array $filters=[],
+        ?array $searchConditions=[],
+        ?array $searchParams=[]
+    ): array {
         $qb = $this->db->getQueryBuilder();
 
         $qb->select('*')
@@ -100,22 +157,29 @@ class SynchronizationContractLogMapper extends QBMapper
     }//end findAll()
 
 
+    /**
+     * Create a new SynchronizationContractLog from an array of data.
+     *
+     * @param array $object An array of SynchronizationContractLog data
+     *
+     * @return SynchronizationContractLog The newly created SynchronizationContractLog entity
+     */
     public function createFromArray(array $object): SynchronizationContractLog
     {
         $obj = new SynchronizationContractLog();
         $obj->hydrate($object);
 
-        // Set uuid if not provided
+        // Set uuid if not provided.
         if ($obj->getUuid() === null) {
             $obj->setUuid(Uuid::v4());
         }
 
-        // Auto-fill userId from current user session
+        // Auto-fill userId from current user session.
         if ($obj->getUserId() === null && $this->userSession->getUser() !== null) {
             $obj->setUserId($this->userSession->getUser()->getUID());
         }
 
-        // Auto-fill sessionId from current session
+        // Auto-fill sessionId from current session.
         if ($obj->getSessionId() === null) {
             // Try catch because we could run this from a Job and in that case have no session.
             try {
@@ -125,7 +189,8 @@ class SynchronizationContractLogMapper extends QBMapper
             }
         }
 
-        // If no synchronizationLogId is provided, we assume that the contract is run directly from the synchronization log and set the synchronizationLogId to n.a.
+        // If no synchronizationLogId is provided, we assume that the contract is run directly
+        // from the synchronization log and set the synchronizationLogId to n.a.
         if ($obj->getSynchronizationLogId() === null) {
             $obj->setSynchronizationLogId('n.a.');
         }
@@ -135,6 +200,16 @@ class SynchronizationContractLogMapper extends QBMapper
     }//end createFromArray()
 
 
+    /**
+     * Update an existing SynchronizationContractLog from an array of data.
+     *
+     * @param integer $id     The ID of the SynchronizationContractLog to update
+     * @param array   $object An array of updated SynchronizationContractLog data
+     *
+     * @return SynchronizationContractLog The updated SynchronizationContractLog entity
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the log entry is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one log entry is found
+     */
     public function updateFromArray(int $id, array $object): SynchronizationContractLog
     {
         $obj = $this->find($id);
@@ -146,13 +221,13 @@ class SynchronizationContractLogMapper extends QBMapper
 
 
     /**
-     * Get synchronization execution counts by date for a specific date range
+     * Get synchronization execution counts by date for a specific date range.
      *
      * @param DateTime $from Start date
      * @param DateTime $to   End date
      *
      * @return array Array of daily execution counts
-     * @throws Exception
+     * @throws Exception If a database error occurs
      */
     public function getSyncStatsByDateRange(DateTime $from, DateTime $to): array
     {
@@ -171,21 +246,21 @@ class SynchronizationContractLogMapper extends QBMapper
         $result = $qb->execute();
         $stats  = [];
 
-        // Create DatePeriod to iterate through all dates
+        // Create DatePeriod to iterate through all dates.
         $period = new DatePeriod(
             $from,
             new DateInterval('P1D'),
             $to->modify('+1 day')
         );
 
-        // Initialize all dates with zero values
+        // Initialize all dates with zero values.
         foreach ($period as $date) {
             $dateStr         = $date->format('Y-m-d');
             $stats[$dateStr] = 0;
         }
 
-        // Fill in actual values where they exist
-        while ($row = $result->fetch()) {
+        // Fill in actual values where they exist.
+        while (($row = $result->fetch()) !== false) {
             $stats[$row['date']] = (int) $row['executions'];
         }
 
@@ -195,13 +270,13 @@ class SynchronizationContractLogMapper extends QBMapper
 
 
     /**
-     * Get synchronization execution counts by hour for a specific date range
+     * Get synchronization execution counts by hour for a specific date range.
      *
      * @param DateTime $from Start date
      * @param DateTime $to   End date
      *
      * @return array Array of hourly execution counts
-     * @throws Exception
+     * @throws Exception If a database error occurs
      */
     public function getSyncStatsByHourRange(DateTime $from, DateTime $to): array
     {
@@ -220,7 +295,8 @@ class SynchronizationContractLogMapper extends QBMapper
         $result = $qb->execute();
         $stats  = [];
 
-        while ($row = $result->fetch()) {
+        // Fill in values from the query results.
+        while (($row = $result->fetch()) !== false) {
             $stats[$row['hour']] = (int) $row['executions'];
         }
 

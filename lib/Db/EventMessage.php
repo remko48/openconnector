@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector EventMessage Entity
+ *
+ * This file contains the entity class for event message data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -103,7 +117,7 @@ class EventMessage extends Entity implements JsonSerializable
 
 
     /**
-     * Get the message payload
+     * Get the message payload.
      *
      * @return array The message payload or empty array if null
      */
@@ -115,7 +129,7 @@ class EventMessage extends Entity implements JsonSerializable
 
 
     /**
-     * Get the last response from consumer
+     * Get the last response from consumer.
      *
      * @return array The last response or empty array if null
      */
@@ -127,7 +141,10 @@ class EventMessage extends Entity implements JsonSerializable
 
 
     /**
-     * Constructor to set up data types for properties
+     * EventMessage constructor.
+     * Initializes the field types for the EventMessage entity.
+     *
+     * @return void
      */
     public function __construct()
     {
@@ -148,7 +165,7 @@ class EventMessage extends Entity implements JsonSerializable
 
 
     /**
-     * Get fields that should be JSON encoded
+     * Get fields that should be JSON encoded.
      *
      * @return array<string> List of field names that are JSON type
      */
@@ -167,9 +184,10 @@ class EventMessage extends Entity implements JsonSerializable
 
 
     /**
-     * Hydrate the entity from an array of data
+     * Hydrate the entity from an array of data.
      *
-     * @param  array<string,mixed> $object Data to hydrate from
+     * @param array<string,mixed> $object Data to hydrate from
+     *
      * @return self Returns the hydrated entity
      */
     public function hydrate(array $object): self
@@ -186,7 +204,7 @@ class EventMessage extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Silent fail if property doesn't exist
+                // Error writing $key.
             }
         }
 
@@ -196,9 +214,10 @@ class EventMessage extends Entity implements JsonSerializable
 
 
     /**
-     * Increment the retry count and update attempt timestamps
+     * Increment the retry count and update attempt timestamps.
      *
-     * @param  int $backoffMinutes Minutes to wait before next attempt
+     * @param integer $backoffMinutes Minutes to wait before next attempt
+     *
      * @return void
      */
     public function incrementRetry(int $backoffMinutes=5): void
@@ -211,12 +230,32 @@ class EventMessage extends Entity implements JsonSerializable
 
 
     /**
-     * Serialize the entity to JSON
+     * Serialize the entity to JSON.
      *
-     * @return array<string,mixed> JSON serializable array
+     * @return array<string,mixed> The serialized entity data
      */
     public function jsonSerialize(): array
     {
+        $lastAttempt = null;
+        if (isset($this->lastAttempt) === true) {
+            $lastAttempt = $this->lastAttempt->format('c');
+        }
+
+        $nextAttempt = null;
+        if (isset($this->nextAttempt) === true) {
+            $nextAttempt = $this->nextAttempt->format('c');
+        }
+
+        $created = null;
+        if (isset($this->created) === true) {
+            $created = $this->created->format('c');
+        }
+
+        $updated = null;
+        if (isset($this->updated) === true) {
+            $updated = $this->updated->format('c');
+        }
+
         return [
             'id'             => $this->id,
             'uuid'           => $this->uuid,
@@ -227,10 +266,10 @@ class EventMessage extends Entity implements JsonSerializable
             'payload'        => $this->payload,
             'lastResponse'   => $this->lastResponse,
             'retryCount'     => $this->retryCount,
-            'lastAttempt'    => isset($this->lastAttempt) ? $this->lastAttempt->format('c') : null,
-            'nextAttempt'    => isset($this->nextAttempt) ? $this->nextAttempt->format('c') : null,
-            'created'        => isset($this->created) ? $this->created->format('c') : null,
-            'updated'        => isset($this->updated) ? $this->updated->format('c') : null,
+            'lastAttempt'    => $lastAttempt,
+            'nextAttempt'    => $nextAttempt,
+            'created'        => $created,
+            'updated'        => $updated,
         ];
 
     }//end jsonSerialize()

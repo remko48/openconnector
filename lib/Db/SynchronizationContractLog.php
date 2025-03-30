@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector SynchronizationContractLog Entity
+ *
+ * This file contains the entity class for synchronization contract log data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -9,7 +23,9 @@ use OCP\AppFramework\Db\Entity;
 /**
  * Class SynchronizationContractLog
  *
- * Entity class representing a synchronization contract log entry
+ * Entity class representing a synchronization contract log entry.
+ *
+ * @package OCA\OpenConnector\Db
  */
 class SynchronizationContractLog extends Entity implements JsonSerializable
 {
@@ -114,9 +130,9 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
 
 
     /**
-     * Get the source data
+     * Get the source data.
      *
-     * @return array The source data or null
+     * @return array|null The source data or null
      */
     public function getSource(): ?array
     {
@@ -126,9 +142,9 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
 
 
     /**
-     * Get the target data
+     * Get the target data.
      *
-     * @return array The target data or null
+     * @return array|null The target data or null
      */
     public function getTarget(): ?array
     {
@@ -137,6 +153,12 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     }//end getTarget()
 
 
+    /**
+     * SynchronizationContractLog constructor.
+     * Initializes the field types for the SynchronizationContractLog entity.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->addType('uuid', 'string');
@@ -157,6 +179,11 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     }//end __construct()
 
 
+    /**
+     * Get the JSON fields of the SynchronizationContractLog entity.
+     *
+     * @return array An array of field names that are of type 'json'
+     */
     public function getJsonFields(): array
     {
         return array_keys(
@@ -171,6 +198,13 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     }//end getJsonFields()
 
 
+    /**
+     * Hydrate the SynchronizationContractLog entity with data from an array.
+     *
+     * @param array $object The array containing the data to hydrate the entity
+     *
+     * @return self Returns the hydrated SynchronizationContractLog entity
+     */
     public function hydrate(array $object): self
     {
         $jsonFields = $this->getJsonFields();
@@ -185,7 +219,7 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Handle or log the exception if needed
+                // Error writing $key.
             }
         }
 
@@ -194,8 +228,23 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
     }//end hydrate()
 
 
+    /**
+     * Serialize the SynchronizationContractLog entity to JSON.
+     *
+     * @return array An array representation of the SynchronizationContractLog entity for JSON serialization
+     */
     public function jsonSerialize(): array
     {
+        $expires = null;
+        if (isset($this->expires) === true) {
+            $expires = $this->expires->format('c');
+        }
+
+        $created = null;
+        if (isset($this->created) === true) {
+            $created = $this->created->format('c');
+        }
+
         return [
             'id'                        => $this->id,
             'uuid'                      => $this->uuid,
@@ -210,8 +259,8 @@ class SynchronizationContractLog extends Entity implements JsonSerializable
             'sessionId'                 => $this->sessionId,
             'test'                      => $this->test,
             'force'                     => $this->force,
-            'expires'                   => isset($this->expires) ? $this->expires->format('c') : null,
-            'created'                   => isset($this->created) ? $this->created->format('c') : null,
+            'expires'                   => $expires,
+            'created'                   => $created,
         ];
 
     }//end jsonSerialize()

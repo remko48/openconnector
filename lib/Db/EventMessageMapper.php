@@ -1,4 +1,16 @@
 <?php
+/**
+ * OpenConnector - Connect your Nextcloud to external services
+ *
+ * This file is licensed under the Affero General Public License version 3 or
+ * later. See the COPYING file.
+ *
+ * @author Nextcloud <info@nextcloud.com>
+ * @copyright Nextcloud GmbH
+ * @license AGPL-3.0-or-later
+ *
+ * @see https://github.com/nextcloud/openconnector
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -14,28 +26,35 @@ use Symfony\Component\Uid\Uuid;
  * Handles database operations for event messages
  *
  * @package OCA\OpenConnector\Db
+ * @category Mapper
+ * @copyright Nextcloud GmbH
+ * @license AGPL-3.0-or-later
+ * @version 1.0.0
  */
 class EventMessageMapper extends QBMapper
 {
-
-
     /**
      * Constructor
      *
      * @param IDBConnection $db Database connection
+     * @psalm-param IDBConnection $db
+     * @phpstan-param IDBConnection $db
+     * @return void
      */
     public function __construct(IDBConnection $db)
     {
         parent::__construct($db, 'openconnector_event_messages');
-
     }//end __construct()
-
 
     /**
      * Find a message by ID
      *
-     * @param  int $id The message ID
+     * @param int $id The message ID
+     * @psalm-param int $id
+     * @phpstan-param int $id
      * @return EventMessage
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the message doesn't exist
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple messages match
      */
     public function find(int $id): EventMessage
     {
@@ -48,19 +67,25 @@ class EventMessageMapper extends QBMapper
             );
 
         return $this->findEntity($qb);
-
     }//end find()
-
 
     /**
      * Find all messages matching the given criteria
      *
-     * @param  int|null   $limit   Maximum number of results
-     * @param  int|null   $offset  Number of records to skip
-     * @param  array|null $filters Key-value pairs for filtering
+     * @param int|null $limit Maximum number of results
+     * @param int|null $offset Number of records to skip
+     * @param array|null $filters Key-value pairs for filtering
+     * @psalm-param int|null $limit
+     * @psalm-param int|null $offset
+     * @psalm-param array<string, mixed>|null $filters
+     * @phpstan-param int|null $limit
+     * @phpstan-param int|null $offset
+     * @phpstan-param array<string, mixed>|null $filters
      * @return EventMessage[]
+     * @psalm-return array<int, EventMessage>
+     * @phpstan-return array<int, EventMessage>
      */
-    public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[]): array
+    public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = []): array
     {
         $qb = $this->db->getQueryBuilder();
 
@@ -80,17 +105,19 @@ class EventMessageMapper extends QBMapper
         }
 
         return $this->findEntities($qb);
-
     }//end findAll()
-
 
     /**
      * Find messages that need to be retried
      *
-     * @param  int $maxRetries Maximum number of retry attempts
+     * @param int $maxRetries Maximum number of retry attempts
+     * @psalm-param int $maxRetries
+     * @phpstan-param int $maxRetries
      * @return EventMessage[]
+     * @psalm-return array<int, EventMessage>
+     * @phpstan-return array<int, EventMessage>
      */
-    public function findPendingRetries(int $maxRetries=5): array
+    public function findPendingRetries(int $maxRetries = 5): array
     {
         $qb = $this->db->getQueryBuilder();
 
@@ -106,14 +133,14 @@ class EventMessageMapper extends QBMapper
             );
 
         return $this->findEntities($qb);
-
     }//end findPendingRetries()
-
 
     /**
      * Create a new message from array data
      *
-     * @param  array $data Message data
+     * @param array $data Message data
+     * @psalm-param array<string, mixed> $data
+     * @phpstan-param array<string, mixed> $data
      * @return EventMessage
      */
     public function createFromArray(array $data): EventMessage
@@ -121,46 +148,54 @@ class EventMessageMapper extends QBMapper
         $obj = new EventMessage();
         $obj->hydrate($data);
 
-        // Set uuid
+        // Set uuid.
         if ($obj->getUuid() === null) {
             $obj->setUuid(Uuid::v4());
         }
 
-        // Set timestamps
+        // Set timestamps.
         $obj->setCreated(new DateTime());
         $obj->setUpdated(new DateTime());
 
         return $this->insert(entity: $obj);
-
     }//end createFromArray()
-
 
     /**
      * Update an existing message
      *
-     * @param  int   $id   Message ID
-     * @param  array $data Updated message data
+     * @param int $id Message ID
+     * @param array $data Updated message data
+     * @psalm-param int $id
+     * @psalm-param array<string, mixed> $data
+     * @phpstan-param int $id
+     * @phpstan-param array<string, mixed> $data
      * @return EventMessage
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the message doesn't exist
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple messages match
      */
     public function updateFromArray(int $id, array $data): EventMessage
     {
         $obj = $this->find($id);
         $obj->hydrate($data);
 
-        // Update timestamp
+        // Update timestamp.
         $obj->setUpdated(new DateTime());
 
         return $this->update($obj);
-
     }//end updateFromArray()
-
 
     /**
      * Mark a message as delivered
      *
-     * @param  int   $id       Message ID
-     * @param  array $response Response from the consumer
+     * @param int $id Message ID
+     * @param array $response Response from the consumer
+     * @psalm-param int $id
+     * @psalm-param array<string, mixed> $response
+     * @phpstan-param int $id
+     * @phpstan-param array<string, mixed> $response
      * @return EventMessage
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the message doesn't exist
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple messages match
      */
     public function markDelivered(int $id, array $response): EventMessage
     {
@@ -172,19 +207,25 @@ class EventMessageMapper extends QBMapper
                 'lastAttempt'  => new DateTime(),
             ]
         );
-
     }//end markDelivered()
-
 
     /**
      * Mark a message as failed
      *
-     * @param  int   $id             Message ID
-     * @param  array $response       Error response
-     * @param  int   $backoffMinutes Minutes to wait before next attempt
+     * @param int $id Message ID
+     * @param array $response Error response
+     * @param int $backoffMinutes Minutes to wait before next attempt
+     * @psalm-param int $id
+     * @psalm-param array<string, mixed> $response
+     * @psalm-param int $backoffMinutes
+     * @phpstan-param int $id
+     * @phpstan-param array<string, mixed> $response
+     * @phpstan-param int $backoffMinutes
      * @return EventMessage
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the message doesn't exist
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple messages match
      */
-    public function markFailed(int $id, array $response, int $backoffMinutes=5): EventMessage
+    public function markFailed(int $id, array $response, int $backoffMinutes = 5): EventMessage
     {
         $message = $this->find($id);
         $message->incrementRetry($backoffMinutes);
@@ -199,8 +240,5 @@ class EventMessageMapper extends QBMapper
                 'nextAttempt'  => $message->getNextAttempt(),
             ]
         );
-
     }//end markFailed()
-
-
 }//end class

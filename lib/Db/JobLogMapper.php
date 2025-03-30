@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector JobLog Mapper
+ *
+ * This file contains the mapper class for job log data in the OpenConnector
+ * application.
+ *
+ * @category  Mapper
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -12,10 +26,24 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * Class JobLogMapper
+ *
+ * Mapper class for handling JobLog entities.
+ *
+ * @package OCA\OpenConnector\Db
+ */
 class JobLogMapper extends QBMapper
 {
 
 
+    /**
+     * JobLogMapper constructor.
+     *
+     * @param IDBConnection $db The database connection
+     *
+     * @return void
+     */
     public function __construct(IDBConnection $db)
     {
         parent::__construct($db, 'openconnector_job_logs');
@@ -23,6 +51,15 @@ class JobLogMapper extends QBMapper
     }//end __construct()
 
 
+    /**
+     * Find a JobLog by its ID.
+     *
+     * @param integer $id The ID of the job log
+     *
+     * @return JobLog The found job log
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the job log is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one job log is found
+     */
     public function find(int $id): JobLog
     {
         $qb = $this->db->getQueryBuilder();
@@ -38,8 +75,24 @@ class JobLogMapper extends QBMapper
     }//end find()
 
 
-    public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[], ?array $searchConditions=[], ?array $searchParams=[]): array
-    {
+    /**
+     * Find all JobLogs with optional filtering and pagination.
+     *
+     * @param integer|null $limit            Maximum number of results to return
+     * @param integer|null $offset           Number of results to skip
+     * @param array|null   $filters          Associative array of filters
+     * @param array|null   $searchConditions Array of search conditions
+     * @param array|null   $searchParams     Array of search parameters
+     *
+     * @return array An array of JobLog entities
+     */
+    public function findAll(
+        ?int $limit=null,
+        ?int $offset=null,
+        ?array $filters=[],
+        ?array $searchConditions=[],
+        ?array $searchParams=[]
+    ): array {
         $qb = $this->db->getQueryBuilder();
 
         $qb->select('*')
@@ -69,6 +122,14 @@ class JobLogMapper extends QBMapper
     }//end findAll()
 
 
+    /**
+     * Create a JobLog for a specific Job.
+     *
+     * @param Job   $job    The job to create a log for
+     * @param array $object Additional log data
+     *
+     * @return JobLog The newly created JobLog entity
+     */
     public function createForJob(Job $job, array $object): JobLog
     {
         $jobObject = [
@@ -87,6 +148,13 @@ class JobLogMapper extends QBMapper
     }//end createForJob()
 
 
+    /**
+     * Create a new JobLog from an array of data.
+     *
+     * @param array $object An array of JobLog data
+     *
+     * @return JobLog The newly created JobLog entity
+     */
     public function createFromArray(array $object): JobLog
     {
         if (isset($object['executionTime']) === false) {
@@ -95,7 +163,7 @@ class JobLogMapper extends QBMapper
 
         $obj = new JobLog();
         $obj->hydrate($object);
-        // Set uuid
+        // Set uuid.
         if ($obj->getUuid() === null) {
             $obj->setUuid(Uuid::v4());
         }
@@ -105,6 +173,16 @@ class JobLogMapper extends QBMapper
     }//end createFromArray()
 
 
+    /**
+     * Update an existing JobLog from an array of data.
+     *
+     * @param integer $id     The ID of the JobLog to update
+     * @param array   $object An array of updated JobLog data
+     *
+     * @return JobLog The updated JobLog entity
+     * @throws \OCP\AppFramework\Db\DoesNotExistException If the job log is not found
+     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If more than one job log is found
+     */
     public function updateFromArray(int $id, array $object): JobLog
     {
         $obj = $this->find($id);
@@ -119,11 +197,11 @@ class JobLogMapper extends QBMapper
 
 
     /**
-     * Get the last call log.
+     * Get the last job log.
      *
-     * @return CallLog|null The last call log or null if no logs exist.
-     * @throws MultipleObjectsReturnedException
-     * @throws Exception
+     * @return JobLog|null The last job log or null if no logs exist
+     * @throws MultipleObjectsReturnedException If more than one job log matches the query
+     * @throws Exception If a database error occurs
      */
     public function getLastCallLog(): ?JobLog
     {
@@ -144,13 +222,13 @@ class JobLogMapper extends QBMapper
 
 
     /**
-     * Get job statistics grouped by date for a specific date range
+     * Get job statistics grouped by date for a specific date range.
      *
      * @param DateTime $from Start date
      * @param DateTime $to   End date
      *
      * @return array Array of daily statistics with counts per log level
-     * @throws Exception
+     * @throws Exception If a database error occurs
      */
     public function getJobStatsByDateRange(DateTime $from, DateTime $to): array
     {
@@ -172,14 +250,14 @@ class JobLogMapper extends QBMapper
         $result = $qb->execute();
         $stats  = [];
 
-        // Create DatePeriod to iterate through all dates
+        // Create DatePeriod to iterate through all dates.
         $period = new DatePeriod(
             $from,
             new DateInterval('P1D'),
             $to->modify('+1 day')
         );
 
-        // Initialize all dates with zero values
+        // Initialize all dates with zero values.
         foreach ($period as $date) {
             $dateStr         = $date->format('Y-m-d');
             $stats[$dateStr] = [
@@ -190,8 +268,8 @@ class JobLogMapper extends QBMapper
             ];
         }
 
-        // Fill in actual values where they exist
-        while ($row = $result->fetch()) {
+        // Fill in actual values where they exist.
+        while (($row = $result->fetch()) !== false) {
             $stats[$row['date']] = [
                 'info'    => (int) $row['info'],
                 'warning' => (int) $row['warning'],
@@ -206,13 +284,13 @@ class JobLogMapper extends QBMapper
 
 
     /**
-     * Get job statistics grouped by hour for a specific date range
+     * Get job statistics grouped by hour for a specific date range.
      *
      * @param DateTime $from Start date
      * @param DateTime $to   End date
      *
      * @return array Array of hourly statistics with counts per log level
-     * @throws Exception
+     * @throws Exception If a database error occurs
      */
     public function getJobStatsByHourRange(DateTime $from, DateTime $to): array
     {
@@ -234,7 +312,8 @@ class JobLogMapper extends QBMapper
         $result = $qb->execute();
         $stats  = [];
 
-        while ($row = $result->fetch()) {
+        // Fill in values from the query results.
+        while (($row = $result->fetch()) !== false) {
             $stats[$row['hour']] = [
                 'info'    => (int) $row['info'],
                 'warning' => (int) $row['warning'],

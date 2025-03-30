@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Event Entity
+ *
+ * This file contains the entity class for event data in the OpenConnector
+ * application.
+ *
+ * @category  Entity
+ * @package   OpenConnector
+ * @author    NextCloud Development Team <dev@nextcloud.com>
+ * @copyright 2023 NextCloud GmbH
+ * @license   AGPL-3.0 https://www.gnu.org/licenses/agpl-3.0.en.html
+ * @version   GIT: <git-id>
+ * @link      https://nextcloud.com
+ */
 
 namespace OCA\OpenConnector\Db;
 
@@ -7,113 +21,117 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * Entity class representing a CloudEvent
+ * Class Event
+ *
+ * Entity class representing a CloudEvent.
  *
  * This class implements the CloudEvents specification (https://cloudevents.io/)
  * for events generated when objects are updated in open registers.
+ *
+ * @package OCA\OpenConnector\Db
  */
 class Event extends Entity implements JsonSerializable
 {
 
-    // Required CloudEvent attributes
+    // Required CloudEvent attributes.
 
     /**
-     * Unique UUID identifier for the event
+     * Unique UUID identifier for the event.
      *
      * @var string|null
      */
     protected ?string $uuid = null;
 
     /**
-     * URI identifying the context where event happened
+     * URI identifying the context where event happened.
      *
      * @var string|null
      */
     protected ?string $source = null;
 
     /**
-     * Event type identifier
+     * Event type identifier.
      *
      * @var string|null
      */
     protected ?string $type = null;
 
     /**
-     * CloudEvents specification version
+     * CloudEvents specification version.
      *
      * @var string|null
      */
     protected ?string $specversion = '1.0';
 
     /**
-     * Timestamp of when the event occurred
+     * Timestamp of when the event occurred.
      *
      * @var DateTime|null
      */
     protected ?DateTime $time = null;
 
-    // Optional CloudEvent attributes
+    // Optional CloudEvent attributes.
 
     /**
-     * Content type of data
+     * Content type of data.
      *
      * @var string|null
      */
     protected ?string $datacontenttype = 'application/json';
 
     /**
-     * URI to the schema that data adheres to
+     * URI to the schema that data adheres to.
      *
      * @var string|null
      */
     protected ?string $dataschema = null;
 
     /**
-     * Subject of the event
+     * Subject of the event.
      *
      * @var string|null
      */
     protected ?string $subject = null;
 
     /**
-     * Event payload
+     * Event payload.
      *
      * @var array|null
      */
     protected ?array $data = [];
 
-    // Additional tracking fields
+    // Additional tracking fields.
 
     /**
-     * User who triggered the event
+     * User who triggered the event.
      *
      * @var string|null
      */
     protected ?string $userId = null;
 
     /**
-     * When the event was created in our system
+     * When the event was created in our system.
      *
      * @var DateTime|null
      */
     protected ?DateTime $created = null;
 
     /**
-     * When the event was last updated
+     * When the event was last updated.
      *
      * @var DateTime|null
      */
     protected ?DateTime $updated = null;
 
     /**
-     * When the event was processed
+     * When the event was processed.
      *
      * @var DateTime|null
      */
     protected ?DateTime $processed = null;
 
     /**
-     * Event processing status
+     * Event processing status.
      *
      * @var string|null
      */
@@ -121,7 +139,7 @@ class Event extends Entity implements JsonSerializable
 
 
     /**
-     * Get the event data payload
+     * Get the event data payload.
      *
      * @return array The event data or empty array if null
      */
@@ -133,7 +151,10 @@ class Event extends Entity implements JsonSerializable
 
 
     /**
-     * Constructor to set up data types for properties
+     * Event constructor.
+     * Initializes the field types for the Event entity.
+     *
+     * @return void
      */
     public function __construct()
     {
@@ -156,7 +177,7 @@ class Event extends Entity implements JsonSerializable
 
 
     /**
-     * Get fields that should be JSON encoded
+     * Get fields that should be JSON encoded.
      *
      * @return array<string> List of field names that are JSON type
      */
@@ -175,9 +196,10 @@ class Event extends Entity implements JsonSerializable
 
 
     /**
-     * Hydrate the entity from an array of data
+     * Hydrate the entity from an array of data.
      *
-     * @param  array<string,mixed> $object Data to hydrate from
+     * @param array<string,mixed> $object Data to hydrate from
+     *
      * @return self Returns the hydrated entity
      */
     public function hydrate(array $object): self
@@ -194,7 +216,7 @@ class Event extends Entity implements JsonSerializable
             try {
                 $this->$method($value);
             } catch (\Exception $exception) {
-                // Silent fail if property doesn't exist
+                // Error writing $key.
             }
         }
 
@@ -204,27 +226,47 @@ class Event extends Entity implements JsonSerializable
 
 
     /**
-     * Serialize the entity to JSON
+     * Serialize the entity to JSON.
      *
-     * @return array<string,mixed> JSON serializable array
+     * @return array<string,mixed> The serialized entity data
      */
     public function jsonSerialize(): array
     {
+        $time = null;
+        if (isset($this->time) === true) {
+            $time = $this->time->format('c');
+        }
+
+        $created = null;
+        if (isset($this->created) === true) {
+            $created = $this->created->format('c');
+        }
+
+        $updated = null;
+        if (isset($this->updated) === true) {
+            $updated = $this->updated->format('c');
+        }
+
+        $processed = null;
+        if (isset($this->processed) === true) {
+            $processed = $this->processed->format('c');
+        }
+
         return [
             'id'              => $this->id,
             'uuid'            => $this->uuid,
             'source'          => $this->source,
             'type'            => $this->type,
             'specversion'     => $this->specversion,
-            'time'            => isset($this->time) ? $this->time->format('c') : null,
+            'time'            => $time,
             'datacontenttype' => $this->datacontenttype,
             'dataschema'      => $this->dataschema,
             'subject'         => $this->subject,
             'data'            => $this->data,
             'userId'          => $this->userId,
-            'created'         => isset($this->created) ? $this->created->format('c') : null,
-            'updated'         => isset($this->updated) ? $this->updated->format('c') : null,
-            'processed'       => isset($this->processed) ? $this->processed->format('c') : null,
+            'created'         => $created,
+            'updated'         => $updated,
+            'processed'       => $processed,
             'status'          => $this->status,
         ];
 
