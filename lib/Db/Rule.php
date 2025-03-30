@@ -16,26 +16,95 @@ use OCP\AppFramework\Db\Entity;
 class Rule extends Entity implements JsonSerializable
 {
 
+    /**
+     * The unique identifier of the rule.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * The name of the rule.
+     *
+     * @var string|null
+     */
     protected ?string $name = null;
 
+    /**
+     * The description of the rule.
+     *
+     * @var string|null
+     */
     protected ?string $description = null;
 
+    /**
+     * The reference of the rule.
+     *
+     * @var string|null
+     */
     protected ?string $reference = null;
 
+    /**
+     * The version of the rule.
+     *
+     * @var string|null
+     */
     protected ?string $version = '0.0.0';
 
+    /**
+     * The action associated with the rule.
+     *
+     * @var string|null
+     */
     protected ?string $action = null;
 
-    // create, read, update, delete    protected ?string $timing = 'before';
-    // before or after    protected ?array $conditions = [];
-    // JSON Logic format conditions    protected ?string $type = null;
-    // mapping, error, script, synchronization    protected ?array $configuration = [];
-    // Type-specific configuration    protected int $order = 0;
-    // Order in which the rule should be applied    // Additional tracking fields
+    /**
+     * The timing of the rule: create, read, update, delete.
+     *
+     * @var string|null
+     */
+    protected ?string $timing = 'before';
+
+    /**
+     * The conditions in JSON Logic format.
+     *
+     * @var array|null
+     */
+    protected ?array $conditions = [];
+
+    /**
+     * The type of the rule: mapping, error, script, synchronization.
+     *
+     * @var string|null
+     */
+    protected ?string $type = null;
+
+    /**
+     * The type-specific configuration.
+     *
+     * @var array|null
+     */
+    protected ?array $configuration = [];
+
+    /**
+     * The order in which the rule should be applied.
+     *
+     * @var int
+     */
+    protected int $order = 0;
+
+    /**
+     * The date and time the rule was created.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $created = null;
 
+    /**
+     * The date and time the rule was last updated.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $updated = null;
 
 

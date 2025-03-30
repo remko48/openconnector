@@ -11,27 +11,81 @@ use OCP\AppFramework\Db\Entity;
  */
 class SynchronizationLog extends Entity implements JsonSerializable
 {
-
+    /**
+     * The unique identifier of the synchronization log entry.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * The message associated with the synchronization log entry.
+     *
+     * @var string|null
+     */
     protected ?string $message = null;
 
+    /**
+     * The ID of the synchronization associated with this log entry.
+     *
+     * @var string|null
+     */
     protected ?string $synchronizationId = null;
 
+    /**
+     * The result data of the synchronization.
+     *
+     * @var array|null
+     */
     protected ?array $result = [];
 
+    /**
+     * The ID of the user who initiated the synchronization.
+     *
+     * @var string|null
+     */
     protected ?string $userId = null;
 
+    /**
+     * The session ID associated with the synchronization.
+     *
+     * @var string|null
+     */
     protected ?string $sessionId = null;
 
+    /**
+     * Indicates if the synchronization was a test run.
+     *
+     * @var bool
+     */
     protected bool $test = false;
 
+    /**
+     * Indicates if the synchronization was forced.
+     *
+     * @var bool
+     */
     protected bool $force = false;
 
+    /**
+     * The execution time of the synchronization in seconds.
+     *
+     * @var int
+     */
     protected int $executionTime = 0;
 
+    /**
+     * The date and time the synchronization log entry was created.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $created = null;
 
+    /**
+     * The date and time the synchronization log entry expires.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $expires = null;
 
 

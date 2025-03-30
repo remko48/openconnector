@@ -14,54 +14,106 @@ use OCP\AppFramework\Db\Entity;
 class SynchronizationContract extends Entity implements JsonSerializable
 {
 
-    // @todo can be removed when migrations are merged
+
+    /**
+     * @var string|null The ID of the object in the source.
+     * @todo can be removed when migrations are merged
+     */
     protected ?string $sourceId = null;
 
-    // OLD The id of the object in the source
+    /**
+     * @var string|null The hash of the object in the source.
+     * @todo can be removed when migrations are merged
+     */
     protected ?string $sourceHash = null;
 
-    // OLD The hash of the object in the source    protected ?string $uuid = null;    protected ?string $version = null;    protected ?string $synchronizationId = null;    // The synchronization that this contract belongs to
+    /**
+     * @var string|null The unique identifier of the synchronization contract.
+     */
+    protected ?string $uuid = null;
+
+    /**
+     * @var string|null The version of the synchronization.
+     */
+    protected ?string $version = null;
+
+    /**
+     * @var string|null The ID of the synchronization that this contract belongs to.
+     */
+    protected ?string $synchronizationId = null;
+
     // Source
+
+    /**
+     * @var string|null The ID of the object in the source.
+     */
     protected ?string $originId = null;
 
-    // The id of the object in the source
+    /**
+     * @var string|null The hash of the object in the source.
+     */
     protected ?string $originHash = null;
 
-    // The hash of the object in the source
+    /**
+     * @var DateTime|null The last changed date of the object in the source.
+     */
     protected ?DateTime $sourceLastChanged = null;
 
-    // The last changed date of the object in the source
+    /**
+     * @var DateTime|null The last checked date of the object in the source.
+     */
     protected ?DateTime $sourceLastChecked = null;
 
-    // The last checked date of the object in the source
+    /**
+     * @var DateTime|null The last synced date of the object in the source.
+     */
     protected ?DateTime $sourceLastSynced = null;
 
-    // The last synced date of the object in the source
     // Target
+
+    /**
+     * @var string|null The ID of the object in the target.
+     */
     protected ?string $targetId = null;
 
-    // The id of the object in the target
+    /**
+     * @var string|null The hash of the object in the target.
+     */
     protected ?string $targetHash = null;
 
-    // The hash of the object in the target
+    /**
+     * @var DateTime|null The last changed date of the object in the target.
+     */
     protected ?DateTime $targetLastChanged = null;
 
-    // The last changed date of the object in the target
+    /**
+     * @var DateTime|null The last checked date of the object in the target.
+     */
     protected ?DateTime $targetLastChecked = null;
 
-    // The last checked date of the object in the target
+    /**
+     * @var DateTime|null The last synced date of the object in the target.
+     */
     protected ?DateTime $targetLastSynced = null;
 
-    // The last synced date of the object in the target
+    /**
+     * @var string|null The last CRUD action performed on the target (create, read, update, delete).
+     */
     protected ?string $targetLastAction = null;
 
-    // The last CRUD action performed on the target (create, read, update, delete)
     // General
+
+    /**
+     * @var DateTime|null The date and time the synchronization was created.
+     */
     protected ?DateTime $created = null;
 
-    // the date and time the synchronization was created
+    /**
+     * @var DateTime|null The date and time the synchronization was last updated.
+     */
     protected ?DateTime $updated = null;
-    // the date and time the synchronization was updated    public function __construct()
+    
+    public function __construct()
     {
         $this->addType('uuid', 'string');
         $this->addType('version', 'string');

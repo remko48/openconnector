@@ -9,83 +9,207 @@ use OCP\AppFramework\Db\Entity;
 class Synchronization extends Entity implements JsonSerializable
 {
 
+    /**
+     * The unique identifier of the synchronization.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * The name of the synchronization.
+     *
+     * @var string|null
+     */
     protected ?string $name = null;
 
-    // The name of the synchronization
+    /**
+     * The description of the synchronization.
+     *
+     * @var string|null
+     */
     protected ?string $description = null;
 
-    // The description of the synchronization
+    /**
+     * The reference of the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $reference = null;
 
-    // The reference of the endpoint
+    /**
+     * The version of the synchronization.
+     *
+     * @var string|null
+     */
     protected ?string $version = '0.0.0';
 
-    // The version of the synchronization
     // Source
+
+    /**
+     * The ID of the source object.
+     *
+     * @var string|null
+     */
     protected ?string $sourceId = null;
 
-    // The id of the source object
+    /**
+     * The type of the source object (e.g., API, database, register/schema).
+     *
+     * @var string|null
+     */
     protected ?string $sourceType = null;
 
-    // The type of the source object (e.g. api, database, register/schema.)
+    /**
+     * The hash of the source object when it was last synced.
+     *
+     * @var string|null
+     */
     protected ?string $sourceHash = null;
 
-    // The hash of the source object when it was last synced.
+    /**
+     * The mapping ID of the mapping that we map the object to for hashing.
+     *
+     * @var string|null
+     */
     protected ?string $sourceHashMapping = null;
 
-    // The mapping id of the mapping that we map the object to for hashing.
+    /**
+     * The mapping of the source object to the target object.
+     *
+     * @var string|null
+     */
     protected ?string $sourceTargetMapping = null;
 
-    // The mapping of the source object to the target object
+    /**
+     * The configuration of the object in the source.
+     *
+     * @var array
+     */
     protected ?array $sourceConfig = [];
 
-    // The configuration of the object in the source
+    /**
+     * The last changed date of the source object.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $sourceLastChanged = null;
 
-    // The last changed date of the source object
+    /**
+     * The last checked date of the source object.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $sourceLastChecked = null;
 
-    // The last checked date of the source object
+    /**
+     * The last synced date of the source object.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $sourceLastSynced = null;
 
-    // The last synced date of the source object
+    /**
+     * The last page synced. Used for keeping track of where to continue syncing after the rate limit has been exceeded on the source with pagination.
+     *
+     * @var int
+     */
     protected ?int $currentPage = 1;
 
-    // The last page synced. Used for keeping track where to continue syncing after Rate Limit has been exceeded on source with pagination.
     // Target
+
+    /**
+     * The ID of the target object.
+     *
+     * @var string|null
+     */
     protected ?string $targetId = null;
 
-    // The id of the target object
+    /**
+     * The type of the target object (e.g., API, database, register/schema).
+     *
+     * @var string|null
+     */
     protected ?string $targetType = null;
 
-    // The type of the target object (e.g. api, database, register/schema.)
+    /**
+     * The hash of the target object.
+     *
+     * @var string|null
+     */
     protected ?string $targetHash = null;
 
-    // The hash of the target object
+    /**
+     * The mapping of the target object to the source object.
+     *
+     * @var string|null
+     */
     protected ?string $targetSourceMapping = null;
 
-    // The mapping of the target object to the source object
+    /**
+     * The configuration of the object in the target.
+     *
+     * @var array
+     */
     protected ?array $targetConfig = [];
 
-    // The configuration of the object in the target
+    /**
+     * The last changed date of the target object.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $targetLastChanged = null;
 
-    // The last changed date of the target object
+    /**
+     * The last checked date of the target object.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $targetLastChecked = null;
 
-    // The last checked date of the target object
+    /**
+     * The last synced date of the target object.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $targetLastSynced = null;
 
-    // The last synced date of the target object
     // General
+
+    /**
+     * The date and time the synchronization was created.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $created = null;
 
-    // The date and time the synchronization was created
+    /**
+     * The date and time the synchronization was updated.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $updated = null;
 
-    // The date and time the synchronization was updated    protected array $conditions = [];    protected array $followUps = [];    protected array $actions = [];
+    /**
+     * The conditions for synchronization.
+     *
+     * @var array
+     */
+    protected array $conditions = [];
+
+    /**
+     * The follow-up actions after synchronization.
+     *
+     * @var array
+     */
+    protected array $followUps = [];
+
+    /**
+     * The actions to be performed during synchronization.
+     *
+     * @var array
+     */
+    protected array $actions = [];
 
 
     /**

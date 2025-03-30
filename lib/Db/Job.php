@@ -9,66 +9,71 @@ use OCP\AppFramework\Db\Entity;
 class Job extends Entity implements JsonSerializable
 {
 
+    // The unique identifier of the job
     protected ?string $uuid = null;
 
+    // The name of the job
     protected ?string $name = null;
 
+    // The description of the job
     protected ?string $description = null;
 
+    // The reference of the job
     protected ?string $reference = null;
 
-    // The reference of the Job
+    // The version of the job
     protected ?string $version = '0.0.0';
 
-    // The version of the Job
+    // The class responsible for executing the job
     protected ?string $jobClass = 'OCA\OpenConnector\Action\PingAction';
 
+    // The arguments to be passed to the job
     protected ?array $arguments = null;
 
+    // The interval in seconds between job executions
     protected ?int $interval = 3600;
 
-    // seconds in an hour
+    // The maximum execution time in seconds
     protected ?int $executionTime = 3600;
 
-    // maximum execution time in seconds
+    // Indicates if the job is time-sensitive and should be executed even under heavy load
     protected ?bool $timeSensitive = true;
 
-    // if the job is time sensitive and should be executed even if the server is under heavy load
+    // Indicates if the job can be executed in parallel
     protected ?bool $allowParallelRuns = false;
 
-    // if the job can be executed in parallel
+    // Indicates if the job is enabled
     protected ?bool $isEnabled = true;
 
-    // if the job is enabled
+    // Indicates if the job will only run once and then disable itself
     protected ?bool $singleRun = false;
 
-    // if set, the job will only run once and then disable itself
+    // The date and time after which the job should be executed
     protected ?DateTime $scheduleAfter = null;
 
-    // if the job should be executed after a certain date and time
+    // The user for whom the job is running, for security reasons
     protected ?string $userId = null;
 
-    // the user which the job is running for security reasons
+    // The ID of the job in the job list
     protected ?string $jobListId = null;
 
-    // the id of the job in the job list
+    // The duration in seconds to retain all logs
     protected ?int $logRetention = 3600;
 
-    // seconds to save all logs
+    // The duration in seconds to retain error logs
     protected ?int $errorRetention = 86400;
 
-    // seconds to save error logs
+    // The last time the job was run
     protected ?DateTime $lastRun = null;
 
-    // the last time the job was run
+    // The next scheduled time for the job to run
     protected ?DateTime $nextRun = null;
 
-    // the next time the job will be run
+    // The date and time the job was created
     protected ?DateTime $created = null;
 
-    // the date and time the job was created
+    // The date and time the job was last updated
     protected ?DateTime $updated = null;
-    // the date and time the job was updated
 
 
     /**

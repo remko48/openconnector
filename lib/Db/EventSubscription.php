@@ -30,35 +30,109 @@ use OCP\AppFramework\Db\Entity;
  */
 class EventSubscription extends Entity implements JsonSerializable
 {
-
+    /**
+     * Unique identifier for the subscription.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * Reference identifier for the subscription.
+     *
+     * @var string|null
+     */
     protected ?string $reference = null;
 
+    /**
+     * Version of the subscription.
+     *
+     * @var string|null
+     */
     protected ?string $version = '0.0.0';
 
+    /**
+     * URI identifying the context where events originate.
+     *
+     * @var string|null
+     */
     protected ?string $source = null;
 
+    /**
+     * Array of CloudEvent type values to subscribe to.
+     *
+     * @var array|null
+     */
     protected ?array $types = [];
 
+    /**
+     * Subscription manager specific configuration.
+     *
+     * @var array|null
+     */
     protected ?array $config = [];
 
+    /**
+     * Array of filter expressions for event matching.
+     *
+     * @var array|null
+     */
     protected ?array $filters = [];
 
+    /**
+     * URI where events should be delivered.
+     *
+     * @var string|null
+     */
     protected ?string $sink = null;
 
+    /**
+     * Delivery protocol (HTTP, MQTT, AMQP, etc.).
+     *
+     * @var string|null
+     */
     protected ?string $protocol = null;
 
+    /**
+     * Protocol-specific settings.
+     *
+     * @var array|null
+     */
     protected ?array $protocolSettings = [];
 
+    /**
+     * Delivery style ('push' or 'pull').
+     *
+     * @var string|null
+     */
     protected ?string $style = 'push';
 
+    /**
+     * Subscription status.
+     *
+     * @var string|null
+     */
     protected ?string $status = 'active';
 
+    /**
+     * Owner of the subscription.
+     *
+     * @var string|null
+     */
     protected ?string $userId = null;
 
+    /**
+     * Creation timestamp.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $created = null;
 
+    /**
+     * Last update timestamp.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $updated = null;
 
 

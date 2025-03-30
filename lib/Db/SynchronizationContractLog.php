@@ -13,25 +13,103 @@ use OCP\AppFramework\Db\Entity;
  */
 class SynchronizationContractLog extends Entity implements JsonSerializable
 {
-
+    /**
+     * The unique identifier of the synchronization contract log entry.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * The message associated with the synchronization contract log entry.
+     *
+     * @var string|null
+     */
     protected ?string $message = null;
 
+    /**
+     * The ID of the synchronization associated with this log entry.
+     *
+     * @var string|null
+     */
     protected ?string $synchronizationId = null;
 
+    /**
+     * The ID of the synchronization contract associated with this log entry.
+     *
+     * @var string|null
+     */
     protected ?string $synchronizationContractId = null;
 
+    /**
+     * The ID of the synchronization log associated with this log entry.
+     *
+     * @var string|null
+     */
     protected ?string $synchronizationLogId = null;
 
+    /**
+     * The source data of the synchronization.
+     *
+     * @var array|null
+     */
     protected ?array $source = [];
 
+    /**
+     * The target data of the synchronization.
+     *
+     * @var array|null
+     */
     protected ?array $target = [];
 
+    /**
+     * The result data of the target.
+     *
+     * @var string|null
+     */
     protected ?string $targetResult = null;
 
-    // CRUD action taken on target (create/read/update/delete)    protected ?string $userId = null;    protected ?string $sessionId = null;    protected ?bool $test = false;    protected ?bool $force = false;    protected ?DateTime $expires = null;    protected ?DateTime $created = null;
+    /**
+     * The ID of the user who initiated the synchronization.
+     *
+     * @var string|null
+     */
+    protected ?string $userId = null;
 
+    /**
+     * The session ID associated with the synchronization.
+     *
+     * @var string|null
+     */
+    protected ?string $sessionId = null;
+
+    /**
+     * Indicates if the synchronization was a test run.
+     *
+     * @var bool|null
+     */
+    protected ?bool $test = false;
+
+    /**
+     * Indicates if the synchronization was forced.
+     *
+     * @var bool|null
+     */
+    protected ?bool $force = false;
+
+    /**
+     * The expiration date and time of the synchronization contract log entry.
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $expires = null;
+
+    /**
+     * The date and time the synchronization contract log entry was created.
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $created = null;
 
     /**
      * Get the source data

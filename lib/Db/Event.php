@@ -16,25 +16,108 @@ class Event extends Entity implements JsonSerializable
 {
 
     // Required CloudEvent attributes
+
+    /**
+     * Unique UUID identifier for the event
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
-    // Unique UUID identifier for the event    protected ?string $source = null;
-    // URI identifying the context where event happened    protected ?string $type = null;
-    // Event type identifier    protected ?string $specversion = '1.0';
-    // CloudEvents specification version    protected ?DateTime $time = null;
-    // Timestamp of when the event occurred    // Optional CloudEvent attributes
+    /**
+     * URI identifying the context where event happened
+     *
+     * @var string|null
+     */
+    protected ?string $source = null;
+
+    /**
+     * Event type identifier
+     *
+     * @var string|null
+     */
+    protected ?string $type = null;
+
+    /**
+     * CloudEvents specification version
+     *
+     * @var string|null
+     */
+    protected ?string $specversion = '1.0';
+
+    /**
+     * Timestamp of when the event occurred
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $time = null;
+
+    // Optional CloudEvent attributes
+
+    /**
+     * Content type of data
+     *
+     * @var string|null
+     */
     protected ?string $datacontenttype = 'application/json';
 
-    // Content type of data    protected ?string $dataschema = null;
-    // URI to the schema that data adheres to    protected ?string $subject = null;
-    // Subject of the event    protected ?array $data = [];
-    // Event payload    // Additional tracking fields
+    /**
+     * URI to the schema that data adheres to
+     *
+     * @var string|null
+     */
+    protected ?string $dataschema = null;
+
+    /**
+     * Subject of the event
+     *
+     * @var string|null
+     */
+    protected ?string $subject = null;
+
+    /**
+     * Event payload
+     *
+     * @var array|null
+     */
+    protected ?array $data = [];
+
+    // Additional tracking fields
+
+    /**
+     * User who triggered the event
+     *
+     * @var string|null
+     */
     protected ?string $userId = null;
-    // User who triggered the event    protected ?DateTime $created = null;
-    // When the event was created in our system    protected ?DateTime $updated = null;
-    // When the event was last updated    protected ?DateTime $processed = null;
-    // When the event was processed    protected ?string $status = 'pending';
-    // Event processing status
+
+    /**
+     * When the event was created in our system
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $created = null;
+
+    /**
+     * When the event was last updated
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $updated = null;
+
+    /**
+     * When the event was processed
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $processed = null;
+
+    /**
+     * Event processing status
+     *
+     * @var string|null
+     */
+    protected ?string $status = 'pending';
 
 
     /**

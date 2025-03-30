@@ -17,19 +17,89 @@ use OCP\AppFramework\Db\Entity;
 class EventMessage extends Entity implements JsonSerializable
 {
 
+    /**
+     * Unique identifier for the message.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
-    // Unique identifier for the message    protected ?int $eventId = null;
-    // Reference to the original event    protected ?int $consumerId = null;
-    // Reference to the consumer    protected ?int $subscriptionId = null;
-    // Reference to the subscription    protected ?string $status = 'pending';
-    // Current status of the message (pending, delivered, failed)    protected ?array $payload = null;
-    // The actual message payload to be delivered    protected ?array $lastResponse = null;
-    // The last response received from the consumer    protected int $retryCount = 0;
-    // Number of delivery attempts    protected ?DateTime $lastAttempt = null;
-    // Timestamp of the last delivery attempt    protected ?DateTime $nextAttempt = null;
-    // Scheduled time for next attempt    protected ?DateTime $created = null;
-    // Creation timestamp    protected ?DateTime $updated = null;
-    // Last update timestamp
+
+    /**
+     * Reference to the original event.
+     *
+     * @var int|null
+     */
+    protected ?int $eventId = null;
+
+    /**
+     * Reference to the consumer.
+     *
+     * @var int|null
+     */
+    protected ?int $consumerId = null;
+
+    /**
+     * Reference to the subscription.
+     *
+     * @var int|null
+     */
+    protected ?int $subscriptionId = null;
+
+    /**
+     * Current status of the message (pending, delivered, failed).
+     *
+     * @var string|null
+     */
+    protected ?string $status = 'pending';
+
+    /**
+     * The actual message payload to be delivered.
+     *
+     * @var array|null
+     */
+    protected ?array $payload = null;
+
+    /**
+     * The last response received from the consumer.
+     *
+     * @var array|null
+     */
+    protected ?array $lastResponse = null;
+
+    /**
+     * Number of delivery attempts.
+     *
+     * @var int
+     */
+    protected int $retryCount = 0;
+
+    /**
+     * Timestamp of the last delivery attempt.
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $lastAttempt = null;
+
+    /**
+     * Scheduled time for next attempt.
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $nextAttempt = null;
+
+    /**
+     * Creation timestamp.
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $created = null;
+
+    /**
+     * Last update timestamp.
+     *
+     * @var DateTime|null
+     */
+    protected ?DateTime $updated = null;
 
 
     /**

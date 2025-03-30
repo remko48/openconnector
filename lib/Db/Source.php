@@ -9,92 +9,291 @@ use OCP\AppFramework\Db\Entity;
 class Source extends Entity implements JsonSerializable
 {
 
+    /**
+     * The unique identifier of the source.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * The name of the source.
+     *
+     * @var string|null
+     */
     protected ?string $name = null;
 
+    /**
+     * The description of the source.
+     *
+     * @var string|null
+     */
     protected ?string $description = null;
 
+    /**
+     * The reference identifier for the source.
+     *
+     * @var string|null
+     */
     protected ?string $reference = null;
 
+    /**
+     * The version of the source.
+     *
+     * @var string|null
+     */
     protected ?string $version = '0.0.0';
 
+    /**
+     * The location of the source.
+     *
+     * @var string|null
+     */
     protected ?string $location = null;
 
+    /**
+     * Indicates if the source is enabled.
+     *
+     * @var bool|null
+     */
     protected ?bool $isEnabled = null;
 
+    /**
+     * The type of the source.
+     *
+     * @var string|null
+     */
     protected ?string $type = null;
 
+    /**
+     * The authorization header for the source.
+     *
+     * @var string|null
+     */
     protected ?string $authorizationHeader = null;
 
+    /**
+     * The authentication method for the source.
+     *
+     * @var string|null
+     */
     protected ?string $auth = null;
 
+    /**
+     * The authentication configuration for the source.
+     *
+     * @var array|null
+     */
     protected ?array $authenticationConfig = [];
 
+    /**
+     * The method for authorization passthrough.
+     *
+     * @var string|null
+     */
     protected ?string $authorizationPassthroughMethod = null;
 
+    /**
+     * The locale setting for the source.
+     *
+     * @var string|null
+     */
     protected ?string $locale = null;
 
+    /**
+     * The accept header for the source.
+     *
+     * @var string|null
+     */
     protected ?string $accept = null;
 
+    /**
+     * The JSON Web Token (JWT) for the source.
+     *
+     * @var string|null
+     */
     protected ?string $jwt = null;
 
+    /**
+     * The identifier for the JWT.
+     *
+     * @var string|null
+     */
     protected ?string $jwtId = null;
 
+    /**
+     * The secret key for the source.
+     *
+     * @var string|null
+     */
     protected ?string $secret = null;
 
+    /**
+     * The username for authentication.
+     *
+     * @var string|null
+     */
     protected ?string $username = null;
 
+    /**
+     * The password for authentication.
+     *
+     * @var string|null
+     */
     protected ?string $password = null;
 
+    /**
+     * The API key for the source.
+     *
+     * @var string|null
+     */
     protected ?string $apikey = null;
 
+    /**
+     * The documentation URL or content for the source.
+     *
+     * @var string|null
+     */
     protected ?string $documentation = null;
 
+    /**
+     * The logging configuration for the source.
+     *
+     * @var array|null
+     */
     protected ?array $loggingConfig = [];
 
+    /**
+     * The OpenAPI Specification (OAS) for the source.
+     *
+     * @var string|null
+     */
     protected ?string $oas = null;
 
+    /**
+     * The paths configuration for the source.
+     *
+     * @var array|null
+     */
     protected ?array $paths = [];
 
+    /**
+     * The headers configuration for the source.
+     *
+     * @var array|null
+     */
     protected ?array $headers = [];
 
+    /**
+     * The translation configuration for the source.
+     *
+     * @var array|null
+     */
     protected ?array $translationConfig = [];
 
+    /**
+     * The general configuration for the source.
+     *
+     * @var array|null
+     */
     protected ?array $configuration = [];
 
+    /**
+     * The endpoints configuration for the source.
+     *
+     * @var array|null
+     */
     protected ?array $endpointsConfig = [];
 
+    /**
+     * The status of the source.
+     *
+     * @var string|null
+     */
     protected ?string $status = null;
 
+    /**
+     * The duration in seconds to retain all logs.
+     *
+     * @var int
+     */
     protected ?int $logRetention = 3600;
 
-    // seconds to save all logs
+    /**
+     * The duration in seconds to retain error logs.
+     *
+     * @var int
+     */
     protected ?int $errorRetention = 86400;
 
-    // seconds to save error logs
+    /**
+     * The count of objects associated with the source.
+     *
+     * @var int|null
+     */
     protected ?int $objectCount = null;
 
+    /**
+     * Indicates if the source is in test mode.
+     *
+     * @var bool|null
+     */
     protected ?bool $test = null;
 
+    /**
+     * The total number of allowed requests within a specific time period.
+     *
+     * @var int|null
+     */
     protected ?int $rateLimitLimit = null;
 
-    // Indicates the total number of allowed requests within a specific time period.
+    /**
+     * Specifies how many requests are still allowed within the current limit.
+     *
+     * @var int|null
+     */
     protected ?int $rateLimitRemaining = null;
 
-    // Specifies how many requests are still allowed within the current limit.
+    /**
+     * A Unix Time Stamp that indicates when the rate limit will be reset.
+     *
+     * @var int|null
+     */
     protected ?int $rateLimitReset = null;
 
-    // A Unix Time Stamp that indicates when the rate limit will be reset.
+    /**
+     * Indicates how many seconds the client must wait before making new requests.
+     *
+     * @var int|null
+     */
     protected ?int $rateLimitWindow = null;
 
-    // Indicates how many seconds the client must wait before making new requests.
+    /**
+     * The date and time of the last call made to the source.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $lastCall = null;
 
+    /**
+     * The date and time of the last synchronization with the source.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $lastSync = null;
 
+    /**
+     * The date and time the source was created.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $dateCreated = null;
 
+    /**
+     * The date and time the source was last modified.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $dateModified = null;
 
 

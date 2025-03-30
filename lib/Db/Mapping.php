@@ -9,26 +9,81 @@ use OCP\AppFramework\Db\Entity;
 class Mapping extends Entity implements JsonSerializable
 {
 
+    /**
+     * The unique identifier of the mapping.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * The reference identifier for the mapping.
+     *
+     * @var string|null
+     */
     protected ?string $reference = null;
 
+    /**
+     * The version of the mapping.
+     *
+     * @var string|null
+     */
     protected ?string $version = '0.0.0';
 
+    /**
+     * The name of the mapping.
+     *
+     * @var string|null
+     */
     protected ?string $name = null;
 
+    /**
+     * The description of the mapping.
+     *
+     * @var string|null
+     */
     protected ?string $description = null;
 
+    /**
+     * The mapping configuration.
+     *
+     * @var array|null
+     */
     protected ?array $mapping = [];
 
+    /**
+     * The unset configuration.
+     *
+     * @var array|null
+     */
     protected ?array $unset = [];
 
+    /**
+     * The cast configuration.
+     *
+     * @var array|null
+     */
     protected ?array $cast = [];
 
+    /**
+     * Indicates if the mapping is a pass-through.
+     *
+     * @var bool|null
+     */
     protected ?bool $passThrough = null;
 
+    /**
+     * The date and time the mapping was created.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $dateCreated = null;
 
+    /**
+     * The date and time the mapping was last modified.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $dateModified = null;
 
 

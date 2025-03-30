@@ -16,51 +16,127 @@ use OCP\AppFramework\Db\Entity;
 class Endpoint extends Entity implements JsonSerializable
 {
 
+    /**
+     * Unique identifier for the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $uuid = null;
 
+    /**
+     * The name of the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $name = null;
 
-    // The name of the endpoint
+    /**
+     * The description of the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $description = null;
 
-    // The description of the endpoint
+    /**
+     * The reference of the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $reference = null;
 
-    // The reference of the endpoint
+    /**
+     * The version of the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $version = '0.0.0';
 
-    // The version of the endpoint
+    /**
+     * The actual endpoint, e.g., /api/buildings/{{id}}. An endpoint may contain parameters, e.g., {{id}}.
+     *
+     * @var string|null
+     */
     protected ?string $endpoint = null;
 
-    // The actual endpoint e.g /api/buildings/{{id}}. An endpoint may contain parameters e.g {{id}}
+    /**
+     * An array representation of the endpoint. Automatically generated.
+     *
+     * @var array|null
+     */
     protected ?array $endpointArray = [];
 
-    // An array representation of the endpoint. Automatically generated
+    /**
+     * A regex representation of the endpoint. Automatically generated.
+     *
+     * @var string|null
+     */
     protected ?string $endpointRegex = null;
 
-    // A regex representation of the endpoint. Automatically generated
+    /**
+     * HTTP method for the endpoint. One of GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD.
+     * Method and endpoint combination should be unique.
+     *
+     * @var string|null
+     */
     protected ?string $method = null;
 
-    // One of GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD. method and endpoint combination should be unique
+    /**
+     * The target to attach this endpoint to. Should be one of source (to create a proxy endpoint),
+     * register/schema (to create an object endpoint), job (to fire an event), or synchronization
+     * (to create a synchronization endpoint).
+     *
+     * @var string|null
+     */
     protected ?string $targetType = null;
 
-    // The target to attach this endpoint to, should be one of source (to create a proxy endpoint) or register/schema (to create an object endpoint) or job (to fire an event) or synchronization (to create a synchronization endpoint)
+    /**
+     * The target id to attach this endpoint to.
+     *
+     * @var string|null
+     */
     protected ?string $targetId = null;
 
-    // The target id to attach this endpoint to
+    /**
+     * Array of conditions to be applied.
+     *
+     * @var array|null
+     */
     protected ?array $conditions = [];
 
-    // Array of conditions to be applied
+    /**
+     * Creation timestamp of the endpoint.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $created = null;
 
+    /**
+     * Last update timestamp of the endpoint.
+     *
+     * @var DateTime|null
+     */
     protected ?DateTime $updated = null;
 
+    /**
+     * Input mapping configuration for the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $inputMapping = null;
 
+    /**
+     * Output mapping configuration for the endpoint.
+     *
+     * @var string|null
+     */
     protected ?string $outputMapping = null;
 
+    /**
+     * Array of rules to be applied.
+     *
+     * @var array|null
+     */
     protected ?array $rules = [];
-    // Array of rules to be applied
 
 
     /**
