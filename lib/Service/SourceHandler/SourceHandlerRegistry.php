@@ -38,12 +38,14 @@ use Exception;
  */
 class SourceHandlerRegistry
 {
+
     /**
      * Array of registered source handlers.
      *
      * @var SourceHandlerInterface[]
      */
     private array $handlers = [];
+
 
     /**
      * Constructor.
@@ -56,7 +58,9 @@ class SourceHandlerRegistry
         $this->registerHandler(new JsonApiHandler($callService));
         $this->registerHandler(new XmlHandler($callService));
         $this->registerHandler(new SoapHandler($callService));
-    }
+
+    }//end __construct()
+
 
     /**
      * Registers a source handler.
@@ -68,7 +72,9 @@ class SourceHandlerRegistry
     public function registerHandler(SourceHandlerInterface $handler): void
     {
         $this->handlers[] = $handler;
-    }
+
+    }//end registerHandler()
+
 
     /**
      * Gets the appropriate handler for a source type.
@@ -91,7 +97,9 @@ class SourceHandlerRegistry
         }
 
         throw new Exception("No suitable handler found for source type: $sourceType");
-    }
+
+    }//end getHandler()
+
 
     /**
      * Gets all objects from a source using the appropriate handler.
@@ -107,21 +115,21 @@ class SourceHandlerRegistry
      *
      * @throws Exception If there is an error fetching the objects
      *
-     * @phpstan-param array<string, mixed> $config
-     * @phpstan-param array<string, string> $headers
-     * @phpstan-param array<string, mixed> $query
+     * @phpstan-param  array<string, mixed> $config
+     * @phpstan-param  array<string, string> $headers
+     * @phpstan-param  array<string, mixed> $query
      * @phpstan-return array<mixed>
      */
     public function getAllObjects(
         Source $source,
         array $config,
-        bool $isTest = false,
-        int $currentPage = 1,
-        array $headers = [],
-        array $query = []
+        bool $isTest=false,
+        int $currentPage=1,
+        array $headers=[],
+        array $query=[]
     ): array {
         $handler = $this->getHandler($source->getType());
-        
+
         return $handler->getAllObjects(
             source: $source,
             config: $config,
@@ -130,7 +138,9 @@ class SourceHandlerRegistry
             headers: $headers,
             query: $query
         );
-    }
+
+    }//end getAllObjects()
+
 
     /**
      * Gets a single object from a source using the appropriate handler.
@@ -145,20 +155,20 @@ class SourceHandlerRegistry
      *
      * @throws Exception If there is an error fetching the object
      *
-     * @phpstan-param array<string, mixed> $config
-     * @phpstan-param array<string, string> $headers
-     * @phpstan-param array<string, mixed> $query
+     * @phpstan-param  array<string, mixed> $config
+     * @phpstan-param  array<string, string> $headers
+     * @phpstan-param  array<string, mixed> $query
      * @phpstan-return array<mixed>
      */
     public function getObject(
         Source $source,
         string $endpoint,
         array $config,
-        array $headers = [],
-        array $query = []
+        array $headers=[],
+        array $query=[]
     ): array {
         $handler = $this->getHandler($source->getType());
-        
+
         return $handler->getObject(
             source: $source,
             endpoint: $endpoint,
@@ -166,5 +176,8 @@ class SourceHandlerRegistry
             headers: $headers,
             query: $query
         );
-    }
-}
+
+    }//end getObject()
+
+
+}//end class

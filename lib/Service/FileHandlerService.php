@@ -116,7 +116,8 @@ class FileHandlerService
         $this->containerInterface = $containerInterface;
         $this->systemTagManager   = $systemTagManager;
         $this->systemTagMapper    = $systemTagMapper;
-    }
+
+    }//end __construct()
 
 
     /**
@@ -155,7 +156,8 @@ class FileHandlerService
         }
 
         return $file;
-    }
+
+    }//end writeFile()
 
 
     /**
@@ -185,8 +187,8 @@ class FileHandlerService
         string $endpoint,
         array $config,
         string $objectId,
-        ?array $tags = [],
-        ?string $filename = null
+        ?array $tags=[],
+        ?string $filename=null
     ): string {
         $originalEndpoint = $endpoint;
 
@@ -231,7 +233,8 @@ class FileHandlerService
         }
 
         return $originalEndpoint;
-    }
+
+    }//end fetchFile()
 
 
     /**
@@ -245,8 +248,7 @@ class FileHandlerService
     public function getFilenameFromHeaders(array $response, CallLog $result): ?string
     {
         // Try Content-Disposition header first
-        if (
-            isset($response['headers']['Content-Disposition'])
+        if (isset($response['headers']['Content-Disposition'])
             && str_contains($response['headers']['Content-Disposition'][0], 'filename')
         ) {
             $explodedContentDisposition = explode(
@@ -262,25 +264,23 @@ class FileHandlerService
         $filename  = end($path);
 
         // Add extension from content type if missing
-        if (
-            count(explode('.', $filename)) === 1
+        if (count(explode('.', $filename)) === 1
             && (isset($response['headers']['Content-Type'])
             || isset($response['headers']['content-type']))
         ) {
-            $contentType = isset($response['headers']['Content-Type'])
-                ? $response['headers']['Content-Type'][0]
-                : $response['headers']['content-type'][0];
+            $contentType = isset($response['headers']['Content-Type']) ? $response['headers']['Content-Type'][0] : $response['headers']['content-type'][0];
 
             $explodedMimeType = explode(
                 '/',
                 explode(';', $contentType)[0]
             );
 
-            $filename = $filename . '.' . end($explodedMimeType);
+            $filename = $filename.'.'.end($explodedMimeType);
         }
 
         return $filename;
-    }
+
+    }//end getFilenameFromHeaders()
 
 
     /**
@@ -319,5 +319,8 @@ class FileHandlerService
             objectType: self::FILE_TAG_TYPE,
             tagIds: $tagIds
         );
-    }
-}
+
+    }//end attachTagsToFile()
+
+
+}//end class

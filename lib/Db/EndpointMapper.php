@@ -14,136 +14,160 @@ use Symfony\Component\Uid\Uuid;
  */
 class EndpointMapper extends QBMapper
 {
-	public function __construct(IDBConnection $db)
-	{
-		parent::__construct($db, 'openconnector_endpoints');
-	}
 
-	public function find(int $id): Endpoint
-	{
-		$qb = $this->db->getQueryBuilder();
 
-		$qb->select('*')
-			->from('openconnector_endpoints')
-			->where(
-				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
-			);
+    public function __construct(IDBConnection $db)
+    {
+        parent::__construct($db, 'openconnector_endpoints');
 
-		return $this->findEntity(query: $qb);
-	}
+    }//end __construct()
 
-	public function findByRef(string $reference): array
-	{
-		$qb = $this->db->getQueryBuilder();
 
-		$qb->select('*')
-			->from('openconnector_endpoints')
-			->where(
-				$qb->expr()->eq('reference', $qb->createNamedParameter($reference))
-			);
+    public function find(int $id): Endpoint
+    {
+        $qb = $this->db->getQueryBuilder();
 
-		return $this->findEntities(query: $qb);
-	}
+        $qb->select('*')
+            ->from('openconnector_endpoints')
+            ->where(
+                $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
+            );
 
-	public function findAll(?int $limit = null, ?int $offset = null, ?array $filters = [], ?array $searchConditions = [], ?array $searchParams = []): array
-	{
-		$qb = $this->db->getQueryBuilder();
+        return $this->findEntity(query: $qb);
 
-		$qb->select('*')
-			->from('openconnector_endpoints')
-			->setMaxResults($limit)
-			->setFirstResult($offset);
+    }//end find()
+
+
+    public function findByRef(string $reference): array
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        $qb->select('*')
+            ->from('openconnector_endpoints')
+            ->where(
+                $qb->expr()->eq('reference', $qb->createNamedParameter($reference))
+            );
+
+        return $this->findEntities(query: $qb);
+
+    }//end findByRef()
+
+
+    public function findAll(?int $limit=null, ?int $offset=null, ?array $filters=[], ?array $searchConditions=[], ?array $searchParams=[]): array
+    {
+        $qb = $this->db->getQueryBuilder();
+
+        $qb->select('*')
+            ->from('openconnector_endpoints')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset);
 
         foreach ($filters as $filter => $value) {
-			if ($value === 'IS NOT NULL') {
-				$qb->andWhere($qb->expr()->isNotNull($filter));
-			} elseif ($value === 'IS NULL') {
-				$qb->andWhere($qb->expr()->isNull($filter));
-			} else {
-				$qb->andWhere($qb->expr()->eq($filter, $qb->createNamedParameter($value)));
-			}
+            if ($value === 'IS NOT NULL') {
+                $qb->andWhere($qb->expr()->isNotNull($filter));
+            } else if ($value === 'IS NULL') {
+                $qb->andWhere($qb->expr()->isNull($filter));
+            } else {
+                $qb->andWhere($qb->expr()->eq($filter, $qb->createNamedParameter($value)));
+            }
         }
 
-		if (empty($searchConditions) === false) {
-            $qb->andWhere('(' . implode(' OR ', $searchConditions) . ')');
+        if (empty($searchConditions) === false) {
+            $qb->andWhere('('.implode(' OR ', $searchConditions).')');
             foreach ($searchParams as $param => $value) {
                 $qb->setParameter($param, $value);
             }
         }
 
-		return $this->findEntities(query: $qb);
-	}
+        return $this->findEntities(query: $qb);
 
-	private function createEndpointRegex(string $endpoint): string {
-		$regex = '#' . preg_replace(
-			['#\/{{([^}}]+)}}\/#', '#\/{{([^}}]+)}}$#'],
-			['/([^/]+)/', '(/([^/]+))?'],
-			$endpoint
-		) . '#';
+    }//end findAll()
 
-		// Replace only the LAST occurrence of "(/([^/]+))?#" with "(?:/([^/]+))?$#"
-		$regex = preg_replace_callback(
-			'/\(\/\(\[\^\/\]\+\)\)\?#/',
-			function ($matches) {
-				return '(?:/([^/]+))?$#';
-			},
-			$regex,
-			1 // Limit to only one replacement
-		);
 
-		if (str_ends_with($regex, '?#') === false && str_ends_with($regex, '$#') === false) {
-			$regex = substr($regex, 0, -1) . '$#';
-		}
+    private function createEndpointRegex(string $endpoint): string
+    {
+        $regex = '#'.preg_replace(
+            [
+                '#\/{{([^}}]+)}}\/#',
+                '#\/{{([^}}]+)}}$#',
+            ],
+            [
+                '/([^/]+)/',
+                '(/([^/]+))?',
+            ],
+            $endpoint
+        ).'#';
 
-		return $regex;
-	}
+        // Replace only the LAST occurrence of "(/([^/]+))?#" with "(?:/([^/]+))?$#"
+        $regex = preg_replace_callback(
+            '/\(\/\(\[\^\/\]\+\)\)\?#/',
+            function ($matches) {
+                return '(?:/([^/]+))?$#';
+            },
+            $regex,
+            1
+            // Limit to only one replacement
+        );
 
-	public function createFromArray(array $object): Endpoint
-	{
-		$obj = new Endpoint();
-		$obj->hydrate($object);
+        if (str_ends_with($regex, '?#') === false && str_ends_with($regex, '$#') === false) {
+            $regex = substr($regex, 0, -1).'$#';
+        }
 
-		// Set uuid
-		if ($obj->getUuid() === null) {
-			$obj->setUuid(Uuid::v4());
-		}
+        return $regex;
 
-		// Set version
-		if (empty($obj->getVersion()) === true) {
-			$obj->setVersion('0.0.1');
-		}
+    }//end createEndpointRegex()
 
-		// Endpoint-specific logic
-		$obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
-		$obj->setEndpointArray(explode('/', $obj->getEndpoint()));
 
-		return $this->insert(entity: $obj);
-	}
+    public function createFromArray(array $object): Endpoint
+    {
+        $obj = new Endpoint();
+        $obj->hydrate($object);
 
-	public function updateFromArray(int $id, array $object): Endpoint
-	{
-		$obj = $this->find($id);
+        // Set uuid
+        if ($obj->getUuid() === null) {
+            $obj->setUuid(Uuid::v4());
+        }
 
-		// Set version
-		if (empty($obj->getVersion()) === true) {
-			$object['version'] = '0.0.1';
-		} else if (empty($object['version']) === true) {
-			// Update version
-			$version = explode('.', $obj->getVersion());
-			if (isset($version[2]) === true) {
-				$version[2] = (int) $version[2] + 1;
-				$object['version'] = implode('.', $version);
-			}
-		}
+        // Set version
+        if (empty($obj->getVersion()) === true) {
+            $obj->setVersion('0.0.1');
+        }
 
-		$obj->hydrate($object);
+        // Endpoint-specific logic
+        $obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
+        $obj->setEndpointArray(explode('/', $obj->getEndpoint()));
 
-		// Endpoint-specific logic
-		$obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
-		$obj->setEndpointArray(explode('/', $obj->getEndpoint()));
+        return $this->insert(entity: $obj);
 
-		return $this->update($obj);
-	}
+    }//end createFromArray()
+
+
+    public function updateFromArray(int $id, array $object): Endpoint
+    {
+        $obj = $this->find($id);
+
+        // Set version
+        if (empty($obj->getVersion()) === true) {
+            $object['version'] = '0.0.1';
+        } else if (empty($object['version']) === true) {
+            // Update version
+            $version = explode('.', $obj->getVersion());
+            if (isset($version[2]) === true) {
+                $version[2]        = ((int) $version[2] + 1);
+                $object['version'] = implode('.', $version);
+            }
+        }
+
+        $obj->hydrate($object);
+
+        // Endpoint-specific logic
+        $obj->setEndpointRegex($this->createEndpointRegex($obj->getEndpoint()));
+        $obj->setEndpointArray(explode('/', $obj->getEndpoint()));
+
+        return $this->update($obj);
+
+    }//end updateFromArray()
+
 
     /**
      * Get the total count of all call logs.
@@ -156,20 +180,22 @@ class EndpointMapper extends QBMapper
 
         // Select count of all logs
         $qb->select($qb->createFunction('COUNT(*) as count'))
-           ->from('openconnector_endpoints');
+            ->from('openconnector_endpoints');
 
         $result = $qb->execute();
-        $row = $result->fetch();
+        $row    = $result->fetch();
 
         // Return the total count
-        return (int)$row['count'];
-    }
+        return (int) $row['count'];
+
+    }//end getTotalCallCount()
+
 
     /**
      * Find endpoints that match a given path and method using regex comparison
      *
-     * @param string $path The path to match against endpoint regex patterns
-     * @param string $method The HTTP method to filter by (GET, POST, etc)
+     * @param  string $path   The path to match against endpoint regex patterns
+     * @param  string $method The HTTP method to filter by (GET, POST, etc)
      * @return array Array of matching Endpoint entities
      */
     public function findByPathRegex(string $path, string $method): array
@@ -178,18 +204,24 @@ class EndpointMapper extends QBMapper
         $endpoints = $this->findAll();
 
         // Filter endpoints where both path matches regex pattern and method matches
-        return array_filter($endpoints, function(Endpoint $endpoint) use ($path, $method) {
-            // Get the regex pattern from the endpoint
-            $pattern = $endpoint->getEndpointRegex();
+        return array_filter(
+            $endpoints,
+            function (Endpoint $endpoint) use ($path, $method) {
+                // Get the regex pattern from the endpoint
+                $pattern = $endpoint->getEndpointRegex();
 
-            // Skip if no regex pattern is set
-            if (empty($pattern) === true) {
-                return false;
-            }
+                // Skip if no regex pattern is set
+                if (empty($pattern) === true) {
+                    return false;
+                }
 
-            // Check if both path matches the regex pattern and method matches
-            return preg_match($pattern, $path) === 1 &&
+                // Check if both path matches the regex pattern and method matches
+                return preg_match($pattern, $path) === 1 &&
                    $endpoint->getMethod() === $method;
-        });
-    }
-}
+            }
+        );
+
+    }//end findByPathRegex()
+
+
+}//end class

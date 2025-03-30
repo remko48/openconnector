@@ -87,7 +87,8 @@ class RuleProcessorService
         $this->ruleMapper         = $ruleMapper;
         $this->mappingService     = $mappingService;
         $this->fileHandlerService = $fileHandlerService;
-    }
+
+    }//end __construct()
 
 
     /**
@@ -111,10 +112,10 @@ class RuleProcessorService
         Synchronization $synchronization,
         array $data,
         string $timing,
-        ?string $objectId = null,
-        ?int $registerId = null,
-        ?int $schemaId = null
-    ): array | JSONResponse {
+        ?string $objectId=null,
+        ?int $registerId=null,
+        ?int $schemaId=null
+    ): (array | JSONResponse) {
         $rules = $synchronization->getActions();
         if (empty($rules)) {
             return $data;
@@ -146,7 +147,7 @@ class RuleProcessorService
                 'synchronization' => $this->processSyncRule($rule, $data),
                 'fetch_file' => $this->processFetchFileRule($rule, $data, $objectId),
                 'write_file' => $this->processWriteFileRule($rule, $data, $objectId, $registerId, $schemaId),
-                default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
+                default => throw new Exception('Unsupported rule type: '.$rule->getType()),
                 };
 
                     // If result is JSONResponse, return error immediately
@@ -160,9 +161,10 @@ class RuleProcessorService
 
             return $data;
         } catch (Exception $e) {
-            return new JSONResponse(['error' => 'Rule processing failed: ' . $e->getMessage()], 500);
-        }
-    }
+            return new JSONResponse(['error' => 'Rule processing failed: '.$e->getMessage()], 500);
+        }//end try
+
+    }//end processRules()
 
 
     /**
@@ -179,7 +181,8 @@ class RuleProcessorService
         } catch (Exception $e) {
             return null;
         }
-    }
+
+    }//end getRuleById()
 
 
     /**
@@ -200,7 +203,8 @@ class RuleProcessorService
         }
 
         return JsonLogic::apply($conditions, $data) === true;
-    }
+
+    }//end checkRuleConditions()
 
 
     /**
@@ -215,12 +219,13 @@ class RuleProcessorService
         $config = $rule->getConfiguration();
         return new JSONResponse(
             [
-            'error'   => $config['error']['name'],
-            'message' => $config['error']['message'],
+                'error'   => $config['error']['name'],
+                'message' => $config['error']['message'],
             ],
             $config['error']['code']
         );
-    }
+
+    }//end processErrorRule()
 
 
     /**
@@ -240,7 +245,8 @@ class RuleProcessorService
         $mapping = $this->mappingService->getMapping($config['mapping']);
 
         return $this->mappingService->executeMapping($mapping, $data);
-    }
+
+    }//end processMappingRule()
 
 
     /**
@@ -255,7 +261,8 @@ class RuleProcessorService
     {
         // Implementation would be added based on application needs
         return $data;
-    }
+
+    }//end processSyncRule()
 
 
     /**
@@ -313,8 +320,7 @@ class RuleProcessorService
                     $endpointUrl = $value['endpoint'];
 
                     // Add label as tag if configured
-                    if (
-                        isset($value['label'])
+                    if (isset($value['label'])
                         && isset($config['tags'])
                         && in_array($value['label'], $config['tags'])
                     ) {
@@ -349,7 +355,8 @@ class RuleProcessorService
         }//end if
 
         return $dataDot->jsonSerialize();
-    }
+
+    }//end processFetchFileRule()
 
 
     /**
@@ -385,7 +392,8 @@ class RuleProcessorService
         // Implementation would be specific to file processing requirements
         // and would use the FileHandlerService
         return $data;
-    }
+
+    }//end processWriteFileRule()
 
 
     /**
@@ -403,5 +411,8 @@ class RuleProcessorService
     {
         // This would need to be implemented based on the application's data access methods
         throw new Exception('Method not implemented');
-    }
-}
+
+    }//end getSourceById()
+
+
+}//end class

@@ -12,22 +12,28 @@ use OCA\OpenConnector\Db\SourceMapper;
  */
 class EventAction
 {
+
     private CallService $callService;
+
     private SourceMapper $sourceMapper;
+
+
     public function __construct(
         CallService $callService,
         SourceMapper $sourceMapper,
     ) {
         $this->callService = $callService;
-    }
 
-    //@todo: make this a bit more generic :')
-    public function run(array $argument = []): array
+    }//end __construct()
+
+
+    // @todo: make this a bit more generic :')
+    public function run(array $argument=[]): array
     {
-        // @todo: implement this
-
-        // Let's report back about what we have just done
+        // @todo: implement this        // Let's report back about what we have just done
         return [];
-    }
 
-}
+    }//end run()
+
+
+}//end class
