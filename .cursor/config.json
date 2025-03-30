@@ -5,6 +5,7 @@
       ".cursor/rules/php.mdc",
       ".cursor/rules/global.mdc"
     ],
+    "*.md": [".cursor/rules/md.mdc"],
     "*.js": [".cursor/rules/node.mdc", ".cursor/rules/global.mdc"],
     "*.jsx": [".cursor/rules/node.mdc", ".cursor/rules/global.mdc"],
     "*.ts": [".cursor/rules/node.mdc", ".cursor/rules/global.mdc"],
