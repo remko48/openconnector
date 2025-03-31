@@ -209,7 +209,8 @@ class SynchronizationsController extends Controller
     public function logs(string $uuid): JSONResponse
     {
         try {
-            $logs = $this->synchronizationLogMapper->findAll(null, null, ['synchronization_id' => $uuid]);
+            $synchronization = $this->synchronizationMapper->find($uuid);
+            $logs = $this->synchronizationLogMapper->findAll(null, null, ['synchronization_id' => $synchronization->getUuid()]);
             return new JSONResponse($logs);
         } catch (DoesNotExistException $e) {
             return new JSONResponse(['error' => 'Logs not found'], 404);

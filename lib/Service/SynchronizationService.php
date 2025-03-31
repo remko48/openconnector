@@ -222,6 +222,9 @@ class SynchronizationService
 			);
 		}
 
+        $synchronization->setTargetLastSynced(new DateTime());
+        $this->synchronizationMapper->update($synchronization);
+
 		// Calculate execution time in milliseconds
 		$executionTime = round((microtime(true) - $startTime) * 1000);
 		$log->setExecutionTime($executionTime);
@@ -842,12 +845,12 @@ class SynchronizationService
 			);
 		}
 
-		$this->synchronizationContractLogMapper->createFromArray([
-			'synchronizationId' => $subContract->getSynchronizationId(),
-			'synchronizationContractId' => $subContract->getId(),
-			'target' => $subObjectData,
-			'expires' => new DateTime('+1 day')
-		]);
+//		$this->synchronizationContractLogMapper->createFromArray([
+//			'synchronizationId' => $subContract->getSynchronizationId(),
+//			'synchronizationContractId' => $subContract->getId(),
+//			'target' => $subObjectData,
+//			'expires' => new DateTime('+1 day')
+//		]);
 	}
 
 	/**
