@@ -47,8 +47,8 @@ class ExportService
      * @param ObjectService $objectService The object service.
      */
     public function __construct(
-    private readonly IURLGenerator $urlGenerator,
-    private readonly ObjectService $objectService
+        private readonly IURLGenerator $urlGenerator,
+        private readonly ObjectService $objectService
     ) {
 
     }//end __construct()
@@ -186,23 +186,23 @@ class ExportService
     private function encode(array $objectArray, ?string $type): ?string
     {
         switch ($type) {
-        case 'application/json':
-            $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
-            break;
-        case 'application/yaml':
-            $dataString = Yaml::dump($objectArray);
-            break;
-        default:
-            // If type is not specified or not recognized, try to encode as JSON first, then YAML
-            $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
-            if ($dataString === false) {
-                try {
-                    $dataString = Yaml::dump($objectArray);
-                } catch (Exception $exception) {
-                    $dataString = null;
+            case 'application/json':
+                $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
+                break;
+            case 'application/yaml':
+                $dataString = Yaml::dump($objectArray);
+                break;
+            default:
+                // If type is not specified or not recognized, try to encode as JSON first, then YAML
+                $dataString = json_encode($objectArray, JSON_PRETTY_PRINT);
+                if ($dataString === false) {
+                    try {
+                        $dataString = Yaml::dump($objectArray);
+                    } catch (Exception $exception) {
+                        $dataString = null;
+                    }
                 }
-            }
-            break;
+                break;
         }
 
         if ($dataString === null || $dataString === false) {

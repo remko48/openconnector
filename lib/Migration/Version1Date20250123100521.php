@@ -1,15 +1,16 @@
 <?php
 
+
 /**
  * This file is part of the OpenConnector app.
  *
- * @package     OpenConnector
- * @category    Migration
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
- * @version     1.0.0
+ * @package   OpenConnector
+ * @category  Migration
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
+ * @version   1.0.0
  */
 
 declare(strict_types=1);
@@ -27,15 +28,17 @@ use OCP\Migration\SimpleMigrationStep;
  *
  * This migration alters the openconnector_synchronizations table structure.
  *
- * @package     OpenConnector
- * @category    Migration
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
+ * @package   OpenConnector
+ * @category  Migration
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
  */
 class Version1Date20250123100521 extends SimpleMigrationStep
 {
+
+
     /**
      * Operations to be performed before schema changes.
      *
@@ -47,8 +50,7 @@ class Version1Date20250123100521 extends SimpleMigrationStep
      */
     public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-        // No operations required before schema changes.
-    }//end preSchemaChange()
+        // No operations required before schema changes.    }//end preSchemaChange()
 
 
     /**
@@ -68,16 +70,17 @@ class Version1Date20250123100521 extends SimpleMigrationStep
          */
         $schema = $schemaClosure();
 
+
         // Check if synchronizations table exists
-        if ($schema->hasTable(tableName: 'openconnector_synchronizations') === true) {
-            $table = $schema->getTable(tableName: 'openconnector_synchronizations');
-            
-            // Add actions column if it doesn't exist
-            if ($table->hasColumn('actions') === false) {
-                // Add a JSON column with default empty array
-                $table->addColumn(name: 'actions', typeName: Types::JSON)->setNotnull(false)->setDefault('[]');
-            }
+    if ($schema->hasTable(tableName: 'openconnector_synchronizations') === true) {
+        $table = $schema->getTable(tableName: 'openconnector_synchronizations');
+
+        // Add actions column if it doesn't exist
+        if ($table->hasColumn('actions') === false) {
+            // Add a JSON column with default empty array
+            $table->addColumn(name: 'actions', typeName: Types::JSON)->setNotnull(false)->setDefault('[]');
         }
+    }
 
         return $schema;
 
@@ -95,7 +98,4 @@ class Version1Date20250123100521 extends SimpleMigrationStep
      */
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-        // No operations required after schema changes.
-    }//end postSchemaChange()
-
-}//end class
+        // No operations required after schema changes.    }//end postSchemaChange()    }//end postSchemaChange()

@@ -116,13 +116,13 @@ class SynchronizationObjectProcessor
         RuleProcessorService $ruleProcessorService,
         TargetHandlerRegistry $targetHandlerRegistry
     ) {
-        $this->callService                      = $callService;
-        $this->mappingService                   = $mappingService;
-        $this->mappingMapper                    = $mappingMapper;
+        $this->callService    = $callService;
+        $this->mappingService = $mappingService;
+        $this->mappingMapper  = $mappingMapper;
         $this->synchronizationContractMapper    = $synchronizationContractMapper;
         $this->synchronizationContractLogMapper = $synchronizationContractLogMapper;
-        $this->ruleProcessorService             = $ruleProcessorService;
-        $this->targetHandlerRegistry            = $targetHandlerRegistry;
+        $this->ruleProcessorService  = $ruleProcessorService;
+        $this->targetHandlerRegistry = $targetHandlerRegistry;
 
     }//end __construct()
 

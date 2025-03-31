@@ -30,6 +30,8 @@ use OCP\IUserSession;
  */
 class LogCleanUpTask extends TimedJob
 {
+
+
     /**
      * Constructor
      *
@@ -52,7 +54,9 @@ class LogCleanUpTask extends TimedJob
         // Or $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
         // Only run one instance of this job at a time.
         $this->setAllowParallelRuns(false);
+
     }//end __construct()
+
 
     /**
      * Run the cleanup task
@@ -64,5 +68,8 @@ class LogCleanUpTask extends TimedJob
     public function run(mixed $argument): void
     {
         $this->callLogMapper->clearLogs();
+
     }//end run()
+
+
 }//end class

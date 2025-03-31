@@ -121,7 +121,7 @@ class SynchronizationContractMapper extends QBMapper
      * @param  string $targetId        The target ID
      * @return SynchronizationContract|bool|null The found contract, false, or null if not found
      */
-    public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract | bool | null
+    public function findOnTarget(string $synchronization, string $targetId): (SynchronizationContract | bool | ) null
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
@@ -152,7 +152,7 @@ class SynchronizationContractMapper extends QBMapper
      * @param  string $targetId The target ID
      * @return SynchronizationContract|bool|null The found contract, false, or null if not found
      */
-    public function findByOriginAndTarget(string $originId, string $targetId): SynchronizationContract | bool | null
+    public function findByOriginAndTarget(string $originId, string $targetId): (SynchronizationContract | bool | ) null
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();

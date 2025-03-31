@@ -48,8 +48,8 @@ class SynchronizationLogMapper extends QBMapper
      */
     public function __construct(
         IDBConnection $db,
-    private readonly IUserSession $userSession,
-    private readonly ISession $session
+        private readonly IUserSession $userSession,
+        private readonly ISession $session
     ) {
         parent::__construct($db, 'openconnector_synchronization_logs');
 

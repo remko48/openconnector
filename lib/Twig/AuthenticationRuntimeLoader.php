@@ -35,6 +35,8 @@ use Twig\RuntimeLoader\RuntimeLoaderInterface;
  */
 class AuthenticationRuntimeLoader implements RuntimeLoaderInterface
 {
+
+
     /**
      * Constructor
      *
@@ -45,7 +47,9 @@ class AuthenticationRuntimeLoader implements RuntimeLoaderInterface
     public function __construct(
         private readonly AuthenticationService $authenticationService,
     ) {
+
     }//end __construct()
+
 
     /**
      * Loads a runtime implementation based on the provided class name
@@ -61,5 +65,8 @@ class AuthenticationRuntimeLoader implements RuntimeLoaderInterface
         }
 
         return null;
+
     }//end load()
+
+
 }//end class

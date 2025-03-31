@@ -38,7 +38,7 @@ class MappingService
      */
     public function __construct(
         ArrayLoader $loader,
-    private readonly MappingMapper $mappingMapper
+        private readonly MappingMapper $mappingMapper
     ) {
         $this->twig = new Environment($loader);
         $this->twig->addExtension(new MappingExtension());
@@ -231,127 +231,127 @@ class MappingService
 
         // Todo: Add more casts.
         switch ($cast) {
-        case 'string':
-            $value = (string) $value;
-            break;
-        case 'bool':
-        case 'boolean':
-            if ((int) $value === 1 || strtolower($value) === 'true' || strtolower($value) === 'yes') {
-                $value = true;
+            case 'string':
+                $value = (string) $value;
                 break;
-            }
+            case 'bool':
+            case 'boolean':
+                if ((int) $value === 1 || strtolower($value) === 'true' || strtolower($value) === 'yes') {
+                    $value = true;
+                    break;
+                }
 
-            $value = false;
-            break;
-        case 'int':
-        case 'integer':
-            $value = (int) $value;
-            break;
-        case 'float':
-            $value = (float) $value;
-            break;
-        case 'array':
-            $value = (array) $value;
-            break;
-        case 'date':
-            $value = date($value);
-            break;
-        case 'url':
-            $value = urlencode($value);
-            break;
-        case 'urlDecode':
-            $value = urldecode($value);
-            break;
-        case 'rawurl':
-            $value = rawurlencode($value);
-            break;
-        case 'rawurlDecode':
-            $value = rawurldecode($value);
-            break;
-        case 'html':
-            $value = htmlentities($value);
-            break;
-        case 'htmlDecode':
-            $value = html_entity_decode($value);
-            break;
-        case 'base64':
-            $value = base64_encode($value);
-            break;
-        case 'base64Decode':
-            $value = base64_decode($value);
-            break;
-        case 'json':
-            $value = json_encode($value);
-            break;
-        case 'jsonToArray':
-            $value = html_entity_decode($value);
-            $value = json_decode($value, true);
-            break;
-        case 'utf8':
-            // https://www.php.net/manual/en/function.iconv.php
-            setlocale(LC_CTYPE, 'cs_CZ');
-            $value = iconv('UTF-8', 'ASCII//TRANSLIT', $value);
-            break;
-        case 'nullStringToNull':
-            if ($value === 'null') {
-                $value = null;
-            }
-            break;
-        case 'coordinateStringToArray':
-            $value = $this->coordinateStringToArray($value);
-            break;
-        case 'keyCantBeValue':
-            if ($key == $value) {
-                $dotArray->delete($key);
-            }
-            break;
-        case 'unsetIfValue':
-            if (isset($unsetIfValue) === true
-                && $value == $unsetIfValue
-                || ($unsetIfValue === '' && empty($value))
-                || ($unsetIfValue === '' && $value === null)
-            ) {
-                $dotArray->delete($key);
-            }
+                $value = false;
+                break;
+            case 'int':
+            case 'integer':
+                $value = (int) $value;
+                break;
+            case 'float':
+                $value = (float) $value;
+                break;
+            case 'array':
+                $value = (array) $value;
+                break;
+            case 'date':
+                $value = date($value);
+                break;
+            case 'url':
+                $value = urlencode($value);
+                break;
+            case 'urlDecode':
+                $value = urldecode($value);
+                break;
+            case 'rawurl':
+                $value = rawurlencode($value);
+                break;
+            case 'rawurlDecode':
+                $value = rawurldecode($value);
+                break;
+            case 'html':
+                $value = htmlentities($value);
+                break;
+            case 'htmlDecode':
+                $value = html_entity_decode($value);
+                break;
+            case 'base64':
+                $value = base64_encode($value);
+                break;
+            case 'base64Decode':
+                $value = base64_decode($value);
+                break;
+            case 'json':
+                $value = json_encode($value);
+                break;
+            case 'jsonToArray':
+                $value = html_entity_decode($value);
+                $value = json_decode($value, true);
+                break;
+            case 'utf8':
+                // https://www.php.net/manual/en/function.iconv.php
+                setlocale(LC_CTYPE, 'cs_CZ');
+                $value = iconv('UTF-8', 'ASCII//TRANSLIT', $value);
+                break;
+            case 'nullStringToNull':
+                if ($value === 'null') {
+                    $value = null;
+                }
+                break;
+            case 'coordinateStringToArray':
+                $value = $this->coordinateStringToArray($value);
+                break;
+            case 'keyCantBeValue':
+                if ($key == $value) {
+                    $dotArray->delete($key);
+                }
+                break;
+            case 'unsetIfValue':
+                if (isset($unsetIfValue) === true
+                    && $value == $unsetIfValue
+                    || ($unsetIfValue === '' && empty($value))
+                    || ($unsetIfValue === '' && $value === null)
+                ) {
+                    $dotArray->delete($key);
+                }
 
-            if ($unsetIfValue === '' && is_array($value) === true && $this->areAllArrayKeysNull($value) === true) {
-                $dotArray->delete($key);
-            }
-            break;
-        case 'setNullIfValue':
-            if (isset($setNullIfValue) === true
-                && $value == $setNullIfValue
-                || ($setNullIfValue === '' && empty($value))
-                || ($setNullIfValue === '' && $value === null)
-            ) {
-                $value = null;
-            }
+                if ($unsetIfValue === '' && is_array($value) === true && $this->areAllArrayKeysNull($value) === true) {
+                    $dotArray->delete($key);
+                }
+                break;
+            case 'setNullIfValue':
+                if (isset($setNullIfValue) === true
+                    && $value == $setNullIfValue
+                    || ($setNullIfValue === '' && empty($value))
+                    || ($setNullIfValue === '' && $value === null)
+                ) {
+                    $value = null;
+                }
 
-            if ($setNullIfValue === '' && is_array($value) === true && $this->areAllArrayKeysNull($value) === true) {
-                $value = null;
-            }
-            break;
-        case 'countValue':
-            if (isset($countValue) === true
-                && empty($countValue) === false
-                && $dotArray->has($countValue) === true
-                && is_countable($dotArray->get($countValue)) === true
-            ) {
-                $value = count($dotArray->get($countValue));
-            }
-            break;
-        case 'moneyStringToInt':
-            $value = str_replace('.', '', $value);
-            $value = (int) str_replace(',', '', $value);
-            break;
-        case 'intToMoneyString':
-            $value = ($value / 100);
-            $value = number_format($value, 2, ',', '.');
-            break;
-        default:
-            // @todo: error handling
-            // isset($this->style) === true && $this->style->info('Trying to cast to an unsupported cast type: '.$cast);
-            break;
+                if ($setNullIfValue === '' && is_array($value) === true && $this->areAllArrayKeysNull($value) === true) {
+                    $value = null;
+                }
+                break;
+            case 'countValue':
+                if (isset($countValue) === true
+                    && empty($countValue) === false
+                    && $dotArray->has($countValue) === true
+                    && is_countable($dotArray->get($countValue)) === true
+                ) {
+                    $value = count($dotArray->get($countValue));
+                }
+                break;
+            case 'moneyStringToInt':
+                $value = str_replace('.', '', $value);
+                $value = (int) str_replace(',', '', $value);
+                break;
+            case 'intToMoneyString':
+                $value = ($value / 100);
+                $value = number_format($value, 2, ',', '.');
+                break;
+            default:
+                // @todo: error handling
+                // isset($this->style) === true && $this->style->info('Trying to cast to an unsupported cast type: '.$cast);
+                break;
         }//end switch
 
         // Don't reset key that was deleted on purpose.
@@ -405,7 +405,7 @@ class MappingService
         foreach ($halves as $half) {
             if (count($point) > 1) {
                 $coordinateArray[] = $point;
-                $point             = [];
+                $point = [];
             }
 
             $point[] = $half;

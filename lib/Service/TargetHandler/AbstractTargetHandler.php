@@ -81,10 +81,10 @@ abstract class AbstractTargetHandler implements TargetHandlerInterface
         SynchronizationContractMapper $synchronizationContractMapper,
         ContainerInterface $container
     ) {
-        $this->callService                   = $callService;
-        $this->sourceMapper                  = $sourceMapper;
+        $this->callService  = $callService;
+        $this->sourceMapper = $sourceMapper;
         $this->synchronizationContractMapper = $synchronizationContractMapper;
-        $this->container                     = $container;
+        $this->container = $container;
 
     }//end __construct()
 

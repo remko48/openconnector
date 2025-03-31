@@ -135,14 +135,14 @@ class SynchronizationService
         TargetHandlerRegistry $targetHandlerRegistry,
         SynchronizationObjectProcessor $objectProcessor
     ) {
-        $this->callService                   = $callService;
-        $this->synchronizationMapper         = $synchronizationMapper;
-        $this->sourceMapper                  = $sourceMapper;
+        $this->callService           = $callService;
+        $this->synchronizationMapper = $synchronizationMapper;
+        $this->sourceMapper          = $sourceMapper;
         $this->synchronizationLogMapper      = $synchronizationLogMapper;
         $this->synchronizationContractMapper = $synchronizationContractMapper;
         $this->sourceHandlerRegistry         = $sourceHandlerRegistry;
         $this->targetHandlerRegistry         = $targetHandlerRegistry;
-        $this->objectProcessor               = $objectProcessor;
+        $this->objectProcessor = $objectProcessor;
 
     }//end __construct()
 
@@ -217,14 +217,14 @@ class SynchronizationService
         }
 
         // Update log with object count
-        $result                     = $log->getResult();
+        $result = $log->getResult();
         $result['objects']['found'] = count($objectList);
 
         $synchronizedTargetIds = [];
 
         // Handle single object case
         if (isset($sourceConfig['resultsPosition']) && $sourceConfig['resultsPosition'] === '_object') {
-            $objectList                 = [$objectList];
+            $objectList = [$objectList];
             $result['objects']['found'] = count($objectList);
         }
 
@@ -309,48 +309,48 @@ class SynchronizationService
         $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
         switch ($source->getType()) {
-        case 'register/schema':
-            // @todo: implement for register/schema type
-            return [];
+            case 'register/schema':
+                // @todo: implement for register/schema type
+                return [];
 
-        case 'api':
-        case 'xml':
-        case 'json-api':
-        case 'soap':
-            // Extract configuration for the API call
-            $endpoint = ($sourceConfig['endpoint'] ?? '');
-            $headers  = ($sourceConfig['headers'] ?? []);
-            $query    = ($sourceConfig['query'] ?? []);
+            case 'api':
+            case 'xml':
+            case 'json-api':
+            case 'soap':
+                // Extract configuration for the API call
+                $endpoint = ($sourceConfig['endpoint'] ?? '');
+                $headers  = ($sourceConfig['headers'] ?? []);
+                $query    = ($sourceConfig['query'] ?? []);
 
-            // Set current page based on rate limit
-            $currentPage = 1;
-            if ($source->getRateLimitLimit() !== null) {
-                $currentPage = ($synchronization->getCurrentPage() ?? 1);
-            }
+                // Set current page based on rate limit
+                $currentPage = 1;
+                if ($source->getRateLimitLimit() !== null) {
+                    $currentPage = ($synchronization->getCurrentPage() ?? 1);
+                }
 
-            // Use the appropriate handler through the registry
-            $objects = $this->sourceHandlerRegistry->getAllObjects(
+                // Use the appropriate handler through the registry
+                $objects = $this->sourceHandlerRegistry->getAllObjects(
                 source: $source,
                 config: $sourceConfig,
                 isTest: $isTest,
                 currentPage: $currentPage,
                 headers: $headers,
                 query: $query
-            );
+                );
 
-            // Reset page counter after synchronization if not in test mode
-            if ($isTest === false) {
-                $synchronization->setCurrentPage(1);
-                $this->synchronizationMapper->update($synchronization);
-            }
-            return $objects;
+                // Reset page counter after synchronization if not in test mode
+                if ($isTest === false) {
+                    $synchronization->setCurrentPage(1);
+                    $this->synchronizationMapper->update($synchronization);
+                }
+                return $objects;
 
-        case 'database':
-            // @todo: implement for database type
-            return [];
+            case 'database':
+                // @todo: implement for database type
+                return [];
 
-        default:
-            return [];
+            default:
+                return [];
         }//end switch
 
     }//end getAllObjectsFromSource()

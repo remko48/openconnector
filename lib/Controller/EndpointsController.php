@@ -326,13 +326,18 @@ class EndpointsController extends Controller
     }//end handlePath()
 
 
-    /**
+    /*
      * Handles CORS preflight requests by setting appropriate headers
      *
-     * @return Response The response with CORS headers
+     * This method handles OPTIONS preflight requests for Cross-Origin Resource Sharing.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @PublicPage
+     * @since           7.0.0
+     *
+     * @return Response The CORS response
      */
-    #[NoCSRFRequired]
-    #[PublicPage]
     public function preflightedCors(): Response
     {
         // Determine the origin.

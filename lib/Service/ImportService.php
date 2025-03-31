@@ -32,9 +32,9 @@ class ImportService
 
 
     public function __construct(
-    private Client $client,
-    private readonly IURLGenerator $urlGenerator,
-    private readonly ObjectService $objectService
+        private Client $client,
+        private readonly IURLGenerator $urlGenerator,
+        private readonly ObjectService $objectService
     ) {
         $this->client = new Client([]);
 
@@ -117,23 +117,23 @@ class ImportService
     private function decode(string $data, ?string $type): ?array
     {
         switch ($type) {
-        case 'application/json':
-            $phpArray = json_decode(json: $data, associative: true);
-            break;
-        case 'application/yaml':
-            $phpArray = Yaml::parse(input: $data);
-            break;
-        default:
-            // If Content-Type is not specified or not recognized, try to parse as JSON first, then YAML
-            $phpArray = json_decode(json: $data, associative: true);
-            if ($phpArray === null || $phpArray === false) {
-                try {
-                    $phpArray = Yaml::parse(input: $data);
-                } catch (Exception $exception) {
-                    $phpArray = null;
+            case 'application/json':
+                $phpArray = json_decode(json: $data, associative: true);
+                break;
+            case 'application/yaml':
+                $phpArray = Yaml::parse(input: $data);
+                break;
+            default:
+                // If Content-Type is not specified or not recognized, try to parse as JSON first, then YAML
+                $phpArray = json_decode(json: $data, associative: true);
+                if ($phpArray === null || $phpArray === false) {
+                    try {
+                        $phpArray = Yaml::parse(input: $data);
+                    } catch (Exception $exception) {
+                        $phpArray = null;
+                    }
                 }
-            }
-            break;
+                break;
         }
 
         if ($phpArray === null || $phpArray === false) {
@@ -228,7 +228,7 @@ class ImportService
      *
      * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
      */
-    private function getJSONfromBody(array | string $phpArray, ?string $type=null): JSONResponse
+    private function getJSONfromBody((array | string $phpArray), ?string $type=null): JSONResponse
     {
         if (is_string($phpArray) === true) {
             $phpArray = json_decode($phpArray, associative: true);
@@ -446,7 +446,7 @@ class ImportService
                     arguments: ['id' => $newObject->getId()]
                 )
             );
-            $newObject                = $mapper->updateFromArray(id: $newObject->getId(), object: $objectArray);
+            $newObject = $mapper->updateFromArray(id: $newObject->getId(), object: $objectArray);
         }
 
         return new JSONResponse(

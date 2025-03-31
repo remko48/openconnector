@@ -30,15 +30,15 @@ class ObjectService
 
 
     public function __construct(
-    private readonly IAppManager $appManager,
-    private readonly ContainerInterface $container,
-    private readonly EndpointMapper $endpointMapper,
-    private readonly EventSubscriptionMapper $eventSubscriptionMapper,
-    private readonly JobMapper $jobMapper,
-    private readonly MappingMapper $mappingMapper,
-    private readonly RuleMapper $ruleMapper,
-    private readonly SourceMapper $sourceMapper,
-    private readonly SynchronizationMapper $synchronizationMapper,
+        private readonly IAppManager $appManager,
+        private readonly ContainerInterface $container,
+        private readonly EndpointMapper $endpointMapper,
+        private readonly EventSubscriptionMapper $eventSubscriptionMapper,
+        private readonly JobMapper $jobMapper,
+        private readonly MappingMapper $mappingMapper,
+        private readonly RuleMapper $ruleMapper,
+        private readonly SourceMapper $sourceMapper,
+        private readonly SynchronizationMapper $synchronizationMapper,
     ) {
 
     }//end __construct()
@@ -73,7 +73,7 @@ class ObjectService
     {
         $client = $this->getClient(config: $config);
 
-        $object                   = self::BASE_OBJECT;
+        $object = self::BASE_OBJECT;
         $object['dataSource']     = $config['mongodbCluster'];
         $object['document']       = $data;
         $object['document']['id'] = $object['document']['_id'] = Uuid::v4();
@@ -107,7 +107,7 @@ class ObjectService
     {
         $client = $this->getClient(config: $config);
 
-        $object               = self::BASE_OBJECT;
+        $object = self::BASE_OBJECT;
         $object['dataSource'] = $config['mongodbCluster'];
         $object['filter']     = $filters;
 
@@ -142,8 +142,8 @@ class ObjectService
     {
         $client = $this->getClient(config: $config);
 
-        $object               = self::BASE_OBJECT;
-        $object['filter']     = $filters;
+        $object           = self::BASE_OBJECT;
+        $object['filter'] = $filters;
         $object['dataSource'] = $config['mongodbCluster'];
 
         $returnData = $client->post(
@@ -178,8 +178,8 @@ class ObjectService
 
         $dotUpdate = new Dot($update);
 
-        $object                   = self::BASE_OBJECT;
-        $object['filter']         = $filters;
+        $object           = self::BASE_OBJECT;
+        $object['filter'] = $filters;
         $object['update']['$set'] = $update;
         $object['upsert']         = true;
         $object['dataSource']     = $config['mongodbCluster'];
@@ -208,8 +208,8 @@ class ObjectService
     {
         $client = $this->getClient(config: $config);
 
-        $object               = self::BASE_OBJECT;
-        $object['filter']     = $filters;
+        $object           = self::BASE_OBJECT;
+        $object['filter'] = $filters;
         $object['dataSource'] = $config['mongodbCluster'];
 
         $returnData = $client->post(
@@ -235,8 +235,8 @@ class ObjectService
     {
         $client = $this->getClient(config: $config);
 
-        $object               = self::BASE_OBJECT;
-        $object['filter']     = $filters;
+        $object           = self::BASE_OBJECT;
+        $object['filter'] = $filters;
         $object['pipeline']   = $pipeline;
         $object['dataSource'] = $config['mongodbCluster'];
 

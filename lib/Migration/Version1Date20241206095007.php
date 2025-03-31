@@ -1,15 +1,16 @@
 <?php
 
+
 /**
  * This file is part of the OpenConnector app.
  *
- * @package     OpenConnector
- * @category    Migration
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
- * @version     1.0.0
+ * @package   OpenConnector
+ * @category  Migration
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
+ * @version   1.0.0
  */
 
 declare(strict_types=1);
@@ -27,15 +28,17 @@ use OCP\Migration\SimpleMigrationStep;
  *
  * This migration alters the openconnector_sources table structure.
  *
- * @package     OpenConnector
- * @category    Migration
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
+ * @package   OpenConnector
+ * @category  Migration
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
  */
 class Version1Date20241206095007 extends SimpleMigrationStep
 {
+
+
     /**
      * Operations to be performed before schema changes.
      *
@@ -47,8 +50,7 @@ class Version1Date20241206095007 extends SimpleMigrationStep
      */
     public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-        // No operations required before schema changes.
-    }//end preSchemaChange()
+        // No operations required before schema changes.    }//end preSchemaChange()
 
 
     /**
@@ -68,22 +70,23 @@ class Version1Date20241206095007 extends SimpleMigrationStep
          */
         $schema = $schemaClosure();
 
+
         // Check if the sources table exists
-        if ($schema->hasTable('openconnector_sources') === true) {
-            $table = $schema->getTable('openconnector_sources');
+    if ($schema->hasTable('openconnector_sources') === true) {
+        $table = $schema->getTable('openconnector_sources');
 
-            // Rename logRetention column to log_retention
-            if ($table->hasColumn('logRetention') === true) {
-                $table->dropColumn('logRetention');
-                $table->addColumn('log_retention', Types::INTEGER)->setNotnull(false)->setDefault(3600);
-            }
-
-            // Rename errorRetention column to error_retention
-            if ($table->hasColumn('errorRetention') === true) {
-                $table->dropColumn('errorRetention');
-                $table->addColumn('error_retention', Types::INTEGER)->setNotnull(false)->setDefault(86400);
-            }
+        // Rename logRetention column to log_retention
+        if ($table->hasColumn('logRetention') === true) {
+            $table->dropColumn('logRetention');
+            $table->addColumn('log_retention', Types::INTEGER)->setNotnull(false)->setDefault(3600);
         }
+
+        // Rename errorRetention column to error_retention
+        if ($table->hasColumn('errorRetention') === true) {
+            $table->dropColumn('errorRetention');
+            $table->addColumn('error_retention', Types::INTEGER)->setNotnull(false)->setDefault(86400);
+        }
+    }
 
         return $schema;
 
@@ -101,8 +104,4 @@ class Version1Date20241206095007 extends SimpleMigrationStep
      */
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
-        // No operations required after schema changes.
-    }//end postSchemaChange()
-
-
-}//end class
+        // No operations required after schema changes.    }//end postSchemaChange()    }//end postSchemaChange()

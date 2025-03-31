@@ -101,41 +101,41 @@ class OpenRegisterHandler extends AbstractTargetHandler
 
         // Process based on action type
         switch ($action) {
-        case 'save':
-            $target = $objectService->saveObject(
+            case 'save':
+                $target = $objectService->saveObject(
                 register: $register,
                 schema: $schema,
                 object: $targetObject
-            );
-
-            $contract->setTargetId($target->getUuid());
-
-            // Handle sub-objects if configured
-            if (isset($sourceConfig['subObjects']) === true) {
-                $targetObject = $objectService->renderEntity($target->jsonSerialize(), ['all']);
-                $this->updateContractsForSubObjects(
-                    subObjectsConfig: $sourceConfig['subObjects'],
-                    synchronizationId: $synchronization->getId(),
-                    targetObject: $targetObject
                 );
-            }
 
-            // Set action based on operation type
-            $contract->setTargetLastAction(
+                $contract->setTargetId($target->getUuid());
+
+                // Handle sub-objects if configured
+                if (isset($sourceConfig['subObjects']) === true) {
+                    $targetObject = $objectService->renderEntity($target->jsonSerialize(), ['all']);
+                    $this->updateContractsForSubObjects(
+                        subObjectsConfig: $sourceConfig['subObjects'],
+                        synchronizationId: $synchronization->getId(),
+                        targetObject: $targetObject
+                    );
+                }
+
+                // Set action based on operation type
+                $contract->setTargetLastAction(
                 $contract->getTargetId() ? 'update' : 'create'
-            );
-            break;
+                );
+                break;
 
-        case 'delete':
-            $objectService->deleteObject(
+            case 'delete':
+                $objectService->deleteObject(
                 register: $register,
                 schema: $schema,
                 uuid: $contract->getTargetId()
-            );
+                );
 
-            $contract->setTargetId(null);
-            $contract->setTargetLastAction('delete');
-            break;
+                $contract->setTargetId(null);
+                $contract->setTargetLastAction('delete');
+                break;
         }//end switch
 
         return $contract;

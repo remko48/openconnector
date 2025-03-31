@@ -156,8 +156,8 @@ class ApiHandler extends AbstractTargetHandler
         ?array $synchronizedTargetIds=[]
     ): int {
         $deletedObjectsCount = 0;
-        $target              = $this->sourceMapper->find(id: $synchronization->getTargetId());
-        $targetConfig        = $synchronization->getTargetConfig();
+        $target       = $this->sourceMapper->find(id: $synchronization->getTargetId());
+        $targetConfig = $synchronization->getTargetConfig();
 
         // Get all contracts for this synchronization
         $allContracts = $this->synchronizationContractMapper->findAllBySynchronization(

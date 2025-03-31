@@ -31,11 +31,11 @@ class EventService
      * @param LoggerInterface         $logger
      */
     public function __construct(
-    private readonly EventMapper $eventMapper,
-    private readonly EventMessageMapper $messageMapper,
-    private readonly EventSubscriptionMapper $subscriptionMapper,
-    private readonly IClientService $clientService,
-    private readonly LoggerInterface $logger
+        private readonly EventMapper $eventMapper,
+        private readonly EventMessageMapper $messageMapper,
+        private readonly EventSubscriptionMapper $subscriptionMapper,
+        private readonly IClientService $clientService,
+        private readonly LoggerInterface $logger
     ) {
 
     }//end __construct()
@@ -129,36 +129,36 @@ class EventService
         foreach ($filters as $filter) {
             foreach ($filter as $dialect => $condition) {
                 switch ($dialect) {
-                case 'exact':
-                    foreach ($condition as $field => $value) {
-                        if ($event->{'get'.ucfirst($field)}() !== $value) {
+                    case 'exact':
+                        foreach ($condition as $field => $value) {
+                            if ($event->{'get'.ucfirst($field)}() !== $value) {
+                                return false;
+                            }
+                        }
+                        break;
+
+                    case 'prefix':
+                        foreach ($condition as $field => $value) {
+                            if (str_starts_with($event->{'get'.ucfirst($field)}(), $value) === false) {
+                                return false;
+                            }
+                        }
+                        break;
+
+                    case 'suffix':
+                        foreach ($condition as $field => $value) {
+                            if (str_ends_with($event->{'get'.ucfirst($field)}(), $value) === false) {
+                                return false;
+                            }
+                        }
+                        break;
+
+                    case 'expression':
+                        $variables = $event->jsonSerialize();
+                        if ($expressionLanguage->evaluate($condition, $variables) === false) {
                             return false;
                         }
-                    }
-                    break;
-
-                case 'prefix':
-                    foreach ($condition as $field => $value) {
-                        if (str_starts_with($event->{'get'.ucfirst($field)}(), $value) === false) {
-                            return false;
-                        }
-                    }
-                    break;
-
-                case 'suffix':
-                    foreach ($condition as $field => $value) {
-                        if (str_ends_with($event->{'get'.ucfirst($field)}(), $value) === false) {
-                            return false;
-                        }
-                    }
-                    break;
-
-                case 'expression':
-                    $variables = $event->jsonSerialize();
-                    if ($expressionLanguage->evaluate($condition, $variables) === false) {
-                        return false;
-                    }
-                    break;
+                        break;
                 }//end switch
             }//end foreach
         }//end foreach

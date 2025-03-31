@@ -15,7 +15,7 @@ class ObjectCreatedEventListener implements IEventListener
 
 
     public function __construct(
-    private readonly SynchronizationService $synchronizationService
+        private readonly SynchronizationService $synchronizationService
     ) {
 
     }//end __construct()

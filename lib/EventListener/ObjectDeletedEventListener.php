@@ -15,8 +15,8 @@ class ObjectDeletedEventListener implements IEventListener
 
 
     public function __construct(
-    private readonly SynchronizationService $synchronizationService,
-    private readonly SynchronizationContractMapper $synchronizationContractMapper,
+        private readonly SynchronizationService $synchronizationService,
+        private readonly SynchronizationContractMapper $synchronizationContractMapper,
     ) {
 
     }//end __construct()

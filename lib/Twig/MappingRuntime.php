@@ -37,11 +37,13 @@ use Twig\Extension\RuntimeExtensionInterface;
  */
 class MappingRuntime implements RuntimeExtensionInterface
 {
+
+
     /**
      * Constructor
      *
      * @param MappingService $mappingService Service for mapping operations
-     * @param MappingMapper $mappingMapper   Mapper for mapping database operations
+     * @param MappingMapper  $mappingMapper  Mapper for mapping database operations
      *
      * @return void
      */
@@ -49,7 +51,9 @@ class MappingRuntime implements RuntimeExtensionInterface
         private readonly MappingService $mappingService,
         private readonly MappingMapper $mappingMapper
     ) {
+
     }//end __construct()
+
 
     /**
      * Execute a mapping with given parameters
@@ -60,7 +64,7 @@ class MappingRuntime implements RuntimeExtensionInterface
      *
      * @return array The mapped result
      */
-    public function executeMapping(Mapping|array|string|int $mapping, array $input, bool $list = false): array
+    public function executeMapping((Mapping | array | string | int $mapping), array $input, bool $list=false): array
     {
         if (is_array($mapping) === true) {
             $mappingObject = new Mapping();
@@ -82,5 +86,8 @@ class MappingRuntime implements RuntimeExtensionInterface
             input: $input,
             list: $list
         );
+
     }//end executeMapping()
+
+
 }//end class

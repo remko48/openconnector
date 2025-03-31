@@ -22,8 +22,8 @@ class CloudEventListener implements IEventListener
      * @param LoggerInterface $logger       Logger instance
      */
     public function __construct(
-    private readonly EventService $eventService,
-    private readonly LoggerInterface $logger
+        private readonly EventService $eventService,
+        private readonly LoggerInterface $logger
     ) {
 
     }//end __construct()

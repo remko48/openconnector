@@ -242,7 +242,7 @@ class XmlHandler extends AbstractSourceHandler
                 }
 
                 foreach ($nsAttributes as $attrName => $attrValue) {
-                    $nsAttrName                         = $prefix ? "$prefix:$attrName" : $attrName;
+                    $nsAttrName = $prefix ? "$prefix:$attrName" : $attrName;
                     $result['@attributes'][$nsAttrName] = (string) $attrValue;
                 }
             }

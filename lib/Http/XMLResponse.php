@@ -174,7 +174,7 @@ class XMLResponse extends Response
         }
 
         // Create new DOM document
-        $dom               = new DOMDocument('1.0', 'UTF-8');
+        $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->formatOutput = true;
 
         // Create root element

@@ -1,4 +1,17 @@
 <?php
+/**
+ * OpenConnector Application Class
+ *
+ * This file contains the main application class for the OpenConnector application.
+ *
+ * @category  AppInfo
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: <git-id>
+ * @link      https://OpenConnector.app
+ */
 
 declare(strict_types=1);
 
@@ -20,13 +33,22 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
 
+/**
+ * Main Application class for the OpenConnector app
+ */
 class Application extends App implements IBootstrap
 {
     public const APP_ID = 'openconnector';
 
 
     /**
+     * Constructor for the Application class
+     * 
+     * Initializes the application with its ID
+     *
      * @psalm-suppress PossiblyUnusedMethod
+     * 
+     * @return void
      */
     public function __construct()
     {
@@ -35,11 +57,18 @@ class Application extends App implements IBootstrap
     }//end __construct()
 
 
+    /**
+     * Register application components during app initialization
+     *
+     * @param IRegistrationContext $context The registration context
+     *
+     * @return void
+     */
     public function register(IRegistrationContext $context): void
     {
         include_once __DIR__.'/../../vendor/autoload.php';
 
-        // Register target handlers
+        // Register target handlers.
         $context->registerService(
             TargetHandlerRegistry::class,
             function ($c) {
@@ -50,7 +79,7 @@ class Application extends App implements IBootstrap
             }
         );
 
-        // Register event listeners
+        // Register event listeners.
         $dispatcher = $this->getContainer()->get(IEventDispatcher::class);
         $dispatcher->addServiceListener(eventName: ObjectCreatedEvent::class, className: ObjectCreatedEventListener::class);
         $dispatcher->addServiceListener(eventName: ObjectUpdatedEvent::class, className: ObjectUpdatedEventListener::class);
@@ -59,6 +88,13 @@ class Application extends App implements IBootstrap
     }//end register()
 
 
+    /**
+     * Boot the application after registration is done
+     *
+     * @param IBootContext $context The boot context
+     *
+     * @return void
+     */
     public function boot(IBootContext $context): void
     {
 

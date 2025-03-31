@@ -170,14 +170,14 @@ class AuthenticationService
         }
 
         switch ($configuration['grant_type']) {
-        case 'client_credentials':
-            $callConfig = $this->createClientCredentialConfig($configuration);
-            break;
-        case 'password':
-            $callConfig = $this->createPasswordConfig($configuration);
-            break;
-        default:
-            throw new BadRequestException('Grant type not supported');
+            case 'client_credentials':
+                $callConfig = $this->createClientCredentialConfig($configuration);
+                break;
+            case 'password':
+                $callConfig = $this->createPasswordConfig($configuration);
+                break;
+            default:
+                throw new BadRequestException('Grant type not supported');
         }
 
         $client   = new Client();

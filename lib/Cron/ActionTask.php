@@ -89,8 +89,8 @@ class ActionTask extends TimedJob
         JobLogMapper $jobLogMapper,
         IJobList $jobList,
         ContainerInterface $containerInterface,
-    private IUserSession $userSession,
-    private IUserManager $userManager,
+        private IUserSession $userSession,
+        private IUserManager $userManager,
     ) {
         parent::__construct($time);
         $this->jobMapper          = $jobMapper;

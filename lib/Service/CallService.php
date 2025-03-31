@@ -3,13 +3,13 @@
 /**
  * This file is part of the OpenConnector app.
  *
- * @package     OpenConnector
- * @category    Service
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
- * @version     1.0.0
+ * @package   OpenConnector
+ * @category  Service
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
+ * @version   1.0.0
  */
 
 namespace OCA\OpenConnector\Service;
@@ -45,15 +45,16 @@ use Twig\Loader\ArrayLoader;
  * It manages the execution of HTTP requests using the Guzzle HTTP client, while also rendering templates
  * and managing call logs. It utilizes Twig for templating and Guzzle for making HTTP requests, and logs all calls.
  *
- * @package     OpenConnector
- * @category    Service
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
+ * @package   OpenConnector
+ * @category  Service
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
  */
 class CallService
 {
+
     /**
      * HTTP Client for making requests.
      *
@@ -74,6 +75,7 @@ class CallService
      * @var Source|null
      */
     private ?Source $source = null;
+
 
     /**
      * The constructor sets all needed variables.
@@ -110,11 +112,11 @@ class CallService
      * @param Source       $source The source object used as context for rendering templates
      *
      * @return array|string The rendered value, either as a processed string or an array
-     * 
+     *
      * @throws LoaderError If there is an error loading a Twig template
      * @throws SyntaxError If there is a syntax error in a Twig template
-     * 
-     * @psalm-param array<string, mixed>|string $value
+     *
+     * @psalm-param  array<string, mixed>|string $value
      * @psalm-return array<string, mixed>|string
      */
     private function renderValue($value, Source $source)
@@ -150,11 +152,11 @@ class CallService
      * @param Source $source        The source object used as context for rendering templates
      *
      * @return array The rendered configuration array
-     * 
+     *
      * @throws LoaderError If there is an error loading a Twig template
      * @throws SyntaxError If there is a syntax error in a Twig template
-     * 
-     * @psalm-param array<string, mixed> $configuration
+     *
+     * @psalm-param  array<string, mixed> $configuration
      * @psalm-return array<string, mixed>
      */
     private function renderConfiguration(array $configuration, Source $source): array
@@ -178,39 +180,39 @@ class CallService
      * @param bool   $read          For GET as default: decides if we are in a list or read (singular) endpoint
      *
      * @return string The HTTP method to use
-     * 
+     *
      * @psalm-param array<string, mixed> $configuration
      */
     private function decideMethod(string $default, array $configuration, bool $read=false): string
     {
         // Determine the appropriate method based on the request type and configuration
         switch ($default) {
-        case 'POST':
-            if (isset($configuration['createMethod']) === true) {
-                 return $configuration['createMethod'];
-            }
-            return $default;
-        case 'PUT':
-        case 'PATCH':
-            if (isset($configuration['updateMethod']) === true) {
-                return $configuration['updateMethod'];
-            }
-            return $default;
-        case 'DELETE':
-            if (isset($configuration['destroyMethod']) === true) {
-                return $configuration['destroyMethod'];
-            }
-            return $default;
-        case 'GET':
-        default:
-            if (isset($configuration['listMethod']) === true && $read === false) {
-                return $configuration['listMethod'];
-            }
+            case 'POST':
+                if (isset($configuration['createMethod']) === true) {
+                     return $configuration['createMethod'];
+                }
+                return $default;
+            case 'PUT':
+            case 'PATCH':
+                if (isset($configuration['updateMethod']) === true) {
+                    return $configuration['updateMethod'];
+                }
+                return $default;
+            case 'DELETE':
+                if (isset($configuration['destroyMethod']) === true) {
+                    return $configuration['destroyMethod'];
+                }
+                return $default;
+            case 'GET':
+            default:
+                if (isset($configuration['listMethod']) === true && $read === false) {
+                    return $configuration['listMethod'];
+                }
 
-            if (isset($configuration['readMethod']) === true && $read === true) {
-                return $configuration['readMethod'];
-            }
-            return $default;
+                if (isset($configuration['readMethod']) === true && $read === true) {
+                    return $configuration['readMethod'];
+                }
+                return $default;
         }//end switch
 
     }//end decideMethod()
@@ -231,12 +233,12 @@ class CallService
      * @param bool   $read               Whether this is a read operation for a single resource
      *
      * @return CallLog The call log containing request and response information
-     * 
+     *
      * @throws GuzzleException If there is an error with the HTTP request
      * @throws LoaderError If there is an error loading a Twig template
      * @throws SyntaxError If there is a syntax error in a Twig template
      * @throws \OCP\DB\Exception If there is a database error
-     * 
+     *
      * @psalm-param array<string, mixed> $config
      */
     public function call(
@@ -253,188 +255,188 @@ class CallService
 
         // Determine the HTTP method to use
         $method = $this->decideMethod(default: $method, configuration: $config, read: $read);
-        unset($config['createMethod'], $config['updateMethod'], $config['destroyMethod'], $config['listMethod'], $config['readMethod']);
+            unset($config['createMethod'], $config['updateMethod'], $config['destroyMethod'], $config['listMethod'], $config['readMethod']);
 
-        // Check if the source is enabled
-        if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
-              // Create and save the CallLog for disabled source
-              $callLog = new CallLog();
-              $callLog->setUuid(Uuid::v4());
-              $callLog->setSourceId($this->source->getId());
-              $callLog->setStatusCode(409);
-              $callLog->setStatusMessage("This source is not enabled");
-              $callLog->setCreated(new \DateTime());
-              $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
+            // Check if the source is enabled
+            if ($this->source->getIsEnabled() === null || $this->source->getIsEnabled() === false) {
+                  // Create and save the CallLog for disabled source
+                  $callLog = new CallLog();
+                  $callLog->setUuid(Uuid::v4());
+                  $callLog->setSourceId($this->source->getId());
+                  $callLog->setStatusCode(409);
+                  $callLog->setStatusMessage("This source is not enabled");
+                  $callLog->setCreated(new \DateTime());
+                  $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
-              $this->callLogMapper->insert($callLog);
+                  $this->callLogMapper->insert($callLog);
 
-              return $callLog;
-        }
+                  return $callLog;
+            }
 
-        // Check if the source has a location
-        if (empty($this->source->getLocation()) === true) {
-            // Create and save the CallLog for missing location
-            $callLog = new CallLog();
-            $callLog->setUuid(Uuid::v4());
-            $callLog->setSourceId($this->source->getId());
-            $callLog->setStatusCode(409);
-            $callLog->setStatusMessage("This source has no location");
-            $callLog->setCreated(new \DateTime());
-            $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
+            // Check if the source has a location
+            if (empty($this->source->getLocation()) === true) {
+                // Create and save the CallLog for missing location
+                $callLog = new CallLog();
+                $callLog->setUuid(Uuid::v4());
+                $callLog->setSourceId($this->source->getId());
+                $callLog->setStatusCode(409);
+                $callLog->setStatusMessage("This source has no location");
+                $callLog->setCreated(new \DateTime());
+                $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
-            $this->callLogMapper->insert($callLog);
+                $this->callLogMapper->insert($callLog);
 
-            return $callLog;
-        }
+                return $callLog;
+            }
 
-        // Check if Source has a RateLimit and if we need to reset RateLimit-Reset and RateLimit-Remaining
-        if ($this->source->getRateLimitReset() !== null
-            && $this->source->getRateLimitRemaining() !== null
-            && $this->source->getRateLimitReset() <= time()
-        ) {
-            $this->source->setRateLimitReset(null);
-            $this->source->setRateLimitRemaining(null);
+            // Check if Source has a RateLimit and if we need to reset RateLimit-Reset and RateLimit-Remaining
+            if ($this->source->getRateLimitReset() !== null
+                && $this->source->getRateLimitRemaining() !== null
+                && $this->source->getRateLimitReset() <= time()
+            ) {
+                $this->source->setRateLimitReset(null);
+                $this->source->setRateLimitRemaining(null);
 
-            $this->sourceMapper->update($source);
-        }
+                $this->sourceMapper->update($source);
+            }
 
-        // Check if RateLimit-Remaining is set on this source and if limit has been reached
-        if ($this->source->getRateLimitRemaining() !== null && $this->source->getRateLimitRemaining() <= 0) {
-            // Create and save the CallLog for rate limit exceeded
-            $callLog = new CallLog();
-            $callLog->setUuid(Uuid::v4());
-            $callLog->setSourceId($this->source->getId());
-            $callLog->setStatusCode(429);
-            $callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
-            $callLog->setCreated(new \DateTime());
-            $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
+            // Check if RateLimit-Remaining is set on this source and if limit has been reached
+            if ($this->source->getRateLimitRemaining() !== null && $this->source->getRateLimitRemaining() <= 0) {
+                // Create and save the CallLog for rate limit exceeded
+                $callLog = new CallLog();
+                $callLog->setUuid(Uuid::v4());
+                $callLog->setSourceId($this->source->getId());
+                $callLog->setStatusCode(429);
+                $callLog->setStatusMessage("The rate limit for this source has been exceeded. Try again later.");
+                $callLog->setCreated(new \DateTime());
+                $callLog->setExpires(new \DateTime('now + '.$source->getErrorRetention().' seconds'));
 
-            $this->callLogMapper->insert($callLog);
+                $this->callLogMapper->insert($callLog);
 
-            return $callLog;
-        }
+                return $callLog;
+            }
 
-        // Check if the source has a configuration and merge it with the given config
-        if (empty($this->source->getConfiguration()) === false) {
-            $config = array_merge_recursive($config, $this->applyConfigDot($this->source->getConfiguration()));
-        }
+            // Check if the source has a configuration and merge it with the given config
+            if (empty($this->source->getConfiguration()) === false) {
+                $config = array_merge_recursive($config, $this->applyConfigDot($this->source->getConfiguration()));
+            }
 
-        // Check if the config has a Content-Type header and overwrite it if it does
-        if (isset($config['headers']['Content-Type']) === true) {
-            $overwriteContentType = $config['headers']['Content-Type'];
-        }
+            // Check if the config has a Content-Type header and overwrite it if it does
+            if (isset($config['headers']['Content-Type']) === true) {
+                $overwriteContentType = $config['headers']['Content-Type'];
+            }
 
-        // Decapitalized fall back for content-type
-        if (isset($config['headers']['content-type']) === true) {
-            $overwriteContentType = $config['headers']['content-type'];
-        }
+            // Decapitalized fall back for content-type
+            if (isset($config['headers']['content-type']) === true) {
+                $overwriteContentType = $config['headers']['content-type'];
+            }
 
-        // Make sure we do not have an array of accept headers but just one value
-        if (isset($config['headers']['accept']) === true && is_array($config['headers']['accept']) === true) {
-            $config['headers']['accept'] = $config['headers']['accept'][0];
-        }
+            // Make sure we do not have an array of accept headers but just one value
+            if (isset($config['headers']['accept']) === true && is_array($config['headers']['accept']) === true) {
+                $config['headers']['accept'] = $config['headers']['accept'][0];
+            }
 
-        // Check if the config has a headers array and create it if it doesn't
-        if (isset($config['headers']) === false) {
-            $config['headers'] = [];
-        }
+            // Check if the config has a headers array and create it if it doesn't
+            if (isset($config['headers']) === false) {
+                $config['headers'] = [];
+            }
 
-        // Handle pagination configuration
-        if (isset($config['pagination']) === true) {
-            $config['query'][$config['pagination']['paginationQuery']] = $config['pagination']['page'];
-            unset($config['pagination']);
-        }
+            // Handle pagination configuration
+            if (isset($config['pagination']) === true) {
+                $config['query'][$config['pagination']['paginationQuery']] = $config['pagination']['page'];
+                unset($config['pagination']);
+            }
 
-        // Render configuration templates
-        $config = $this->renderConfiguration(configuration: $config, source: $source);
+            // Render configuration templates
+            $config = $this->renderConfiguration(configuration: $config, source: $source);
 
-        // Set the URL to call and add an endpoint if needed
-        $url = $this->source->getLocation().$endpoint;
+            // Set the URL to call and add an endpoint if needed
+            $url = $this->source->getLocation().$endpoint;
 
-        // Filter out authentication variables/secrets
-        $config = array_filter(
+            // Filter out authentication variables/secrets
+            $config = array_filter(
             $config,
             function ($key) {
                 return str_contains(strtolower($key), 'authentication') === false;
             },
             ARRAY_FILTER_USE_KEY
-        );
+            );
 
-        // Determine if body should be logged
-        $logBody = isset($config['logBody']) === true && (bool) $config['logBody'];
-        unset($config['logBody']);
+            // Determine if body should be logged
+            $logBody = isset($config['logBody']) === true && (bool) $config['logBody'];
+            unset($config['logBody']);
 
-        // Suppress guzzle exceptions to handle them manually
-        $config['http_errors'] = false;
+            // Suppress guzzle exceptions to handle them manually
+            $config['http_errors'] = false;
 
-        // Update last call timestamp
-        $this->source->setLastCall(new \DateTime());
-        
-        // Make the call
-        $time_start = microtime(true);
-        try {
-            if ($asynchronous === false) {
-                $response = $this->client->request($method, $url, $config);
-            } else {
-                // Return async promise for asynchronous calls
-                return $this->client->requestAsync($method, $url, $config);
+            // Update last call timestamp
+            $this->source->setLastCall(new \DateTime());
+
+            // Make the call
+            $time_start = microtime(true);
+            try {
+                if ($asynchronous === false) {
+                    $response = $this->client->request($method, $url, $config);
+                } else {
+                    // Return async promise for asynchronous calls
+                    return $this->client->requestAsync($method, $url, $config);
+                }
+            } catch (GuzzleException $e) {
+                $response = $e->getResponse();
             }
-        } catch (GuzzleException $e) {
-            $response = $e->getResponse();
-        }
 
-        $time_end = microtime(true);
+            $time_end = microtime(true);
 
-        // Get response body
-        $body = $response->getBody()->getContents();
+            // Get response body
+            $body = $response->getBody()->getContents();
 
-        // Create data array with request and response details
-        $data = [
-            'request'  => [
-                'url'    => $url,
-                'method' => $method,
-                ...$config
-            ],
-            'response' => [
-                'statusCode'    => $response->getStatusCode(),
-                'statusMessage' => $response->getReasonPhrase(),
-                'responseTime'  => (($time_end - $time_start) * 1000),
-                'size'          => $response->getBody()->getSize(),
-                'remoteIp'      => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
-                'headers'       => $response->getHeaders(),
-                'body'          => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? $body : base64_encode($body),
-                'encoding'      => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? 'UTF-8' : 'base64',
-            ],
-        ];
+            // Create data array with request and response details
+            $data = [
+                'request'  => [
+                    'url'    => $url,
+                    'method' => $method,
+                    ...$config
+                ],
+                'response' => [
+                    'statusCode'    => $response->getStatusCode(),
+                    'statusMessage' => $response->getReasonPhrase(),
+                    'responseTime'  => (($time_end - $time_start) * 1000),
+                    'size'          => $response->getBody()->getSize(),
+                    'remoteIp'      => $response->getHeaderLine('X-Real-IP') ?: $response->getHeaderLine('X-Forwarded-For') ?: null,
+                    'headers'       => $response->getHeaders(),
+                    'body'          => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? $body : base64_encode($body),
+                    'encoding'      => mb_check_encoding(value: $body, encoding: 'UTF-8') !== false ? 'UTF-8' : 'base64',
+                ],
+            ];
 
-        // Update Rate Limit info for the source
-        $data['response']['headers'] = $this->sourceRateLimit($source, $data['response']['headers']);
+            // Update Rate Limit info for the source
+            $data['response']['headers'] = $this->sourceRateLimit($source, $data['response']['headers']);
 
-        // Create and save the CallLog
-        $callLog = new CallLog();
-        $callLog->setUuid(Uuid::v4());
-        $callLog->setSourceId($this->source->getId());
-        $callLog->setStatusCode($data['response']['statusCode']);
-        $callLog->setStatusMessage($data['response']['statusMessage']);
-        $callLog->setRequest($data['request']);
-        $callLog->setCreated(new \DateTime());
-        $callLog->setExpires(new \DateTime('now + '.($data['response']['statusCode'] < 400 ? $source->getLogRetention() : $source->getErrorRetention()).' seconds'));
+            // Create and save the CallLog
+            $callLog = new CallLog();
+            $callLog->setUuid(Uuid::v4());
+            $callLog->setSourceId($this->source->getId());
+            $callLog->setStatusCode($data['response']['statusCode']);
+            $callLog->setStatusMessage($data['response']['statusMessage']);
+            $callLog->setRequest($data['request']);
+            $callLog->setCreated(new \DateTime());
+            $callLog->setExpires(new \DateTime('now + '.($data['response']['statusCode'] < 400 ? $source->getLogRetention() : $source->getErrorRetention()).' seconds'));
 
-        // Only persist response body for errors or if logging is explicitly enabled
-        if ($callLog->getStatusCode() >= 400 && $callLog->getStatusCode() < 600 || $logBody === true) {
+            // Only persist response body for errors or if logging is explicitly enabled
+            if ($callLog->getStatusCode() >= 400 && $callLog->getStatusCode() < 600 || $logBody === true) {
+                $callLog->setResponse($data['response']);
+            } else {
+                $response = $data['response'];
+                unset($response['body']);
+                $callLog->setResponse($response);
+            }
+
+            $this->callLogMapper->insert($callLog);
+
+            // Set complete response after persist for further processing
             $callLog->setResponse($data['response']);
-        } else {
-            $response = $data['response'];
-            unset($response['body']);
-            $callLog->setResponse($response);
-        }
 
-        $this->callLogMapper->insert($callLog);
-
-        // Set complete response after persist for further processing
-        $callLog->setResponse($data['response']);
-
-        return $callLog;
+            return $callLog;
 
     }//end call()
 
@@ -449,10 +451,10 @@ class CallService
      * @param array  $headers The response headers to check for Rate Limit headers
      *
      * @return array The updated response headers
-     * 
+     *
      * @throws \OCP\DB\Exception If there is a database error
-     * 
-     * @psalm-param array<string, mixed> $headers
+     *
+     * @psalm-param  array<string, mixed> $headers
      * @psalm-return array<string, mixed>
      */
     private function sourceRateLimit(Source $source, array $headers): array
@@ -525,8 +527,8 @@ class CallService
      * @param array $config The config array
      *
      * @return array The updated config array
-     * 
-     * @psalm-param array<string, mixed> $config
+     *
+     * @psalm-param  array<string, mixed> $config
      * @psalm-return array<string, mixed>
      */
     public function applyConfigDot(array $config): array
@@ -563,7 +565,7 @@ class CallService
      *
      * @throws GuzzleException If there is an HTTP request error
      * @throws Exception If the source is not found
-     * 
+     *
      * @psalm-return array<string, mixed>
      */
     public function fetchObjectFromSource(
