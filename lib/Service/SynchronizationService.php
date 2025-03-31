@@ -1,18 +1,15 @@
 <?php
 
 /**
- * SynchronizationService.php
- *
- * This file contains the SynchronizationService class which orchestrates synchronization
- * operations between different data sources and targets in the OpenConnector app.
+ * This file is part of the OpenConnector app.
  *
  * @category  Service
- * @package   OCA\OpenConnector\Service
- * @author    Conduction <info@conduction.nl>
- * @copyright 2023 Conduction
- * @license   https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12 EUPL-1.2
- * @version   GIT: <git_id>
- * @link      https://github.com/nextcloud/server/tree/master/apps/openconnector
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: 1.0.0
+ * @link      https://OpenConnector.app
  */
 
 namespace OCA\OpenConnector\Service;
@@ -47,17 +44,20 @@ use Twig\Error\SyntaxError;
  *
  * Orchestrates the synchronization process between data sources and targets.
  *
- * @category Service
- * @package  OCA\OpenConnector\Service
- * @author   Conduction <info@conduction.nl>
- * @license  EUPL-1.2
- * @link     https://github.com/nextcloud/server/tree/master/apps/openconnector
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: 1.0.0
+ * @link      https://OpenConnector.app
  */
 class SynchronizationService
 {
-
     /**
      * The call service instance.
+     *
+     * Used for making API calls to external sources.
      *
      * @var CallService
      */
@@ -66,12 +66,16 @@ class SynchronizationService
     /**
      * The synchronization mapper instance.
      *
+     * Used for database operations on synchronization entities.
+     *
      * @var SynchronizationMapper
      */
     private readonly SynchronizationMapper $synchronizationMapper;
 
     /**
      * The source mapper instance.
+     *
+     * Used for database operations on source entities.
      *
      * @var SourceMapper
      */
@@ -80,12 +84,16 @@ class SynchronizationService
     /**
      * The synchronization log mapper instance.
      *
+     * Used for database operations on synchronization log entities.
+     *
      * @var SynchronizationLogMapper
      */
     private readonly SynchronizationLogMapper $synchronizationLogMapper;
 
     /**
      * The synchronization contract mapper instance.
+     *
+     * Used for database operations on synchronization contract entities.
      *
      * @var SynchronizationContractMapper
      */
@@ -94,12 +102,16 @@ class SynchronizationService
     /**
      * The source handler registry instance.
      *
+     * Provides access to available source handlers.
+     *
      * @var SourceHandlerRegistry
      */
     private readonly SourceHandlerRegistry $sourceHandlerRegistry;
 
     /**
      * The target handler registry instance.
+     *
+     * Provides access to available target handlers.
      *
      * @var TargetHandlerRegistry
      */
@@ -108,10 +120,11 @@ class SynchronizationService
     /**
      * The synchronization object processor instance.
      *
+     * Processes individual objects during synchronization.
+     *
      * @var SynchronizationObjectProcessor
      */
     private readonly SynchronizationObjectProcessor $objectProcessor;
-
 
     /**
      * Constructor
@@ -124,6 +137,8 @@ class SynchronizationService
      * @param SourceHandlerRegistry          $sourceHandlerRegistry         Registry for source handlers
      * @param TargetHandlerRegistry          $targetHandlerRegistry         Registry for target handlers
      * @param SynchronizationObjectProcessor $objectProcessor               Processor for objects
+     *
+     * @return void
      */
     public function __construct(
         CallService $callService,
@@ -171,10 +186,10 @@ class SynchronizationService
         bool $isTest=false,
         bool $force=false
     ): array {
-        // Start execution time measurement
+        // Start execution time measurement.
         $startTime = microtime(true);
 
-        // Create log with synchronization ID and initialize results tracking
+        // Create log with synchronization ID and initialize results tracking.
         $log = [
             'synchronizationId' => $synchronization->getUuid(),
             'result'            => [
@@ -193,12 +208,12 @@ class SynchronizationService
             'force'             => $force,
         ];
 
-        // Create initial log entry for tracking purposes
+        // Create initial log entry for tracking purposes.
         $log = $this->synchronizationLogMapper->createFromArray($log);
 
         $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
-        // Validate source ID
+        // Validate source ID.
         if ($synchronization->getSourceId() === '') {
             $errorMessage = 'sourceId of synchronization cannot be empty. Canceling synchronization...';
             $log->setMessage($errorMessage);
@@ -206,7 +221,7 @@ class SynchronizationService
             throw new Exception($errorMessage);
         }
 
-        // Fetch objects from source
+        // Fetch objects from source.
         try {
             $objectList = $this->getAllObjectsFromSource(
                 synchronization: $synchronization,
@@ -216,19 +231,19 @@ class SynchronizationService
             $rateLimitException = $e;
         }
 
-        // Update log with object count
+        // Update log with object count.
         $result = $log->getResult();
         $result['objects']['found'] = count($objectList);
 
         $synchronizedTargetIds = [];
 
-        // Handle single object case
+        // Handle single object case.
         if (isset($sourceConfig['resultsPosition']) && $sourceConfig['resultsPosition'] === '_object') {
             $objectList = [$objectList];
             $result['objects']['found'] = count($objectList);
         }
 
-        // Process each object
+        // Process each object.
         foreach ($objectList as $object) {
             $processResult = $this->objectProcessor->processSynchronizationObject(
                 synchronization: $synchronization,
@@ -246,7 +261,7 @@ class SynchronizationService
             }
         }
 
-        // Handle object deletion
+        // Handle object deletion.
         if ($isTest === false) {
             $result['objects']['deleted'] = $this->targetHandlerRegistry->deleteInvalidObjects(
                 synchronization: $synchronization,
@@ -266,7 +281,12 @@ class SynchronizationService
             );
         }
 
+        // Update log with final results.
         $log->setResult($result);
+        $log->setEnded(microtime(true));
+        $log->setDuration($log->getEnded() - $startTime);
+
+        $this->synchronizationLogMapper->update($log);
 
         // Handle rate limit exception
         if (isset($rateLimitException) === true) {
@@ -279,104 +299,72 @@ class SynchronizationService
             );
         }
 
-        // Finalize log
-        $executionTime = round((microtime(true) - $startTime) * 1000);
-        $log->setExecutionTime($executionTime);
-        $log->setMessage('Success');
-        $this->synchronizationLogMapper->update($log);
-
-        return $log->jsonSerialize();
+        // Return final results.
+        return [
+            'id'       => $log->getId(),
+            'objects'  => $result['objects'],
+            'logs'     => $result['logs'],
+            'duration' => $log->getDuration(),
+        ];
 
     }//end synchronize()
 
 
     /**
-     * Get all the objects from a source.
+     * Get all objects from a source based on synchronization configuration.
      *
-     * @param Synchronization $synchronization The synchronization to run
-     * @param bool            $isTest          False by default, currently added for synchronization-test endpoint
+     * @param Synchronization $synchronization The synchronization configuration
+     * @param bool            $isTest          Whether this is a test run
      *
-     * @return array The objects fetched from the source
+     * @return array List of objects from the source
      *
-     * @throws ContainerExceptionInterface
      * @throws GuzzleException
-     * @throws NotFoundExceptionInterface
-     * @throws \OCP\DB\Exception
+     * @throws LoaderError
+     * @throws SyntaxError
+     * @throws Exception
      */
     public function getAllObjectsFromSource(Synchronization $synchronization, bool $isTest=false): array
     {
-        $source       = $this->sourceMapper->find($synchronization->getSourceId());
-        $sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
+        // Validate required properties.
+        if (empty($synchronization->getSourceId())) {
+            throw new Exception('No source ID configured for this synchronization.');
+        }
 
-        switch ($source->getType()) {
-            case 'register/schema':
-                // @todo: implement for register/schema type
-                return [];
+        // Get the source type and determine appropriate handler.
+        $source = $this->sourceMapper->find($synchronization->getSourceId());
+        $sourceType = $source->getType();
 
-            case 'api':
-            case 'xml':
-            case 'json-api':
-            case 'soap':
-                // Extract configuration for the API call
-                $endpoint = ($sourceConfig['endpoint'] ?? '');
-                $headers  = ($sourceConfig['headers'] ?? []);
-                $query    = ($sourceConfig['query'] ?? []);
+        // Get the appropriate source handler.
+        $sourceHandler = $this->sourceHandlerRegistry->getHandler($sourceType);
+        if ($sourceHandler === null) {
+            throw new Exception("No handler available for source type: $sourceType");
+        }
 
-                // Set current page based on rate limit
-                $currentPage = 1;
-                if ($source->getRateLimitLimit() !== null) {
-                    $currentPage = ($synchronization->getCurrentPage() ?? 1);
-                }
+        // Get source configuration from synchronization.
+        $sourceConfig = $synchronization->getSourceConfig();
+        
+        if (empty($sourceConfig)) {
+            throw new Exception("Source configuration is empty for synchronization: {$synchronization->getId()}");
+        }
 
-                // Use the appropriate handler through the registry
-                $objects = $this->sourceHandlerRegistry->getAllObjects(
-                source: $source,
-                config: $sourceConfig,
-                isTest: $isTest,
-                currentPage: $currentPage,
-                headers: $headers,
-                query: $query
-                );
-
-                // Reset page counter after synchronization if not in test mode
-                if ($isTest === false) {
-                    $synchronization->setCurrentPage(1);
-                    $this->synchronizationMapper->update($synchronization);
-                }
-                return $objects;
-
-            case 'database':
-                // @todo: implement for database type
-                return [];
-
-            default:
-                return [];
-        }//end switch
+        // Get all objects from source.
+        return $sourceHandler->getAllObjects($source, $sourceConfig);
 
     }//end getAllObjectsFromSource()
 
 
     /**
-     * Synchronize data to a target.
+     * Synchronize an object to a target.
      *
-     * This method provides an entry point for OpenRegister to synchronize objects to targets.
-     * The synchronizationContract should be given if the normal procedure to find the contract (on originId)
-     * is not available to the contract that should be updated.
+     * @param ObjectEntity                $object                The object to synchronize
+     * @param SynchronizationContract|null $synchronizationContract Optional contract for tracking
+     * @param bool                         $force                Force update regardless of changes
+     * @param bool                         $test                 Whether this is a test run
+     * @param SynchronizationLog|null      $log                  Optional log for tracking
      *
-     * @param ObjectEntity                 $object                  The object to synchronize
-     * @param SynchronizationContract|null $synchronizationContract If given: the contract that should be updated
-     * @param bool                         $force                   If true, object will be updated regardless of changes
-     * @param bool                         $test                    If true, it's a test run only
-     * @param SynchronizationLog|null      $log                     Optional synchronization log
+     * @return array Result of the synchronization operation
      *
-     * @return array The updated synchronization contracts
-     *
-     * @throws ContainerExceptionInterface
-     * @throws LoaderError
-     * @throws NotFoundExceptionInterface
-     * @throws SyntaxError
-     * @throws \OCP\DB\Exception
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function synchronizeToTarget(
         ObjectEntity $object,
@@ -385,92 +373,69 @@ class SynchronizationService
         bool $test=false,
         ?SynchronizationLog $log=null
     ): array {
-        $objectId = $object->getUuid();
-
-        // Find contract or create new one
+        // Check if contract is provided.
         if ($synchronizationContract === null) {
-            $synchronizationContract = $this->synchronizationContractMapper->findByOriginId($objectId);
+            throw new Exception('No synchronization contract provided.');
         }
 
-        // Find synchronization for this object's schema
-        $synchronizations = $this->synchronizationMapper->findAll(
-            filters: [
-                'source_type' => 'register/schema',
-                'source_id'   => "{$object->getRegister()}/{$object->getSchema()}",
-            ]
-        );
-
-        if (count($synchronizations) === 0) {
-            return [];
+        // Get target configuration.
+        $targetConfig = $synchronizationContract->getTargetConfig();
+        if (empty($targetConfig)) {
+            throw new Exception('Target configuration is empty.');
         }
 
-        $synchronization = $synchronizations[0];
-
-        // Create new contract if not found
-        if ($synchronizationContract instanceof SynchronizationContract === false) {
-            $synchronizationContract = $this->synchronizationContractMapper->createFromArray(
-                [
-                    'synchronizationId' => $synchronization->getId(),
-                    'originId'          => $objectId,
-                ]
-            );
+        // Get target type and determine appropriate handler.
+        $targetType = $targetConfig['type'] ?? null;
+        if ($targetType === null) {
+            throw new Exception('No target type specified in configuration.');
         }
 
-        // Use the object processor to handle the synchronization
-        $synchronizationContractResult = $this->objectProcessor->synchronizeContract(
-            synchronizationContract: $synchronizationContract,
-            synchronization: $synchronization,
-            object: $object->jsonSerialize(),
-            isTest: $test,
-            force: $force,
-            log: $log
-        );
-
-        // Determine contract to return
-        if (isset($synchronizationContractResult['contract'])
-            && is_array($synchronizationContractResult['contract'])
-            && isset($synchronizationContractResult['contract']['id'])
-        ) {
-            // Return contract from result
-            $contract = $this->synchronizationContractMapper->find(
-                $synchronizationContractResult['contract']['id']
-            );
-            return [$contract];
+        // Get the appropriate target handler.
+        $targetHandler = $this->targetHandlerRegistry->getHandler($targetType);
+        if ($targetHandler === null) {
+            throw new Exception("No handler available for target type: $targetType");
         }
 
-        // Return original contract if no result contract
-        return [$synchronizationContract];
+        // Process the object with the target handler.
+        $result = $targetHandler->processObject($object, $targetConfig, $force, $test);
+
+        // For contract-based synchronization, update contract status.
+        if ($synchronizationContract !== null && $test === false && $result['targetId'] !== null && !empty($result['targetId'])) {
+            $synchronizationContract->setTargetId($result['targetId']);
+            $synchronizationContract->setLastSync(new \DateTime());
+            $this->synchronizationContractMapper->update($synchronizationContract);
+        }
+
+        // Return the result.
+        return $result;
 
     }//end synchronizeToTarget()
 
 
     /**
-     * Fetch a synchronization by ID or other characteristics.
+     * Get a synchronization by ID or filters.
      *
-     * @param string|int|null     $id      The synchronization ID
-     * @param array<string,mixed> $filters Additional filters to find the synchronization
+     * @param string|int|null $id      The ID of the synchronization to retrieve
+     * @param array           $filters Optional filters to apply when ID is not provided
      *
      * @return Synchronization The found synchronization
      *
-     * @throws DoesNotExistException When synchronization not found
+     * @throws Exception When no synchronization is found
      */
     public function getSynchronization(
-        (string | int | ) null $id=null,
+        string|int|null $id=null,
         array $filters=[]
     ): Synchronization {
-        // Find by ID if provided
+        // Handle retrieval by ID.
         if ($id !== null) {
-            return $this->synchronizationMapper->find(intval($id));
+            return $this->synchronizationMapper->find($id);
         }
 
-        // Find by filters
-        /*
-         * @var Synchronization[] $synchronizations
-         */
+        // Handle retrieval by filters.
         $synchronizations = $this->synchronizationMapper->findAll(filters: $filters);
-
+        
         if (count($synchronizations) === 0) {
-            throw new DoesNotExistException('The synchronization you are looking for does not exist.');
+            throw new Exception('No synchronization found matching the provided filters.');
         }
 
         return $synchronizations[0];

@@ -27,13 +27,6 @@ use Twig\Extension\RuntimeExtensionInterface;
  * Class MappingRuntime
  *
  * This class implements the RuntimeExtensionInterface for providing mapping functions to Twig templates.
- *
- * @package   OCA\OpenConnector\Twig
- * @category  Twig
- * @author    Conduction Development Team <dev@conductio.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @version   1.0.0
  */
 class MappingRuntime implements RuntimeExtensionInterface
 {
@@ -58,31 +51,31 @@ class MappingRuntime implements RuntimeExtensionInterface
     /**
      * Execute a mapping with given parameters
      *
-     * @param Mapping|array|string|int $mapping The mapping to execute
-     * @param array                    $input   The input to run the mapping on
-     * @param bool                     $list    Whether the mapping runs on multiple instances of the object
+     * @param Mapping|array|string|int $inputMapping The mapping to execute
+     * @param array                    $input        The input to run the mapping on
+     * @param bool                     $list         Whether the mapping runs on multiple instances of the object
      *
      * @return array The mapped result
      */
-    public function executeMapping(Mapping | array | string | int $mapping, array $input, bool $list=false): array
+    public function executeMapping((Mapping | array | string | int $inputMapping), array $input, bool $list=false): array
     {
-        if (is_array($mapping) === true) {
+        if (is_array($inputMapping) === true) {
             $mappingObject = new Mapping();
-            $mappingObject->hydrate($mapping);
+            $mappingObject->hydrate($inputMapping);
 
-            $mapping = $mappingObject;
-        } else if ((is_string($mapping) === true) || (is_int($mapping) === true)) {
-            if ((is_string($mapping) === true) && str_starts_with($mapping, 'http') === true) {
-                $mapping = $this->mappingMapper->findByRef($mapping)[0];
+            $inputMapping = $mappingObject;
+        } else if ((is_string($inputMapping) === true) || (is_int($inputMapping) === true)) {
+            if ((is_string($inputMapping) === true) && str_starts_with($inputMapping, 'http') === true) {
+                $inputMapping = $this->mappingMapper->findByRef($inputMapping)[0];
             } else {
-                // If the mapping is an int, we assume it's an ID and try to find the mapping by ID.
+                // If the inputMapping is an int, we assume it's an ID and try to find the mapping by ID.
                 // In the future we should be able to find the mapping by uuid (string) as well.
-                $mapping = $this->mappingMapper->find($mapping);
+                $inputMapping = $this->mappingMapper->find($inputMapping);
             }
         }
 
         return $this->mappingService->executeMapping(
-            mapping: $mapping,
+            mapping: $inputMapping,
             input: $input,
             list: $list
         );

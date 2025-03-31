@@ -1,4 +1,15 @@
 <?php
+/**
+ * This file is part of the OpenConnector app.
+ *
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: 1.0.0
+ * @link      https://OpenConnector.app
+ */
 
 namespace OCA\OpenConnector\Service;
 

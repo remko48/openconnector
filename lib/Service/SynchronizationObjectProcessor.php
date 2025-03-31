@@ -1,13 +1,14 @@
 <?php
-
 /**
  * Processes individual objects during synchronization.
  *
- * @category Service
- * @package  OpenConnector
- * @version  GIT: <git_id>
- * @link     https://openregister.app
- * @since    1.0.0
+ * @category  Service
+ * @package   OCA\OpenConnector\Service
+ * @author    Conduction <info@conduction.nl>
+ * @copyright 2023 Conduction
+ * @license   https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12 EUPL-1.2
+ * @version   GIT: <git_id>
+ * @link      https://github.com/nextcloud/server/tree/master/apps/openconnector
  */
 
 namespace OCA\OpenConnector\Service;

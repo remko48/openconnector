@@ -1,4 +1,15 @@
 <?php
+/**
+ * This file is part of the OpenConnector app.
+ *
+ * @category  Service
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: 1.0.0
+ * @link      https://OpenConnector.app
+ */
 
 namespace OCA\OpenConnector\Service;
 
@@ -228,7 +239,7 @@ class ImportService
      *
      * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
      */
-    private function getJSONfromBody((array | string $phpArray), ?string $type=null): JSONResponse
+    private function getJSONfromBody((array | string) $phpArray, ?string $type=null): JSONResponse
     {
         if (is_string($phpArray) === true) {
             $phpArray = json_decode($phpArray, associative: true);
