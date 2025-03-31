@@ -43,11 +43,11 @@ class Application extends App implements IBootstrap
 
     /**
      * Constructor for the Application class
-     * 
+     *
      * Initializes the application with its ID
      *
      * @psalm-suppress PossiblyUnusedMethod
-     * 
+     *
      * @return void
      */
     public function __construct()

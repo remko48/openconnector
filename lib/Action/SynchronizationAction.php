@@ -119,8 +119,8 @@ class SynchronizationAction
         } catch (TooManyRequestsHttpException $e) {
             $response['level']        = 'WARNING';
             $response['stackTrace'][] = $response['message'] = 'Stopped synchronization: '.$e->getMessage();
-            
-            // Handle rate limiting headers if present
+
+            // Handle rate limiting headers if present.
             if (isset($e->getHeaders()['X-RateLimit-Reset']) === true) {
                 $response['nextRun']      = $e->getHeaders()['X-RateLimit-Reset'];
                 $response['stackTrace'][] = 'Returning X-RateLimit-Reset header to update Job nextRun: '.$response['nextRun'];
@@ -137,10 +137,10 @@ class SynchronizationAction
 
         $objectCount = 0;
         if (is_array($objects) === true) {
-            // Calculate object count from response
-            if (isset($objects['result']['contracts']) && $objects['result']['contracts']) {
+            // Calculate object count from response.
+            if (isset($objects['result']['contracts']) === true && $objects['result']['contracts'] === true) {
                 $objectCount = count($objects['result']['contracts']);
-            } else if (isset($objects['result']['objects']['found'])) {
+            } else if (isset($objects['result']['objects']['found']) === true) {
                 $objectCount = $objects['result']['objects']['found'];
             }
         }

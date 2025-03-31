@@ -62,10 +62,11 @@ class EventAction
     /**
      * Runs the event action with the given arguments
      *
-     * @todo: make this a bit more generic
      * @param array $argument Optional arguments for the action
      *
      * @return array Returns an array of results from the action
+     *
+     * @todo: make this a bit more generic
      */
     public function run(array $argument=[]): array
     {
