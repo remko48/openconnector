@@ -53,6 +53,7 @@ class Version1Date20241121160300 extends SimpleMigrationStep
     public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
         // No operations required before schema changes.    }//end preSchemaChange()
+    }
 
 
     /**
@@ -142,3 +143,7 @@ class Version1Date20241121160300 extends SimpleMigrationStep
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void
     {
         // No operations required after schema changes.    }//end postSchemaChange()    }//end postSchemaChange()
+    }//end postSchemaChange()
+
+
+}//end class
