@@ -36,7 +36,7 @@ use Psr\Log\LoggerInterface;
  */
 class EndpointService
 {
-    /**
+	/**
      * The registered request handlers.
      *
      * @var RequestHandlerInterface[]
@@ -50,10 +50,10 @@ class EndpointService
      * @param RequestProcessorService $requestProcessor Service for processing HTTP requests.
      * @param IURLGenerator           $urlGenerator     URL generator for creating endpoint URLs.
      * @param LoggerInterface         $logger           Logger for error logging.
-     *
-     * @return void
-     */
-    public function __construct(
+	 *
+	 * @return void
+	 */
+	public function __construct(
         private readonly RuleProcessorService $ruleProcessor,
         private readonly RequestProcessorService $requestProcessor,
         private readonly IURLGenerator $urlGenerator,
@@ -86,9 +86,9 @@ class EndpointService
      * @return JSONResponse The response from the endpoint.
      *
      * @throws Exception When no handler can be found for the endpoint type.
-     */
-    public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
-    {
+	 */
+	public function handleRequest(Endpoint $endpoint, IRequest $request, string $path): JSONResponse
+	{
         // Extract request data
         $requestData = [
             'method' => $request->getMethod(),
@@ -96,17 +96,17 @@ class EndpointService
             'headers' => $this->requestProcessor->getHeaders($request->server),
             'body' => $this->requestProcessor->parseContent(
                 $this->requestProcessor->getRawContent(),
-                $request->getHeader('Content-Type')
+				$request->getHeader('Content-Type')
             )
         ];
 
         // Process pre-request rules
         $preRuleResult = $this->ruleProcessor->processRules(
-            endpoint: $endpoint,
-            request: $request,
+				endpoint: $endpoint,
+				request: $request,
             data: $requestData,
-            timing: 'before'
-        );
+				timing: 'before'
+			);
 
         // If pre-rule processing resulted in an error response, return it immediately
         if ($preRuleResult instanceof JSONResponse) {
@@ -116,7 +116,7 @@ class EndpointService
         // Update request with pre-rule processing results if needed
         if ($preRuleResult !== $requestData) {
             $request = $this->requestProcessor->updateRequestWithRuleData(
-                request: $request,
+					request: $request,
                 ruleData: $preRuleResult,
                 incomingData: $requestData
             );
@@ -193,7 +193,7 @@ class EndpointService
         } else if ($isPathParam === true) {
             // Default: append ID to path
             $url .= $id;
-        } else {
+		} else {
             // Add ID as query parameter
             if ($queryParams === null) {
                 $queryParams = [];
@@ -227,3 +227,4 @@ class EndpointService
         return null;
     }//end findHandlerForEndpoint()
 }
+
