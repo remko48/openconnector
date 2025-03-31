@@ -79,10 +79,10 @@ class EndpointsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-    private IAppConfig $config,
-    private EndpointMapper $endpointMapper,
-    private EndpointService $endpointService,
-    private AuthorizationService $authorizationService,
+        private IAppConfig $config,
+        private EndpointMapper $endpointMapper,
+        private EndpointService $endpointService,
+        private AuthorizationService $authorizationService,
         $corsMethods='PUT, POST, GET, DELETE, PATCH',
         $corsAllowedHeaders='Authorization, Content-Type, Accept',
         $corsMaxAge=1728000
@@ -108,9 +108,9 @@ class EndpointsController extends Controller
     public function page(): TemplateResponse
     {
         return new TemplateResponse(
-            'openconnector',
-            'index',
-            []
+                'openconnector',
+                'index',
+                []
         );
 
     }//end page()
@@ -140,21 +140,21 @@ class EndpointsController extends Controller
 
         $searchParams     = $searchService->createMySQLSearchParams(filters: $filters);
         $searchConditions = $searchService->createMySQLSearchConditions(
-            filters: $filters,
-            fieldsToSearch: $fieldsToSearch
+                filters: $filters,
+                fieldsToSearch: $fieldsToSearch
         );
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
         return new JSONResponse(
-            [
-                'results' => $this->endpointMapper->findAll(
-                    limit: null,
-                    offset: null,
-                    filters: $filters,
-                    searchConditions: $searchConditions,
-                    searchParams: $searchParams
+                [
+                    'results' => $this->endpointMapper->findAll(
+                        limit: null,
+                        offset: null,
+                        filters: $filters,
+                        searchConditions: $searchConditions,
+                        searchParams: $searchParams
                 ),
-            ]
+                ]
         );
 
     }//end index()
@@ -288,8 +288,8 @@ class EndpointsController extends Controller
     {
         // Find matching endpoints for the given path and method.
         $matchingEndpoints = $this->endpointMapper->findByPathRegex(
-            path: $_path,
-            method: $this->request->getMethod()
+                path: $_path,
+                method: $this->request->getMethod()
         );
 
         // If no matching endpoints found, return 404.
@@ -326,22 +326,13 @@ class EndpointsController extends Controller
     }//end handlePath()
 
 
-    /*
-     * Implements a preflighted CORS response for OPTIONS requests
+    /**
+     * Handles CORS preflight requests by setting appropriate headers
      *
-     * This method handles OPTIONS preflight requests for Cross-Origin Resource Sharing.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     * @PublicPage
-     * @since           7.0.0
-     *
-     * @return Response The CORS response
+     * @return Response The response with CORS headers
      */
     #[NoCSRFRequired]
     #[PublicPage]
-
-
     public function preflightedCors(): Response
     {
         // Determine the origin.

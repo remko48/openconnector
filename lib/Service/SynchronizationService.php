@@ -455,7 +455,7 @@ class SynchronizationService
      * @throws DoesNotExistException When synchronization not found
      */
     public function getSynchronization(
-        (string | int | )null $id=null,
+        string | int | null $id=null,
         array $filters=[]
     ): Synchronization {
         // Find by ID if provided

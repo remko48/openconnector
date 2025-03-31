@@ -50,9 +50,9 @@ class SourcesController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-    private readonly IAppConfig $config,
-    private readonly SourceMapper $sourceMapper,
-    private readonly CallLogMapper $callLogMapper
+        private readonly IAppConfig $config,
+        private readonly SourceMapper $sourceMapper,
+        private readonly CallLogMapper $callLogMapper
     ) {
         parent::__construct($appName, $request);
 
@@ -72,9 +72,9 @@ class SourcesController extends Controller
     public function page(): TemplateResponse
     {
         return new TemplateResponse(
-            'openconnector',
-            'index',
-            []
+                'openconnector',
+                'index',
+                []
         );
 
     }//end page()
@@ -106,15 +106,15 @@ class SourcesController extends Controller
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
         return new JSONResponse(
-            [
-                'results' => $this->sourceMapper->findAll(
-                    limit: null,
-                    offset: null,
-                    filters: $filters,
-                    searchConditions: $searchConditions,
-                    searchParams: $searchParams
+                [
+                    'results' => $this->sourceMapper->findAll(
+                        limit: null,
+                        offset: null,
+                        filters: $filters,
+                        searchConditions: $searchConditions,
+                        searchParams: $searchParams
                 ),
-            ]
+                ]
         );
 
     }//end index()
@@ -300,15 +300,15 @@ class SourcesController extends Controller
         // Set content type based on the type parameter.
         if (isset($requestData['type']) === true) {
             switch ($requestData['type']) {
-            case 'json':
-                $config['headers']['Content-Type'] = 'application/json';
-                break;
-            case 'xml':
-                $config['headers']['Content-Type'] = 'application/xml';
-                break;
-            case 'yaml':
-                $config['headers']['Content-Type'] = 'application/x-yaml';
-                break;
+                case 'json':
+                    $config['headers']['Content-Type'] = 'application/json';
+                    break;
+                case 'xml':
+                    $config['headers']['Content-Type'] = 'application/xml';
+                    break;
+                case 'yaml':
+                    $config['headers']['Content-Type'] = 'application/x-yaml';
+                    break;
             }
         }
 

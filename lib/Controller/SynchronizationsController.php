@@ -56,11 +56,11 @@ class SynchronizationsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-    private readonly IAppConfig $config,
-    private readonly SynchronizationMapper $synchronizationMapper,
-    private readonly SynchronizationContractMapper $synchronizationContractMapper,
-    private readonly SynchronizationLogMapper $synchronizationLogMapper,
-    private readonly SynchronizationService $synchronizationService
+        private readonly IAppConfig $config,
+        private readonly SynchronizationMapper $synchronizationMapper,
+        private readonly SynchronizationContractMapper $synchronizationContractMapper,
+        private readonly SynchronizationLogMapper $synchronizationLogMapper,
+        private readonly SynchronizationService $synchronizationService
     ) {
         parent::__construct($appName, $request);
 
@@ -80,9 +80,9 @@ class SynchronizationsController extends Controller
     public function page(): TemplateResponse
     {
         return new TemplateResponse(
-            'openconnector',
-            'index',
-            []
+                'openconnector',
+                'index',
+                []
         );
 
     }//end page()
@@ -111,21 +111,21 @@ class SynchronizationsController extends Controller
 
         $searchParams     = $searchService->createMySQLSearchParams(filters: $filters);
         $searchConditions = $searchService->createMySQLSearchConditions(
-            filters: $filters,
-            fieldsToSearch: $fieldsToSearch
+                filters: $filters,
+                fieldsToSearch: $fieldsToSearch
         );
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
         return new JSONResponse(
-            [
-                'results' => $this->synchronizationMapper->findAll(
-                    limit: null,
-                    offset: null,
-                    filters: $filters,
-                    searchConditions: $searchConditions,
-                    searchParams: $searchParams
+                [
+                    'results' => $this->synchronizationMapper->findAll(
+                        limit: null,
+                        offset: null,
+                        filters: $filters,
+                        searchConditions: $searchConditions,
+                        searchParams: $searchParams
                 ),
-            ]
+                ]
         );
 
     }//end index()

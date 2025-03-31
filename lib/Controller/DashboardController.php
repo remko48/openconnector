@@ -47,20 +47,22 @@ use OCA\OpenConnector\Db\SynchronizationContractLogMapper;
  */
 class DashboardController extends Controller
 {
+
+
     /**
      * Constructor for DashboardController
      *
-     * @param string                           $appName                         The name of the app
-     * @param IRequest                         $request                         The request object
-     * @param SynchronizationMapper            $synchronizationMapper           Synchronization mapper
-     * @param SourceMapper                     $sourceMapper                    Source mapper
-     * @param SynchronizationContractMapper    $synchronizationContractMapper   Synchronization contract mapper
-     * @param ConsumerMapper                   $consumerMapper                  Consumer mapper
-     * @param EndpointMapper                   $endpointMapper                  Endpoint mapper
-     * @param JobMapper                        $jobMapper                       Job mapper
-     * @param MappingMapper                    $mappingMapper                   Mapping mapper
-     * @param CallLogMapper                    $callLogMapper                   Call log mapper
-     * @param JobLogMapper                     $jobLogMapper                    Job log mapper
+     * @param string                           $appName                          The name of the app
+     * @param IRequest                         $request                          The request object
+     * @param SynchronizationMapper            $synchronizationMapper            Synchronization mapper
+     * @param SourceMapper                     $sourceMapper                     Source mapper
+     * @param SynchronizationContractMapper    $synchronizationContractMapper    Synchronization contract mapper
+     * @param ConsumerMapper                   $consumerMapper                   Consumer mapper
+     * @param EndpointMapper                   $endpointMapper                   Endpoint mapper
+     * @param JobMapper                        $jobMapper                        Job mapper
+     * @param MappingMapper                    $mappingMapper                    Mapping mapper
+     * @param CallLogMapper                    $callLogMapper                    Call log mapper
+     * @param JobLogMapper                     $jobLogMapper                     Job log mapper
      * @param SynchronizationContractLogMapper $synchronizationContractLogMapper Synchronization contract log mapper
      *
      * @return void
@@ -80,7 +82,9 @@ class DashboardController extends Controller
         private readonly SynchronizationContractLogMapper $synchronizationContractLogMapper
     ) {
         parent::__construct($appName, $request);
+
     }//end __construct()
+
 
     /**
      * Renders main page template
@@ -114,7 +118,9 @@ class DashboardController extends Controller
                 renderAs: '500'
             );
         }
+
     }//end page()
+
 
     /**
      * Retrieves dashboard summary data
@@ -141,7 +147,9 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return new JSONResponse(data: ['error' => $e->getMessage()], statusCode: 500);
         }
+
     }//end index()
+
 
     /**
      * Get call statistics for the dashboard
@@ -154,11 +162,24 @@ class DashboardController extends Controller
      *
      * @return JSONResponse Call statistics
      */
-    public function getCallStats(?string $from = null, ?string $to = null): JSONResponse
+    public function getCallStats(?string $from=null, ?string $to=null): JSONResponse
     {
         try {
-            $fromDate = ($from === null) ? (new \DateTime())->modify('-7 days') : new \DateTime($from);
-            $toDate = ($to === null) ? new \DateTime() : new \DateTime($to);
+            // Set default from date to 7 days ago if not provided.
+            $fromDate = null;
+            if ($from === null) {
+                $fromDate = (new \DateTime())->modify('-7 days');
+            } else {
+                $fromDate = new \DateTime($from);
+            }
+
+            // Set default to date to now if not provided.
+            $toDate = null;
+            if ($to === null) {
+                $toDate = new \DateTime();
+            } else {
+                $toDate = new \DateTime($to);
+            }
 
             $dailyStats  = $this->callLogMapper->getCallStatsByDateRange($fromDate, $toDate);
             $hourlyStats = $this->callLogMapper->getCallStatsByHourRange($fromDate, $toDate);
@@ -171,8 +192,10 @@ class DashboardController extends Controller
             );
         } catch (\Exception $e) {
             return new JSONResponse(['error' => $e->getMessage()], 500);
-        }
+        }//end try
+
     }//end getCallStats()
+
 
     /**
      * Get job statistics for the dashboard
@@ -185,11 +208,24 @@ class DashboardController extends Controller
      *
      * @return JSONResponse Job statistics
      */
-    public function getJobStats(?string $from = null, ?string $to = null): JSONResponse
+    public function getJobStats(?string $from=null, ?string $to=null): JSONResponse
     {
         try {
-            $fromDate = ($from === null) ? (new \DateTime())->modify('-7 days') : new \DateTime($from);
-            $toDate = ($to === null) ? new \DateTime() : new \DateTime($to);
+            // Set default from date to 7 days ago if not provided.
+            $fromDate = null;
+            if ($from === null) {
+                $fromDate = (new \DateTime())->modify('-7 days');
+            } else {
+                $fromDate = new \DateTime($from);
+            }
+
+            // Set default to date to now if not provided.
+            $toDate = null;
+            if ($to === null) {
+                $toDate = new \DateTime();
+            } else {
+                $toDate = new \DateTime($to);
+            }
 
             $dailyStats  = $this->jobLogMapper->getJobStatsByDateRange($fromDate, $toDate);
             $hourlyStats = $this->jobLogMapper->getJobStatsByHourRange($fromDate, $toDate);
@@ -202,8 +238,10 @@ class DashboardController extends Controller
             );
         } catch (\Exception $e) {
             return new JSONResponse(['error' => $e->getMessage()], 500);
-        }
+        }//end try
+
     }//end getJobStats()
+
 
     /**
      * Get synchronization statistics for the dashboard
@@ -216,11 +254,24 @@ class DashboardController extends Controller
      *
      * @return JSONResponse Synchronization statistics
      */
-    public function getSyncStats(?string $from = null, ?string $to = null): JSONResponse
+    public function getSyncStats(?string $from=null, ?string $to=null): JSONResponse
     {
         try {
-            $fromDate = ($from === null) ? (new \DateTime())->modify('-7 days') : new \DateTime($from);
-            $toDate = ($to === null) ? new \DateTime() : new \DateTime($to);
+            // Set default from date to 7 days ago if not provided.
+            $fromDate = null;
+            if ($from === null) {
+                $fromDate = (new \DateTime())->modify('-7 days');
+            } else {
+                $fromDate = new \DateTime($from);
+            }
+
+            // Set default to date to now if not provided.
+            $toDate = null;
+            if ($to === null) {
+                $toDate = new \DateTime();
+            } else {
+                $toDate = new \DateTime($to);
+            }
 
             $dailyStats  = $this->synchronizationContractLogMapper->getSyncStatsByDateRange($fromDate, $toDate);
             $hourlyStats = $this->synchronizationContractLogMapper->getSyncStatsByHourRange($fromDate, $toDate);
@@ -233,6 +284,9 @@ class DashboardController extends Controller
             );
         } catch (\Exception $e) {
             return new JSONResponse(['error' => $e->getMessage()], 500);
-        }
+        }//end try
+
     }//end getSyncStats()
+
+
 }//end class

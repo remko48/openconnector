@@ -55,10 +55,10 @@ class MappingsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-    private readonly IAppConfig $config,
-    private readonly MappingMapper $mappingMapper,
-    private readonly MappingService $mappingService,
-    private readonly ObjectService $objectService
+        private readonly IAppConfig $config,
+        private readonly MappingMapper $mappingMapper,
+        private readonly MappingService $mappingService,
+        private readonly ObjectService $objectService
     ) {
         parent::__construct($appName, $request);
 
@@ -78,9 +78,9 @@ class MappingsController extends Controller
     public function page(): TemplateResponse
     {
         return new TemplateResponse(
-            'openconnector',
-            'index',
-            []
+                'openconnector',
+                'index',
+                []
         );
 
     }//end page()
@@ -109,21 +109,21 @@ class MappingsController extends Controller
 
         $searchParams     = $searchService->createMySQLSearchParams(filters: $filters);
         $searchConditions = $searchService->createMySQLSearchConditions(
-            filters: $filters,
-            fieldsToSearch: $fieldsToSearch
+                filters: $filters,
+                fieldsToSearch: $fieldsToSearch
         );
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
         return new JSONResponse(
-            [
-                'results' => $this->mappingMapper->findAll(
-                    limit: null,
-                    offset: null,
-                    filters: $filters,
-                    searchConditions: $searchConditions,
-                    searchParams: $searchParams
-                ),
-            ]
+                [
+                    'results' => $this->mappingMapper->findAll(
+                            limit: null,
+                            offset: null,
+                            filters: $filters,
+                            searchConditions: $searchConditions,
+                            searchParams: $searchParams
+                    ),
+                ]
         );
 
     }//end index()
@@ -301,11 +301,11 @@ class MappingsController extends Controller
         if (empty($data['schema']) === false) {
             if ($openRegisters === null) {
                 return new JSONResponse(
-                    data: [
-                        'error'   => 'Setup error',
-                        'message' => 'OpenRegisters must be installed to validate schema.',
-                    ],
-                    statusCode: 412
+                        data: [
+                            'error'   => 'Setup error',
+                            'message' => 'OpenRegisters must be installed to validate schema.',
+                        ],
+                        statusCode: 412
                 );
             }
 
@@ -314,11 +314,11 @@ class MappingsController extends Controller
                 $schema = $openRegisters->getMapper('schema')->find($schemaId);
             } catch (DoesNotExistException $exception) {
                 return new JSONResponse(
-                    data: [
-                        'error'   => 'Not found',
-                        'message' => 'The specified schema could not be found.',
-                    ],
-                    statusCode: 404
+                        data: [
+                            'error'   => 'Not found',
+                            'message' => 'The specified schema could not be found.',
+                        ],
+                        statusCode: 404
                 );
             }
         }//end if
@@ -367,11 +367,11 @@ class MappingsController extends Controller
 
         // Return the result as a JSON response.
         return new JSONResponse(
-            [
-                'resultObject'     => $resultObject,
-                'isValid'          => $isValid,
-                'validationErrors' => $validationErrors,
-            ]
+                [
+                    'resultObject'     => $resultObject,
+                    'isValid'          => $isValid,
+                    'validationErrors' => $validationErrors,
+                ]
         );
 
     }//end test()

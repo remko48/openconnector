@@ -261,6 +261,7 @@ class ExampleClass
   - Link to application
 
 ## Code Style (PHPCS Rules)
+- Use the phpcs.xml in the root as standard when doing phpcs checks
 - Follow PEAR standard with specific customizations:
   - Line length: max 125 chars (soft limit), 150 chars (hard limit)
   - No Yoda conditions

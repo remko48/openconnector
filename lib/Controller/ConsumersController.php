@@ -47,8 +47,8 @@ class ConsumersController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-    private IAppConfig $config,
-    private ConsumerMapper $consumerMapper
+        private IAppConfig $config,
+        private ConsumerMapper $consumerMapper
     ) {
         parent::__construct($appName, $request);
 
@@ -68,9 +68,9 @@ class ConsumersController extends Controller
     public function page(): TemplateResponse
     {
         return new TemplateResponse(
-            'openconnector',
-            'index',
-            []
+                'openconnector',
+                'index',
+                []
         );
 
     }//end page()
@@ -102,15 +102,15 @@ class ConsumersController extends Controller
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
         return new JSONResponse(
-            [
-                'results' => $this->consumerMapper->findAll(
-                    limit: null,
-                    offset: null,
-                    filters: $filters,
-                    searchConditions: $searchConditions,
-                    searchParams: $searchParams
+                [
+                    'results' => $this->consumerMapper->findAll(
+                        limit: null,
+                        offset: null,
+                        filters: $filters,
+                        searchConditions: $searchConditions,
+                        searchParams: $searchParams
                 ),
-            ]
+                ]
         );
 
     }//end index()

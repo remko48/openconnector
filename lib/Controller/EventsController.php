@@ -40,19 +40,25 @@ class EventsController extends Controller
     /**
      * Constructor for the EventsController
      *
-     * @param string     $appName The name of the app
-     * @param IRequest   $request The request object
-     * @param IAppConfig $config  The app configuration object
+     * @param string                  $appName            The name of the app
+     * @param IRequest                $request            The request object
+     * @param IAppConfig              $config             The app configuration object
+     * @param EventMapper             $eventMapper        The event mapper service
+     * @param EventService            $eventService       The event service
+     * @param EventMessageMapper      $messageMapper      The event message mapper service
+     * @param EventSubscriptionMapper $subscriptionMapper The event subscription mapper service
+     *
+     * @return void
      */
     public function __construct(
         $appName,
         IRequest $request,
-    private readonly IAppConfig $config,
-    private readonly EventMapper $eventMapper,
-        // private readonly EventLogMapper $eventLogMapper, // @todo
-    private readonly EventService $eventService,
-    private readonly EventMessageMapper $messageMapper,
-    private readonly EventSubscriptionMapper $subscriptionMapper
+        private readonly IAppConfig $config,
+        private readonly EventMapper $eventMapper,
+        // Private readonly EventLogMapper $eventLogMapper, // @todo.
+        private readonly EventService $eventService,
+        private readonly EventMessageMapper $messageMapper,
+        private readonly EventSubscriptionMapper $subscriptionMapper
     ) {
         parent::__construct($appName, $request);
 
@@ -72,9 +78,9 @@ class EventsController extends Controller
     public function page(): TemplateResponse
     {
         return new TemplateResponse(
-            'openconnector',
-            'index',
-            []
+                'openconnector',
+                'index',
+                []
         );
 
     }//end page()
@@ -84,6 +90,9 @@ class EventsController extends Controller
      * Retrieves a list of all events
      *
      * This method returns a JSON response containing an array of all events in the system.
+     *
+     * @param ObjectService $objectService Service for handling objects
+     * @param SearchService $searchService Service for search functionality
      *
      * @NoAdminRequired
      * @NoCSRFRequired
@@ -102,7 +111,15 @@ class EventsController extends Controller
         $searchConditions = $searchService->createMySQLSearchConditions(filters: $filters, fieldsToSearch: $fieldsToSearch);
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
-        return new JSONResponse(['results' => $this->eventMapper->findAll(limit: null, offset: null, filters: $filters, searchConditions: $searchConditions, searchParams: $searchParams)]);
+        $events = $this->eventMapper->findAll(
+                limit: null,
+                offset: null,
+                filters: $filters,
+                searchConditions: $searchConditions,
+                searchParams: $searchParams
+        );
+
+        return new JSONResponse(['results' => $events]);
 
     }//end index()
 
@@ -112,10 +129,11 @@ class EventsController extends Controller
      *
      * This method returns a JSON response containing the details of a specific event.
      *
+     * @param string $id The ID of the event to retrieve
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  string $id The ID of the event to retrieve
      * @return JSONResponse A JSON response containing the event details
      */
     public function show(string $id): JSONResponse
@@ -144,16 +162,16 @@ class EventsController extends Controller
         $data = $this->request->getParams();
 
         foreach ($data as $key => $value) {
-            if (str_starts_with($key, '_')) {
+            if (str_starts_with($key, '_') === true) {
                 unset($data[$key]);
             }
         }
 
-        if (isset($data['id'])) {
+        if (isset($data['id']) === true) {
             unset($data['id']);
         }
 
-        // Create the event
+        // Create the event.
         $event = $this->eventMapper->createFromArray(object: $data);
 
         return new JSONResponse($event);
@@ -166,10 +184,11 @@ class EventsController extends Controller
      *
      * This method updates an existing event based on its ID.
      *
+     * @param int $id The ID of the event to update
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  string $id The ID of the event to update
      * @return JSONResponse A JSON response containing the updated event details
      */
     public function update(int $id): JSONResponse
@@ -177,16 +196,16 @@ class EventsController extends Controller
         $data = $this->request->getParams();
 
         foreach ($data as $key => $value) {
-            if (str_starts_with($key, '_')) {
+            if (str_starts_with($key, '_') === true) {
                 unset($data[$key]);
             }
         }
 
-        if (isset($data['id'])) {
+        if (isset($data['id']) === true) {
             unset($data['id']);
         }
 
-        // Update the event
+        // Update the event.
         $event = $this->eventMapper->updateFromArray(id: (int) $id, object: $data);
 
         return new JSONResponse($event);
@@ -199,10 +218,11 @@ class EventsController extends Controller
      *
      * This method deletes an event based on its ID.
      *
+     * @param int $id The ID of the event to delete
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  string $id The ID of the event to delete
      * @return JSONResponse An empty JSON response
      */
     public function destroy(int $id): JSONResponse
@@ -217,19 +237,20 @@ class EventsController extends Controller
     /**
      * Get all messages generated by an event
      *
+     * @param int $id Event ID
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  int $id Event ID
      * @return JSONResponse List of messages
      */
     public function messages(int $id): JSONResponse
     {
         try {
-            // Verify event exists
+            // Verify event exists.
             $event = $this->eventMapper->find($id);
 
-            // Get all messages for this event
+            // Get all messages for this event.
             $messages = $this->messageMapper->findAll(
                 filters: ['eventId' => $id],
                 limit: $this->request->getParam('limit', 50),
@@ -262,14 +283,14 @@ class EventsController extends Controller
         try {
             $data = $this->request->getParams();
 
-            // Remove internal fields
+            // Remove internal fields.
             foreach ($data as $key => $value) {
-                if (str_starts_with($key, '_')) {
+                if (str_starts_with($key, '_') === true) {
                     unset($data[$key]);
                 }
             }
 
-            // Create subscription
+            // Create subscription.
             $subscription = $this->subscriptionMapper->createFromArray($data);
 
             return new JSONResponse($subscription);
@@ -283,10 +304,11 @@ class EventsController extends Controller
     /**
      * Update an existing subscription
      *
+     * @param int $subscriptionId Subscription ID
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  int $subscriptionId Subscription ID
      * @return JSONResponse The updated subscription
      */
     public function updateSubscription(int $subscriptionId): JSONResponse
@@ -294,14 +316,14 @@ class EventsController extends Controller
         try {
             $data = $this->request->getParams();
 
-            // Remove internal fields
+            // Remove internal fields.
             foreach ($data as $key => $value) {
-                if (str_starts_with($key, '_')) {
+                if (str_starts_with($key, '_') === true) {
                     unset($data[$key]);
                 }
             }
 
-            // Update subscription
+            // Update subscription.
             $subscription = $this->subscriptionMapper->updateFromArray($subscriptionId, $data);
 
             return new JSONResponse($subscription);
@@ -317,10 +339,11 @@ class EventsController extends Controller
     /**
      * Delete a subscription
      *
+     * @param int $subscriptionId Subscription ID
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  int $subscriptionId Subscription ID
      * @return JSONResponse Empty response
      */
     public function unsubscribe(int $subscriptionId): JSONResponse
@@ -349,17 +372,17 @@ class EventsController extends Controller
     {
         $filters = $this->request->getParams();
 
-        // Remove internal fields
+        // Remove internal fields.
         foreach ($filters as $key => $value) {
-            if (str_starts_with($key, '_')) {
+            if (str_starts_with($key, '_') === true) {
                 unset($filters[$key]);
             }
         }
 
         $subscriptions = $this->subscriptionMapper->findAll(
-            limit: $this->request->getParam('limit', 50),
-            offset: $this->request->getParam('offset', 0),
-            filters: $filters
+                limit: $this->request->getParam('limit', 50),
+                offset: $this->request->getParam('offset', 0),
+                filters: $filters
         );
 
         return new JSONResponse(['results' => $subscriptions]);
@@ -370,19 +393,20 @@ class EventsController extends Controller
     /**
      * Get messages for a specific subscription
      *
+     * @param int $subscriptionId Subscription ID
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  int $subscriptionId Subscription ID
      * @return JSONResponse List of messages
      */
     public function subscriptionMessages(int $subscriptionId): JSONResponse
     {
         try {
-            // Verify subscription exists
+            // Verify subscription exists.
             $subscription = $this->subscriptionMapper->find($subscriptionId);
 
-            // Get messages for this subscription
+            // Get messages for this subscription.
             $messages = $this->messageMapper->findAll(
                 limit: $this->request->getParam('limit', 50),
                 offset: $this->request->getParam('offset', 0),
@@ -405,10 +429,11 @@ class EventsController extends Controller
     /**
      * Pull events for a subscription (for pull-based subscriptions)
      *
+     * @param int $subscriptionId Subscription ID
+     *
      * @NoAdminRequired
      * @NoCSRFRequired
      *
-     * @param  int $subscriptionId Subscription ID
      * @return JSONResponse List of pending messages
      */
     public function pull(int $subscriptionId): JSONResponse

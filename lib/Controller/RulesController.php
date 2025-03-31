@@ -48,8 +48,8 @@ class RulesController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-    private IAppConfig $config,
-    private RuleMapper $ruleMapper
+        private IAppConfig $config,
+        private RuleMapper $ruleMapper
     ) {
         parent::__construct($appName, $request);
 
@@ -69,9 +69,9 @@ class RulesController extends Controller
     public function page(): TemplateResponse
     {
         return new TemplateResponse(
-            'openconnector',
-            'index',
-            []
+                'openconnector',
+                'index',
+                []
         );
 
     }//end page()
@@ -103,15 +103,15 @@ class RulesController extends Controller
         $filters          = $searchService->unsetSpecialQueryParams(filters: $filters);
 
         return new JSONResponse(
-            [
-                'results' => $this->ruleMapper->findAll(
-                    limit: null,
-                    offset: null,
-                    filters: $filters,
-                    searchConditions: $searchConditions,
-                    searchParams: $searchParams
+                [
+                    'results' => $this->ruleMapper->findAll(
+                        limit: null,
+                        offset: null,
+                        filters: $filters,
+                        searchConditions: $searchConditions,
+                        searchParams: $searchParams
                 ),
-            ]
+                ]
         );
 
     }//end index()

@@ -36,6 +36,8 @@ use OCP\IRequest;
  */
 class ImportController extends Controller
 {
+
+
     /**
      * Constructor for the ImportController
      *
@@ -49,11 +51,13 @@ class ImportController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private IAppConfig $config,
+        private readonly IAppConfig $config,
         private readonly ImportService $importService
     ) {
         parent::__construct($appName, $request);
+
     }//end __construct()
+
 
     /**
      * Creates a new object or updates an existing one using a json text/string as input
@@ -101,8 +105,11 @@ class ImportController extends Controller
         }
 
         return $this->importService->import(
-            data: $data,
-            uploadedFiles: $uploadedFiles
+                data: $data,
+                uploadedFiles: $uploadedFiles
         );
+
     }//end import()
+
+
 }//end class
