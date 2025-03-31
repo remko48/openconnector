@@ -1,6 +1,11 @@
 <?php
 /**
- * This file is part of the OpenConnector app.
+ * Service for handling file and JSON imports.
+ *
+ * This service processes imported JSON data, either directly via a POST body,
+ * from a provided URL, or from an uploaded file. It supports multiple data
+ * formats (e.g., JSON, YAML) and integrates with consumers, endpoints, jobs,
+ * mappings, sources and synchronizations for database updates.
  *
  * @category  Service
  * @package   OpenConnector
@@ -32,11 +37,6 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Service for handling file and JSON imports.
- *
- * This service processes imported JSON data, either directly via a POST body,
- * from a provided URL, or from an uploaded file. It supports multiple data
- * formats (e.g., JSON, YAML) and integrates with consumers, endpoints, jobs,
- * mappings, sources and synchronizations for database updates.
  */
 class ImportService
 {

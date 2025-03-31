@@ -20,6 +20,9 @@ use OCA\OpenConnector\Db\JobMapper;
 use OCP\BackgroundJob\IJobList;
 use OCP\IDBConnection;
 
+/**
+ * Service for handling job scheduling and management.
+ */
 class JobService
 {
 

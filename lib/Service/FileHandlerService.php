@@ -1,7 +1,11 @@
 <?php
 
 /**
- * This file is part of the OpenConnector app.
+ * Service for handling file operations during synchronization.
+ *
+ * This class provides methods for fetching, writing, and tagging files
+ * during synchronization processes. It manages interactions with the
+ * file system, API calls to external sources, and system tag management.
  *
  * @category  Service
  * @package   OpenConnector
@@ -35,21 +39,6 @@ use Twig\Error\SyntaxError;
 
 /**
  * Service for handling file operations during synchronization.
- *
- * This class provides methods for fetching, writing, and tagging files
- * during synchronization processes. It manages interactions with the
- * file system, API calls to external sources, and system tag management.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @version   GIT: 1.0.0
- * @link      https://OpenConnector.app
- *
- * @psalm-suppress PropertyNotSetInConstructor
- * @phpstan-api
  */
 class FileHandlerService
 {

@@ -31,6 +31,9 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * Service for handling object operations.
+ */
 class ObjectService
 {
 

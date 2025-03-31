@@ -1,7 +1,11 @@
 <?php
 
 /**
- * This file is part of the OpenConnector app.
+ * Call Service.
+ *
+ * This class provides functionality to handle API calls to a specified source within the NextCloud environment.
+ * It manages the execution of HTTP requests using the Guzzle HTTP client, while also rendering templates
+ * and managing call logs. It utilizes Twig for templating and Guzzle for making HTTP requests, and logs all calls.
  *
  * @category  Service
  * @package   OpenConnector
@@ -40,17 +44,6 @@ use Twig\Loader\ArrayLoader;
 
 /**
  * Call Service.
- *
- * This class provides functionality to handle API calls to a specified source within the NextCloud environment.
- * It manages the execution of HTTP requests using the Guzzle HTTP client, while also rendering templates
- * and managing call logs. It utilizes Twig for templating and Guzzle for making HTTP requests, and logs all calls.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class CallService
 {

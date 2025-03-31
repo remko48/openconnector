@@ -1,6 +1,10 @@
 <?php
 /**
- * This file is part of the OpenConnector app.
+ * Service class for handling search operations.
+ *
+ * This service provides functionality for searching across different data sources,
+ * including elastic search and databases. It also provides utilities for
+ * processing and formatting search results.
  *
  * @category  Service
  * @package   OpenConnector
@@ -20,17 +24,6 @@ use Symfony\Component\Uid\Uuid;
 
 /**
  * Service class for handling search operations.
- *
- * This service provides functionality for searching across different data sources,
- * including elastic search and databases. It also provides utilities for
- * processing and formatting search results.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class SearchService
 {

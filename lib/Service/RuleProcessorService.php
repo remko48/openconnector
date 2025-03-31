@@ -1,6 +1,9 @@
 <?php
 /**
- * This file is part of the OpenConnector app.
+ * Service for processing rules.
+ *
+ * This service manages the processing of different types of rules for endpoints,
+ * delegating to appropriate handlers based on rule type.
  *
  * @category  Service
  * @package   OpenConnector
@@ -25,16 +28,6 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Service for processing rules.
- *
- * This service manages the processing of different types of rules for endpoints,
- * delegating to appropriate handlers based on rule type.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class RuleProcessorService
 {

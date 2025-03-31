@@ -1,6 +1,9 @@
 <?php
 /**
- * This file is part of the OpenConnector app.
+ * Service for handling endpoint operations.
+ *
+ * This service provides the main functionality for handling requests to
+ * endpoints, delegating processing to appropriate handlers and managing rules.
  *
  * @category  Service
  * @package   OpenConnector
@@ -23,16 +26,6 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Service for handling endpoint operations.
- *
- * This service provides the main functionality for handling requests to
- * endpoints, delegating processing to appropriate handlers and managing rules.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class EndpointService
 {
@@ -227,4 +220,3 @@ class EndpointService
         return null;
     }//end findHandlerForEndpoint()
 }
-

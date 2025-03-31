@@ -1,7 +1,10 @@
 <?php
 
 /**
- * This file is part of the OpenConnector app.
+ * Service class for managing events and their delivery.
+ *
+ * This service is responsible for creating, processing, and delivering events to subscribers
+ * based on configured rules and filters. It supports both push and pull delivery methods.
  *
  * @category  Service
  * @package   OpenConnector
@@ -28,16 +31,6 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 /**
  * Service class for managing events and their delivery.
- *
- * This service is responsible for creating, processing, and delivering events to subscribers
- * based on configured rules and filters. It supports both push and pull delivery methods.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class EventService
 {

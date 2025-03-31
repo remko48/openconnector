@@ -1,6 +1,9 @@
 <?php
 /**
- * This file is part of the OpenConnector app.
+ * Mapping Service class.
+ *
+ * Provides functionality for mapping data between different structures,
+ * including array transformations, value casting, and Twig templating.
  *
  * @category  Service
  * @package   OpenConnector
@@ -31,16 +34,6 @@ use Twig\Loader\ArrayLoader;
 
 /**
  * Mapping Service class.
- *
- * Provides functionality for mapping data between different structures,
- * including array transformations, value casting, and Twig templating.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class MappingService
 {

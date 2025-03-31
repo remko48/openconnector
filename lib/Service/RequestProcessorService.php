@@ -1,6 +1,9 @@
 <?php
 /**
- * This file is part of the OpenConnector app.
+ * Service for processing HTTP requests.
+ *
+ * This service provides utilities for processing HTTP requests, including
+ * content parsing, header handling, and request transformation.
  *
  * @category  Service
  * @package   OpenConnector
@@ -21,17 +24,7 @@ use OCP\IRequest;
 use Psr\Log\LoggerInterface;
 
 /**
- * Service for processing HTTP requests.
- *
- * This service provides utilities for processing HTTP requests, including
- * content parsing, header handling, and request transformation.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
+ * Service for processing HTTP requests. *
  */
 class RequestProcessorService
 {

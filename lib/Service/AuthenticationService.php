@@ -1,7 +1,10 @@
 <?php
 
 /**
- * This file is part of the OpenConnector app.
+ * Service class for handling authentication on other services.
+ *
+ * This service provides various authentication methods for external services,
+ * including OAuth Client Credentials, Password Grant, JWT token generation and more.
  *
  * @category  Service
  * @package   OpenConnector
@@ -37,16 +40,6 @@ use Twig\Loader\ArrayLoader;
 
 /**
  * Service class for handling authentication on other services.
- *
- * This service provides various authentication methods for external services,
- * including OAuth Client Credentials, Password Grant, JWT token generation and more.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class AuthenticationService
 {

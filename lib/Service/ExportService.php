@@ -1,7 +1,11 @@
 <?php
 
 /**
- * This file is part of the OpenConnector app.
+ * Service for handling export requests for database entities.
+ *
+ * This service enables exporting database entities as files in various formats,
+ * determined by the `Accept` header of the request. It retrieves the appropriate
+ * data from mappers and generates responses or downloadable files.
  *
  * @category  Service
  * @package   OpenConnector
@@ -34,20 +38,6 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Service for handling export requests for database entities.
  *
- * This service enables exporting database entities as files in various formats,
- * determined by the `Accept` header of the request. It retrieves the appropriate
- * data from mappers and generates responses or downloadable files.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @version   GIT: 1.0.0
- * @link      https://OpenConnector.app
- *
- * @psalm-suppress PropertyNotSetInConstructor
- * @phpstan-api
  */
 class ExportService
 {

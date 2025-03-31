@@ -1,6 +1,10 @@
 <?php
 /**
- * This file is part of the OpenConnector app.
+ * Service for handling file storage operations.
+ *
+ * This service provides functionality for managing file storage operations,
+ * including uploading files, creating and managing file parts, and handling
+ * temporary storage for uploads.
  *
  * @category  Service
  * @package   OpenConnector
@@ -39,17 +43,6 @@ use Symfony\Component\Uid\Uuid;
 
 /**
  * Service for handling file storage operations.
- *
- * This service provides functionality for managing file storage operations,
- * including uploading files, creating and managing file parts, and handling
- * temporary storage for uploads.
- *
- * @category  Service
- * @package   OpenConnector
- * @author    Conduction Development Team <dev@conduction.nl>
- * @copyright 2024 Conduction B.V.
- * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link      https://OpenConnector.app
  */
 class StorageService
 {
