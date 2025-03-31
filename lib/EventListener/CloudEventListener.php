@@ -1,4 +1,18 @@
 <?php
+/**
+ * OpenConnector Cloud Event Listener
+ *
+ * This file contains the event listener for forwarding object events to the
+ * EventService in the OpenConnector application.
+ *
+ * @category  EventListener
+ * @package   OpenConnector
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @version   GIT: <git-id>
+ * @link      https://OpenConnector.app
+ */
 
 namespace OCA\OpenConnector\EventListener;
 
@@ -18,8 +32,12 @@ class CloudEventListener implements IEventListener
 
 
     /**
+     * Constructor for CloudEventListener
+     *
      * @param EventService    $eventService Service for managing CloudEvents
      * @param LoggerInterface $logger       Logger instance
+     *
+     * @return void
      */
     public function __construct(
         private readonly EventService $eventService,
@@ -32,7 +50,8 @@ class CloudEventListener implements IEventListener
     /**
      * Handle incoming events by forwarding them to the EventService
      *
-     * @param  Event $event The incoming event
+     * @param Event $event The incoming event
+     *
      * @return void
      */
     public function handle(Event $event): void

@@ -3,13 +3,13 @@
 /**
  * This file is part of the OpenConnector app.
  *
- * @package   OpenConnector
  * @category  Exception
+ * @package   OpenConnector
  * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link      https://OpenConnector.app
- * @version   1.0.0
+ * @version   GIT: <git-id>
  */
 namespace OCA\OpenConnector\Exception;
 
@@ -20,8 +20,8 @@ use Exception;
  *
  * Exception for storing authentication exceptions with details about the authentication failure.
  *
- * @package   OpenConnector
  * @category  Exception
+ * @package   OpenConnector
  * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12

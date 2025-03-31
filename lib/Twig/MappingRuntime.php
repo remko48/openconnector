@@ -64,7 +64,7 @@ class MappingRuntime implements RuntimeExtensionInterface
      *
      * @return array The mapped result
      */
-    public function executeMapping((Mapping | array | string | int $mapping), array $input, bool $list=false): array
+    public function executeMapping(Mapping | array | string | int $mapping, array $input, bool $list=false): array
     {
         if (is_array($mapping) === true) {
             $mappingObject = new Mapping();
@@ -72,7 +72,7 @@ class MappingRuntime implements RuntimeExtensionInterface
 
             $mapping = $mappingObject;
         } else if ((is_string($mapping) === true) || (is_int($mapping) === true)) {
-            if ((is_string($mapping) === true) && str_starts_with($mapping, 'http')) {
+            if ((is_string($mapping) === true) && str_starts_with($mapping, 'http') === true) {
                 $mapping = $this->mappingMapper->findByRef($mapping)[0];
             } else {
                 // If the mapping is an int, we assume it's an ID and try to find the mapping by ID.

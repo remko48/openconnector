@@ -15,7 +15,6 @@ alwaysApply: false
  *
  * Detailed description goes here.{{/if}}
  *
- * @package     OpenConnector
  * @category    {{#if (contains filepath "lib/Service")}}Service
                 {{else if (contains filepath "lib/Controller")}}Controller
                 {{else if (contains filepath "lib/Db/Mapper")}}Mapper
@@ -42,11 +41,12 @@ alwaysApply: false
                 {{else if (contains filepath "lib/Validator")}}Validator
                 {{else if (contains filepath "tests")}}Test
                 {{else}}Component{{/if}}
- * @author      Conduction B.V. (info@conduction.nl)
- * @copyright   Copyright (C) 2024 Conduction B.V. All rights reserved.
- * @license     EUPL 1.2
+ * @package     OpenConnector
+ * @author      Conduction Development Team <dev@conductio.nl>
+ * @copyright   2024 Conduction B.V.
+ * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @version     {{version info.xml "//version"}}
- * @link        https://openregister.app
+ * @link        https://OpenConnector.app
  *
  * @since       {{version info.xml "//version"}} - Description of when this class was added
  * @deprecated  Optional: version number - Reason for deprecation
