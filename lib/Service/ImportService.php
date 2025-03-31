@@ -32,9 +32,9 @@ class ImportService
 
 
     public function __construct(
-        private Client $client,
-        private readonly IURLGenerator $urlGenerator,
-        private readonly ObjectService $objectService
+    private Client $client,
+    private readonly IURLGenerator $urlGenerator,
+    private readonly ObjectService $objectService
     ) {
         $this->client = new Client([]);
 
@@ -228,7 +228,7 @@ class ImportService
      *
      * @return JSONResponse A JSON response with a message and the created or updated object or an error message.
      */
-    private function getJSONfromBody(array|string $phpArray, ?string $type=null): JSONResponse
+    private function getJSONfromBody(array | string $phpArray, ?string $type=null): JSONResponse
     {
         if (is_string($phpArray) === true) {
             $phpArray = json_decode($phpArray, associative: true);

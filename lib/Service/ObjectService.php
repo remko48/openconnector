@@ -30,15 +30,15 @@ class ObjectService
 
 
     public function __construct(
-        private readonly IAppManager $appManager,
-        private readonly ContainerInterface $container,
-        private readonly EndpointMapper $endpointMapper,
-        private readonly EventSubscriptionMapper $eventSubscriptionMapper,
-        private readonly JobMapper $jobMapper,
-        private readonly MappingMapper $mappingMapper,
-        private readonly RuleMapper $ruleMapper,
-        private readonly SourceMapper $sourceMapper,
-        private readonly SynchronizationMapper $synchronizationMapper,
+    private readonly IAppManager $appManager,
+    private readonly ContainerInterface $container,
+    private readonly EndpointMapper $endpointMapper,
+    private readonly EventSubscriptionMapper $eventSubscriptionMapper,
+    private readonly JobMapper $jobMapper,
+    private readonly MappingMapper $mappingMapper,
+    private readonly RuleMapper $ruleMapper,
+    private readonly SourceMapper $sourceMapper,
+    private readonly SynchronizationMapper $synchronizationMapper,
     ) {
 
     }//end __construct()
@@ -306,7 +306,7 @@ class ObjectService
             'rule'                 => $this->ruleMapper,
             'source'               => $this->sourceMapper,
             'synchronization'     => $this->synchronizationMapper,
-            default => throw new InvalidArgumentException("Unknown object type: $objectType"),
+        default => throw new InvalidArgumentException("Unknown object type: $objectType"),
         };
 
     }//end getMapper()

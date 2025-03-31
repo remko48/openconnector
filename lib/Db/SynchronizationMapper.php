@@ -30,28 +30,32 @@ use Symfony\Component\Uid\Uuid;
  */
 class SynchronizationMapper extends QBMapper
 {
+
+
     /**
      * Constructor
      *
-     * @param IDBConnection $db Database connection
-     * @psalm-param IDBConnection $db
+     * @param         IDBConnection $db Database connection
+     * @psalm-param   IDBConnection $db
      * @phpstan-param IDBConnection $db
-     * @return void
+     * @return        void
      */
     public function __construct(IDBConnection $db)
     {
         parent::__construct($db, 'openconnector_synchronizations');
+
     }//end __construct()
+
 
     /**
      * Find a synchronization by ID
      *
-     * @param int $id Synchronization ID
-     * @psalm-param int $id
+     * @param         int $id Synchronization ID
+     * @psalm-param   int $id
      * @phpstan-param int $id
-     * @return Synchronization Found synchronization
-     * @throws \OCP\AppFramework\Db\DoesNotExistException If the synchronization doesn't exist
-     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple synchronizations match
+     * @return        Synchronization Found synchronization
+     * @throws        \OCP\AppFramework\Db\DoesNotExistException If the synchronization doesn't exist
+     * @throws        \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple synchronizations match
      */
     public function find(int $id): Synchronization
     {
@@ -64,16 +68,18 @@ class SynchronizationMapper extends QBMapper
             );
 
         return $this->findEntity(query: $qb);
+
     }//end find()
+
 
     /**
      * Find synchronizations by reference
      *
-     * @param string $reference Synchronization reference
-     * @psalm-param string $reference
-     * @phpstan-param string $reference
-     * @return Synchronization[] Array of synchronizations matching the reference
-     * @psalm-return array<int, Synchronization>
+     * @param          string $reference Synchronization reference
+     * @psalm-param    string $reference
+     * @phpstan-param  string $reference
+     * @return         Synchronization[] Array of synchronizations matching the reference
+     * @psalm-return   array<int, Synchronization>
      * @phpstan-return array<int, Synchronization>
      */
     public function findByRef(string $reference): array
@@ -87,36 +93,38 @@ class SynchronizationMapper extends QBMapper
             );
 
         return $this->findEntities(query: $qb);
+
     }//end findByRef()
+
 
     /**
      * Find all synchronizations with optional filtering
      *
-     * @param int|null $limit Maximum number of results
-     * @param int|null $offset Number of records to skip
-     * @param array|null $filters Key-value pairs for filtering
-     * @param array|null $searchConditions Search conditions
-     * @param array|null $searchParams Search parameters
-     * @psalm-param int|null $limit
-     * @psalm-param int|null $offset
-     * @psalm-param array<string, mixed>|null $filters
-     * @psalm-param array<int, string>|null $searchConditions
-     * @psalm-param array<string, mixed>|null $searchParams
-     * @phpstan-param int|null $limit
-     * @phpstan-param int|null $offset
-     * @phpstan-param array<string, mixed>|null $filters
-     * @phpstan-param array<int, string>|null $searchConditions
-     * @phpstan-param array<string, mixed>|null $searchParams
-     * @return Synchronization[] Array of synchronizations
-     * @psalm-return array<int, Synchronization>
+     * @param          int|null   $limit            Maximum number of results
+     * @param          int|null   $offset           Number of records to skip
+     * @param          array|null $filters          Key-value pairs for filtering
+     * @param          array|null $searchConditions Search conditions
+     * @param          array|null $searchParams     Search parameters
+     * @psalm-param    int|null $limit
+     * @psalm-param    int|null $offset
+     * @psalm-param    array<string, mixed>|null $filters
+     * @psalm-param    array<int, string>|null $searchConditions
+     * @psalm-param    array<string, mixed>|null $searchParams
+     * @phpstan-param  int|null $limit
+     * @phpstan-param  int|null $offset
+     * @phpstan-param  array<string, mixed>|null $filters
+     * @phpstan-param  array<int, string>|null $searchConditions
+     * @phpstan-param  array<string, mixed>|null $searchParams
+     * @return         Synchronization[] Array of synchronizations
+     * @psalm-return   array<int, Synchronization>
      * @phpstan-return array<int, Synchronization>
      */
     public function findAll(
-        ?int $limit = null,
-        ?int $offset = null,
-        ?array $filters = [],
-        ?array $searchConditions = [],
-        ?array $searchParams = []
+        ?int $limit=null,
+        ?int $offset=null,
+        ?array $filters=[],
+        ?array $searchConditions=[],
+        ?array $searchParams=[]
     ): array {
         $qb = $this->db->getQueryBuilder();
 
@@ -143,15 +151,17 @@ class SynchronizationMapper extends QBMapper
         }
 
         return $this->findEntities(query: $qb);
+
     }//end findAll()
+
 
     /**
      * Create a new synchronization from array data
      *
-     * @param array $object Synchronization data
-     * @psalm-param array<string, mixed> $object
+     * @param         array $object Synchronization data
+     * @psalm-param   array<string, mixed> $object
      * @phpstan-param array<string, mixed> $object
-     * @return Synchronization Created synchronization
+     * @return        Synchronization Created synchronization
      */
     public function createFromArray(array $object): Synchronization
     {
@@ -169,20 +179,22 @@ class SynchronizationMapper extends QBMapper
         }
 
         return $this->insert(entity: $obj);
+
     }//end createFromArray()
+
 
     /**
      * Update an existing synchronization from array data
      *
-     * @param int $id Synchronization ID
-     * @param array $object Updated synchronization data
-     * @psalm-param int $id
-     * @psalm-param array<string, mixed> $object
+     * @param         int   $id     Synchronization ID
+     * @param         array $object Updated synchronization data
+     * @psalm-param   int $id
+     * @psalm-param   array<string, mixed> $object
      * @phpstan-param int $id
      * @phpstan-param array<string, mixed> $object
-     * @return Synchronization Updated synchronization
-     * @throws \OCP\AppFramework\Db\DoesNotExistException If the synchronization doesn't exist
-     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple synchronizations match
+     * @return        Synchronization Updated synchronization
+     * @throws        \OCP\AppFramework\Db\DoesNotExistException If the synchronization doesn't exist
+     * @throws        \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple synchronizations match
      */
     public function updateFromArray(int $id, array $object): Synchronization
     {
@@ -195,7 +207,7 @@ class SynchronizationMapper extends QBMapper
             // Update version.
             $version = explode('.', $obj->getVersion());
             if (isset($version[2]) === true) {
-                $version[2] = ((int) $version[2] + 1);
+                $version[2]        = ((int) $version[2] + 1);
                 $object['version'] = implode('.', $version);
             }
         }
@@ -203,7 +215,9 @@ class SynchronizationMapper extends QBMapper
         $obj->hydrate($object);
 
         return $this->update($obj);
+
     }//end updateFromArray()
+
 
     /**
      * Get the total count of all synchronizations
@@ -219,9 +233,12 @@ class SynchronizationMapper extends QBMapper
             ->from('openconnector_synchronizations');
 
         $result = $qb->execute();
-        $row = $result->fetch();
+        $row    = $result->fetch();
 
         // Return the total count.
         return (int) $row['count'];
+
     }//end getTotalCount()
+
+
 }//end class

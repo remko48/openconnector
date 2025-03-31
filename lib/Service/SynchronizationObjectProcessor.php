@@ -236,7 +236,7 @@ class SynchronizationObjectProcessor
      *
      * @throws Exception If origin ID cannot be found
      */
-    public function getOriginId(Synchronization $synchronization, array $object): string|int
+    public function getOriginId(Synchronization $synchronization, array $object): (string | int)
     {
         // Default ID position is 'id' if not specified in source config
         $originIdPosition = 'id';

@@ -38,7 +38,7 @@ class MappingService
      */
     public function __construct(
         ArrayLoader $loader,
-        private readonly MappingMapper $mappingMapper
+    private readonly MappingMapper $mappingMapper
     ) {
         $this->twig = new Environment($loader);
         $this->twig->addExtension(new MappingExtension());

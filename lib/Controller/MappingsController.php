@@ -55,10 +55,10 @@ class MappingsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private readonly IAppConfig $config,
-        private readonly MappingMapper $mappingMapper,
-        private readonly MappingService $mappingService,
-        private readonly ObjectService $objectService
+    private readonly IAppConfig $config,
+    private readonly MappingMapper $mappingMapper,
+    private readonly MappingService $mappingService,
+    private readonly ObjectService $objectService
     ) {
         parent::__construct($appName, $request);
 

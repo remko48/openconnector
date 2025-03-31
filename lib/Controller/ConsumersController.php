@@ -47,8 +47,8 @@ class ConsumersController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private IAppConfig $config,
-        private ConsumerMapper $consumerMapper
+    private IAppConfig $config,
+    private ConsumerMapper $consumerMapper
     ) {
         parent::__construct($appName, $request);
 

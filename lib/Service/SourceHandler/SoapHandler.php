@@ -76,10 +76,10 @@ class SoapHandler extends AbstractSourceHandler
     public function getAllObjects(
         Source $source,
         array $config,
-        bool $isTest = false,
-        int $currentPage = 1,
-        array $headers = [],
-        array $query = []
+        bool $isTest=false,
+        int $currentPage=1,
+        array $headers=[],
+        array $query=[]
     ): array {
         $this->checkRateLimit($source);
 
@@ -153,8 +153,8 @@ class SoapHandler extends AbstractSourceHandler
         Source $source,
         string $endpoint,
         array $config,
-        array $headers = [],
-        array $query = []
+        array $headers=[],
+        array $query=[]
     ): array {
         $this->checkRateLimit($source);
 
@@ -210,8 +210,8 @@ class SoapHandler extends AbstractSourceHandler
     private function buildSoapRequest(
         string $operation,
         array $parameters,
-        ?string $namespace = null,
-        string $soapVersion = '1.1'
+        ?string $namespace=null,
+        string $soapVersion='1.1'
     ): string {
         $nsPrefix = $namespace ? 'ns1:' : '';
         $ns       = $namespace ? " xmlns:ns1=\"$namespace\"" : '';

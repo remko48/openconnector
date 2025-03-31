@@ -23,15 +23,16 @@ use OCP\AppFramework\Db\Entity;
 /**
  * Class SynchronizationContract
  *
- * This class is used to define a contract for a synchronization. 
+ * This class is used to define a contract for a synchronization.
  * Or in other words, a contract between a source and target object.
  */
 class SynchronizationContract extends Entity implements JsonSerializable
 {
+
     /**
      * The ID of the object in the source.
      *
-     * @var string|null
+     * @var  string|null
      * @todo can be removed when migrations are merged
      */
     protected ?string $sourceId = null;
@@ -39,7 +40,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
     /**
      * The hash of the object in the source.
      *
-     * @var string|null
+     * @var  string|null
      * @todo can be removed when migrations are merged
      */
     protected ?string $sourceHash = null;
@@ -162,6 +163,7 @@ class SynchronizationContract extends Entity implements JsonSerializable
      */
     protected ?DateTime $updated = null;
 
+
     /**
      * Constructor to initialize field types
      *
@@ -189,13 +191,15 @@ class SynchronizationContract extends Entity implements JsonSerializable
         // @todo can be removed when migrations are merged.
         $this->addType('sourceId', 'string');
         $this->addType('sourceHash', 'string');
+
     }//end __construct()
+
 
     /**
      * Get the field names that are stored as JSON
      *
-     * @return array<int, string> List of JSON field names
-     * @psalm-return array<int, string>
+     * @return         array<int, string> List of JSON field names
+     * @psalm-return   array<int, string>
      * @phpstan-return array<int, string>
      */
     public function getJsonFields(): array
@@ -208,15 +212,17 @@ class SynchronizationContract extends Entity implements JsonSerializable
                 }
             )
         );
+
     }//end getJsonFields()
+
 
     /**
      * Hydrate the entity with data from an array
      *
-     * @param array $object Data to hydrate the entity with
-     * @psalm-param array<string, mixed> $object
+     * @param         array $object Data to hydrate the entity with
+     * @psalm-param   array<string, mixed> $object
      * @phpstan-param array<string, mixed> $object
-     * @return self The hydrated entity
+     * @return        self The hydrated entity
      */
     public function hydrate(array $object): self
     {
@@ -237,7 +243,9 @@ class SynchronizationContract extends Entity implements JsonSerializable
         }
 
         return $this;
+
     }//end hydrate()
+
 
     /**
      * Serialize the synchronization contract entity to JSON
@@ -268,5 +276,8 @@ class SynchronizationContract extends Entity implements JsonSerializable
             'sourceId'          => $this->sourceId,
             'sourceHash'        => $this->sourceHash,
         ];
+
     }//end jsonSerialize()
+
+
 }//end class

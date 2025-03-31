@@ -31,11 +31,11 @@ class EventService
      * @param LoggerInterface         $logger
      */
     public function __construct(
-        private readonly EventMapper $eventMapper,
-        private readonly EventMessageMapper $messageMapper,
-        private readonly EventSubscriptionMapper $subscriptionMapper,
-        private readonly IClientService $clientService,
-        private readonly LoggerInterface $logger
+    private readonly EventMapper $eventMapper,
+    private readonly EventMessageMapper $messageMapper,
+    private readonly EventSubscriptionMapper $subscriptionMapper,
+    private readonly IClientService $clientService,
+    private readonly LoggerInterface $logger
     ) {
 
     }//end __construct()

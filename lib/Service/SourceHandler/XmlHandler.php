@@ -3,13 +3,13 @@
 /**
  * This file is part of the OpenConnector app.
  *
- * @package     OpenConnector
- * @category    Service
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
- * @version     1.0.0
+ * @package   OpenConnector
+ * @category  Service
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
+ * @version   1.0.0
  */
 namespace OCA\OpenConnector\Service\SourceHandler;
 
@@ -21,15 +21,17 @@ use SimpleXMLElement;
  *
  * Handler for processing XML sources and converting data between XML and array formats.
  *
- * @package     OpenConnector
- * @category    Service
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
+ * @package   OpenConnector
+ * @category  Service
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
  */
 class XmlHandler extends AbstractSourceHandler
 {
+
+
     /**
      * Checks if this handler can handle the given source type.
      *
@@ -64,10 +66,10 @@ class XmlHandler extends AbstractSourceHandler
      * @return array Array of objects fetched from the source
      *
      * @throws \Exception If there is an error fetching the objects
-     * 
-     * @psalm-param array<string, mixed> $config
-     * @psalm-param array<string, string> $headers
-     * @psalm-param array<string, mixed> $query
+     *
+     * @psalm-param  array<string, mixed> $config
+     * @psalm-param  array<string, string> $headers
+     * @psalm-param  array<string, mixed> $query
      * @psalm-return array<int, array<string, mixed>>
      */
     public function getAllObjects(
@@ -134,10 +136,10 @@ class XmlHandler extends AbstractSourceHandler
      * @return array The fetched object as an array
      *
      * @throws \Exception If there is an error fetching the object
-     * 
-     * @psalm-param array<string, mixed> $config
-     * @psalm-param array<string, string> $headers
-     * @psalm-param array<string, mixed> $query
+     *
+     * @psalm-param  array<string, mixed> $config
+     * @psalm-param  array<string, string> $headers
+     * @psalm-param  array<string, mixed> $query
      * @psalm-return array<string, mixed>
      */
     public function getObject(
@@ -194,10 +196,10 @@ class XmlHandler extends AbstractSourceHandler
     {
         // Suppress XML parsing errors by using internal error handling
         libxml_use_internal_errors(true);
-        
+
         // Parse the XML string, ignoring CDATA sections
         $xml = simplexml_load_string($xmlString, "SimpleXMLElement", LIBXML_NOCDATA);
-        
+
         // Restore default error handling
         libxml_use_internal_errors(false);
 
@@ -214,7 +216,7 @@ class XmlHandler extends AbstractSourceHandler
      * @param \SimpleXMLElement $xml The XML element to convert
      *
      * @return array The array representation of the XML element
-     * 
+     *
      * @psalm-return array<string, mixed>
      */
     private function xmlToArray(\SimpleXMLElement $xml): array

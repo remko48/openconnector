@@ -79,10 +79,10 @@ class EndpointsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private IAppConfig $config,
-        private EndpointMapper $endpointMapper,
-        private EndpointService $endpointService,
-        private AuthorizationService $authorizationService,
+    private IAppConfig $config,
+    private EndpointMapper $endpointMapper,
+    private EndpointService $endpointService,
+    private AuthorizationService $authorizationService,
         $corsMethods='PUT, POST, GET, DELETE, PATCH',
         $corsAllowedHeaders='Authorization, Content-Type, Accept',
         $corsMaxAge=1728000
@@ -326,7 +326,7 @@ class EndpointsController extends Controller
     }//end handlePath()
 
 
-    /**
+    /*
      * Implements a preflighted CORS response for OPTIONS requests
      *
      * This method handles OPTIONS preflight requests for Cross-Origin Resource Sharing.
@@ -340,6 +340,8 @@ class EndpointsController extends Controller
      */
     #[NoCSRFRequired]
     #[PublicPage]
+
+
     public function preflightedCors(): Response
     {
         // Determine the origin.

@@ -71,8 +71,8 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * An array representation of the endpoint. Automatically generated.
      *
-     * @var array|null
-     * @psalm-var array<int, string>|null
+     * @var         array|null
+     * @psalm-var   array<int, string>|null
      * @phpstan-var array<int, string>|null
      */
     protected ?array $endpointArray = [];
@@ -111,8 +111,8 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * Array of conditions to be applied.
      *
-     * @var array|null
-     * @psalm-var array<string, mixed>|null
+     * @var         array|null
+     * @psalm-var   array<string, mixed>|null
      * @phpstan-var array<string, mixed>|null
      */
     protected ?array $conditions = [];
@@ -148,8 +148,8 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * Array of rules to be applied.
      *
-     * @var array|null
-     * @psalm-var array<string, mixed>|null
+     * @var         array|null
+     * @psalm-var   array<string, mixed>|null
      * @phpstan-var array<string, mixed>|null
      */
     protected ?array $rules = [];
@@ -186,8 +186,8 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * Get the endpoint array representation
      *
-     * @return array The endpoint array or empty array if null
-     * @psalm-return array<int, string>
+     * @return         array The endpoint array or empty array if null
+     * @psalm-return   array<int, string>
      * @phpstan-return array<int, string>
      */
     public function getEndpointArray(): array
@@ -200,8 +200,8 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * Get the conditions array
      *
-     * @return array The conditions or empty array if null
-     * @psalm-return array<string, mixed>
+     * @return         array The conditions or empty array if null
+     * @psalm-return   array<string, mixed>
      * @phpstan-return array<string, mixed>
      */
     public function getConditions(): array
@@ -214,8 +214,8 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * Get the rules array
      *
-     * @return array The rules or empty array if null
-     * @psalm-return array<string, mixed>
+     * @return         array The rules or empty array if null
+     * @psalm-return   array<string, mixed>
      * @phpstan-return array<string, mixed>
      */
     public function getRules(): array
@@ -228,8 +228,8 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * Get the field names that are stored as JSON
      *
-     * @return array<int, string> List of JSON field names
-     * @psalm-return array<int, string>
+     * @return         array<int, string> List of JSON field names
+     * @psalm-return   array<int, string>
      * @phpstan-return array<int, string>
      */
     public function getJsonFields(): array
@@ -249,10 +249,10 @@ class Endpoint extends Entity implements JsonSerializable
     /**
      * Hydrate the entity with data from an array
      *
-     * @param array $object Data to hydrate the entity with
-     * @psalm-param array<string, mixed> $object
+     * @param         array $object Data to hydrate the entity with
+     * @psalm-param   array<string, mixed> $object
      * @phpstan-param array<string, mixed> $object
-     * @return self The hydrated entity
+     * @return        self The hydrated entity
      */
     public function hydrate(array $object): self
     {

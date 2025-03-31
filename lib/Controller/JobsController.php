@@ -59,13 +59,13 @@ class JobsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private IAppConfig $config,
-        private JobMapper $jobMapper,
-        private JobLogMapper $jobLogMapper,
-        private JobService $jobService,
-        private IJobList $jobList,
-        private SynchronizationService $synchronizationService,
-        private SynchronizationMapper $synchronizationMapper
+    private IAppConfig $config,
+    private JobMapper $jobMapper,
+    private JobLogMapper $jobLogMapper,
+    private JobService $jobService,
+    private IJobList $jobList,
+    private SynchronizationService $synchronizationService,
+    private SynchronizationMapper $synchronizationMapper
     ) {
         parent::__construct($appName, $request);
         $this->jobList = $jobList;

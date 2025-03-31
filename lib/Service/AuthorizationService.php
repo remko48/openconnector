@@ -86,11 +86,11 @@ class AuthorizationService
      * @return void
      */
     public function __construct(
-        private readonly IUserManager $userManager,
-        private readonly IUserSession $userSession,
-        private readonly ConsumerMapper $consumerMapper,
-        private readonly IGroupManager $groupManager,
-        private readonly IProvider $tokenProvider,
+    private readonly IUserManager $userManager,
+    private readonly IUserSession $userSession,
+    private readonly ConsumerMapper $consumerMapper,
+    private readonly IGroupManager $groupManager,
+    private readonly IProvider $tokenProvider,
     ) {
 
     }//end __construct()
@@ -327,8 +327,8 @@ class AuthorizationService
         //
         // if($userInAllowedUsers === false && $userInAllowedGroups === false) {
         // throw new AuthenticationException(
-        //     message: 'Not authorized', 
-        //     details: ['reason' => 'The selected user is not allowed to login on this endpoint']
+        // message: 'Not authorized',
+        // details: ['reason' => 'The selected user is not allowed to login on this endpoint']
         // );
         // }
         $this->userSession->setUser($user);
@@ -348,34 +348,33 @@ class AuthorizationService
      */
     public function authorizeOAuth(string $header, array $users, array $groups): void
     {
-        if (str_starts_with($header, 'Bearer') === false) {
-            throw new AuthenticationException(
-                message: 'Invalid method',
-                details: ['reason' => 'The authentication method you are using is not allowed on this resource.']
-            );
-        }
+    if (str_starts_with($header, 'Bearer') === false) {
+        throw new AuthenticationException(
+            message: 'Invalid method',
+            details: ['reason' => 'The authentication method you are using is not allowed on this resource.']
+        );
+    }
 
-        if ($this->userSession->isLoggedIn() === false) {
-            throw new AuthenticationException(
-                message: 'Not authorized',
-                details: ['reason' => 'The token you used has either expired or was not recognized as a valid token']
-            );
-        }
+    if ($this->userSession->isLoggedIn() === false) {
+        throw new AuthenticationException(
+            message: 'Not authorized',
+            details: ['reason' => 'The token you used has either expired or was not recognized as a valid token']
+        );
+    }
 
         $user = $this->userSession->getUser();
 
-        if ($user === false) {
-            throw new AuthenticationException(message: 'Invalid token', details: []);
-        }
+    if ($user === false) {
+        throw new AuthenticationException(message: 'Invalid token', details: []);
+    }
 
         // @TODO: This code can be enabled once the frontend can properly set users and usergroups
         // $userInAllowedUsers = array_intersect($users, [$user->getUID(), $user->getEMailAddress()]) !== [];
         // $userGroups = array_map(function(IGroup $group) {
         // return $group->getGID();
         // }, $this->groupManager->getUserGroups($user));
-        // $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];
+        // $userInAllowedGroups = array_intersect($groups, $userGroups) !== [];    }//end authorizeOAuth()
     }//end authorizeOAuth()
-
 
     /**
      * Add CORS headers to controller result
@@ -420,19 +419,22 @@ class AuthorizationService
      */
     public function authorizeApiKey(string $header, array $keys): void
     {
-        if (array_key_exists(key: $header, array: $keys) === false) {
+        if (array_key_exists(
+            key: $header,
+            array:
+            $keys
+        ) === false
+        )                        {
             throw new AuthenticationException(message: 'Invalid API key', details: []);
-        }
+            }
 
-        $user = $this->userManager->get(uid: $keys[$header]);
+            $user = $this->userManager->get(uid: $keys[$header]);
 
         if ($user === null) {
             throw new AuthenticationException(message: 'Invalid API key', details: []);
         }
 
-        $this->userSession->setUser(user: $user);
+            $this->userSession->setUser(user: $user);
+        }//end if
 
     }//end authorizeApiKey()
-
-
-}//end class

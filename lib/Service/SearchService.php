@@ -19,7 +19,7 @@ class SearchService
 
 
     public function __construct(
-        private readonly IURLGenerator $urlGenerator,
+    private readonly IURLGenerator $urlGenerator,
     ) {
         $this->client = new Client();
 
@@ -96,7 +96,7 @@ class SearchService
         $page         = isset($parameters['.page']) === true ? $parameters['.page'] : 1;
 
         if ($elasticConfig['location'] !== '') {
-            $localResults = $this->elasticService->searchObject(filters: $parameters, config: $elasticConfig, totalResults: $totalResults,);
+            $localResults = $this->elasticService->searchObject(filters: $parameters, config: $elasticConfig, totalResults: $totalResults, );
         }
 
         $directory = $this->directoryService->listDirectory(limit: 1000);

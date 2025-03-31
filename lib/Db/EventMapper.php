@@ -33,10 +33,10 @@ class EventMapper extends QBMapper
     /**
      * Constructor
      *
-     * @param IDBConnection $db Database connection
-     * @psalm-param IDBConnection $db
+     * @param         IDBConnection $db Database connection
+     * @psalm-param   IDBConnection $db
      * @phpstan-param IDBConnection $db
-     * @return void
+     * @return        void
      */
     public function __construct(IDBConnection $db)
     {
@@ -48,12 +48,12 @@ class EventMapper extends QBMapper
     /**
      * Find a single event by ID
      *
-     * @param int $id The event ID
-     * @psalm-param int $id
+     * @param         int $id The event ID
+     * @psalm-param   int $id
      * @phpstan-param int $id
-     * @return Event The found event
-     * @throws \OCP\AppFramework\Db\DoesNotExistException If the event doesn't exist
-     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple events match
+     * @return        Event The found event
+     * @throws        \OCP\AppFramework\Db\DoesNotExistException If the event doesn't exist
+     * @throws        \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple events match
      */
     public function find(int $id): Event
     {
@@ -73,31 +73,31 @@ class EventMapper extends QBMapper
     /**
      * Find all events with optional filtering and pagination
      *
-     * @param int|null $limit Maximum number of results
-     * @param int|null $offset Number of records to skip
-     * @param array|null $filters Key-value pairs for filtering
-     * @param array|null $searchConditions Search conditions
-     * @param array|null $searchParams Search parameters
-     * @psalm-param int|null $limit
-     * @psalm-param int|null $offset
-     * @psalm-param array<string, mixed>|null $filters
-     * @psalm-param array<int, string>|null $searchConditions
-     * @psalm-param array<string, mixed>|null $searchParams
-     * @phpstan-param int|null $limit
-     * @phpstan-param int|null $offset
-     * @phpstan-param array<string, mixed>|null $filters
-     * @phpstan-param array<int, string>|null $searchConditions
-     * @phpstan-param array<string, mixed>|null $searchParams
-     * @return Event[] Array of Event objects
-     * @psalm-return array<int, Event>
+     * @param          int|null   $limit            Maximum number of results
+     * @param          int|null   $offset           Number of records to skip
+     * @param          array|null $filters          Key-value pairs for filtering
+     * @param          array|null $searchConditions Search conditions
+     * @param          array|null $searchParams     Search parameters
+     * @psalm-param    int|null $limit
+     * @psalm-param    int|null $offset
+     * @psalm-param    array<string, mixed>|null $filters
+     * @psalm-param    array<int, string>|null $searchConditions
+     * @psalm-param    array<string, mixed>|null $searchParams
+     * @phpstan-param  int|null $limit
+     * @phpstan-param  int|null $offset
+     * @phpstan-param  array<string, mixed>|null $filters
+     * @phpstan-param  array<int, string>|null $searchConditions
+     * @phpstan-param  array<string, mixed>|null $searchParams
+     * @return         Event[] Array of Event objects
+     * @psalm-return   array<int, Event>
      * @phpstan-return array<int, Event>
      */
     public function findAll(
-        ?int $limit = null,
-        ?int $offset = null,
-        ?array $filters = [],
-        ?array $searchConditions = [],
-        ?array $searchParams = []
+        ?int $limit=null,
+        ?int $offset=null,
+        ?array $filters=[],
+        ?array $searchConditions=[],
+        ?array $searchParams=[]
     ): array {
         $qb = $this->db->getQueryBuilder();
 
@@ -131,10 +131,10 @@ class EventMapper extends QBMapper
     /**
      * Create a new event from array data
      *
-     * @param array $object Array of event data
-     * @psalm-param array<string, mixed> $object
+     * @param         array $object Array of event data
+     * @psalm-param   array<string, mixed> $object
      * @phpstan-param array<string, mixed> $object
-     * @return Event The created event
+     * @return        Event The created event
      */
     public function createFromArray(array $object): Event
     {
@@ -159,15 +159,15 @@ class EventMapper extends QBMapper
     /**
      * Update an existing event from array data
      *
-     * @param int $id Event ID to update
-     * @param array $object Array of event data
-     * @psalm-param int $id
-     * @psalm-param array<string, mixed> $object
+     * @param         int   $id     Event ID to update
+     * @param         array $object Array of event data
+     * @psalm-param   int $id
+     * @psalm-param   array<string, mixed> $object
      * @phpstan-param int $id
      * @phpstan-param array<string, mixed> $object
-     * @return Event The updated event
-     * @throws \OCP\AppFramework\Db\DoesNotExistException If the event doesn't exist
-     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple events match
+     * @return        Event The updated event
+     * @throws        \OCP\AppFramework\Db\DoesNotExistException If the event doesn't exist
+     * @throws        \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple events match
      */
     public function updateFromArray(int $id, array $object): Event
     {

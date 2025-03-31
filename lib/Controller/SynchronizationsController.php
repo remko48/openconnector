@@ -56,11 +56,11 @@ class SynchronizationsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private readonly IAppConfig $config,
-        private readonly SynchronizationMapper $synchronizationMapper,
-        private readonly SynchronizationContractMapper $synchronizationContractMapper,
-        private readonly SynchronizationLogMapper $synchronizationLogMapper,
-        private readonly SynchronizationService $synchronizationService
+    private readonly IAppConfig $config,
+    private readonly SynchronizationMapper $synchronizationMapper,
+    private readonly SynchronizationContractMapper $synchronizationContractMapper,
+    private readonly SynchronizationLogMapper $synchronizationLogMapper,
+    private readonly SynchronizationService $synchronizationService
     ) {
         parent::__construct($appName, $request);
 

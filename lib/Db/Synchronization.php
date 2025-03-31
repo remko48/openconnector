@@ -103,8 +103,8 @@ class Synchronization extends Entity implements JsonSerializable
     /**
      * The configuration of the object in the source.
      *
-     * @var array|null
-     * @psalm-var array<string, mixed>|null
+     * @var         array|null
+     * @psalm-var   array<string, mixed>|null
      * @phpstan-var array<string, mixed>|null
      */
     protected ?array $sourceConfig = [];
@@ -170,8 +170,8 @@ class Synchronization extends Entity implements JsonSerializable
     /**
      * The configuration of the object in the target.
      *
-     * @var array|null
-     * @psalm-var array<string, mixed>|null
+     * @var         array|null
+     * @psalm-var   array<string, mixed>|null
      * @phpstan-var array<string, mixed>|null
      */
     protected ?array $targetConfig = [];
@@ -216,8 +216,8 @@ class Synchronization extends Entity implements JsonSerializable
     /**
      * The conditions for synchronization.
      *
-     * @var array
-     * @psalm-var array<string, mixed>
+     * @var         array
+     * @psalm-var   array<string, mixed>
      * @phpstan-var array<string, mixed>
      */
     protected array $conditions = [];
@@ -225,8 +225,8 @@ class Synchronization extends Entity implements JsonSerializable
     /**
      * The follow-up actions after synchronization.
      *
-     * @var array
-     * @psalm-var array<string, mixed>
+     * @var         array
+     * @psalm-var   array<string, mixed>
      * @phpstan-var array<string, mixed>
      */
     protected array $followUps = [];
@@ -234,8 +234,8 @@ class Synchronization extends Entity implements JsonSerializable
     /**
      * The actions to be performed during synchronization.
      *
-     * @var array
-     * @psalm-var array<string, mixed>
+     * @var         array
+     * @psalm-var   array<string, mixed>
      * @phpstan-var array<string, mixed>
      */
     protected array $actions = [];
@@ -276,71 +276,77 @@ class Synchronization extends Entity implements JsonSerializable
         $this->addType(fieldName: 'conditions', type: 'json');
         $this->addType(fieldName: 'followUps', type: 'json');
         $this->addType(fieldName: 'actions', type: 'json');
+
     }//end __construct()
 
 
     /**
      * Get the source configuration array
      *
-     * @return array The source configuration or empty array if null
-     * @psalm-return array<string, mixed>
+     * @return         array The source configuration or empty array if null
+     * @psalm-return   array<string, mixed>
      * @phpstan-return array<string, mixed>
      */
     public function getSourceConfig(): array
     {
         return ($this->sourceConfig ?? []);
+
     }//end getSourceConfig()
 
 
     /**
      * Get the target configuration array
      *
-     * @return array The target configuration or empty array if null
-     * @psalm-return array<string, mixed>
+     * @return         array The target configuration or empty array if null
+     * @psalm-return   array<string, mixed>
      * @phpstan-return array<string, mixed>
      */
     public function getTargetConfig(): array
     {
         return ($this->targetConfig ?? []);
+
     }//end getTargetConfig()
 
 
     /**
      * Get the conditions array
      *
-     * @return array The conditions or empty array if null
-     * @psalm-return array<string, mixed>
+     * @return         array The conditions or empty array if null
+     * @psalm-return   array<string, mixed>
      * @phpstan-return array<string, mixed>
      */
     public function getConditions(): array
     {
         return ($this->conditions ?? []);
+
     }//end getConditions()
 
 
     /**
      * Get the follow-ups array
      *
-     * @return array The follow-ups or empty array if null
-     * @psalm-return array<string, mixed>
+     * @return         array The follow-ups or empty array if null
+     * @psalm-return   array<string, mixed>
      * @phpstan-return array<string, mixed>
      */
     public function getFollowUps(): array
     {
         return ($this->followUps ?? []);
+
     }//end getFollowUps()
 
 
     /**
      * Get the actions array
      *
-     * @return array The actions or empty array if null
-     * @psalm-return array<string, mixed>
+     * @return         array The actions or empty array if null
+     * @psalm-return   array<string, mixed>
      * @phpstan-return array<string, mixed>
      */
     public function getActions(): array
     {
         return ($this->actions ?? []);
+
     }//end getActions()
 
 
@@ -351,22 +357,24 @@ class Synchronization extends Entity implements JsonSerializable
      */
     public function usesPagination(): bool
     {
-        if (isset($this->sourceConfig['usesPagination']) === true && 
-            ($this->sourceConfig['usesPagination'] === false || 
-             $this->sourceConfig['usesPagination'] === 'false')) {
+        if (isset($this->sourceConfig['usesPagination']) === true
+            && ($this->sourceConfig['usesPagination'] === false
+            || $this->sourceConfig['usesPagination'] === 'false')
+        ) {
             return false;
         }
 
         // By default sources use basic pagination.
         return true;
+
     }//end usesPagination()
 
 
     /**
      * Get the field names that are stored as JSON
      *
-     * @return array<int, string> List of JSON field names
-     * @psalm-return array<int, string>
+     * @return         array<int, string> List of JSON field names
+     * @psalm-return   array<int, string>
      * @phpstan-return array<int, string>
      */
     public function getJsonFields(): array
@@ -379,16 +387,17 @@ class Synchronization extends Entity implements JsonSerializable
                 }
             )
         );
+
     }//end getJsonFields()
 
 
     /**
      * Hydrate the entity with data from an array
      *
-     * @param array $object Data to hydrate the entity with
-     * @psalm-param array<string, mixed> $object
+     * @param         array $object Data to hydrate the entity with
+     * @psalm-param   array<string, mixed> $object
      * @phpstan-param array<string, mixed> $object
-     * @return self The hydrated entity
+     * @return        self The hydrated entity
      */
     public function hydrate(array $object): self
     {
@@ -409,6 +418,7 @@ class Synchronization extends Entity implements JsonSerializable
         }
 
         return $this;
+
     }//end hydrate()
 
 
@@ -450,6 +460,7 @@ class Synchronization extends Entity implements JsonSerializable
             'followUps'           => $this->followUps,
             'actions'             => $this->actions,
         ];
+
     }//end jsonSerialize()
 
 

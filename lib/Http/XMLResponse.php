@@ -3,13 +3,13 @@
 /**
  * This file is part of the OpenConnector app.
  *
- * @package     OpenConnector
- * @category    Http
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
- * @version     1.0.0
+ * @package   OpenConnector
+ * @category  Http
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
+ * @version   1.0.0
  */
 namespace OCA\OpenConnector\Http;
 
@@ -23,12 +23,12 @@ use DOMText;
  *
  * A response class for handling XML data formatting and output.
  *
- * @package     OpenConnector
- * @category    Http
- * @author      Conduction Development Team <dev@conduction.nl>
- * @copyright   2024 Conduction B.V.
- * @license     EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- * @link        https://OpenConnector.app
+ * @package   OpenConnector
+ * @category  Http
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2024 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ * @link      https://OpenConnector.app
  *
  * @psalm-suppress PropertyNotSetInConstructor
  */
@@ -66,7 +66,7 @@ class XMLResponse extends Response
      * @psalm-param int $status
      * @psalm-param array<string, string> $headers
      * @psalm-param string|null $path
-     * 
+     *
      * @return void
      */
     public function __construct($data=[], int $status=200, array $headers=[], ?string $path=null)

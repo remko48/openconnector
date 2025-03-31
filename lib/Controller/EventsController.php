@@ -47,12 +47,12 @@ class EventsController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private readonly IAppConfig $config,
-        private readonly EventMapper $eventMapper,
+    private readonly IAppConfig $config,
+    private readonly EventMapper $eventMapper,
         // private readonly EventLogMapper $eventLogMapper, // @todo
-        private readonly EventService $eventService,
-        private readonly EventMessageMapper $messageMapper,
-        private readonly EventSubscriptionMapper $subscriptionMapper
+    private readonly EventService $eventService,
+    private readonly EventMessageMapper $messageMapper,
+    private readonly EventSubscriptionMapper $subscriptionMapper
     ) {
         parent::__construct($appName, $request);
 

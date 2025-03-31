@@ -107,7 +107,7 @@ class RuleProcessorService
         ?string $objectId=null,
         ?int $registerId=null,
         ?int $schemaId=null
-    ): array|JSONResponse {
+    ): (array | JSONResponse) {
         $rules = $synchronization->getActions();
         if (empty($rules)) {
             return $data;
@@ -139,16 +139,16 @@ class RuleProcessorService
                     'synchronization' => $this->processSyncRule($rule, $data),
                     'fetch_file' => $this->processFetchFileRule($rule, $data, $objectId),
                     'write_file' => $this->processWriteFileRule($rule, $data, $objectId, $registerId, $schemaId),
-                    default => throw new Exception('Unsupported rule type: '.$rule->getType()),
+                default => throw new Exception('Unsupported rule type: '.$rule->getType()),
                 };
 
-                // If result is JSONResponse, return error immediately
-                if ($result instanceof JSONResponse) {
-                    return $result;
-                }
+                    // If result is JSONResponse, return error immediately
+                    if ($result instanceof JSONResponse) {
+                        return $result;
+                    }
 
-                // Update data with rule result
-                $data = $result;
+                    // Update data with rule result
+                    $data = $result;
             }//end foreach
 
             return $data;

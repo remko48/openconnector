@@ -50,9 +50,9 @@ class SourcesController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private readonly IAppConfig $config,
-        private readonly SourceMapper $sourceMapper,
-        private readonly CallLogMapper $callLogMapper
+    private readonly IAppConfig $config,
+    private readonly SourceMapper $sourceMapper,
+    private readonly CallLogMapper $callLogMapper
     ) {
         parent::__construct($appName, $request);
 

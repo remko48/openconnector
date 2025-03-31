@@ -48,10 +48,11 @@ class RulesController extends Controller
     public function __construct(
         $appName,
         IRequest $request,
-        private IAppConfig $config,
-        private RuleMapper $ruleMapper
+    private IAppConfig $config,
+    private RuleMapper $ruleMapper
     ) {
         parent::__construct($appName, $request);
+
     }//end __construct()
 
 

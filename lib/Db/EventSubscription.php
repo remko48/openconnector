@@ -25,7 +25,6 @@ use OCP\AppFramework\Db\Entity;
  *
  * Represents a subscription to events in the system, following the CloudEvents specification.
  * Supports both push and pull delivery styles and configurable filtering logic.
- *
  */
 class EventSubscription extends Entity implements JsonSerializable
 {

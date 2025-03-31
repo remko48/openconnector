@@ -47,8 +47,8 @@ class ExportService
      * @param ObjectService $objectService The object service.
      */
     public function __construct(
-        private readonly IURLGenerator $urlGenerator,
-        private readonly ObjectService $objectService
+    private readonly IURLGenerator $urlGenerator,
+    private readonly ObjectService $objectService
     ) {
 
     }//end __construct()
@@ -69,56 +69,56 @@ class ExportService
         $type = match (true) {
             str_contains($accept, 'application/json') => 'json',
             $accept === 'application/yaml' => 'yaml',
-            default => null
+        default => null
         };
 
-        // If the type is not supported, return an error response
-        if ($type === null) {
-            return new JSONResponse(['error' => "The Accept type $accept is not supported."], 400);
-        }
+            // If the type is not supported, return an error response
+            if ($type === null) {
+                return new JSONResponse(['error' => "The Accept type $accept is not supported."], 400);
+            }
 
-        try {
-            // Get the appropriate mapper for the object type
-            $mapper = $this->objectService->getMapper($objectType);
-        } catch (InvalidArgumentException | NotFoundExceptionInterface | ContainerExceptionInterface $e) {
-            return new JSONResponse(['error' => "Could not find a mapper for this type: ".$objectType], 400);
-        }
+            try {
+                // Get the appropriate mapper for the object type
+                $mapper = $this->objectService->getMapper($objectType);
+            } catch (InvalidArgumentException | NotFoundExceptionInterface | ContainerExceptionInterface $e) {
+                return new JSONResponse(['error' => "Could not find a mapper for this type: ".$objectType], 400);
+            }
 
-        // Check if the object type is allowed to be exported
-        if (in_array(
-            strtolower($objectType),
-            [
-                'calllog',
-                'consumer',
-                'event',
-                'eventmessage',
-                'joblog',
-                'synchronizationcontract',
-                'synchronizationcontractlog',
-            ]
-        )
-        ) {
-            return new JSONResponse(['error' => "It is not allowed to export objects of type: ".$objectType], 400);
-        }
+            // Check if the object type is allowed to be exported
+            if (in_array(
+                strtolower($objectType),
+                [
+                    'calllog',
+                    'consumer',
+                    'event',
+                    'eventmessage',
+                    'joblog',
+                    'synchronizationcontract',
+                    'synchronizationcontractlog',
+                ]
+            )
+            ) {
+                return new JSONResponse(['error' => "It is not allowed to export objects of type: ".$objectType], 400);
+            }
 
-        try {
-            // Find the object by its ID
-            $object = $mapper->find($id);
-        } catch (Exception $exception) {
-            return new JSONResponse(['error' => "Could not find an object with this id: ".$id], 400);
-        }
+            try {
+                // Find the object by its ID
+                $object = $mapper->find($id);
+            } catch (Exception $exception) {
+                return new JSONResponse(['error' => "Could not find an object with this id: ".$id], 400);
+            }
 
-        // Prepare the object array for export
-        $objectArray = $this->prepareObject($objectType, $mapper, $object);
+            // Prepare the object array for export
+            $objectArray = $this->prepareObject($objectType, $mapper, $object);
 
-        // Generate the filename for the export
-        $filename = ucfirst($objectType).'-'.($objectArray['name'] ?? $objectType).'-v'.($objectArray['version'] ?? '0.0.0');
+            // Generate the filename for the export
+            $filename = ucfirst($objectType).'-'.($objectArray['name'] ?? $objectType).'-v'.($objectArray['version'] ?? '0.0.0');
 
-        // Encode the object array to the appropriate format
-        $dataString = $this->encode($objectArray, $accept);
+            // Encode the object array to the appropriate format
+            $dataString = $this->encode($objectArray, $accept);
 
-        // Generate the downloadable file response
-        $this->download($dataString, $filename, $type);
+            // Generate the downloadable file response
+            $this->download($dataString, $filename, $type);
 
     }//end export()
 
@@ -214,7 +214,7 @@ class ExportService
     }//end encode()
 
 
-    /**
+    /*
      * Generate a downloadable file response.
      *
      * @param string $dataString The data to create a file with of the given $type.

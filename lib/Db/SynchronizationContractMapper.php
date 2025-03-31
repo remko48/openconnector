@@ -41,10 +41,10 @@ class SynchronizationContractMapper extends QBMapper
     /**
      * Constructor for SynchronizationContractMapper
      *
-     * @param IDBConnection $db Database connection instance
-     * @psalm-param IDBConnection $db
+     * @param         IDBConnection $db Database connection instance
+     * @psalm-param   IDBConnection $db
      * @phpstan-param IDBConnection $db
-     * @return void
+     * @return        void
      */
     public function __construct(IDBConnection $db)
     {
@@ -56,12 +56,12 @@ class SynchronizationContractMapper extends QBMapper
     /**
      * Find a synchronization contract by ID
      *
-     * @param int $id The ID of the contract to find
-     * @psalm-param int $id
+     * @param         int $id The ID of the contract to find
+     * @psalm-param   int $id
      * @phpstan-param int $id
-     * @return SynchronizationContract The found contract entity
-     * @throws \OCP\AppFramework\Db\DoesNotExistException If contract not found
-     * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple contracts match
+     * @return        SynchronizationContract The found contract entity
+     * @throws        \OCP\AppFramework\Db\DoesNotExistException If contract not found
+     * @throws        \OCP\AppFramework\Db\MultipleObjectsReturnedException If multiple contracts match
      */
     public function find(int $id): SynchronizationContract
     {
@@ -76,6 +76,7 @@ class SynchronizationContractMapper extends QBMapper
             );
 
         return $this->findEntity(query: $qb);
+
     }//end find()
 
 
@@ -120,7 +121,7 @@ class SynchronizationContractMapper extends QBMapper
      * @param  string $targetId        The target ID
      * @return SynchronizationContract|bool|null The found contract, false, or null if not found
      */
-    public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract|bool|null
+    public function findOnTarget(string $synchronization, string $targetId): SynchronizationContract | bool | null
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
@@ -151,7 +152,7 @@ class SynchronizationContractMapper extends QBMapper
      * @param  string $targetId The target ID
      * @return SynchronizationContract|bool|null The found contract, false, or null if not found
      */
-    public function findByOriginAndTarget(string $originId, string $targetId): SynchronizationContract|bool|null
+    public function findByOriginAndTarget(string $originId, string $targetId): SynchronizationContract | bool | null
     {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
@@ -215,31 +216,31 @@ class SynchronizationContractMapper extends QBMapper
     /**
      * Find all synchronization contracts with optional filtering and pagination
      *
-     * @param int|null $limit Maximum number of results to return
-     * @param int|null $offset Number of results to skip
-     * @param array|null $filters Associative array of field => value filters
-     * @param array|null $searchConditions Array of search conditions
-     * @param array|null $searchParams Array of search parameters
-     * @psalm-param int|null $limit
-     * @psalm-param int|null $offset
-     * @psalm-param array<string, mixed>|null $filters
-     * @psalm-param array<int, string>|null $searchConditions
-     * @psalm-param array<string, mixed>|null $searchParams
-     * @phpstan-param int|null $limit
-     * @phpstan-param int|null $offset
-     * @phpstan-param array<string, mixed>|null $filters
-     * @phpstan-param array<int, string>|null $searchConditions
-     * @phpstan-param array<string, mixed>|null $searchParams
-     * @return SynchronizationContract[] Array of found contracts
-     * @psalm-return array<int, SynchronizationContract>
+     * @param          int|null   $limit            Maximum number of results to return
+     * @param          int|null   $offset           Number of results to skip
+     * @param          array|null $filters          Associative array of field => value filters
+     * @param          array|null $searchConditions Array of search conditions
+     * @param          array|null $searchParams     Array of search parameters
+     * @psalm-param    int|null $limit
+     * @psalm-param    int|null $offset
+     * @psalm-param    array<string, mixed>|null $filters
+     * @psalm-param    array<int, string>|null $searchConditions
+     * @psalm-param    array<string, mixed>|null $searchParams
+     * @phpstan-param  int|null $limit
+     * @phpstan-param  int|null $offset
+     * @phpstan-param  array<string, mixed>|null $filters
+     * @phpstan-param  array<int, string>|null $searchConditions
+     * @phpstan-param  array<string, mixed>|null $searchParams
+     * @return         SynchronizationContract[] Array of found contracts
+     * @psalm-return   array<int, SynchronizationContract>
      * @phpstan-return array<int, SynchronizationContract>
      */
     public function findAll(
-        ?int $limit = null,
-        ?int $offset = null,
-        ?array $filters = [],
-        ?array $searchConditions = [],
-        ?array $searchParams = []
+        ?int $limit=null,
+        ?int $offset=null,
+        ?array $filters=[],
+        ?array $searchConditions=[],
+        ?array $searchParams=[]
     ): array {
         // Create query builder
         $qb = $this->db->getQueryBuilder();
