@@ -614,7 +614,8 @@ class SynchronizationService
 			$contractLog = $this->synchronizationContractLogMapper->update($contractLog);
 			return [
 				'log' => $contractLog->jsonSerialize(),
-				'contract' => $synchronizationContract->jsonSerialize()
+				'contract' => $synchronizationContract->jsonSerialize(),
+				'resultAction' => 'skip'
 			];
 		}
 
@@ -654,7 +655,8 @@ class SynchronizationService
 			$contractLog = $this->synchronizationContractLogMapper->update($contractLog);
 			return [
 				'log' => $contractLog->jsonSerialize(),
-				'contract' => $synchronizationContract->jsonSerialize()
+				'contract' => $synchronizationContract->jsonSerialize(),
+				'resultAction' => 'skip'
 			];
 		}
 
@@ -686,7 +688,8 @@ class SynchronizationService
 
 		return [
 			'log' => $contractLog ? $contractLog->jsonSerialize() : [],
-			'contract' => $synchronizationContract->jsonSerialize()
+			'contract' => $synchronizationContract->jsonSerialize(),
+			'resultAction' => 'update' // /create
 		];
 	}
 
@@ -2112,7 +2115,10 @@ class SynchronizationService
 				$synchronizationContractResult['contract']['uuid'] : null;
 			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) ? 
 				$synchronizationContractResult['log']['uuid'] : null;
-			$result['objects']['created']++;
+			$resultAction = $synchronizationContractResult['resultAction'] ?? null;
+			if ($resultAction === 'update') {
+				$resultAction = 'create';
+			}
 		} else {
 			// @todo this is weird
 			$synchronizationContractResult = $this->synchronizeContract(
@@ -2129,7 +2135,25 @@ class SynchronizationService
 				$synchronizationContractResult['contract']['uuid'] : null;
 			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) === true ? 
 				$synchronizationContractResult['log']['uuid'] : null;
-			$result['objects']['updated']++;
+			$resultAction = $synchronizationContractResult['resultAction'] ?? null;
+		}
+
+		switch ($resultAction) {
+			case 'update':
+				$result['objects']['updated']++;
+				break;
+			case 'create':
+				$result['objects']['created']++;
+				break;
+			case 'delete':
+				$result['objects']['deleted']++;
+				break;
+			case 'skip':
+				$result['objects']['skipped']++;
+				break;
+			default:
+				$result['objects']['invalid']++;
+				break;
 		}
 
 		$targetId = $synchronizationContract['targetId'] ?? null;
