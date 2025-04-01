@@ -9,6 +9,7 @@ use OC\AppFramework\Http;
 use OC\AppFramework\Http\Request;
 use OC\AppFramework\Http\RequestId;
 use OC\Config;
+use OC\Files\Node\File;
 use OC\Security\SecureRandom;
 use OCA\OpenConnector\Db\EndpointMapper;
 use OCA\OpenConnector\Db\SourceMapper;
@@ -29,7 +30,10 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\AppFramework\Http\DataDownloadResponse;
+use OCP\AppFramework\Http\DownloadResponse;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IRequest;
@@ -195,7 +199,7 @@ class EndpointService
                     objectId: $result->getData()['id'] ?? null
                 );
 
-				if ($ruleResult instanceof JSONResponse === true) {
+				if ($ruleResult instanceof Response) {
 					return $ruleResult;
 				}
 
@@ -590,7 +594,7 @@ class EndpointService
             }
 
             throw $exception;
-        } 
+        }
 
 	}
 
@@ -817,6 +821,7 @@ class EndpointService
 					'javascript' => $this->processJavaScriptRule($rule, $data),
                     'fileparts_create' => $this->processFilePartRule($rule, $data, $endpoint, $objectId),
                     'filepart_upload' => $this->processFilePartUploadRule($rule, $data, $objectId),
+                    'file_download' => $this->processFileDownloadRule($rule, $data, $objectId),
 					default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
 				};
 
@@ -1170,6 +1175,43 @@ class EndpointService
 		// For now, just return the data unchanged
 		return $data;
 	}
+
+    private function processFileDownloadRule (Rule $rule, array $data, string $objectId): array
+    {
+        $config = $rule->getConfiguration();
+        $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find(id: $objectId);
+
+        if (isset($data['parameters']['filename']) === true) {
+            $filename = $data['parameters']['filename'];
+        }
+
+        if (isset($config['fileNameLocation']) === true) {
+            /**
+             * @var ObjectEntity $object
+             */
+
+            $dot = new Dot($object->jsonSerialize());
+            $filename = $dot->get($config['fileNameLocation']);
+        }
+
+        if (isset($filename) === false && count($object->getFiles()) === 1) {
+            $filename = $object->getFiles()[0]['filename'];
+        } else if (isset($filename) === false) {
+            throw new Exception('File could not be determined');
+        }
+
+
+        if(isset($data['parameters']['version']) === true) {
+            $file = $this->objectService->getOpenRegisters()->getFile(object: $object, filePath: $filename, version: $data['parameters']['version']);
+        } else {
+            $file = $this->objectService->getOpenRegisters()->getFile(object: $object, filePath: $filename);
+        }
+
+        // TODO: set content type and content disposition
+        $response = new DataDownloadResponse(data: $file->getContent(), filename: $file->getName(), contentType: $file->getType());
+
+        return $data;
+    }
 
 	/**
 	 * Checks if rule conditions are met
