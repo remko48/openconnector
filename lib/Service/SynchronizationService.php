@@ -2058,6 +2058,69 @@ class SynchronizationService
 	}
 
 	/**
+	 * Synchronizes internal data to external sources based on synchronization rules.
+	 *
+	 * @param Synchronization $synchronization The synchronization configuration.
+	 * @param bool 		      $isTest Whether this is a test run (does not persist data if true).
+	 * @param                 $object The object to be synchronized.
+	 *
+	 * @return SynchronizationContract|array|null Returns a synchronization contract, an array for test cases, or null if conditions are not met.
+	 */
+	private function synchronizeInternToExtern(Synchronization $synchronization, array $result, ?bool $isTest = false, $object)
+	{
+		if ($synchronization->getConditions() !== [] && !JsonLogic::apply($synchronization->getConditions(), $object)) {
+
+			$result['objects']['skipped']++;
+			return ['result' => $result, 'targetId' => null];
+		}
+
+		// If the source configuration contains a dot notation for the id position, we need to extract the id from the source object
+		$originId = $object->getUuid();
+
+		// Get the synchronization contract for this object
+		$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(synchronizationId: $synchronization->id, originId: $originId);
+
+		if ($synchronizationContract instanceof SynchronizationContract === false) {
+			// Only persist if not test
+			if ($isTest === false) {
+				$synchronizationContract = $this->synchronizationContractMapper->createFromArray([
+					'synchronizationId' => $synchronization->getId(),
+					'originId' => $originId,
+				]);
+			} else {
+				$synchronizationContract = new SynchronizationContract();
+				$synchronizationContract->setSynchronizationId($synchronization->getId());
+				$synchronizationContract->setOriginId($originId);
+			}
+
+			$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object->getObject(), isTest: $isTest);
+
+			if ($isTest === true && is_array($synchronizationContract) === true) {
+				// If this is a log and contract array return for the test endpoint.
+				$logAndContractArray = $synchronizationContract;
+
+				return $logAndContractArray;
+			}
+		} else {
+			// @todo this is wierd
+			$synchronizationContract = $this->synchronizeContract(synchronizationContract: $synchronizationContract, synchronization: $synchronization, object: $object->getObject(), isTest: $isTest);
+			if ($isTest === false && $synchronizationContract instanceof SynchronizationContract === true) {
+				// If this is a regular synchronizationContract update it to the database.
+				$this->synchronizationContractMapper->update(entity: $synchronizationContract);
+			} elseif ($isTest === true && is_array($synchronizationContract) === true) {
+				// If this is a log and contract array return for the test endpoint.
+				$logAndContractArray = $synchronizationContract;
+
+				return $logAndContractArray;
+			}
+		}
+
+		$synchronizationContract = $this->synchronizationContractMapper->update($synchronizationContract);
+        return $synchronizationContract;
+	}
+
+
+	/**
 	 * Process a single object during synchronization
 	 *
 	 * @param Synchronization $synchronization The synchronization being processed
