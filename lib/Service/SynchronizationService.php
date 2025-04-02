@@ -2264,4 +2264,17 @@ class SynchronizationService
         return $synchronizations[0];
     }
 
+	/**
+	 * Finds all synchronizations by the given source ID, which is a combination of register and schema.
+	 *
+	 * @param $register The register id.
+	 * @param $schema The schema id.
+	 *
+	 * @return array The list of records matching the source ID.
+	 */
+	public function findAllBySourceId($register, $schema) {
+		$sourceId = "$register/$schema";
+		return $this->synchronizationMapper->findAll(limit: null, offset: null, filters: ['source_id' => $sourceId]);
+	}
+
 }
