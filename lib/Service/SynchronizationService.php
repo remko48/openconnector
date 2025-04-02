@@ -2132,7 +2132,7 @@ class SynchronizationService
 	 * 
 	 * @return array Contains updated result data and the targetId ['result' => array, 'targetId' => string|null]
 	 */
-	private function processSynchronizationObject(
+	public function processSynchronizationObject(
 		Synchronization $synchronization, 
 		array $object, 
 		array $result, 
@@ -2140,6 +2140,13 @@ class SynchronizationService
 		bool $force, 
 		SynchronizationLog $log
 	): array {
+		// Synchronize a object from OpenRegister register and schema to a external source.
+		if ($synchronization->getSourceType() === 'register/schema' && $object !== null) {
+
+			return [$this->synchronizeInternToExtern($synchronization, $result, $isTest, $object)];
+		}
+
+
 		// We can only deal with arrays (based on the source empty values or string might be returned)
 		if (is_array($object) === false) {
 			$result['objects']['invalid']++;
