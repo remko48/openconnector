@@ -8,27 +8,56 @@ use OCP\EventDispatcher\IEventListener;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
-use OCA\OpenConnector\Db\SynchronizationContractMapper;
+use Psr\Log\LoggerInterface;
 
-class ObjectUpdatedEventListener implements IEventListener
+/**
+ * Listener that forwards object changes to the SynchronizationService
+ */
+class ObjectEventListener implements IEventListener
 {
+    /**
+     * @param SynchronizationService $synchronizationService Service for synchronizing
+     * @param LoggerInterface $logger Logger instance
+     */
+    public function __construct(
+        private readonly SynchronizationService $synchronizationService,
+        private readonly LoggerInterface $logger
+    ) {}
 
-	public function __construct(
-		private readonly SynchronizationService $synchronizationService
-	)
-	{
-	}
-
-	/**
-     * @inheritDoc
+    /**
+     * Handle incoming events by forwarding them to the EventService
+     *
+     * @param Event $event The incoming event
+     * @return void
      */
     public function handle(Event $event): void
     {
-        if ($event instanceof ObjectUpdatedEvent === false) {
-			return;
-		}
+        if ($event instanceof ObjectUpdatedEvent === false
+        ) {
+            return;
+        }
 
-		$object = $event->getNewObject();
-		$this->synchronizationService->synchronizeToTarget($object);
+        if (method_exists($event, 'getObject') === false) {
+            return;
+        }
+
+
+        $object = $event->getObject();
+        if ($object === null || $object->getRegister() === null || $object->getSchema() === null) {
+            return;
+        }
+
+        $synchronizations = $this->synchronizationService->findAllBySourceId(register: $object->getRegister(), schema: $object->getSchema());
+        foreach ($synchronizations as $synchronization) {
+            try {
+                $log = $this->synchronizationService->createSynchronizationLog(synchronization: $synchronization, isTest: false, force: true, type: 'update-extern');
+                $this->synchronizationService->processSynchronizationObject(synchronization: $synchronization, object: $object, result: [], isTest: false, force: true, log: $log);
+            } catch (\Exception $e) {
+                $this->logger->error('Failed to process object event: ' . $e->getMessage() . ' for synchronization ' . $synchronization->getId(), [
+                    'exception' => $e,
+                    'event' => get_class($event)
+                ]);
+            }
+        }
     }
 }
