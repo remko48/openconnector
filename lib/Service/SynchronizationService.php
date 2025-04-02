@@ -126,28 +126,7 @@ class SynchronizationService
 		// Start execution time measurement
 		$startTime = microtime(true);
 
-		// Create log with synchronization ID and initialize results tracking
-		$log = [
-			'synchronizationId' => $synchronization->getUuid(),
-			'result' => [
-				'objects' => [
-					'found' => 0,
-					'skipped' => 0,
-					'created' => 0,
-					'updated' => 0,
-					'deleted' => 0,
-					'invalid' => 0
-				],
-				'contracts' => [],
-				'logs' => []
-			],
-			'test' => $isTest,
-			'force' => $force
-		];
-
-		// lets always create the log entry first, because we need its uuid later on for contractLogs
-		$log = $this->synchronizationLogMapper->createFromArray($log);
-
+		$log = $this->createSynchronizationLog(synchronization: $synchronization, isTest: $isTest, force: $force, type: 'synchronize-import');
 
 		$sourceConfig = $this->callService->applyConfigDot($synchronization->getSourceConfig());
 
@@ -188,9 +167,9 @@ class SynchronizationService
 				force: $force,
 				log: $log
 			);
-			
+
 			$result = $processResult['result'];
-			
+
 			if ($processResult['targetId'] !== null) {
 				$synchronizedTargetIds[] = $processResult['targetId'];
 			}
@@ -228,6 +207,34 @@ class SynchronizationService
 		$log->setMessage('Success');
 		$this->synchronizationLogMapper->update($log);
 		return $log->jsonSerialize();
+	}
+
+	/**
+	 * Create a default Synchronization log
+	 *
+	 * @param
+	 */
+	public function createSynchronizationLog(Synchronization $synchronization, bool $isTest, bool $force, string $type = 'import'): SynchronizationLog
+	{
+		return $this->synchronizationLogMapper->createFromArray([
+				'synchronizationId' => $synchronization->getUuid(),
+				'result' => [
+					'objects' => [
+						'found' => 0,
+						'skipped' => 0,
+						'created' => 0,
+						'updated' => 0,
+						'deleted' => 0,
+						'invalid' => 0
+					],
+					'contracts' => [],
+					'logs' => []
+				],
+				'type' => $type,
+				'test' => $isTest,
+				'force' => $force
+			]
+		);
 	}
 
 	/**
