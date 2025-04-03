@@ -836,7 +836,7 @@ class EndpointService
                     'javascript' => $this->processJavaScriptRule($rule, $data),
                     'fileparts_create' => $this->processFilePartRule($rule, $data, $endpoint, $objectId),
                     'filepart_upload' => $this->processFilePartUploadRule(rule: $rule, data: $data, request: $request, objectId: $objectId),
-                    'file_download' => $this->processFileDownloadRule($rule, $data, $objectId),
+                    'download' => $this->processDownloadRule($rule, $data, $objectId),
                     default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
                 };
 
@@ -1204,7 +1204,7 @@ class EndpointService
         return $data;
     }
 
-    private function processFileDownloadRule (Rule $rule, array $data, string $objectId): Response
+    private function processDownloadRule (Rule $rule, array $data, string $objectId): Response
     {
         $config = $rule->getConfiguration();
 
@@ -1217,7 +1217,7 @@ class EndpointService
             $filename = $data['parameters']['filename'];
         }
 
-        if (isset($config['filenameLocation']) === true) {
+        if (isset($config['filenamePosition']) === true) {
             $dot = new Dot($object->jsonSerialize());
             $filename = $dot->get($config['filenameLocation']);
         }
@@ -1235,7 +1235,6 @@ class EndpointService
             $file = $this->objectService->getOpenRegisters()->getFile(object: $object, filePath: $filename);
         }
 
-        // TODO: set content type and content disposition
         $response = new DataDownloadResponse(data: $file->getContent(), filename: $file->getName(), contentType: $file->getType());
 
         return $response;
