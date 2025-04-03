@@ -200,7 +200,7 @@ class EndpointService
                     objectId: $result->getData()['id'] ?? null
                 );
 
-                if ($ruleResult instanceof Response) {
+                if ($ruleResult instanceof Response === true) {
                     return $ruleResult;
                 }
 
@@ -439,7 +439,7 @@ class EndpointService
             $main = $mapper->findByUuid($pathParams['id'])->getObject();
             $ids = $main[$property];
 
-            if(isset($main[$property]) === false) {
+            if (isset($main[$property]) === false) {
                 return $this->replaceInternalReferences(mapper: $mapper, object: $mapper->find($pathParams['id']));
             }
 
@@ -1173,15 +1173,11 @@ class EndpointService
         if (isset($config['mappingOutId']) === true) {
             $mappedData = $this->mappingService->executeMapping(mapping: $this->mappingService->getMapping(mappingId: $config['mappingOutId']), input: $mappedData);
         }
-        try {
 
-            $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
-            $object->setObject($mappedData);
-            $this->objectService->getOpenRegisters()->getMapper('objectEntity')->update($object);
-        } catch (Exception $e) {
-            var_dump($e->getTrace());
-            throw $e;
-        }
+        $object = $this->objectService->getOpenRegisters()->getMapper('objectEntity')->find($objectId);
+        $object->setObject($mappedData);
+        $this->objectService->getOpenRegisters()->getMapper('objectEntity')->update($object);
+
 
         $data['body'] = $mappedData;
 
