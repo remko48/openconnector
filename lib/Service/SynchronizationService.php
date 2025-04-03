@@ -1830,6 +1830,9 @@ class SynchronizationService
 			// Array of object that has file(s)
 			case 'Associative array':
 				$endpoint = $this->getFileContext(config: $config, endpoint: $endpoint, filename: $filename, tags: $tags, objectId: $objectId);
+				if ($endpoint === null) {
+					throw new Exception('Could not get endpoint for fetch file rule' . $rule->getId());
+				}
 				$dataDot[$config['filePath']] = $this->fetchFile(source: $source, endpoint: $endpoint, config: $config, objectId: $objectId, filename: $filename);
 				break;
 			// Array of object(s) that has file(s)
@@ -1840,6 +1843,9 @@ class SynchronizationService
 					$tags = [];
 					$objectId = null;
 					$endpoint = $this->getFileContext(config: $config, endpoint: $object, filename: $filename, tags: $tags, objectId: $objectId);
+					if ($endpoint === null) {
+						throw new Exception('Could not get endpoint for fetch file rule' . $rule->getId());
+					}
 					$result[] = $this->fetchFile(source: $source, endpoint: $endpoint, config: $config, objectId: $objectId, filename: $filename);
 				}
 				$dataDot[$config['filePath']] = $result;
