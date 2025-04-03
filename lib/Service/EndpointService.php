@@ -335,20 +335,19 @@ class EndpointService
             try {
                 $generatedUrl = $this->generateEndpointUrl(id: $useId, parentIds: [$object->getUuid()], schemaMapper: $schemaMapper);
                 $uuidToUrlMap[$useId] = $generatedUrl;
-                $useUrls[] = $generatedUrl;
+                
+                if(isset($useUrl) === true) {
+                    $useUrls[$useUrl] = $generatedUrl;
+                }
             } catch (Exception $exception) {
                 continue;
             }
         }
 
-
-        // @TODO: correct rewriting self url
         // Add self object URI mapping
-//        $uuidToUrlMap[$object->getUuid()] = $this->generateEndpointUrl(id: $object->getUuid(), schemaMapper: $schemaMapper);
-        $uuidToUrlMap[$object->getUri()] = $this->generateEndpointUrl(id: $object->getUuid(), schemaMapper: $schemaMapper);
-
-        // @TODO: temporary fix for download endpoints. This has to be fixed with issue CONNECTOR-314
-        $uuidToUrlMap[$object->getUri(). '/download'] = $this->generateEndpointUrl(id: $object->getUuid(), schemaMapper: $schemaMapper). '/download';
+        $encoded = json_encode($serializedObject);
+        $encoded = str_replace(search: array_keys($useUrls), replace: array_values($useUrls), subject: $encoded);
+        $serializedObject = json_decode($encoded, true);
 
         // Replace UUIDs in serializedObject recursively
         $serializedObject = $this->replaceUuidsInArray($serializedObject, $uuidToUrlMap);
