@@ -132,7 +132,7 @@ class EndpointService
 
             $incomingMethod = $request->getMethod();
             $incomingHeaders = $this->getHeaders($request->server, true);
-            $incomingParams = array_merge($request->getParams(), $responseBody);
+            $incomingParams = array_merge($request->getParams(), $responseBody, $this->getPathParameters($endpoint, $path));
 
             $incomingData = [
                 'method' => $incomingMethod,
@@ -327,6 +327,7 @@ class EndpointService
             ) {
                 $explodedUrl = explode(separator: '/', string: $use);
                 $useId = end($explodedUrl);
+                $useUrl = $use;
             } else {
                 unset($uses[$key]);
                 continue;
@@ -836,6 +837,7 @@ class EndpointService
                     'fileparts_create' => $this->processFilePartRule($rule, $data, $endpoint, $objectId),
                     'filepart_upload' => $this->processFilePartUploadRule(rule: $rule, data: $data, request: $request, objectId: $objectId),
                     'download' => $this->processDownloadRule($rule, $data, $objectId),
+                    'file_update' => $this->processUpdateFileRule(rule: $rule, data: $data),
                     default => throw new Exception('Unsupported rule type: ' . $rule->getType()),
                 };
 
@@ -988,6 +990,12 @@ class EndpointService
             }
 
             return $data;
+        }
+
+        if (isset($data['parameters']['id']) === true && array_filter(array_keys($mapping->getMapping()), function($key) {
+                return str_starts_with($key, 'body.') && !str_starts_with($key, 'body._');
+            }) === []) {
+            $data['body'] = array_merge($data['body'], $this->objectService->getOpenRegisters()->getMapper(objectType: 'objectEntity')->find($data['parameters']['id'])->jsonSerialize());
         }
 
         $data['body'] = $this->mappingService->executeMapping($mapping, $data['body']);
@@ -1184,6 +1192,32 @@ class EndpointService
     }
 
     /**
+     * Create a new version of an existing file, and rename the file if needed.
+     *
+     * @param Rule $rule The rule that describes the update
+     * @param array $data The data passed on to the rule.
+     * @return array
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function processUpdateFileRule(Rule $rule, array $data): array
+    {
+        $config = $rule->getConfiguration()['filepart_update'];
+        $object = $this->objectService->getOpenRegisters()->getMapper(objectType: 'objectEntity')->find($data['parameters']['id']);
+
+        $filename = (new Dot($object->jsonSerialize()))->get($config['filenamePosition']);
+        $newFilename = (new Dot($data['parameters']))->get($config['filenamePosition']);
+
+        if ($filename === $newFilename) {
+            $newFilename = null;
+        }
+
+        $this->objectService->getOpenRegisters()->createFileVersion(filePath: $filename, object: $object, filename: $newFilename);
+
+        return $data;
+    }
+
+    /**
      * Processes a JavaScript rule
      *
      * @param Rule $rule The rule object containing JavaScript execution details
@@ -1228,6 +1262,10 @@ class EndpointService
             $file = $this->objectService->getOpenRegisters()->getFile(object: $object, filePath: $filename, version: $data['parameters']['version']);
         } else {
             $file = $this->objectService->getOpenRegisters()->getFile(object: $object, filePath: $filename);
+        }
+
+        if($this->objectService->getOpenRegisters()->formatFile($file)['downloadUrl'] !== null) {
+            return new JSONResponse(data: ['error' =>'Forbidden', 'reason' => 'You don\'t have access to view this resource.'], statusCode: Http::STATUS_FORBIDDEN);
         }
 
         $response = new DataDownloadResponse(data: $file->getContent(), filename: $file->getName(), contentType: $file->getType());
