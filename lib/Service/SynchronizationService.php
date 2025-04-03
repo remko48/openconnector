@@ -1665,6 +1665,10 @@ class SynchronizationService
             $filename = $this->getFilenameFromHeaders(response: $response, result: $result);
         }
 
+		if ($filename === null) {
+            throw new Exception('Could not write file: no filename could be determined');
+        }
+
 		// Write file with OpenRegister ObjectService.
 		$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
 		$file = $objectService->addFile(object: $objectId, fileName: $filename, base64Content: $response['body'], share: isset($config['autoShare']) ? $config['autoShare'] : false);
