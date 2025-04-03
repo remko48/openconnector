@@ -708,7 +708,7 @@ class SynchronizationService
 	 * @return SynchronizationContract The updated synchronization contract with the modified target ID.
 	 * @throws ContainerExceptionInterface|NotFoundExceptionInterface If an error occurs while interacting with the object service or processing the data.
 	 */
-	private function updateTargetOpenRegister(SynchronizationContract $synchronizationContract, Synchronization $synchronization, ?array $targetObject = [], ?string $action = 'save'): SynchronizationContract
+	private function updateTargetOpenRegister(SynchronizationContract $synchronizationContract, Synchronization $synchronization, ?array &$targetObject = [], ?string $action = 'save'): SynchronizationContract
 	{
 		// Setup the object service
 		$objectService = $this->containerInterface->get('OCA\OpenRegister\Service\ObjectService');
@@ -953,7 +953,7 @@ class SynchronizationService
 	 * @throws \OCP\DB\Exception
 	 * @throws Exception
 	 */
-	public function updateTarget(SynchronizationContract $synchronizationContract, ?array $targetObject = [], ?string $action = 'save'): SynchronizationContract
+	public function updateTarget(SynchronizationContract $synchronizationContract, ?array &$targetObject = [], ?string $action = 'save'): SynchronizationContract
 	{
 		// The function can be called solo set let's make sure we have the full synchronization object
 		if (isset($synchronization) === false) {
