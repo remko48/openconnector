@@ -617,7 +617,7 @@ export default {
 					},
 					javascript: ruleStore.ruleItem.configuration?.javascript ?? '',
 					authentication: {
-						type: ruleStore.ruleItem.configuration?.authentication?.type?.value ?? 'basic',
+						type: ruleStore.ruleItem.configuration?.authentication?.type ?? { label: 'Basic Authentication', value: 'basic' },
 						users: ruleStore.ruleItem.configuration?.authentication?.users ?? [],
 						groups: ruleStore.ruleItem.configuration?.authentication?.groups ?? [],
 					},
@@ -1072,7 +1072,7 @@ export default {
 				break
 			case 'authentication':
 				configuration.authentication = {
-					type: this.ruleItem.configuration.authentication.type.value,
+					type: this.authenticationTypeOptions.value.value,
 					users: this.ruleItem.configuration.authentication.users.map(user => user.id),
 					groups: this.ruleItem.configuration.authentication.groups.map(group => group.value),
 				}
