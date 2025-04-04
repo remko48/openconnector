@@ -240,6 +240,14 @@ class EndpointsController extends Controller
 			);
 		}
 
+		// If no matching endpoints found, return 404
+		if (count($matchingEndpoints) > 1) {
+			return new JSONResponse(
+				data: ['error' => 'Multiple endpoints found for path and method: ' . $_path . ' ' . $this->request->getMethod()],
+				statusCode: 409
+			);
+		}
+
 		// Get the first matching endpoint since we have already filtered by method
 		$endpoint = reset($matchingEndpoints);
 
@@ -248,9 +256,9 @@ class EndpointsController extends Controller
 
 		// Check if the Accept header is set to XML
 		$acceptHeader = $this->request->getHeader('Accept');
-		if (stripos($acceptHeader, 'application/xml') !== false) {
+		if (stripos($acceptHeader, 'application/xml') !== false && $response instanceof JSONResponse === true) {
 			// Convert JSON response to XML response
-			$response = new XMLResponse($response->getData(), $response->getStatus(), $response->getHeaders());
+			$response = new XMLResponse($response->getData(), $response->getStatus(), $response->getHeaders(), $_path);
 		}
 
         return $this->authorizationService->corsAfterController($this->request, $response);
