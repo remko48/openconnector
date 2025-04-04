@@ -187,32 +187,24 @@ import { Rule } from '../../entities/index.js'
 								<div :class="`draggable-form-item ${getTheme()}`">
 									<Drag class="drag-handle" :size="40" />
 									<NcTextArea
-										:value.sync="item.name"
+										:value.sync="item.apiKey"
 										:disabled="loading"
 										label="Api-key"
 										resize="none"
 										class="apiKeyTextArea" />
 									<NcSelect
-										v-model="item.allowedUsers"
-										:options="usersList"
-										:multiple="true"
+										v-model="item.user"
+										v-bind="usersList"
+										aria-label-combobox="Select allowed user"
+										:user-select="true"
 										:clearable="true"
-										placeholder="Select allowed users"
+										placeholder="Select allowed user"
 										class="apiKeyUserSelect" />
 								</div>
 							</div>
 						</VueDraggable>
 					</template>
 					<template v-else>
-						<!-- Users Multi-Select -->
-						<NcSelect
-							v-model="ruleItem.configuration.authentication.users"
-							:options="usersList"
-							input-label="Allowed Users"
-							:multiple="true"
-							:clearable="true"
-							placeholder="Select users who can access" />
-
 						<!-- Users Multi-Select -->
 						<NcSelect
 							v-model="ruleItem.configuration.authentication.users"
@@ -554,7 +546,8 @@ export default {
 					value: 'basic',
 				},
 			},
-			apiKeys: [{ name: '', allowedUsers: [] }],
+			apiKeyUsers: [],
+			apiKeys: [{ apiKey: '', user: this.apiKeyUsers }],
 			ruleItem: {
 				name: '',
 				description: '',
@@ -648,15 +641,16 @@ export default {
 	watch: {
 		apiKeys: {
 			handler(newVal) {
+				console.log({ newVal })
 				const currentApiKeysLength = newVal.length
 
-				if (this.apiKeys[currentApiKeysLength - 1].name !== '') {
-					this.apiKeys.push({ name: '', allowedUsers: [] })
+				if (this.apiKeys[currentApiKeysLength - 1].apiKey !== '') {
+					this.apiKeys.push({ apiKey: '', user: [] })
 				}
 
 				if (currentApiKeysLength > 1) {
 					for (let i = currentApiKeysLength - 2; i >= 0; i--) {
-						if (this.apiKeys[i].name.trim() === '') {
+						if (this.apiKeys[i].apiKey.trim() === '') {
 							this.apiKeys.splice(i, 1)
 						}
 					}
@@ -680,9 +674,10 @@ export default {
 					},
 					javascript: ruleStore.ruleItem.configuration?.javascript ?? '',
 					authentication: {
-						type: ruleStore.ruleItem.configuration?.authentication?.type?.value ?? 'basic',
+						type: ruleStore.ruleItem.configuration?.authentication?.type ?? { label: 'Basic Authentication', value: 'basic' },
 						users: ruleStore.ruleItem.configuration?.authentication?.users ?? [],
 						groups: ruleStore.ruleItem.configuration?.authentication?.groups ?? [],
+						keys: ruleStore.ruleItem.configuration?.authentication?.keys ?? [],
 					},
 					download: {
 						fileIdPosition: ruleStore.ruleItem.configuration?.download?.fileIdPosition ?? 0,
@@ -744,6 +739,7 @@ export default {
 		this.getSchemas()
 		this.getAllowedUsers()
 		this.getGroups()
+		this.getApiKeysUsers()
 	},
 	methods: {
 		async getMappings() {
@@ -964,6 +960,64 @@ export default {
 			this.usersLoading = false
 		},
 
+		async getApiKeysUsers() {
+			this.usersLoading = true
+			const response = await fetch('/ocs/v1.php/cloud/users/details', {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'OCS-APIRequest': 'true',
+				},
+			})
+			if (!response.ok) {
+				console.info('Fetching users was not successful')
+				this.usersLoading = false
+				return
+			}
+
+			const responseData = await response.json()
+
+			this.apiKeyUsers = {
+				options: Object.values(responseData.ocs.data.users).map((user) => ({
+					id: user.id,
+					displayName: user.displayname,
+					subname: user.email,
+					user: user.id,
+					name: user.displayname,
+				})),
+			}
+
+			if (this.ruleItem.configuration.authentication.keys) {
+
+				this.apiKeys = this.ruleItem.configuration.authentication.keys.map((key) => {
+
+					let user = null
+					let apiKey = null
+
+					Object.entries(key).forEach(([key, value]) => {
+						apiKey = key
+						user = value
+
+					})
+
+					const selectedUser = Object.values(responseData.ocs.data.users).find(_user => user === _user.id)
+					return {
+						apiKey,
+						user: selectedUser
+							? {
+								id: selectedUser.id,
+								displayName: selectedUser.displayname,
+								subname: selectedUser.email,
+								user: selectedUser.id,
+							}
+							: null,
+					}
+				})
+
+			}
+
+		},
+
 		async getGroups() {
 			this.groupsLoading = true
 			const response = await fetch('/ocs/v1.php/cloud/groups/details', {
@@ -1141,9 +1195,15 @@ export default {
 				break
 			case 'authentication':
 				configuration.authentication = {
-					type: this.ruleItem.configuration.authentication.type.value,
+					type: this.authenticationTypeOptions.value.value,
 					users: this.ruleItem.configuration.authentication.users.map(user => user.id),
 					groups: this.ruleItem.configuration.authentication.groups.map(group => group.value),
+					keys: this.apiKeys
+						.filter(key => key.apiKey && key.user?.id) // Filter out incomplete entries
+						.map(key => ({
+							[key.apiKey]: key.user.id,
+						}))
+						.filter(Boolean),
 				}
 				break
 			case 'download':
