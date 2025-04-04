@@ -641,10 +641,9 @@ export default {
 	watch: {
 		apiKeys: {
 			handler(newVal) {
-				console.log({ newVal })
 				const currentApiKeysLength = newVal.length
 
-				if (this.apiKeys[currentApiKeysLength - 1].apiKey !== '') {
+				if (this.apiKeys[currentApiKeysLength - 1]?.apiKey !== '') {
 					this.apiKeys.push({ apiKey: '', user: [] })
 				}
 
