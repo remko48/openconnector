@@ -460,7 +460,7 @@ class EndpointService
 		$result = $mapper->findAllPaginated(requestParams: $parameters);
 
         $result['results'] = array_map(function ($object) use ($mapper) {
-            return $this->replaceInternalReferences(mapper: $mapper, object: $object);
+            return $this->replaceInternalReferences(mapper: $mapper, serializedObject: $object);
         }, $result['results']);
 
 		$returnArray = [
