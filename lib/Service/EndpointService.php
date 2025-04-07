@@ -1200,6 +1200,20 @@ class EndpointService
         return $data;
     }
 
+    /**
+     * Downloads a file based upon configuration
+     *
+     * @param Rule $rule The rule to execute.
+     * @param array $data The data to perform the rule on.
+     * @param string $objectId The id of the requested object.
+     *
+     * @return Response A response containing the file requested.
+     *
+     * @throws ContainerExceptionInterface
+     * @throws DoesNotExistException
+     * @throws NotFoundExceptionInterface
+     * @throws \OCP\Files\NotFoundException
+     */
     private function processDownloadRule (Rule $rule, array $data, string $objectId): Response
     {
         $config = $rule->getConfiguration();
