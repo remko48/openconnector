@@ -294,28 +294,11 @@ import { Rule } from '../../entities/index.js'
 							:loading="sourcesLoading"
 							input-label="Source ID *" />
 
-						<NcTextField
-							label="File Path"
-							required
-							:value.sync="ruleItem.configuration.fetch_file.filePath"
-							placeholder="path.to.fetch.file" />
-
 						<NcSelect
 							v-bind="methodOptions"
 							v-model="methodOptions.value"
 							input-label="Method" />
 
-					<NcTextField
-						label="File path in sub object(s) (optional)"
-						required
-						:value.sync="ruleItem.configuration.fetch_file.subObjectFilepath"
-						placeholder="path.to.fetch.file.objects" />
-
-					<NcTextField
-						label="Object id path (optional)"
-						required
-						:value.sync="ruleItem.configuration.fetch_file.objectIdPath"
-						placeholder="path.to.fetch.file.objects" />
 						<NcSelect v-model="ruleItem.configuration.fetch_file.tags"
 							:taggable="true"
 							:multiple="true"
@@ -324,6 +307,24 @@ import { Rule } from '../../entities/index.js'
 								type to add tags
 							</template>
 						</NcSelect>
+
+						<NcTextField
+							label="File Path"
+							required
+							:value.sync="ruleItem.configuration.fetch_file.filePath"
+							placeholder="path.to.fetch.file" />
+
+						<NcTextField
+							label="File path in sub object(s) (optional)"
+							required
+							:value.sync="ruleItem.configuration.fetch_file.subObjectFilepath"
+							placeholder="path.to.fetch.file.objects" />
+
+						<NcTextField
+							label="Object id path (optional)"
+							required
+							:value.sync="ruleItem.configuration.fetch_file.objectIdPath"
+							placeholder="path.to.fetch.file.objects" />
 
 						<NcCheckboxRadioSwitch
 							type="checkbox"
