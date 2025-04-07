@@ -294,12 +294,6 @@ import { Rule } from '../../entities/index.js'
 							:loading="sourcesLoading"
 							input-label="Source ID *" />
 
-						<NcTextField
-							label="File Path"
-							required
-							:value.sync="ruleItem.configuration.fetch_file.filePath"
-							placeholder="path.to.fetch.file" />
-
 						<NcSelect
 							v-bind="methodOptions"
 							v-model="methodOptions.value"
@@ -313,6 +307,22 @@ import { Rule } from '../../entities/index.js'
 								type to add tags
 							</template>
 						</NcSelect>
+
+						<NcTextField
+							label="File Path"
+							required
+							:value.sync="ruleItem.configuration.fetch_file.filePath"
+							placeholder="path.to.fetch.file" />
+
+						<NcTextField
+							label="File path in sub object(s) (optional)"
+							:value.sync="ruleItem.configuration.fetch_file.subObjectFilepath"
+							placeholder="path.to.fetch.file.objects" />
+
+						<NcTextField
+							label="Object id path (optional)"
+							:value.sync="ruleItem.configuration.fetch_file.objectIdPath"
+							placeholder="path.to.fetch.file.objects" />
 
 						<NcCheckboxRadioSwitch
 							type="checkbox"
@@ -586,6 +596,8 @@ export default {
 					fetch_file: {
 						source: '',
 						filePath: '',
+						subObjectFilepath: '',
+						objectIdPath: '',
 						method: '',
 						tags: [],
 						sourceConfiguration: '[]',
@@ -693,6 +705,8 @@ export default {
 					fetch_file: {
 						source: ruleStore.ruleItem.configuration?.fetch_file?.source ?? '',
 						filePath: ruleStore.ruleItem.configuration?.fetch_file?.filePath ?? '',
+						subObjectFilepath: ruleStore.ruleItem.configuration?.fetch_file?.subObjectFilepath ?? '',
+						objectIdPath: ruleStore.ruleItem.configuration?.fetch_file?.objectIdPath ?? '',
 						method: ruleStore.ruleItem.configuration?.fetch_file?.method ?? '',
 						tags: ruleStore.ruleItem.configuration?.fetch_file?.tags ?? [],
 						sourceConfiguration: JSON.stringify(ruleStore.ruleItem.configuration?.fetch_file?.sourceConfiguration, null, 2) ?? '[]',
@@ -1227,6 +1241,8 @@ export default {
 				configuration.fetch_file = {
 					source: this.sourceOptions.sourceValue?.id,
 					filePath: this.ruleItem.configuration.fetch_file.filePath,
+					subObjectFilepath: this.ruleItem.configuration.fetch_file.subObjectFilepath,
+					objectIdPath: this.ruleItem.configuration.fetch_file.objectIdPath,
 					method: this.methodOptions.value?.label,
 					tags: this.ruleItem.configuration.fetch_file.tags,
 					sourceConfiguration: this.ruleItem.configuration.fetch_file.sourceConfiguration ? JSON.parse(this.ruleItem.configuration.fetch_file.sourceConfiguration) : [],
