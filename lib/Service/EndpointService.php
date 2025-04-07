@@ -342,7 +342,7 @@ class EndpointService
         }
 
 
-        // @TODO: correct rewriting self url
+        // @TODO: correct rewriting self url. This has to be fixed with issue CONNECTOR-314
         // Add self object URI mapping
 //        $uuidToUrlMap[$object->getUuid()] = $this->generateEndpointUrl(id: $object->getUuid(), schemaMapper: $schemaMapper);
         $uuidToUrlMap[$object->getUri()] = $this->generateEndpointUrl(id: $object->getUuid(), schemaMapper: $schemaMapper);
