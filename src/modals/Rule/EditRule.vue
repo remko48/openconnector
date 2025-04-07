@@ -316,13 +316,11 @@ import { Rule } from '../../entities/index.js'
 
 						<NcTextField
 							label="File path in sub object(s) (optional)"
-							required
 							:value.sync="ruleItem.configuration.fetch_file.subObjectFilepath"
 							placeholder="path.to.fetch.file.objects" />
 
 						<NcTextField
 							label="Object id path (optional)"
-							required
 							:value.sync="ruleItem.configuration.fetch_file.objectIdPath"
 							placeholder="path.to.fetch.file.objects" />
 
