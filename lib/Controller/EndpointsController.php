@@ -256,7 +256,7 @@ class EndpointsController extends Controller
 
 		// Check if the Accept header is set to XML
 		$acceptHeader = $this->request->getHeader('Accept');
-		if (stripos($acceptHeader, 'application/xml') !== false) {
+		if (stripos($acceptHeader, 'application/xml') !== false && $response instanceof JSONResponse === true) {
 			// Convert JSON response to XML response
 			$response = new XMLResponse($response->getData(), $response->getStatus(), $response->getHeaders(), $_path);
 		}

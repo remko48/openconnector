@@ -104,7 +104,7 @@ The isTest and force options can also be overridden from the endpoint by setting
 
 Download rules handle file access and retrieval. Configuration includes:
 
-- fileIdPosition: Specifies the position of the file ID in the URL path
+- filenamePosition: Specifies the position of the filename in the URL path or object body
 - Automatic validation of user access rights to requested files
 
 ### Upload Rules
