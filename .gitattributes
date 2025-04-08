@@ -16,8 +16,8 @@ bin/console text eol=lf
 *.png binary
 
 # Strict merge control for info.xml
-appinfo/info.xml -diff -merge
-appinfo/info.xml merge=keepMain
+appinfo/info.xml merge=keepmain
+appinfo/info.xml text eol=lf
 
 .github export-ignore
 .travis.yml export-ignore
