@@ -1,0 +1,4 @@
+#!/bin/sh
+# Always keep the main branch version during merge
+cp "$2" "$1"
+exit 0
