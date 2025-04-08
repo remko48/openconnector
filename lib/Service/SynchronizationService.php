@@ -188,9 +188,9 @@ class SynchronizationService
 				force: $force,
 				log: $log
 			);
-			
+
 			$result = $processResult['result'];
-			
+
 			if ($processResult['targetId'] !== null) {
 				$synchronizedTargetIds[] = $processResult['targetId'];
 			}
@@ -221,6 +221,9 @@ class SynchronizationService
 				headers: $rateLimitException->getHeaders()
 			);
 		}
+
+        $synchronization->setTargetLastSynced(new DateTime());
+        $this->synchronizationMapper->update($synchronization);
 
 		// Calculate execution time in milliseconds
 		$executionTime = round((microtime(true) - $startTime) * 1000);
@@ -2156,15 +2159,15 @@ class SynchronizationService
 	 * @param bool $isTest Whether this is a test run
 	 * @param bool $force Whether to force synchronization regardless of changes
 	 * @param SynchronizationLog $log The synchronization log
-	 * 
+	 *
 	 * @return array Contains updated result data and the targetId ['result' => array, 'targetId' => string|null]
 	 */
 	private function processSynchronizationObject(
-		Synchronization $synchronization, 
-		array $object, 
-		array $result, 
-		bool $isTest, 
-		bool $force, 
+		Synchronization $synchronization,
+		array $object,
+		array $result,
+		bool $isTest,
+		bool $force,
 		SynchronizationLog $log
 	): array {
 		// We can only deal with arrays (based on the source empty values or string might be returned)
@@ -2172,7 +2175,7 @@ class SynchronizationService
 			$result['objects']['invalid']++;
 			return ['result' => $result, 'targetId' => null];
 		}
-		
+
 		$conditionsObject = $this->encodeArrayKeys($object, '.', '&#46;');
 
 		// Check if object adheres to conditions.
@@ -2188,7 +2191,7 @@ class SynchronizationService
 
 		// Get the synchronization contract for this object
 		$synchronizationContract = $this->synchronizationContractMapper->findSyncContractByOriginId(
-			synchronizationId: $synchronization->id, 
+			synchronizationId: $synchronization->id,
 			originId: $originId
 		);
 
@@ -2208,9 +2211,9 @@ class SynchronizationService
 			);
 
 			$synchronizationContract = $synchronizationContractResult['contract'];
-			$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) ? 
+			$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) ?
 				$synchronizationContractResult['contract']['uuid'] : null;
-			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) ? 
+			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) ?
 				$synchronizationContractResult['log']['uuid'] : null;
 			$resultAction = $synchronizationContractResult['resultAction'] ?? null;
 			if ($resultAction === 'update') {
@@ -2228,9 +2231,9 @@ class SynchronizationService
 			);
 
 			$synchronizationContract = $synchronizationContractResult['contract'];
-			$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) === true ? 
+			$result['contracts'][] = isset($synchronizationContractResult['contract']['uuid']) === true ?
 				$synchronizationContractResult['contract']['uuid'] : null;
-			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) === true ? 
+			$result['logs'][] = isset($synchronizationContractResult['log']['uuid']) === true ?
 				$synchronizationContractResult['log']['uuid'] : null;
 			$resultAction = $synchronizationContractResult['resultAction'] ?? null;
 		}
@@ -2254,7 +2257,7 @@ class SynchronizationService
 		}
 
 		$targetId = $synchronizationContract['targetId'] ?? null;
-		
+
 		return ['result' => $result, 'targetId' => $targetId];
 	}
 
