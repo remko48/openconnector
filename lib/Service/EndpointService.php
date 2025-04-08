@@ -1229,7 +1229,7 @@ class EndpointService
 
         if (isset($config['filenamePosition']) === true) {
             $dot = new Dot($object->jsonSerialize());
-            $filename = $dot->get($config['filenameLocation']);
+            $filename = $dot->get($config['filenamePosition']);
         }
 
         if (isset($filename) === false && count($object->getFiles()) === 1) {
