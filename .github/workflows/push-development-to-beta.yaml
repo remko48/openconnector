@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ github.sha }}  # Explicitly checkout the commit that triggered the workflow
           ssh-key: ${{ secrets.BETA_DEPLOY_KEY }}
 
       - name: Configure Git SSH
@@ -35,10 +36,10 @@ jobs:
             # If exists, checkout beta and reset to development
             git checkout beta
             git reset --hard origin/beta  # First get latest beta state
-            git reset --soft origin/development  # Then stage development changes
+            git reset --soft ${{ github.sha }}  # Then stage changes from the triggering commit
           else
-            # If doesn't exist, create from development
-            git checkout -b beta origin/development
+            # If doesn't exist, create from current development state
+            git checkout -b beta ${{ github.sha }}
           fi
           
           # Create commit with development changes
