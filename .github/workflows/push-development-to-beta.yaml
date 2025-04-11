@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.sha }}  # Explicitly checkout the commit that triggered the workflow
+          ref: ${{ github.sha }}
           ssh-key: ${{ secrets.BETA_DEPLOY_KEY }}
 
       - name: Configure Git SSH
@@ -31,6 +31,13 @@ jobs:
           # Fetch all branches
           git fetch origin
           
+          # Store the current beta version if it exists
+          BETA_VERSION=""
+          if git show-ref --quiet refs/remotes/origin/beta; then
+            git checkout origin/beta
+            BETA_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml || echo "")
+          fi
+          
           # Check if beta branch exists
           if git show-ref --quiet refs/remotes/origin/beta; then
             # If exists, checkout beta
@@ -39,6 +46,13 @@ jobs:
           else
             # If doesn't exist, create from development
             git checkout -b beta origin/development
+          fi
+          
+          # Restore the beta version if it existed
+          if [ ! -z "$BETA_VERSION" ]; then
+            sed -i "s|<version>.*</version>|<version>${BETA_VERSION}</version>|" appinfo/info.xml
+            git add appinfo/info.xml
+            git commit -m "Restore beta version to ${BETA_VERSION}"
           fi
           
           # Push to beta branch using SSH with force
