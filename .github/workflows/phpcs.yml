@@ -7,13 +7,15 @@ on:
       - 'master'
       - 'prod'
       - 'production'
+      - 'beta'
+      - 'development'
   pull_request:
     branches-ignore:
       - 'main'
       - 'master'
       - 'prod'
       - 'production'
-
+      - 'beta'
 jobs:
   build:
     runs-on: ubuntu-latest
