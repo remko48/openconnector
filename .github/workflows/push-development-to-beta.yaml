@@ -31,6 +31,9 @@ jobs:
           # Fetch all branches
           git fetch origin
           
+          # Get the commit message that triggered this workflow
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
           # Store the current beta version if it exists
           BETA_VERSION=""
           if git show-ref --quiet refs/remotes/origin/beta; then
@@ -52,7 +55,9 @@ jobs:
           if [ ! -z "$BETA_VERSION" ]; then
             sed -i "s|<version>.*</version>|<version>${BETA_VERSION}</version>|" appinfo/info.xml
             git add appinfo/info.xml
-            git commit -m "Restore beta version to ${BETA_VERSION}"
+            git commit -m "${COMMIT_MSG}
+            
+            Restored beta version to ${BETA_VERSION}"
           fi
           
           # Push to beta branch using SSH with force
