@@ -33,17 +33,13 @@ jobs:
           
           # Check if beta branch exists
           if git show-ref --quiet refs/remotes/origin/beta; then
-            # If exists, checkout beta and reset to development
+            # If exists, checkout beta
             git checkout beta
-            git reset --hard origin/beta  # First get latest beta state
-            git reset --soft ${{ github.sha }}  # Then stage changes from the triggering commit
+            git reset --hard origin/development  # Reset to latest development state
           else
-            # If doesn't exist, create from current development state
-            git checkout -b beta ${{ github.sha }}
+            # If doesn't exist, create from development
+            git checkout -b beta origin/development
           fi
-          
-          # Create commit with development changes
-          git commit -m "Update beta with latest development changes" || true
           
           # Push to beta branch using SSH with force
           git push -f origin beta
