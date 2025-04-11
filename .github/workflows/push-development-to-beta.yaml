@@ -45,5 +45,5 @@ jobs:
           # Create commit with development changes
           git commit -m "Update beta with latest development changes" || true
           
-          # Push to beta branch using SSH
-          git push origin beta
+          # Push to beta branch using SSH with force
+          git push -f origin beta
