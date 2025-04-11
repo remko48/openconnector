@@ -1,3 +1,9 @@
+# Version: 0.1.80
+
+* [#8](https://github.com/remko48/openconnector/pull/8): test
+* [#9](https://github.com/remko48/openconnector/pull/9): Updated multiple workflows
+
+
 # Changelog
 
 ## [Unreleased]
