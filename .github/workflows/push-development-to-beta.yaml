@@ -1,0 +1,48 @@
+name: Sync to Beta Branch
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  sync-to-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.BETA_DEPLOY_KEY }}
+
+      - name: Configure Git SSH
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git remote set-url origin git@github.com:${{ github.repository }}.git
+
+      - name: Update beta branch
+        run: |
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if beta branch exists
+          if git show-ref --quiet refs/remotes/origin/beta; then
+            # If exists, checkout beta and reset to development
+            git checkout beta
+            git reset --hard origin/beta  # First get latest beta state
+            git reset --soft origin/development  # Then stage development changes
+          else
+            # If doesn't exist, create from development
+            git checkout -b beta origin/development
+          fi
+          
+          # Create commit with development changes
+          git commit -m "Update beta with latest development changes" || true
+          
+          # Push to beta branch using SSH
+          git push origin beta
